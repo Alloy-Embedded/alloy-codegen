@@ -538,9 +538,7 @@ def build_nxp_canonical_ir(
         patch_ids=patch_ids,
     )
     peripheral_patches = _peripheral_patch_map(patch)
-    discovered_peripherals = {
-        _canonical_peripheral_name(p.name) for p in raw.peripherals
-    }
+    discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw.peripherals}
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -579,17 +577,13 @@ def build_nxp_canonical_ir(
                 name=i.name,
                 line=i.line,
                 peripheral=(
-                    None
-                    if i.peripheral is None
-                    else _canonical_peripheral_name(i.peripheral)
+                    None if i.peripheral is None else _canonical_peripheral_name(i.peripheral)
                 ),
                 provenance=svd_provenance,
             )
             for i in raw.interrupts
         ),
-        dma_requests=tuple(
-            _dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests
-        ),
+        dma_requests=tuple(_dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests),
         provenance=sdk_provenance,
     )
 
@@ -605,9 +599,7 @@ def _build_nxp_device_ir(
 
     patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
     upstream = nxp_upstream_name(device_name)
-    svd_path = resolve_nxp_svd_path(
-        execution_context, device_name, vendor=vendor, family=family
-    )
+    svd_path = resolve_nxp_svd_path(execution_context, device_name, vendor=vendor, family=family)
     iomuxc_path = resolve_iomuxc_header_path(
         execution_context, device_name, vendor=vendor, family=family
     )

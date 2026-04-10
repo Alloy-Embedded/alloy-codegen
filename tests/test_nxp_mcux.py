@@ -42,8 +42,7 @@ def test_fetch_nxp_records_device_svd_and_header_paths(
     upstream = device_name.upper()  # e.g. "MIMXRT1062"
 
     assert any(
-        s.source_id == "nxp-mcux-soc-svd"
-        and s.upstream_path == f"{upstream}/{upstream}.xml"
+        s.source_id == "nxp-mcux-soc-svd" and s.upstream_path == f"{upstream}/{upstream}.xml"
         for s in sources
     )
     assert any(
@@ -305,9 +304,8 @@ def test_gate_n3_no_critical_validation_failures(
     report = result.payload.report
 
     failed = [r for r in report.results if not r.passed and r.severity == "error"]
-    assert not failed, (
-        f"{device_name}: {len(failed)} critical validation failure(s): "
-        + ", ".join(r.rule_id for r in failed)
+    assert not failed, f"{device_name}: {len(failed)} critical validation failure(s): " + ", ".join(
+        r.rule_id for r in failed
     )
 
 
@@ -367,8 +365,9 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "kRccMap" in rcc_map.content
     assert "CCM_CCGR" in rcc_map.content  # NXP CCM gate signals appear in the map
 
-    gpio_headers = [a for p, a in artifacts.items()
-                    if p.startswith(f"{family_dir}/generated/peripherals/")]
+    gpio_headers = [
+        a for p, a in artifacts.items() if p.startswith(f"{family_dir}/generated/peripherals/")
+    ]
     for gpio_art in gpio_headers:
         assert "kPeripheral" in gpio_art.content
         assert "CCM_CCGR" in gpio_art.content  # CCM gate for every GPIO peripheral

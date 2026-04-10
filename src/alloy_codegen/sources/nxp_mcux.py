@@ -37,9 +37,7 @@ IOMUXC_DEFINE_PATTERN = re.compile(
 # Known pad group prefixes for i.MX RT 1060 series.
 # Format: IOMUXC_<PAD_NAME>_<SIGNAL_NAME>
 # PAD_NAME examples: GPIO_EMC_00, GPIO_AD_B0_15, GPIO_B0_04, GPIO_SD_B1_10
-NXP_PAD_PATTERN = re.compile(
-    r"^(GPIO_(?:EMC|AD_B[01]|B[01]|SD_B[01])_\d{2})_(.+)$"
-)
+NXP_PAD_PATTERN = re.compile(r"^(GPIO_(?:EMC|AD_B[01]|B[01]|SD_B[01])_\d{2})_(.+)$")
 
 # Extract the trailing numeric index from a pad name.
 PAD_NUMBER_PATTERN = re.compile(r"_(\d+)$")
@@ -49,9 +47,9 @@ PAD_NUMBER_PATTERN = re.compile(r"_(\d+)$")
 class NxpIomuxcEntry:
     """One parsed IOMUXC mux option from an NXP SDK fsl_iomuxc.h header."""
 
-    pad_name: str    # e.g. "GPIO_EMC_00"
+    pad_name: str  # e.g. "GPIO_EMC_00"
     signal_name: str  # e.g. "LPSPI1_SCK"
-    mux_mode: int    # 0–7, maps to AF number in canonical IR
+    mux_mode: int  # 0–7, maps to AF number in canonical IR
 
 
 def _upstream_name(device_name: str) -> str:
@@ -114,9 +112,7 @@ def resolve_svd_path(
     upstream = _upstream_name(device_name)
     candidate = svd_root / upstream / f"{upstream}.xml"
     if not candidate.exists():
-        raise StageExecutionError(
-            f"NXP SVD file not found for '{device_name}': {candidate}"
-        )
+        raise StageExecutionError(f"NXP SVD file not found for '{device_name}': {candidate}")
     return candidate
 
 
@@ -134,9 +130,7 @@ def resolve_iomuxc_header_path(
     return candidate
 
 
-def fetch_records(
-    context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     """Resolve upstream NXP MCUXpresso source records for the requested scope."""
     validated_scope = scope.validate_supported()
     vendor = validated_scope.resolved_vendor()
@@ -150,9 +144,7 @@ def fetch_records(
     for device_name in validated_scope.resolved_device_names():
         upstream = _upstream_name(device_name)
         svd_path = resolve_svd_path(context, device_name, vendor=vendor, family=family)
-        iomuxc_path = resolve_iomuxc_header_path(
-            context, device_name, vendor=vendor, family=family
-        )
+        iomuxc_path = resolve_iomuxc_header_path(context, device_name, vendor=vendor, family=family)
         records.append(
             {
                 "source_id": SVD_SOURCE_ID,
