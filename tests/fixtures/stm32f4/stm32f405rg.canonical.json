@@ -271,6 +271,20 @@
         "source_path": "STM32F405.svd"
       },
       "selector": null
+    },
+    {
+      "kind": "root",
+      "node_id": "clock-root",
+      "parent": null,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "selector": null
     }
   ],
   "connection_candidates": [
@@ -485,7 +499,7 @@
   ],
   "dma_controllers": [
     {
-      "channel_count": null,
+      "channel_count": 2,
       "controller": "DMA2",
       "provenance": {
         "patch_ids": [
@@ -495,7 +509,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
       },
-      "version": null
+      "version": "bdma_f4_v1_0"
     }
   ],
   "dma_requests": [

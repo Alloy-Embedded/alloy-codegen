@@ -347,6 +347,20 @@
         "source_path": "MIMXRT1064/MIMXRT1064.xml"
       },
       "selector": null
+    },
+    {
+      "kind": "root",
+      "node_id": "clock-root",
+      "parent": null,
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "selector": null
     }
   ],
   "connection_candidates": [

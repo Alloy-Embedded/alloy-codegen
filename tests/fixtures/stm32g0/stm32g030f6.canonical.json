@@ -239,6 +239,20 @@
         "source_path": "STM32G030.svd"
       },
       "selector": null
+    },
+    {
+      "kind": "root",
+      "node_id": "clock-root",
+      "parent": null,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g030f6-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G030F6Px.xml"
+      },
+      "selector": null
     }
   ],
   "connection_candidates": [
@@ -457,7 +471,7 @@
   ],
   "dma_controllers": [
     {
-      "channel_count": null,
+      "channel_count": 2,
       "controller": "DMA1",
       "provenance": {
         "patch_ids": [
@@ -467,7 +481,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32g0/devices/stm32g030f6.json"
       },
-      "version": null
+      "version": "bdma_v1_0"
     }
   ],
   "dma_requests": [

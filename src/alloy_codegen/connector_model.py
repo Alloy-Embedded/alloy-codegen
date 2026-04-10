@@ -740,7 +740,15 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         if descriptor is not None
     )
 
-    clock_node_map: dict[str, ClockNodeLite] = {}
+    clock_node_map: dict[str, ClockNodeLite] = {
+        "clock-root": ClockNodeLite(
+            node_id="clock-root",
+            kind="root",
+            parent=None,
+            selector=None,
+            provenance=device.provenance,
+        )
+    }
     clock_gate_map: dict[str, ClockGateDescriptor] = {}
     reset_map: dict[str, ResetDescriptor] = {}
     binding_map: dict[str, PeripheralClockBinding] = {}
@@ -791,19 +799,14 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 provenance=peripheral.provenance,
             )
 
+    dma_request_lines_by_controller: dict[str, set[str]] = defaultdict(set)
+    dma_controller_provenance: dict[str, object] = {}
     dma_controller_map: dict[str, DmaControllerDescriptor] = {}
     dma_route_map: dict[str, DmaRouteDescriptor] = {}
     dma_conflict_accumulator: dict[str, list[str]] = defaultdict(list)
     for request in device.dma_requests:
-        dma_controller_map.setdefault(
-            request.controller,
-            DmaControllerDescriptor(
-                controller=request.controller,
-                version=None,
-                channel_count=None,
-                provenance=request.provenance,
-            ),
-        )
+        dma_request_lines_by_controller[request.controller].add(request.request_line)
+        dma_controller_provenance.setdefault(request.controller, request.provenance)
         route_id = (
             f"dma-route:{_sanitize(request.controller)}:{_sanitize(request.request_line)}:"
             f"{_sanitize(request.peripheral or 'none')}:{_sanitize(request.signal or 'none')}"
@@ -822,6 +825,15 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             provenance=request.provenance,
         )
         dma_conflict_accumulator[conflict_group_id].append(route_id)
+
+    for controller in sorted(dma_request_lines_by_controller):
+        controller_peripheral = peripheral_map.get(controller)
+        dma_controller_map[controller] = DmaControllerDescriptor(
+            controller=controller,
+            version=None if controller_peripheral is None else controller_peripheral.ip_version,
+            channel_count=len(dma_request_lines_by_controller[controller]),
+            provenance=dma_controller_provenance[controller],
+        )
 
     dma_conflict_groups = tuple(
         DmaConflictGroup(

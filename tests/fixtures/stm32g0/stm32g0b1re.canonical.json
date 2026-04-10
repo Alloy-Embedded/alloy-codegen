@@ -177,6 +177,20 @@
         "source_path": "STM32G0B1.svd"
       },
       "selector": null
+    },
+    {
+      "kind": "root",
+      "node_id": "clock-root",
+      "parent": null,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "selector": null
     }
   ],
   "connection_candidates": [

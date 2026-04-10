@@ -55,12 +55,12 @@
 
 ## Phase E: System descriptor completion
 
-- [ ] E.1 Add interrupt ownership, aliases, and vector-slot descriptors
+- [x] E.1 Add interrupt ownership, aliases, and vector-slot descriptors
 - [x] E.2 Add memory-region descriptors with startup-relevant classification
 - [x] E.3 Add startup copy/zero/vector descriptors separated from startup logic
 - [ ] E.4 Add `ClockGraphLite` descriptors for enable, reset, parent selection, and source choice
 - [ ] E.5 Add complete DMA controller/request/route/conflict descriptors
-- [ ] E.6 Add validators for all system descriptor families
+- [x] E.6 Add validators for all system descriptor families
 
 ### Gate C5: Publishable system descriptors
 - [ ] C5.1 Startup data can be emitted without handwritten device-local tables

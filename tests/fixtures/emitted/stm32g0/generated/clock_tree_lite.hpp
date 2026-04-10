@@ -14,6 +14,7 @@ inline constexpr ClockNodeDescriptor kClockNodes[] = {
   {"stm32g071rb", "clock-node:rcc-ahbenr", "gate-domain", "clock-root", nullptr},
   {"stm32g071rb", "clock-node:rcc-apbenr2", "gate-domain", "clock-root", nullptr},
   {"stm32g071rb", "clock-node:rcc-iopenr", "gate-domain", "clock-root", nullptr},
+  {"stm32g071rb", "clock-root", "root", nullptr, nullptr},
 };
 
 struct ClockSelectorDescriptor {

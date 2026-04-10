@@ -191,6 +191,20 @@
         "source_path": "STM32G071.svd"
       },
       "selector": null
+    },
+    {
+      "kind": "root",
+      "node_id": "clock-root",
+      "parent": null,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "selector": null
     }
   ],
   "connection_candidates": [
@@ -317,7 +331,7 @@
   ],
   "dma_controllers": [
     {
-      "channel_count": null,
+      "channel_count": 2,
       "controller": "DMA1",
       "provenance": {
         "patch_ids": [
@@ -327,7 +341,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
       },
-      "version": null
+      "version": "bdma_v1_0"
     }
   ],
   "dma_requests": [

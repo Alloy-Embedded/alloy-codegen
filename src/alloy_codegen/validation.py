@@ -356,7 +356,12 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     }
     group_ids = {group.group_id for group in device.connection_groups}
     interrupt_names = {interrupt.name for interrupt in device.interrupts}
+    shared_interrupt_groups: dict[str, list[object]] = {}
+    for interrupt in device.interrupts:
+        if interrupt.shared_group is not None:
+            shared_interrupt_groups.setdefault(interrupt.shared_group, []).append(interrupt)
     memory_names = {memory.name for memory in device.memories}
+    clock_node_ids = {node.node_id for node in device.clock_nodes}
     clock_gate_ids = {gate.gate_id for gate in device.clock_gates}
     reset_ids = {reset.reset_id for reset in device.resets}
     selector_ids = {selector.selector_id for selector in device.clock_selectors}
@@ -543,10 +548,28 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         peripheral.ip_version is None or (peripheral.ip_name, peripheral.ip_version) in ip_block_ids
         for peripheral in device.peripherals
     )
+    interrupt_aliases_present = all(interrupt.alias_names for interrupt in device.interrupts)
+    interrupt_aliases_unique = all(
+        len(interrupt.alias_names) == len(set(interrupt.alias_names))
+        for interrupt in device.interrupts
+    )
+    interrupt_shared_groups_consistent = all(
+        len(interrupts) >= 2
+        and all(interrupt.peripheral == interrupts[0].peripheral for interrupt in interrupts)
+        and interrupts[0].peripheral is not None
+        for interrupts in shared_interrupt_groups.values()
+    )
     vector_slots_reference_known_interrupts = all(
         vector_slot.interrupt is None or vector_slot.interrupt in interrupt_names
         for vector_slot in device.vector_slots
     )
+    vector_slot_sequence = [vector_slot.slot for vector_slot in device.vector_slots]
+    vector_slots_unique = len(vector_slot_sequence) == len(set(vector_slot_sequence))
+    interrupts_have_vector_slot = {
+        vector_slot.interrupt
+        for vector_slot in device.vector_slots
+        if vector_slot.interrupt is not None
+    } >= interrupt_names
     vector_slot_numbers = {vector_slot.slot for vector_slot in device.vector_slots}
     system_vector_baseline_present = {0, 1, 2, 3, 11, 14, 15} <= vector_slot_numbers
     memory_regions_carry_startup_roles = any(memory.startup_roles for memory in device.memories)
@@ -605,14 +628,35 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         any(descriptor.kind == required_kind for descriptor in device.startup_descriptors)
         for required_kind in ("vector-table", "initial-stack-pointer")
     )
+    clock_node_parents_known = all(
+        node.parent is None or node.parent in clock_node_ids
+        for node in device.clock_nodes
+    )
+    clock_gates_reference_known_nodes = all(
+        gate.parent_node is None or gate.parent_node in clock_node_ids
+        for gate in device.clock_gates
+    )
+    clock_bound_peripherals_covered = all(
+        peripheral.name in {binding.peripheral for binding in device.peripheral_clock_bindings}
+        for peripheral in device.peripherals
+        if peripheral.rcc_enable_signal is not None or peripheral.rcc_reset_signal is not None
+    )
     clock_bindings_reference_known_descriptors = all(
         (binding.clock_gate_id is None or binding.clock_gate_id in clock_gate_ids)
         and (binding.reset_id is None or binding.reset_id in reset_ids)
         and (binding.selector_id is None or binding.selector_id in selector_ids)
         for binding in device.peripheral_clock_bindings
     )
+    dma_controller_descriptors_complete = all(
+        controller.channel_count is not None and controller.channel_count > 0
+        for controller in device.dma_controllers
+    )
     dma_routes_reference_known_controllers = all(
         route.controller in dma_controller_ids for route in device.dma_routes
+    )
+    dma_routes_reference_known_peripherals = all(
+        route.peripheral is None or route.peripheral in peripheral_names
+        for route in device.dma_routes
     )
     dma_routes_reference_known_conflicts = all(
         route.conflict_group is None or route.conflict_group in dma_conflict_ids
@@ -840,11 +884,49 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             message=f"{device.identity.device} IP block descriptors cover versioned instances.",
         ),
         _rule(
+            rule_id=f"{device.identity.device}-interrupts-carry-aliases",
+            category="semantic",
+            severity="error",
+            passed=interrupt_aliases_present,
+            message=f"{device.identity.device} interrupts carry explicit alias descriptors.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-interrupt-aliases-unique",
+            category="semantic",
+            severity="error",
+            passed=interrupt_aliases_unique,
+            message=f"{device.identity.device} interrupt aliases are unique per interrupt.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-interrupt-shared-groups-consistent",
+            category="semantic",
+            severity="error",
+            passed=interrupt_shared_groups_consistent,
+            message=(
+                f"{device.identity.device} interrupt shared groups describe a real "
+                "multi-interrupt owner."
+            ),
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-vector-slots-reference-known-interrupts",
             category="semantic",
             severity="error",
             passed=vector_slots_reference_known_interrupts,
             message=f"{device.identity.device} vector slots only reference declared interrupts.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-vector-slots-unique",
+            category="semantic",
+            severity="error",
+            passed=vector_slots_unique,
+            message=f"{device.identity.device} vector slot numbers are unique.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-interrupts-have-vector-slot",
+            category="semantic",
+            severity="error",
+            passed=interrupts_have_vector_slot,
+            message=f"{device.identity.device} every interrupt owns an external vector slot.",
         ),
         _rule(
             rule_id=f"{device.identity.device}-vector-slots-include-system-baseline",
@@ -911,11 +993,49 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             ),
         ),
         _rule(
+            rule_id=f"{device.identity.device}-clock-node-parents-known",
+            category="semantic",
+            severity="error",
+            passed=clock_node_parents_known,
+            message=f"{device.identity.device} clock nodes only reference known parents.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-clock-gates-reference-known-nodes",
+            category="semantic",
+            severity="error",
+            passed=clock_gates_reference_known_nodes,
+            message=f"{device.identity.device} clock gates reference known clock nodes.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-clock-bound-peripherals-covered",
+            category="semantic",
+            severity="error",
+            passed=clock_bound_peripherals_covered,
+            message=(
+                f"{device.identity.device} peripherals with enable/reset ownership "
+                "have clock bindings."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-controller-descriptors-complete",
+            category="semantic",
+            severity="error",
+            passed=dma_controller_descriptors_complete,
+            message=f"{device.identity.device} DMA controllers expose non-empty channel counts.",
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-dma-routes-reference-known-controllers",
             category="semantic",
             severity="error",
             passed=dma_routes_reference_known_controllers,
             message=f"{device.identity.device} DMA routes reference known controller descriptors.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-routes-reference-known-peripherals",
+            category="semantic",
+            severity="error",
+            passed=dma_routes_reference_known_peripherals,
+            message=f"{device.identity.device} DMA routes reference known target peripherals.",
         ),
         _rule(
             rule_id=f"{device.identity.device}-dma-routes-reference-known-conflicts",

@@ -28,7 +28,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 50 rule(s).",
+      "message": "gate-c passed with 60 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -70,7 +70,12 @@
         "stm32g071rb-connection-groups-reference-known-packages",
         "stm32g071rb-multi-signal-connection-groups-present",
         "stm32g071rb-ip-blocks-cover-versioned-instances",
+        "stm32g071rb-interrupts-carry-aliases",
+        "stm32g071rb-interrupt-aliases-unique",
+        "stm32g071rb-interrupt-shared-groups-consistent",
         "stm32g071rb-vector-slots-reference-known-interrupts",
+        "stm32g071rb-vector-slots-unique",
+        "stm32g071rb-interrupts-have-vector-slot",
         "stm32g071rb-vector-slots-include-system-baseline",
         "stm32g071rb-memory-regions-carry-startup-roles",
         "stm32g071rb-startup-descriptors-present",
@@ -78,7 +83,12 @@
         "stm32g071rb-startup-descriptors-cover-memory-roles",
         "stm32g071rb-startup-descriptors-include-runtime-baseline",
         "stm32g071rb-clock-bindings-reference-known-descriptors",
+        "stm32g071rb-clock-node-parents-known",
+        "stm32g071rb-clock-gates-reference-known-nodes",
+        "stm32g071rb-clock-bound-peripherals-covered",
+        "stm32g071rb-dma-controller-descriptors-complete",
         "stm32g071rb-dma-routes-reference-known-controllers",
+        "stm32g071rb-dma-routes-reference-known-peripherals",
         "stm32g071rb-dma-routes-reference-known-conflicts",
         "stm32g071rb-dma-conflict-groups-reference-known-routes"
       ]
@@ -425,9 +435,44 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb interrupts carry explicit alias descriptors.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupts-carry-aliases",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb interrupt aliases are unique per interrupt.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupt-aliases-unique",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb interrupt shared groups describe a real multi-interrupt owner.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupt-shared-groups-consistent",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb vector slots only reference declared interrupts.",
       "passed": true,
       "rule_id": "stm32g071rb-vector-slots-reference-known-interrupts",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb vector slot numbers are unique.",
+      "passed": true,
+      "rule_id": "stm32g071rb-vector-slots-unique",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb every interrupt owns an external vector slot.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupts-have-vector-slot",
       "severity": "error"
     },
     {
@@ -481,9 +526,44 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb clock nodes only reference known parents.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-node-parents-known",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb clock gates reference known clock nodes.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-gates-reference-known-nodes",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb peripherals with enable/reset ownership have clock bindings.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-bound-peripherals-covered",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA controllers expose non-empty channel counts.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-controller-descriptors-complete",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb DMA routes reference known controller descriptors.",
       "passed": true,
       "rule_id": "stm32g071rb-dma-routes-reference-known-controllers",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA routes reference known target peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-routes-reference-known-peripherals",
       "severity": "error"
     },
     {

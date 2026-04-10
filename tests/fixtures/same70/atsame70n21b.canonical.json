@@ -7520,6 +7520,20 @@
         "source_path": "same70b/svd/ATSAME70N21B.svd"
       },
       "selector": null
+    },
+    {
+      "kind": "root",
+      "node_id": "clock-root",
+      "parent": null,
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "selector": null
     }
   ],
   "connection_candidates": [
@@ -16883,7 +16897,7 @@
   ],
   "dma_controllers": [
     {
-      "channel_count": null,
+      "channel_count": 46,
       "controller": "XDMAC",
       "provenance": {
         "patch_ids": [
@@ -16893,7 +16907,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "version": null
+      "version": "xdmac_k"
     }
   ],
   "dma_requests": [
