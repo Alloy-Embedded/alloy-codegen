@@ -123,7 +123,7 @@ jobs:
             --source-root tests/fixtures/cmsis-svd-data \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
-            --alloy-root "$GITHUB_WORKSPACE/alloy-devices" \
+            --alloy-root "$GITHUB_WORKSPACE/alloy" \
             --json | tee "$report_path"
           validate_status=${PIPESTATUS[0]}
           set -e
@@ -144,11 +144,11 @@ jobs:
           PY
           test "$validate_status" -eq 0
 
-      - name: Publish bootstrap artifact
+      - name: Publish bootstrap artifact cycle 1
         run: |
           set -o pipefail
           mkdir -p out/publish
-          publish_path="out/publish/${{ matrix.device }}.json"
+          publish_path="out/publish/${{ matrix.device }}-cycle1.json"
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
             --source-root tests/fixtures/cmsis-svd-data \
@@ -168,6 +168,65 @@ jobs:
           assert plan["publication_mode"] == "published", payload
           assert plan["target_artifact_revision"], payload
           assert plan["consumer_verification"]["succeeded"] is True, payload
+          PY
+
+      - name: Publish bootstrap artifact cycle 2 and verify determinism
+        run: |
+          set -o pipefail
+          publish_path_a="out/publish/${{ matrix.device }}-cycle1.json"
+          publish_path_b="out/publish/${{ matrix.device }}-cycle2.json"
+          publication_root="$RUNNER_TEMP/publication/${{ matrix.device }}"
+          artifact_root="$RUNNER_TEMP/artifacts/${{ matrix.device }}"
+          tree_revision_a=$(PYTHONPATH=src python - "$publication_root" <<'PY'
+          import sys
+          from pathlib import Path
+          from alloy_codegen.publication import compute_materialized_tree_revision
+
+          root = Path(sys.argv[1])
+          print(compute_materialized_tree_revision(root))
+          PY
+          )
+          rm -rf "$artifact_root" "$publication_root"
+          python -m alloy_codegen.cli publish \
+            --device "${{ matrix.device }}" \
+            --source-root tests/fixtures/cmsis-svd-data \
+            --artifact-root "$artifact_root" \
+            --publication-root "$publication_root" \
+            --alloy-root "$GITHUB_WORKSPACE/alloy" \
+            --json | tee "$publish_path_b"
+          tree_revision_b=$(PYTHONPATH=src python - "$publication_root" <<'PY'
+          import sys
+          from pathlib import Path
+          from alloy_codegen.publication import compute_materialized_tree_revision
+
+          root = Path(sys.argv[1])
+          print(compute_materialized_tree_revision(root))
+          PY
+          )
+          python - "$publish_path_a" "$publish_path_b" "$tree_revision_a" "$tree_revision_b" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          payload_a = json.loads(Path(sys.argv[1]).read_text())
+          payload_b = json.loads(Path(sys.argv[2]).read_text())
+          tree_revision_a = sys.argv[3]
+          tree_revision_b = sys.argv[4]
+
+          plan_a = payload_a["payload"]
+          plan_b = payload_b["payload"]
+
+          assert payload_b["stage"] == "publish", payload_b
+          assert payload_b["status"] == "completed", payload_b
+          assert plan_b["publication_mode"] == "published", payload_b
+          assert plan_b["consumer_verification"]["succeeded"] is True, payload_b
+          assert plan_a["target_artifact_revision"] == plan_b["target_artifact_revision"]
+          assert plan_a["publication_record"]["content_sha256"] == plan_b["publication_record"]["content_sha256"]
+          assert plan_a["publication_summary"]["content_sha256"] == plan_b["publication_summary"]["content_sha256"]
+          assert tree_revision_a == tree_revision_b
+          assert [artifact["content_sha256"] for artifact in plan_a["published_artifacts"]] == [
+              artifact["content_sha256"] for artifact in plan_b["published_artifacts"]
+          ]
           PY
 
       - name: Upload validation and publication reports

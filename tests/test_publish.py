@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
+from alloy_codegen.publication import compute_materialized_tree_revision
 from alloy_codegen.reporting import ValidationBundle, ValidationGateStatus, ValidationReport
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.common import StageResult
@@ -74,12 +76,24 @@ def test_publish_includes_materialized_summary(
 def test_publish_is_deterministic_for_same_inputs(execution_context: ExecutionContext) -> None:
     scope = PipelineScope(device="stm32g071rb")
     result_a = run(scope, execution_context)
+    publication_revision_a = compute_materialized_tree_revision(execution_context.publication_root)
+    summary_sha_a = result_a.payload.publication_summary.content_sha256
+    record_sha_a = result_a.payload.publication_record.content_sha256
+    published_sha_a = [artifact.content_sha256 for artifact in result_a.payload.published_artifacts]
+
+    shutil.rmtree(execution_context.artifact_root)
+    shutil.rmtree(execution_context.publication_root)
+
     result_b = run(scope, execution_context)
+    publication_revision_b = compute_materialized_tree_revision(execution_context.publication_root)
 
     assert result_a.payload.target_artifact_revision == result_b.payload.target_artifact_revision
-    assert [artifact.content_sha256 for artifact in result_a.payload.published_artifacts] == [
+    assert record_sha_a == result_b.payload.publication_record.content_sha256
+    assert summary_sha_a == result_b.payload.publication_summary.content_sha256
+    assert published_sha_a == [
         artifact.content_sha256 for artifact in result_b.payload.published_artifacts
     ]
+    assert publication_revision_a == publication_revision_b
 
 
 def test_publish_does_not_modify_publication_root_when_validation_fails(

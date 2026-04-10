@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import shutil
 from pathlib import Path
 
@@ -35,6 +36,21 @@ def compute_target_artifact_revision(artifacts: tuple[EmittedArtifact, ...]) -> 
         for artifact in sorted(artifacts, key=lambda item: item.path)
     ]
     return canonical_json_sha256(payload)
+
+
+def compute_materialized_tree_revision(root: Path) -> str:
+    """Compute a deterministic revision for a materialized artifact tree."""
+    if not root.exists():
+        raise StageExecutionError(f"Materialized artifact root does not exist: {root}")
+
+    digest = hashlib.sha256()
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        relative_path = path.relative_to(root).as_posix()
+        payload = path.read_bytes()
+        digest.update(relative_path.encode("utf-8"))
+        digest.update(len(payload).to_bytes(8, byteorder="big"))
+        digest.update(hashlib.sha256(payload).digest())
+    return digest.hexdigest()
 
 
 def emit_publication_record(
