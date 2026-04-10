@@ -105,11 +105,47 @@ def prepare_staging_root(publication_root: Path) -> Path:
     return staging_root
 
 
+def _replace_path(*, source_path: Path, destination_path: Path) -> None:
+    """Replace one destination path with a staged source path."""
+    if destination_path.exists():
+        if destination_path.is_dir():
+            shutil.rmtree(destination_path)
+        else:
+            destination_path.unlink()
+    destination_path.parent.mkdir(parents=True, exist_ok=True)
+    if source_path.is_dir():
+        shutil.copytree(source_path, destination_path)
+    else:
+        shutil.copy2(source_path, destination_path)
+
+
 def promote_staging_root(*, staging_root: Path, publication_root: Path) -> None:
-    """Replace publication_root with the verified staging tree."""
+    """Promote the verified staging tree while preserving git repository metadata."""
     if not staging_root.exists():
         raise StageExecutionError(f"Publication staging root does not exist: {staging_root}")
     publication_root.parent.mkdir(parents=True, exist_ok=True)
-    if publication_root.exists():
-        shutil.rmtree(publication_root)
+    if not publication_root.exists():
+        shutil.move(str(staging_root), str(publication_root))
+        return
+
+    if (publication_root / ".git").exists():
+        staged_st_root = staging_root / "st"
+        if staged_st_root.exists():
+            for child in sorted(staged_st_root.iterdir(), key=lambda item: item.name):
+                _replace_path(
+                    source_path=child,
+                    destination_path=publication_root / "st" / child.name,
+                )
+        for child in sorted(
+            (item for item in staging_root.iterdir() if item.name != "st"),
+            key=lambda item: item.name,
+        ):
+            _replace_path(
+                source_path=child,
+                destination_path=publication_root / child.name,
+            )
+        shutil.rmtree(staging_root)
+        return
+
+    shutil.rmtree(publication_root)
     shutil.move(str(staging_root), str(publication_root))

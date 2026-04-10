@@ -24,6 +24,14 @@ def discover_alloy_root(repo_root: Path) -> Path | None:
     return None
 
 
+def discover_publication_root(repo_root: Path) -> Path | None:
+    """Locate a sibling alloy-devices repository when available."""
+    candidate = repo_root.parent / "alloy-devices"
+    if (candidate / ".git").exists():
+        return candidate.resolve()
+    return None
+
+
 @dataclass(frozen=True, slots=True)
 class ExecutionContext:
     """Filesystem and source resolution context for the pipeline."""
@@ -57,7 +65,10 @@ class ExecutionContext:
             else (repo_root / ".artifacts"),
             publication_root=Path(publication_root).resolve()
             if publication_root
-            else (repo_root / ".published" / "alloy-devices"),
+            else (
+                discover_publication_root(repo_root)
+                or (repo_root / ".published" / "alloy-devices")
+            ),
             alloy_root=Path(alloy_root).resolve()
             if alloy_root
             else discover_alloy_root(repo_root),

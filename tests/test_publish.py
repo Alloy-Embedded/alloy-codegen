@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
@@ -177,3 +178,61 @@ def test_publish_does_not_modify_publication_root_when_consumer_verification_fai
     assert result.payload.publication_record is None
     assert result.payload.publication_summary is None
     assert not execution_context.publication_root.exists()
+
+
+def test_publish_preserves_git_checkout_metadata_and_unrelated_files(
+    execution_context: ExecutionContext,
+    tmp_path: Path,
+) -> None:
+    publication_checkout = tmp_path / "alloy-devices"
+    publication_checkout.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["git", "init", "--initial-branch=main", str(publication_checkout)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    readme_path = publication_checkout / "README.md"
+    readme_path.write_text("# alloy-devices\n", encoding="utf-8")
+    subprocess.run(
+        ["git", "-C", str(publication_checkout), "config", "user.name", "Alloy CI"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(publication_checkout), "config", "user.email", "ci@example.com"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(publication_checkout), "add", "README.md"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(publication_checkout), "commit", "-m", "docs: bootstrap repo"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    context = execution_context.with_overrides(publication_root=str(publication_checkout))
+    result = run(PipelineScope(family="stm32g0"), context)
+
+    status = subprocess.run(
+        ["git", "-C", str(publication_checkout), "status", "--short"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.status == "completed"
+    assert (publication_checkout / ".git").exists()
+    assert readme_path.read_text(encoding="utf-8") == "# alloy-devices\n"
+    assert (publication_checkout / "st" / "stm32g0" / "artifact-manifest.json").exists()
+    assert (publication_checkout / "st" / "stm32g0" / "stm32g030f6" / "register_map.hpp").exists()
+    assert "README.md" not in status.stdout
+    assert "?? st/" in status.stdout or "A  st/" in status.stdout

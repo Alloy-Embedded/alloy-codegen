@@ -25,7 +25,9 @@ for the local machine that executed the pipeline.
 ## Publication Root
 
 The publication root is controlled by `ExecutionContext.publication_root` or
-`--publication-root`. It models the checked-out `alloy-devices` repository.
+`--publication-root`. When a sibling `../alloy-devices` git checkout exists,
+`ExecutionContext.default()` prefers it automatically. The publication root models the
+checked-out `alloy-devices` repository.
 
 For the bootstrap family, successful publication writes:
 
@@ -45,6 +47,8 @@ For the bootstrap family, successful publication writes:
 - Published artifacts are written only when validation passes for the requested scope.
 - Published artifacts are staged and verified against an Alloy smoke consumer before
   promotion to the final publication root.
+- When the publication root is a git checkout, promotion preserves `.git` and unrelated
+  repository files while replacing only the managed published artifact subtrees.
 - The smoke consumer source lives in
   `tests/codegen/published_artifact_contract_smoke.cpp` inside `alloy-codegen`, but it is
   compiled against the checked-out Alloy headers and the staged/published generated
