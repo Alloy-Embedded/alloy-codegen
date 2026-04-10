@@ -77,6 +77,7 @@ class PeripheralInstance:
 
     name: str
     ip_name: str
+    ip_version: str | None
     instance: int
     base_address: int
     rcc_enable_signal: str | None

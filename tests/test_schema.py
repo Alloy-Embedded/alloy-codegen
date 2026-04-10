@@ -29,7 +29,7 @@ def test_canonical_ir_schema_is_present_and_named() -> None:
 def test_ir_schema_version_constant_is_pinned() -> None:
     # IR_SCHEMA_VERSION must not change without a schema file rename; pinning it
     # here means any bump requires updating this test deliberately.
-    assert IR_SCHEMA_VERSION == "1.0.0"
+    assert IR_SCHEMA_VERSION == "1.1.0"
 
 
 def test_ir_schema_file_name_encodes_major_version() -> None:

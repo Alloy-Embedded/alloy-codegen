@@ -103,6 +103,24 @@ def resolve_mcu_path(context: ExecutionContext, device_name: str) -> Path:
     return mcu_path
 
 
+def parse_ip_version_table(mcu_path: Path) -> dict[str, str]:
+    """Return a mapping of peripheral instance name → vendor IP version string.
+
+    Reads the ``<IP InstanceName="..." Version="..."/>`` elements from the MCU
+    XML.  Only entries that carry both attributes are included.  The result is
+    keyed by the *instance* name (e.g. ``"USART1"``) so the normalizer can look
+    up the version by canonical peripheral name.
+    """
+    mcu_root = ET.parse(mcu_path).getroot()
+    table: dict[str, str] = {}
+    for ip_node in mcu_root.findall("st:IP", XML_NAMESPACE):
+        instance_name = ip_node.get("InstanceName")
+        version = ip_node.get("Version")
+        if instance_name and version:
+            table[instance_name] = version
+    return table
+
+
 def _parse_gpio_modes_file_name(mcu_root: ET.Element) -> str:
     for ip_node in mcu_root.findall("st:IP", XML_NAMESPACE):
         if ip_node.get("Name") != "GPIO":

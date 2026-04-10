@@ -62,6 +62,7 @@ def test_validation_fails_gate_c_when_referenced_peripheral_lacks_rcc_enable(
         PeripheralInstance(
             name=peripheral.name,
             ip_name=peripheral.ip_name,
+            ip_version=peripheral.ip_version,
             instance=peripheral.instance,
             base_address=peripheral.base_address,
             rcc_enable_signal=None if peripheral.name == "USART1" else peripheral.rcc_enable_signal,

@@ -5,9 +5,9 @@
     "pipeline_name": "alloy-codegen",
     "target_repository": "alloy-devices"
   },
-  "canonical_ir_sha256": "fc8a204fb03e04ae988716c11f0e1bccdc47c2e4b869e3bb4c90ffb59992a2a1",
+  "canonical_ir_sha256": "4750c253c8d3eedb8ca8e45f8f3a44ff5bbdc0814095700a21e92ba03a66ca69",
   "generator_version": "0.1.0",
-  "ir_schema_version": "1.0.0",
+  "ir_schema_version": "1.1.0",
   "manifest_kind": "artifact-manifest-v1",
   "patch_manifest": {
     "applied_patches": [
@@ -47,7 +47,7 @@
       {
         "local_path": "mcu/STM32G071R(6-8-B)Tx.xml",
         "origin_url": "https://github.com/STMicroelectronics/STM32_open_pin_data.git",
-        "revision": "content-sha256:9e0704fea5f357048bf17f93be7ed84c69a57094a668035dd3c211eac15502eb",
+        "revision": "content-sha256:11411ce5c28320dbec19eb9aef26687cd2234720d820c51cc0209fc8f5ced367",
         "scope": {
           "device": "stm32g071rb",
           "family": "stm32g0",
@@ -60,7 +60,7 @@
       {
         "local_path": "mcu/IP/GPIO-STM32G07x_gpio_v1_0_Modes.xml",
         "origin_url": "https://github.com/STMicroelectronics/STM32_open_pin_data.git",
-        "revision": "content-sha256:9e0704fea5f357048bf17f93be7ed84c69a57094a668035dd3c211eac15502eb",
+        "revision": "content-sha256:11411ce5c28320dbec19eb9aef26687cd2234720d820c51cc0209fc8f5ced367",
         "scope": {
           "device": "stm32g071rb",
           "family": "stm32g0",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 BOOTSTRAP_VENDOR = "st"
 BOOTSTRAP_FAMILY = "stm32g0"
-IR_SCHEMA_VERSION = "1.0.0"
+IR_SCHEMA_VERSION = "1.1.0"
 PIPELINE_NAME = "alloy-codegen"
 PUBLICATION_TARGET_REPOSITORY = "alloy-devices"
 ARTIFACT_LAYOUT_VERSION = "alloy-devices-v1"

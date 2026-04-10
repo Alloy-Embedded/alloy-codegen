@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "identity": {
     "vendor": "st",
     "family": "stm32g0",
@@ -262,6 +262,7 @@
     {
       "name": "GPIOA",
       "ip_name": "gpio",
+      "ip_version": "STM32G07x_gpio_v1_0",
       "instance": 0,
       "base_address": 1342177280,
       "rcc_enable_signal": "RCC_IOPENR.GPIOAEN",
@@ -278,6 +279,7 @@
     {
       "name": "GPIOB",
       "ip_name": "gpio",
+      "ip_version": "STM32G07x_gpio_v1_0",
       "instance": 1,
       "base_address": 1342178304,
       "rcc_enable_signal": "RCC_IOPENR.GPIOBEN",
@@ -294,6 +296,7 @@
     {
       "name": "RCC",
       "ip_name": "rcc",
+      "ip_version": "rcc_g0_v1_0",
       "instance": 0,
       "base_address": 1073876992,
       "rcc_enable_signal": null,
@@ -310,6 +313,7 @@
     {
       "name": "DMA1",
       "ip_name": "dma",
+      "ip_version": "bdma_v1_0",
       "instance": 1,
       "base_address": 1073872896,
       "rcc_enable_signal": "RCC_AHBENR.DMA1EN",
@@ -326,6 +330,7 @@
     {
       "name": "DMAMUX1",
       "ip_name": "dmamux",
+      "ip_version": "dmamux_v1_0",
       "instance": 1,
       "base_address": 1073874944,
       "rcc_enable_signal": "RCC_AHBENR.DMAMUX1EN",
@@ -342,6 +347,7 @@
     {
       "name": "USART1",
       "ip_name": "usart",
+      "ip_version": "usart_v3_1",
       "instance": 1,
       "base_address": 1073821696,
       "rcc_enable_signal": "RCC_APBENR2.USART1EN",

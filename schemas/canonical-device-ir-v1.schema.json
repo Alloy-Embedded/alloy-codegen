@@ -131,6 +131,7 @@
         "required": [
           "name",
           "ip_name",
+          "ip_version",
           "instance",
           "base_address",
           "rcc_enable_signal",
@@ -140,6 +141,7 @@
         "properties": {
           "name": { "type": "string" },
           "ip_name": { "type": "string" },
+          "ip_version": { "type": ["string", "null"] },
           "instance": { "type": "integer" },
           "base_address": { "type": "integer" },
           "rcc_enable_signal": { "type": ["string", "null"] },

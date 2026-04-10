@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Mcu Package="LQFP64" RefName="STM32G071R(6-8-B)Tx" xmlns="http://dummy.com">
     <Core>ARM Cortex-M0+</Core>
-    <IP InstanceName="GPIO" Name="GPIO" Version="STM32G07x_gpio_v1_0"/>
+    <IP InstanceName="DMA1"    Name="DMA"    Version="bdma_v1_0"/>
+    <IP InstanceName="DMAMUX1" Name="DMAMUX" Version="dmamux_v1_0"/>
+    <IP InstanceName="GPIOA"   Name="GPIO"   Version="STM32G07x_gpio_v1_0"/>
+    <IP InstanceName="GPIOB"   Name="GPIO"   Version="STM32G07x_gpio_v1_0"/>
+    <IP InstanceName="RCC"     Name="RCC"    Version="rcc_g0_v1_0"/>
+    <IP InstanceName="USART1"  Name="USART"  Version="usart_v3_1"/>
+    <IP InstanceName="USART2"  Name="USART"  Version="usart_v3_1"/>
     <Pin Name="PA0" Position="17" Type="I/O">
         <Signal Name="USART2_CTS"/>
         <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
