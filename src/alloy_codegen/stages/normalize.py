@@ -455,10 +455,13 @@ def _peripheral_to_ir(
     provenance: Provenance,
 ) -> PeripheralInstance:
     ip_name, instance = _infer_ip_metadata(peripheral_name)
+    effective_ip_version = ip_version
+    if effective_ip_version is None and patch_metadata is not None:
+        effective_ip_version = patch_metadata.ip_version
     return PeripheralInstance(
         name=peripheral_name,
         ip_name=ip_name,
-        ip_version=ip_version,
+        ip_version=effective_ip_version,
         instance=instance,
         base_address=base_address,
         rcc_enable_signal=None if patch_metadata is None else patch_metadata.rcc_enable_signal,

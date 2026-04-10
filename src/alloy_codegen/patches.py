@@ -48,6 +48,7 @@ class PeripheralPatch:
     name: str
     rcc_enable_signal: str | None
     rcc_reset_signal: str | None
+    ip_version: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -350,6 +351,9 @@ def _parse_peripheral_patch(payload: dict[str, object]) -> PeripheralPatch:
             if payload.get("rcc_reset_signal") is not None
             else None
         ),
+        ip_version=(
+            str(payload["ip_version"]) if payload.get("ip_version") is not None else None
+        ),
     )
 
 
@@ -524,6 +528,9 @@ def _resolve_peripheral_patch(
             str(item["rcc_reset_signal"])
             if item.get("rcc_reset_signal") is not None
             else base.rcc_reset_signal
+        ),
+        ip_version=(
+            str(item["ip_version"]) if item.get("ip_version") is not None else base.ip_version
         ),
     )
 

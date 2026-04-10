@@ -402,6 +402,19 @@ def test_emit_nxp_imxrt1060_artifact_content(
         assert "CCM_CCGR" in gpio_art.content  # CCM gate for every GPIO peripheral
 
 
+def test_emit_nxp_imxrt1060_reports_publishable_descriptor_coverage(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    result = run_emit(PipelineScope(vendor="nxp", family="imxrt1060"), nxp_execution_context)
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    coverage = json.loads(artifacts["nxp/imxrt1060/reports/coverage.json"].content)
+
+    assert coverage["all_devices_publishable"] is True
+    assert coverage["devices"]
+    assert all(device["domains"]["ip-blocks"] is True for device in coverage["devices"])
+    assert all(device["domains"]["dma"] is True for device in coverage["devices"])
+
+
 def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     nxp_execution_context: ExecutionContext,
     fixture_nxp_sources_root: Path,

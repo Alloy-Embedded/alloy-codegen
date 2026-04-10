@@ -442,6 +442,7 @@ def parse_peripheral_patches(atdf_path: Path) -> tuple[PeripheralPatch, ...]:
                     name=canonical_name,
                     rcc_enable_signal=None if clock_id is None else f"PMC.PID{clock_id}",
                     rcc_reset_signal=None,
+                    ip_version=None,
                 ),
             )
     return tuple(sorted(peripherals.values(), key=lambda peripheral: peripheral.name))

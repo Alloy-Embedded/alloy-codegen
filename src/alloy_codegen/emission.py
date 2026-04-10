@@ -416,6 +416,17 @@ def _device_system_descriptor_payload(device: CanonicalDeviceIR) -> dict[str, ob
 
 
 def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
+    dma_domain_applicable = (
+        bool(device.dma_controllers)
+        or bool(device.dma_requests)
+        or bool(device.dma_routes)
+        or any(
+            token in value.lower()
+            for peripheral in device.peripherals
+            for value in (peripheral.name, peripheral.ip_name)
+            for token in ("dma", "dmamux", "edma")
+        )
+    )
     domain_status = {
         "connectors": bool(device.signal_endpoints and device.connection_candidates),
         "ip-blocks": bool(device.ip_blocks),
@@ -425,7 +436,7 @@ def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
         "memory": bool(device.memories),
         "startup": bool(device.startup_descriptors),
         "clock-reset": bool(device.clock_nodes and device.peripheral_clock_bindings),
-        "dma": bool(device.dma_controllers and device.dma_routes),
+        "dma": (not dma_domain_applicable) or bool(device.dma_controllers and device.dma_routes),
     }
     return {
         "device": device.identity.device,

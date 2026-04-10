@@ -40,3 +40,16 @@ def test_foundational_families_emit_publishability_reports(
         assert coverage_payload["devices"]
         assert all("domains" in device for device in coverage_payload["devices"])
         assert all("counts" in device for device in coverage_payload["devices"])
+
+
+def test_stm32g0_publishability_report_keeps_dma_gap_explicit(
+    execution_context: ExecutionContext,
+) -> None:
+    result = run_emit(PipelineScope(vendor="st", family="stm32g0"), execution_context)
+    artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
+    coverage_payload = json.loads(artifacts["st/stm32g0/reports/coverage.json"].content)
+    device_map = {device["device"]: device for device in coverage_payload["devices"]}
+
+    assert coverage_payload["all_devices_publishable"] is False
+    assert device_map["stm32g0b1re"]["publishable"] is False
+    assert device_map["stm32g0b1re"]["domains"]["dma"] is False

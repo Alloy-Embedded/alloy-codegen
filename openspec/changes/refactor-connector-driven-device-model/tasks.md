@@ -92,22 +92,22 @@
 - [x] G.4 Add smoke-consumer coverage for the new generated descriptor families
 
 ### Gate C7: Clean codegen/runtime boundary
-- [ ] C7.1 `alloy-codegen` emits facts and route data only
-- [ ] C7.2 `alloy` is the only layer that owns runtime connection behavior and resource ownership
+- [x] C7.1 `alloy-codegen` emits facts and route data only
+- [x] C7.2 `alloy` is the only layer that owns runtime connection behavior and resource ownership
 
 ## Phase H: Foundational family migration
 
-- [ ] H.1 Migrate `st/stm32g0` to the connector-driven contract
-- [ ] H.2 Migrate `microchip/same70` to the same contract
-- [ ] H.3 Migrate `st/stm32f4` to the same contract
-- [ ] H.4 Complete `nxp/imxrt1060` on the same contract instead of the bootstrap model
+- [x] H.1 Migrate `st/stm32g0` to the connector-driven contract
+- [x] H.2 Migrate `microchip/same70` to the same contract
+- [x] H.3 Migrate `st/stm32f4` to the same contract
+- [x] H.4 Complete `nxp/imxrt1060` on the same contract instead of the bootstrap model
 - [x] H.5 Add family publishability reports showing descriptor completeness across all four
       foundational families
 
 ### Gate C8: Foundational multi-vendor proof
-- [ ] C8.1 ST, Microchip, and NXP all publish families using the same connector-driven descriptor
+- [x] C8.1 ST, Microchip, and NXP all publish families using the same connector-driven descriptor
       contract
-- [ ] C8.2 No foundational family requires vendor-specific emitter exceptions at publish time
+- [x] C8.2 No foundational family requires vendor-specific emitter exceptions at publish time
 - [ ] C8.3 Vendor 4 remains blocked until `C8.1` and `C8.2` are closed
 
 ## Phase I: Legacy cleanup
