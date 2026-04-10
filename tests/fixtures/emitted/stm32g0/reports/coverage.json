@@ -1,0 +1,52 @@
+{
+  "all_devices_publishable": true,
+  "devices": [
+    {
+      "counts": {
+        "capabilities": 4,
+        "clock_gates": 5,
+        "clock_nodes": 7,
+        "clock_selectors": 1,
+        "connection_candidates": 2,
+        "connection_groups": 1,
+        "dma_conflict_groups": 0,
+        "dma_controllers": 1,
+        "dma_routes": 2,
+        "interrupts": 4,
+        "ip_blocks": 5,
+        "memories": 2,
+        "package_pads": 6,
+        "packages": 1,
+        "peripheral_clock_bindings": 5,
+        "peripherals": 6,
+        "pin_constraints": 0,
+        "pins": 6,
+        "resets": 5,
+        "route_operations": 12,
+        "route_requirements": 15,
+        "signal_endpoints": 8,
+        "startup_descriptors": 6,
+        "vector_slots": 20
+      },
+      "device": "stm32g071rb",
+      "domains": {
+        "capabilities": true,
+        "clock-reset": true,
+        "connectors": true,
+        "dma": true,
+        "interrupt": true,
+        "ip-blocks": true,
+        "memory": true,
+        "package": true,
+        "startup": true
+      },
+      "package": "lqfp64",
+      "publishable": true
+    }
+  ],
+  "draft_system_descriptor_domains": [],
+  "family": "stm32g0",
+  "report_id": "bootstrap-validation-v1",
+  "schema_version": "1.1.0",
+  "vendor": "st"
+}

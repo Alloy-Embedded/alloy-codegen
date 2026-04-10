@@ -16,6 +16,7 @@ from alloy_codegen.emission import (
     emit_clock_tree_lite_header,
     emit_connector_tables_header,
     emit_connectors_metadata,
+    emit_coverage_report,
     emit_device_metadata,
     emit_dma_map_header,
     emit_family_connectivity,
@@ -36,6 +37,7 @@ from alloy_codegen.emission import (
     emit_startup_vectors_source,
     emit_system_descriptors_metadata,
     emit_validation_report,
+    emit_validation_summary,
     materialize_artifacts,
 )
 from alloy_codegen.manifests import ArtifactManifest
@@ -75,6 +77,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     artifacts: list[EmittedArtifact] = [
         emit_artifact_manifest(family_dir=family_dir, artifact_manifest=artifact_manifest),
         emit_validation_report(family_dir=family_dir, report=validation_report),
+        emit_validation_summary(
+            family_dir=family_dir,
+            devices=devices,
+            report=validation_report,
+        ),
+        emit_coverage_report(
+            family_dir=family_dir,
+            devices=devices,
+            report=validation_report,
+        ),
         emit_family_index(family_dir=family_dir, devices=devices),
         emit_family_connectivity(family_dir=family_dir, devices=devices),
         emit_ip_blocks_metadata(family_dir=family_dir, devices=devices),

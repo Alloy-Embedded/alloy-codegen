@@ -101,7 +101,7 @@
 - [ ] H.2 Migrate `microchip/same70` to the same contract
 - [ ] H.3 Migrate `st/stm32f4` to the same contract
 - [ ] H.4 Complete `nxp/imxrt1060` on the same contract instead of the bootstrap model
-- [ ] H.5 Add family publishability reports showing descriptor completeness across all four
+- [x] H.5 Add family publishability reports showing descriptor completeness across all four
       foundational families
 
 ### Gate C8: Foundational multi-vendor proof

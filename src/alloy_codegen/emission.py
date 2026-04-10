@@ -415,6 +415,52 @@ def _device_system_descriptor_payload(device: CanonicalDeviceIR) -> dict[str, ob
     }
 
 
+def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
+    domain_status = {
+        "connectors": bool(device.signal_endpoints and device.connection_candidates),
+        "ip-blocks": bool(device.ip_blocks),
+        "capabilities": bool(device.capabilities),
+        "package": bool(device.packages and device.package_pads),
+        "interrupt": bool(device.interrupts and device.vector_slots),
+        "memory": bool(device.memories),
+        "startup": bool(device.startup_descriptors),
+        "clock-reset": bool(device.clock_nodes and device.peripheral_clock_bindings),
+        "dma": bool(device.dma_controllers and device.dma_routes),
+    }
+    return {
+        "device": device.identity.device,
+        "package": device.identity.package,
+        "domains": domain_status,
+        "counts": {
+            "pins": len(device.pins),
+            "peripherals": len(device.peripherals),
+            "signal_endpoints": len(device.signal_endpoints),
+            "route_requirements": len(device.route_requirements),
+            "route_operations": len(device.route_operations),
+            "connection_candidates": len(device.connection_candidates),
+            "connection_groups": len(device.connection_groups),
+            "ip_blocks": len(device.ip_blocks),
+            "capabilities": len(device.capabilities),
+            "packages": len(device.packages),
+            "package_pads": len(device.package_pads),
+            "pin_constraints": len(device.pin_constraints),
+            "interrupts": len(device.interrupts),
+            "vector_slots": len(device.vector_slots),
+            "memories": len(device.memories),
+            "startup_descriptors": len(device.startup_descriptors),
+            "clock_nodes": len(device.clock_nodes),
+            "clock_selectors": len(device.clock_selectors),
+            "clock_gates": len(device.clock_gates),
+            "resets": len(device.resets),
+            "peripheral_clock_bindings": len(device.peripheral_clock_bindings),
+            "dma_controllers": len(device.dma_controllers),
+            "dma_routes": len(device.dma_routes),
+            "dma_conflict_groups": len(device.dma_conflict_groups),
+        },
+        "publishable": all(domain_status.values()),
+    }
+
+
 def emit_artifact_manifest(
     *,
     family_dir: str,
@@ -440,6 +486,72 @@ def emit_validation_report(*, family_dir: str, report: ValidationReport) -> Emit
         path=_family_report_path(family_dir, "validation-report.json"),
         artifact_kind="validation-report",
         payload=report.to_dict(),
+    )
+
+
+def emit_validation_summary(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+    report: ValidationReport,
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("Validation summary emission requires at least one device.")
+    first_device = devices[0]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "report_id": report.report_id,
+        "is_passing": report.is_passing,
+        "draft_system_descriptor_domains": list(report.draft_system_descriptor_domains),
+        "gates": to_primitive(report.gates),
+        "system_descriptor_domains": to_primitive(report.system_descriptor_domains),
+        "device_count": len(devices),
+        "devices": [
+            {
+                "device": device.identity.device,
+                "package": device.identity.package,
+                "publishable": _device_descriptor_coverage(device)["publishable"],
+            }
+            for device in sorted(devices, key=lambda item: item.identity.device)
+        ],
+    }
+    return _text_artifact(
+        path=_family_report_path(family_dir, "validation-summary.json"),
+        artifact_kind="validation-report",
+        payload=payload,
+    )
+
+
+def emit_coverage_report(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+    report: ValidationReport,
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("Coverage report emission requires at least one device.")
+    first_device = devices[0]
+    device_coverage = [
+        _device_descriptor_coverage(device)
+        for device in sorted(devices, key=lambda item: item.identity.device)
+    ]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "report_id": report.report_id,
+        "draft_system_descriptor_domains": list(report.draft_system_descriptor_domains),
+        "all_devices_publishable": all(
+            bool(device_payload["publishable"]) for device_payload in device_coverage
+        ),
+        "devices": device_coverage,
+    }
+    return _text_artifact(
+        path=_family_report_path(family_dir, "coverage.json"),
+        artifact_kind="coverage-report",
+        payload=payload,
     )
 
 

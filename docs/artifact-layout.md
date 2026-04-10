@@ -24,6 +24,8 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `st/<family>/generated/devices/<device>/startup_descriptors.hpp`
 - `st/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `st/<family>/reports/validation-report.json`
+- `st/<family>/reports/validation-summary.json`
+- `st/<family>/reports/coverage.json`
 - `st/<family>/reports/publication-summary.json`
 
 `publication-summary.json` is a local run artifact. It may contain absolute filesystem paths
@@ -54,6 +56,8 @@ For the bootstrap family, successful publication writes:
 - `st/<family>/generated/devices/<device>/startup_descriptors.hpp`
 - `st/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `st/<family>/reports/validation-report.json`
+- `st/<family>/reports/validation-summary.json`
+- `st/<family>/reports/coverage.json`
 - `st/<family>/reports/publication-record.json`
 
 ## Contract Notes

@@ -40,6 +40,8 @@ def test_emit_includes_metadata_artifacts_with_content(
 
     manifest_artifact = artifacts["st/stm32g0/artifact-manifest.json"]
     validation_artifact = artifacts["st/stm32g0/reports/validation-report.json"]
+    validation_summary_artifact = artifacts["st/stm32g0/reports/validation-summary.json"]
+    coverage_artifact = artifacts["st/stm32g0/reports/coverage.json"]
     family_index_artifact = artifacts["st/stm32g0/metadata/family-index.json"]
     connectivity_artifact = artifacts["st/stm32g0/metadata/family-connectivity.json"]
     ip_blocks_artifact = artifacts["st/stm32g0/metadata/ip-blocks.json"]
@@ -80,6 +82,8 @@ def test_emit_includes_metadata_artifacts_with_content(
     for artifact in (
         manifest_artifact,
         validation_artifact,
+        validation_summary_artifact,
+        coverage_artifact,
         family_index_artifact,
         connectivity_artifact,
         ip_blocks_artifact,
@@ -89,7 +93,11 @@ def test_emit_includes_metadata_artifacts_with_content(
         system_descriptors_artifact,
         device_artifact,
     ):
-        assert artifact.artifact_kind in {"canonical-metadata", "validation-report"}
+        assert artifact.artifact_kind in {
+            "canonical-metadata",
+            "validation-report",
+            "coverage-report",
+        }
         assert artifact.content is not None
         assert artifact.content_sha256 is not None
         assert artifact.content_bytes and artifact.content_bytes > 0
@@ -98,6 +106,8 @@ def test_emit_includes_metadata_artifacts_with_content(
 
     manifest_payload = json.loads(manifest_artifact.content)
     validation_payload = json.loads(validation_artifact.content)
+    validation_summary_payload = json.loads(validation_summary_artifact.content)
+    coverage_payload = json.loads(coverage_artifact.content)
     family_index_payload = json.loads(family_index_artifact.content)
     connectivity_payload = json.loads(connectivity_artifact.content)
     ip_blocks_payload = json.loads(ip_blocks_artifact.content)
@@ -121,6 +131,12 @@ def test_emit_includes_metadata_artifacts_with_content(
         domain["domain_id"] == "startup" and domain["passed"] is True
         for domain in validation_payload["system_descriptor_domains"]
     )
+    assert validation_summary_payload["report_id"] == "bootstrap-validation-v1"
+    assert validation_summary_payload["device_count"] == 1
+    assert validation_summary_payload["devices"][0]["device"] == "stm32g071rb"
+    assert coverage_payload["all_devices_publishable"] is True
+    assert coverage_payload["devices"][0]["domains"]["startup"] is True
+    assert coverage_payload["devices"][0]["counts"]["connection_candidates"] > 0
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (

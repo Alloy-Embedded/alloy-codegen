@@ -1,0 +1,52 @@
+{
+  "all_devices_publishable": false,
+  "devices": [
+    {
+      "counts": {
+        "capabilities": 10,
+        "clock_gates": 6,
+        "clock_nodes": 11,
+        "clock_selectors": 3,
+        "connection_candidates": 10,
+        "connection_groups": 5,
+        "dma_conflict_groups": 0,
+        "dma_controllers": 0,
+        "dma_routes": 0,
+        "interrupts": 4,
+        "ip_blocks": 0,
+        "memories": 1,
+        "package_pads": 4,
+        "packages": 1,
+        "peripheral_clock_bindings": 6,
+        "peripherals": 6,
+        "pin_constraints": 0,
+        "pins": 4,
+        "resets": 0,
+        "route_operations": 16,
+        "route_requirements": 21,
+        "signal_endpoints": 8,
+        "startup_descriptors": 4,
+        "vector_slots": 20
+      },
+      "device": "mimxrt1062",
+      "domains": {
+        "capabilities": true,
+        "clock-reset": true,
+        "connectors": true,
+        "dma": false,
+        "interrupt": true,
+        "ip-blocks": false,
+        "memory": true,
+        "package": true,
+        "startup": true
+      },
+      "package": "bga196",
+      "publishable": false
+    }
+  ],
+  "draft_system_descriptor_domains": [],
+  "family": "imxrt1060",
+  "report_id": "bootstrap-validation-v1",
+  "schema_version": "1.1.0",
+  "vendor": "nxp"
+}

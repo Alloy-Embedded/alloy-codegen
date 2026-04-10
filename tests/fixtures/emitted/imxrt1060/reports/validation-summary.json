@@ -1,0 +1,207 @@
+{
+  "device_count": 1,
+  "devices": [
+    {
+      "device": "mimxrt1062",
+      "package": "bga196",
+      "publishable": false
+    }
+  ],
+  "draft_system_descriptor_domains": [],
+  "family": "imxrt1060",
+  "gates": [
+    {
+      "blocking": false,
+      "gate_id": "gate-a",
+      "message": "gate-a passed with 6 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "source-records-cover-targets",
+        "source-records-provide-required-upstreams",
+        "source-records-have-revisions",
+        "source-records-have-local-paths",
+        "patch-target-count-match",
+        "patch-ids-unique"
+      ]
+    },
+    {
+      "blocking": false,
+      "gate_id": "gate-b",
+      "message": "gate-b passed with 3 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-schema-version-present",
+        "mimxrt1062-identity-fields-present",
+        "mimxrt1062-required-sections-present"
+      ]
+    },
+    {
+      "blocking": true,
+      "gate_id": "gate-c",
+      "message": "gate-c passed with 67 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-package-pin-count-covers-known-pins",
+        "mimxrt1062-pin-port-has-gpio-peripheral",
+        "mimxrt1062-pin-signals-present",
+        "mimxrt1062-pin-signals-reference-known-peripherals",
+        "mimxrt1062-alternate-functions-explicit",
+        "mimxrt1062-memory-sizes-positive",
+        "mimxrt1062-peripheral-bases-unique",
+        "mimxrt1062-interrupts-present",
+        "mimxrt1062-interrupts-reference-known-peripherals",
+        "mimxrt1062-referenced-peripherals-have-rcc-enable",
+        "mimxrt1062-dma-controllers-known",
+        "mimxrt1062-dma-request-peripherals-known",
+        "mimxrt1062-dma-routes-unique",
+        "mimxrt1062-package-pads-present",
+        "mimxrt1062-package-pad-ids-unique",
+        "mimxrt1062-package-pads-reference-known-packages",
+        "mimxrt1062-package-variants-have-pad-coverage",
+        "mimxrt1062-package-pad-positions-unique",
+        "mimxrt1062-package-pad-bonding-state-consistent",
+        "mimxrt1062-package-pads-reference-known-pins",
+        "mimxrt1062-bonded-pins-have-package-pad",
+        "mimxrt1062-signal-endpoints-present",
+        "mimxrt1062-connection-candidates-present",
+        "mimxrt1062-connection-candidates-reference-known-pins",
+        "mimxrt1062-connection-candidates-reference-known-peripherals",
+        "mimxrt1062-connection-candidates-reference-known-groups",
+        "mimxrt1062-connection-candidates-reference-known-requirements",
+        "mimxrt1062-connection-candidates-carry-package-requirement",
+        "mimxrt1062-connection-candidates-carry-source-requirement",
+        "mimxrt1062-connection-candidates-reference-known-operations",
+        "mimxrt1062-connection-candidates-reference-known-capabilities",
+        "mimxrt1062-capability-descriptors-carry-context",
+        "mimxrt1062-candidate-capabilities-resolve-from-descriptors",
+        "mimxrt1062-connection-groups-reference-known-candidates",
+        "mimxrt1062-connection-groups-match-selected-package",
+        "mimxrt1062-connection-groups-have-satisfiable-signals",
+        "mimxrt1062-connection-groups-reference-known-packages",
+        "mimxrt1062-multi-signal-connection-groups-present",
+        "mimxrt1062-ip-blocks-cover-versioned-instances",
+        "mimxrt1062-interrupts-carry-aliases",
+        "mimxrt1062-interrupt-aliases-unique",
+        "mimxrt1062-interrupt-shared-groups-consistent",
+        "mimxrt1062-vector-slots-reference-known-interrupts",
+        "mimxrt1062-vector-slots-unique",
+        "mimxrt1062-interrupts-have-vector-slot",
+        "mimxrt1062-vector-slots-include-system-baseline",
+        "mimxrt1062-memory-regions-carry-startup-roles",
+        "mimxrt1062-startup-descriptors-present",
+        "mimxrt1062-startup-descriptors-reference-known-memories",
+        "mimxrt1062-startup-descriptors-cover-memory-roles",
+        "mimxrt1062-startup-descriptors-include-runtime-baseline",
+        "mimxrt1062-startup-descriptors-emit-without-handwritten-tables",
+        "mimxrt1062-clock-bindings-reference-known-descriptors",
+        "mimxrt1062-clock-node-parents-known",
+        "mimxrt1062-clock-graph-reaches-root",
+        "mimxrt1062-clock-selectors-structured",
+        "mimxrt1062-clock-gates-reference-known-nodes",
+        "mimxrt1062-clock-bound-peripherals-covered",
+        "mimxrt1062-dma-controller-descriptors-complete",
+        "mimxrt1062-dma-controller-request-counts-match",
+        "mimxrt1062-dma-routes-cover-requests",
+        "mimxrt1062-dma-routes-reference-known-controllers",
+        "mimxrt1062-dma-routes-reference-known-peripherals",
+        "mimxrt1062-dma-routes-reference-known-conflicts",
+        "mimxrt1062-dma-conflict-groups-reference-known-routes",
+        "mimxrt1062-dma-conflict-groups-nontrivial",
+        "mimxrt1062-dma-route-conflict-annotations-consistent"
+      ]
+    }
+  ],
+  "is_passing": true,
+  "report_id": "bootstrap-validation-v1",
+  "schema_version": "1.1.0",
+  "system_descriptor_domains": [
+    {
+      "domain_id": "interrupt",
+      "draft": false,
+      "message": "interrupt domain is publishable with 6 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-interrupts-reference-known-peripherals",
+        "mimxrt1062-interrupt-aliases-unique",
+        "mimxrt1062-interrupt-shared-groups-consistent",
+        "mimxrt1062-vector-slots-reference-known-interrupts",
+        "mimxrt1062-vector-slots-unique",
+        "mimxrt1062-interrupts-have-vector-slot"
+      ]
+    },
+    {
+      "domain_id": "memory",
+      "draft": false,
+      "message": "memory domain is publishable with 2 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-memory-sizes-positive",
+        "mimxrt1062-memory-regions-carry-startup-roles"
+      ]
+    },
+    {
+      "domain_id": "startup",
+      "draft": false,
+      "message": "startup domain is publishable with 6 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-vector-slots-include-system-baseline",
+        "mimxrt1062-startup-descriptors-present",
+        "mimxrt1062-startup-descriptors-reference-known-memories",
+        "mimxrt1062-startup-descriptors-cover-memory-roles",
+        "mimxrt1062-startup-descriptors-include-runtime-baseline",
+        "mimxrt1062-startup-descriptors-emit-without-handwritten-tables"
+      ]
+    },
+    {
+      "domain_id": "clock-reset",
+      "draft": false,
+      "message": "clock-reset domain is publishable with 7 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-referenced-peripherals-have-rcc-enable",
+        "mimxrt1062-clock-bindings-reference-known-descriptors",
+        "mimxrt1062-clock-node-parents-known",
+        "mimxrt1062-clock-graph-reaches-root",
+        "mimxrt1062-clock-selectors-structured",
+        "mimxrt1062-clock-gates-reference-known-nodes",
+        "mimxrt1062-clock-bound-peripherals-covered"
+      ]
+    },
+    {
+      "domain_id": "dma",
+      "draft": false,
+      "message": "dma domain is publishable with 11 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-dma-controllers-known",
+        "mimxrt1062-dma-request-peripherals-known",
+        "mimxrt1062-dma-routes-unique",
+        "mimxrt1062-dma-controller-descriptors-complete",
+        "mimxrt1062-dma-routes-cover-requests",
+        "mimxrt1062-dma-routes-reference-known-controllers",
+        "mimxrt1062-dma-routes-reference-known-peripherals",
+        "mimxrt1062-dma-routes-reference-known-conflicts",
+        "mimxrt1062-dma-conflict-groups-reference-known-routes",
+        "mimxrt1062-dma-conflict-groups-nontrivial",
+        "mimxrt1062-dma-route-conflict-annotations-consistent"
+      ]
+    },
+    {
+      "domain_id": "package",
+      "draft": false,
+      "message": "package domain is publishable with 7 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-package-pads-present",
+        "mimxrt1062-package-pad-ids-unique",
+        "mimxrt1062-package-pads-reference-known-packages",
+        "mimxrt1062-package-variants-have-pad-coverage",
+        "mimxrt1062-package-pad-positions-unique",
+        "mimxrt1062-package-pads-reference-known-pins",
+        "mimxrt1062-bonded-pins-have-package-pad"
+      ]
+    }
+  ],
+  "vendor": "nxp"
+}
