@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,6 +14,12 @@ from alloy_codegen.scope import PipelineScope
 
 SVD_SOURCE_ID = "nxp-mcux-soc-svd"
 SDK_SOURCE_ID = "nxp-mcux-sdk"
+
+SVD_REMOTE = "https://github.com/nxp-mcuxpresso/mcux-soc-svd.git"
+SDK_REMOTE = "https://github.com/nxp-mcuxpresso/mcux-sdk.git"
+# Sparse-checkout paths sufficient for all imxrt1060 devices.
+SVD_SPARSE_PATHS = ["MIMXRT1062", "MIMXRT1064"]
+SDK_SPARSE_PATHS = ["devices/MIMXRT1062/drivers", "devices/MIMXRT1064/drivers"]
 
 # Canonical (lower-case Alloy) device name → upstream NXP name.
 DEVICE_UPSTREAM_NAMES: dict[str, str] = {
@@ -72,8 +79,31 @@ def _hash_tree(root: Path) -> str:
     return f"content-sha256:{digest.hexdigest()}"
 
 
+def _clone_sparse(remote: str, dest: Path, sparse_paths: list[str]) -> None:
+    """Clone a remote repository with a sparse checkout of the given paths."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    clone_cmd = [
+        "git",
+        "clone",
+        "--depth",
+        "1",
+        "--filter=blob:none",
+        "--sparse",
+        remote,
+        str(dest),
+    ]
+    sparse_cmd = ["git", "-C", str(dest), "sparse-checkout", "set"] + sparse_paths
+    for command in (clone_cmd, sparse_cmd):
+        completed = subprocess.run(command, capture_output=True, text=True)
+        if completed.returncode != 0:
+            raise StageExecutionError(
+                f"Failed to prepare source with command {' '.join(command)}: "
+                f"{completed.stderr.strip()}"
+            )
+
+
 def ensure_svd_root(context: ExecutionContext, *, vendor: str, family: str) -> Path:
-    """Resolve the nxp-mcux-soc-svd root directory."""
+    """Resolve the nxp-mcux-soc-svd root directory, cloning if needed."""
     configured = context.source_root_for(SVD_SOURCE_ID)
     if configured is not None:
         if not configured.exists():
@@ -81,15 +111,17 @@ def ensure_svd_root(context: ExecutionContext, *, vendor: str, family: str) -> P
                 f"Configured {SVD_SOURCE_ID} override does not exist: {configured}"
             )
         return configured
-    raise StageExecutionError(
-        f"No local source root configured for '{SVD_SOURCE_ID}' ({vendor}/{family}). "
-        f"Set ALLOY_CODEGEN_SOURCE_{SVD_SOURCE_ID.upper().replace('-', '_')}_ROOT "
-        f"or pass --source-root / source override to the CLI."
-    )
+
+    source_root = context.source_cache_dir / "nxp-mcux-soc-svd"
+    if (source_root / SVD_SPARSE_PATHS[0]).exists():
+        return source_root
+
+    _clone_sparse(SVD_REMOTE, source_root, SVD_SPARSE_PATHS)
+    return source_root
 
 
 def ensure_sdk_root(context: ExecutionContext, *, vendor: str, family: str) -> Path:
-    """Resolve the nxp-mcux-sdk root directory."""
+    """Resolve the nxp-mcux-sdk root directory, cloning if needed."""
     configured = context.source_root_for(SDK_SOURCE_ID)
     if configured is not None:
         if not configured.exists():
@@ -97,11 +129,13 @@ def ensure_sdk_root(context: ExecutionContext, *, vendor: str, family: str) -> P
                 f"Configured {SDK_SOURCE_ID} override does not exist: {configured}"
             )
         return configured
-    raise StageExecutionError(
-        f"No local source root configured for '{SDK_SOURCE_ID}' ({vendor}/{family}). "
-        f"Set ALLOY_CODEGEN_SOURCE_{SDK_SOURCE_ID.upper().replace('-', '_')}_ROOT "
-        f"or pass --source-root / source override to the CLI."
-    )
+
+    source_root = context.source_cache_dir / "nxp-mcux-sdk"
+    if (source_root / "devices" / "MIMXRT1062").exists():
+        return source_root
+
+    _clone_sparse(SDK_REMOTE, source_root, SDK_SPARSE_PATHS)
+    return source_root
 
 
 def resolve_svd_path(
