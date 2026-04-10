@@ -72,6 +72,10 @@ def _quoted(value: str | None) -> str:
     return "nullptr" if value is None else json.dumps(value)
 
 
+def _file_component(value: str) -> str:
+    return _identifier(value).strip("_").lower()
+
+
 def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
     packages: dict[str, dict[str, object]] = {}
     for device in devices:
@@ -178,6 +182,64 @@ def _unique_interrupts(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str,
     return [interrupts[key] for key in sorted(interrupts)]
 
 
+def _unique_ip_blocks(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
+    ip_blocks: dict[tuple[str, str], dict[str, object]] = {}
+    for device in devices:
+        for ip_block in device.ip_blocks:
+            key = (ip_block.ip_name, ip_block.ip_version)
+            ip_blocks.setdefault(key, to_primitive(ip_block))
+    return [ip_blocks[key] for key in sorted(ip_blocks)]
+
+
+def _unique_capabilities(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
+    capabilities: dict[str, dict[str, object]] = {}
+    for device in devices:
+        for capability in device.capabilities:
+            capabilities.setdefault(capability.capability_id, to_primitive(capability))
+    return [capabilities[key] for key in sorted(capabilities)]
+
+
+def _unique_signal_endpoints(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
+    endpoints: dict[str, dict[str, object]] = {}
+    for device in devices:
+        for endpoint in device.signal_endpoints:
+            endpoints.setdefault(endpoint.endpoint_id, to_primitive(endpoint))
+    return [endpoints[key] for key in sorted(endpoints)]
+
+
+def _device_connector_payload(device: CanonicalDeviceIR) -> dict[str, object]:
+    return {
+        "device": device.identity.device,
+        "package": device.identity.package,
+        "route_requirements": to_primitive(device.route_requirements),
+        "route_operations": to_primitive(device.route_operations),
+        "connection_candidates": to_primitive(device.connection_candidates),
+        "connection_groups": to_primitive(device.connection_groups),
+    }
+
+
+def _device_system_descriptor_payload(device: CanonicalDeviceIR) -> dict[str, object]:
+    return {
+        "device": device.identity.device,
+        "package": device.identity.package,
+        "packages": to_primitive(device.packages),
+        "package_pads": to_primitive(device.package_pads),
+        "pin_constraints": to_primitive(device.pin_constraints),
+        "memories": to_primitive(device.memories),
+        "interrupts": to_primitive(device.interrupts),
+        "vector_slots": to_primitive(device.vector_slots),
+        "startup_descriptors": to_primitive(device.startup_descriptors),
+        "clock_nodes": to_primitive(device.clock_nodes),
+        "clock_selectors": to_primitive(device.clock_selectors),
+        "clock_gates": to_primitive(device.clock_gates),
+        "resets": to_primitive(device.resets),
+        "peripheral_clock_bindings": to_primitive(device.peripheral_clock_bindings),
+        "dma_controllers": to_primitive(device.dma_controllers),
+        "dma_routes": to_primitive(device.dma_routes),
+        "dma_conflict_groups": to_primitive(device.dma_conflict_groups),
+    }
+
+
 def emit_artifact_manifest(
     *,
     family_dir: str,
@@ -257,6 +319,216 @@ def emit_family_connectivity(
     }
     return _text_artifact(
         path=f"{family_dir}/family-connectivity.json",
+        artifact_kind="canonical-metadata",
+        payload=payload,
+    )
+
+
+def emit_ip_block_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+    ip_name: str,
+    ip_version: str,
+) -> EmittedArtifact:
+    capability_map = {
+        capability.capability_id: capability
+        for device in devices
+        for capability in device.capabilities
+    }
+    ip_block = next(
+        ip_block
+        for device in devices
+        for ip_block in device.ip_blocks
+        if ip_block.ip_name == ip_name and ip_block.ip_version == ip_version
+    )
+    capabilities = [
+        capability_map[capability_id]
+        for capability_id in ip_block.capability_ids
+        if capability_id in capability_map
+    ]
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct IpBlockDescriptor {",
+        "  const char* ip_name;",
+        "  const char* ip_version;",
+        "  const char* peripheral_class;",
+        "  const char* register_profile;",
+        "  const char* signal_roles;",
+        "};",
+        "inline constexpr IpBlockDescriptor kIpBlock = {",
+        f"  {json.dumps(ip_block.ip_name)},",
+        f"  {json.dumps(ip_block.ip_version)},",
+        f"  {json.dumps(ip_block.peripheral_class)},",
+        f"  {_quoted(ip_block.register_profile)},",
+        f"  {json.dumps(','.join(ip_block.signal_roles))},",
+        "};",
+        "",
+        "struct CapabilityDescriptor {",
+        "  const char* capability_id;",
+        "  const char* peripheral_class;",
+        "  const char* name;",
+        "  const char* value;",
+        "};",
+        "inline constexpr CapabilityDescriptor kCapabilities[] = {",
+        *[
+            f"  {{{json.dumps(capability.capability_id)}, "
+            f"{json.dumps(capability.peripheral_class)}, "
+            f"{json.dumps(capability.name)}, {json.dumps(capability.value)}}},"
+            for capability in sorted(capabilities, key=lambda item: item.capability_id)
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block(
+        (_vendor, _family, "generated", "ip"),
+        "\n".join(body_lines),
+    )
+    filename = f"{_file_component(ip_name)}_{_file_component(ip_version)}.hpp"
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/ip/{filename}",
+        content=content,
+    )
+
+
+def emit_ip_blocks_metadata(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("IP block emission requires at least one device.")
+    first_device = devices[0]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "ip_blocks": _unique_ip_blocks(devices),
+        "device_usage": [
+            {
+                "device": device.identity.device,
+                "peripherals": [
+                    {
+                        "name": peripheral.name,
+                        "ip_name": peripheral.ip_name,
+                        "ip_version": peripheral.ip_version,
+                        "base_address": peripheral.base_address,
+                    }
+                    for peripheral in sorted(device.peripherals, key=lambda item: item.name)
+                ],
+            }
+            for device in sorted(devices, key=lambda item: item.identity.device)
+        ],
+    }
+    return _text_artifact(
+        path=f"{family_dir}/metadata/ip-blocks.json",
+        artifact_kind="canonical-metadata",
+        payload=payload,
+    )
+
+
+def emit_capabilities_metadata(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("Capability emission requires at least one device.")
+    first_device = devices[0]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "capabilities": _unique_capabilities(devices),
+    }
+    return _text_artifact(
+        path=f"{family_dir}/metadata/capabilities.json",
+        artifact_kind="canonical-metadata",
+        payload=payload,
+    )
+
+
+def emit_packages_metadata(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("Package emission requires at least one device.")
+    first_device = devices[0]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "packages": _unique_packages(devices),
+        "devices": [
+            {
+                "device": device.identity.device,
+                "package": device.identity.package,
+                "package_pads": to_primitive(device.package_pads),
+                "pin_constraints": to_primitive(device.pin_constraints),
+            }
+            for device in sorted(devices, key=lambda item: item.identity.device)
+        ],
+    }
+    return _text_artifact(
+        path=f"{family_dir}/metadata/packages.json",
+        artifact_kind="canonical-metadata",
+        payload=payload,
+    )
+
+
+def emit_connectors_metadata(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("Connector emission requires at least one device.")
+    first_device = devices[0]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "signal_endpoints": _unique_signal_endpoints(devices),
+        "devices": [
+            _device_connector_payload(device)
+            for device in sorted(devices, key=lambda item: item.identity.device)
+        ],
+    }
+    return _text_artifact(
+        path=f"{family_dir}/metadata/connectors.json",
+        artifact_kind="canonical-metadata",
+        payload=payload,
+    )
+
+
+def emit_system_descriptors_metadata(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    if not devices:
+        raise ValueError("System descriptor emission requires at least one device.")
+    first_device = devices[0]
+    payload = {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "devices": [
+            _device_system_descriptor_payload(device)
+            for device in sorted(devices, key=lambda item: item.identity.device)
+        ],
+    }
+    return _text_artifact(
+        path=f"{family_dir}/metadata/system-descriptors.json",
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -471,6 +743,689 @@ def emit_signal_map_header(
     )
     return _cpp_artifact(
         path=f"{family_dir}/generated/signal_map.hpp",
+        content=content,
+    )
+
+
+def emit_connector_tables_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    _vendor, _family = family_dir.split("/", 1)
+    endpoint_rows = [
+        (
+            device.identity.device,
+            endpoint.endpoint_id,
+            endpoint.peripheral_class,
+            endpoint.signal,
+            endpoint.direction,
+        )
+        for device in devices
+        for endpoint in sorted(device.signal_endpoints, key=lambda item: item.endpoint_id)
+    ]
+    requirement_rows = [
+        (
+            device.identity.device,
+            requirement.requirement_id,
+            requirement.kind,
+            requirement.target,
+            requirement.value,
+        )
+        for device in devices
+        for requirement in sorted(device.route_requirements, key=lambda item: item.requirement_id)
+    ]
+    operation_rows = [
+        (
+            device.identity.device,
+            operation.operation_id,
+            operation.kind,
+            operation.target,
+            operation.value,
+        )
+        for device in devices
+        for operation in sorted(device.route_operations, key=lambda item: item.operation_id)
+    ]
+    candidate_rows = [
+        (
+            device.identity.device,
+            candidate.candidate_id,
+            candidate.pin,
+            candidate.peripheral,
+            candidate.signal,
+            candidate.route_kind,
+            candidate.route_selector,
+            candidate.route_group_id,
+            candidate.requirement_ids,
+            candidate.operation_ids,
+            candidate.capability_ids,
+        )
+        for device in devices
+        for candidate in sorted(device.connection_candidates, key=lambda item: item.candidate_id)
+    ]
+    group_rows = [
+        (
+            device.identity.device,
+            group.group_id,
+            group.peripheral,
+            group.signals,
+            group.candidate_ids,
+            group.package,
+            group.conflict_group,
+        )
+        for device in devices
+        for group in sorted(device.connection_groups, key=lambda item: item.group_id)
+    ]
+
+    body_lines = [
+        "struct SignalEndpointDescriptor {",
+        "  const char* device;",
+        "  const char* endpoint_id;",
+        "  const char* peripheral_class;",
+        "  const char* signal;",
+        "  const char* direction;",
+        "};",
+        "inline constexpr SignalEndpointDescriptor kSignalEndpoints[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(endpoint_id)}, "
+            f"{json.dumps(peripheral_class)}, {json.dumps(signal)}, {_quoted(direction)}}},"
+            for device_name, endpoint_id, peripheral_class, signal, direction in endpoint_rows
+        ],
+        "};",
+        "",
+        "struct RouteRequirementDescriptor {",
+        "  const char* device;",
+        "  const char* requirement_id;",
+        "  const char* kind;",
+        "  const char* target;",
+        "  const char* value;",
+        "};",
+        "inline constexpr RouteRequirementDescriptor kRouteRequirements[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(requirement_id)}, "
+            f"{json.dumps(kind)}, {_quoted(target)}, {_quoted(value)}}},"
+            for device_name, requirement_id, kind, target, value in requirement_rows
+        ],
+        "};",
+        "",
+        "struct RouteOperationDescriptor {",
+        "  const char* device;",
+        "  const char* operation_id;",
+        "  const char* kind;",
+        "  const char* target;",
+        "  const char* value;",
+        "};",
+        "inline constexpr RouteOperationDescriptor kRouteOperations[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(operation_id)}, "
+            f"{json.dumps(kind)}, {json.dumps(target)}, {_quoted(value)}}},"
+            for device_name, operation_id, kind, target, value in operation_rows
+        ],
+        "};",
+        "",
+        "struct ConnectionCandidateDescriptor {",
+        "  const char* device;",
+        "  const char* candidate_id;",
+        "  const char* pin;",
+        "  const char* peripheral;",
+        "  const char* signal;",
+        "  const char* route_kind;",
+        "  const char* route_selector;",
+        "  const char* route_group_id;",
+        "  const char* requirement_ids;",
+        "  const char* operation_ids;",
+        "  const char* capability_ids;",
+        "};",
+        "inline constexpr ConnectionCandidateDescriptor kConnectionCandidates[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(candidate_id)}, {json.dumps(pin)}, "
+            f"{json.dumps(peripheral)}, {json.dumps(signal)}, {json.dumps(route_kind)}, "
+            f"{_quoted(route_selector)}, {_quoted(route_group_id)}, "
+            f"{json.dumps(','.join(requirement_ids))}, {json.dumps(','.join(operation_ids))}, "
+            f"{json.dumps(','.join(capability_ids))}}},"
+            for (
+                device_name,
+                candidate_id,
+                pin,
+                peripheral,
+                signal,
+                route_kind,
+                route_selector,
+                route_group_id,
+                requirement_ids,
+                operation_ids,
+                capability_ids,
+            ) in candidate_rows
+        ],
+        "};",
+        "",
+        "struct ConnectionGroupDescriptor {",
+        "  const char* device;",
+        "  const char* group_id;",
+        "  const char* peripheral;",
+        "  const char* signals;",
+        "  const char* candidate_ids;",
+        "  const char* package_name;",
+        "  const char* conflict_group;",
+        "};",
+        "inline constexpr ConnectionGroupDescriptor kConnectionGroups[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(group_id)}, {json.dumps(peripheral)}, "
+            f"{json.dumps(','.join(signals))}, {json.dumps(','.join(candidate_ids))}, "
+            f"{_quoted(package_name)}, {_quoted(conflict_group)}}},"
+            for (
+                device_name,
+                group_id,
+                peripheral,
+                signals,
+                candidate_ids,
+                package_name,
+                conflict_group,
+            ) in group_rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/connector_tables.hpp",
+        content=content,
+    )
+
+
+def emit_interrupt_map_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    rows: list[tuple[str, str, int, str | None, int | None, str | None]] = []
+    for device in devices:
+        vector_map = {
+            vector_slot.interrupt: vector_slot for vector_slot in device.vector_slots
+            if vector_slot.interrupt is not None
+        }
+        for interrupt in sorted(device.interrupts, key=lambda item: (item.line, item.name)):
+            vector_slot = vector_map.get(interrupt.name)
+            rows.append(
+                (
+                    device.identity.device,
+                    interrupt.name,
+                    interrupt.line,
+                    interrupt.peripheral,
+                    None if vector_slot is None else vector_slot.slot,
+                    None if vector_slot is None else vector_slot.symbol_name,
+                )
+            )
+
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct InterruptDescriptor {",
+        "  const char* device;",
+        "  const char* interrupt_name;",
+        "  int line;",
+        "  const char* peripheral;",
+        "  int vector_slot;",
+        "  const char* symbol_name;",
+        "};",
+        "inline constexpr InterruptDescriptor kInterruptMap[] = {",
+        *[
+            "  {"
+            f"{json.dumps(device_name)}, "
+            f"{json.dumps(interrupt_name)}, "
+            f"{line}, "
+            f"{_quoted(peripheral)}, "
+            f"{-1 if vector_slot is None else vector_slot}, "
+            f"{_quoted(symbol_name)}"
+            "},"
+            for device_name, interrupt_name, line, peripheral, vector_slot, symbol_name in rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/interrupt_map.hpp",
+        content=content,
+    )
+
+
+def emit_memory_map_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    rows = [
+        (
+            device.identity.device,
+            memory.name,
+            memory.kind,
+            memory.base_address,
+            memory.size_bytes,
+            memory.access,
+        )
+        for device in devices
+        for memory in sorted(device.memories, key=lambda item: item.base_address)
+    ]
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct MemoryDescriptor {",
+        "  const char* device;",
+        "  const char* name;",
+        "  const char* kind;",
+        "  std::uintptr_t base_address;",
+        "  std::size_t size_bytes;",
+        "  const char* access;",
+        "};",
+        "inline constexpr MemoryDescriptor kMemoryMap[] = {",
+        *[
+            "  {"
+            f"{json.dumps(device_name)}, "
+            f"{json.dumps(name)}, "
+            f"{json.dumps(kind)}, "
+            f"0x{base_address:08X}u, "
+            f"{size_bytes}u, "
+            f"{json.dumps(access)}"
+            "},"
+            for device_name, name, kind, base_address, size_bytes, access in rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <cstddef>",
+            "#include <cstdint>",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/memory_map.hpp",
+        content=content,
+    )
+
+
+def emit_package_map_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    package_rows = [
+        (device.identity.device, package.name, package.pin_count)
+        for device in devices
+        for package in sorted(device.packages, key=lambda item: item.name)
+    ]
+    pad_rows = [
+        (
+            device.identity.device,
+            package_pad.package,
+            package_pad.pad_id,
+            package_pad.position_label,
+            package_pad.physical_index,
+            package_pad.pad_kind,
+            package_pad.bonded_pin,
+            package_pad.bonding_state,
+        )
+        for device in devices
+        for package_pad in sorted(device.package_pads, key=lambda item: item.pad_id)
+    ]
+    constraint_rows = [
+        (
+            device.identity.device,
+            constraint.pin,
+            constraint.kind,
+            constraint.value,
+        )
+        for device in devices
+        for constraint in sorted(device.pin_constraints, key=lambda item: item.constraint_id)
+    ]
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct PackageDescriptor {",
+        "  const char* device;",
+        "  const char* package_name;",
+        "  int pin_count;",
+        "};",
+        "inline constexpr PackageDescriptor kPackageMap[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(package_name)}, {pin_count}}},"
+            for device_name, package_name, pin_count in package_rows
+        ],
+        "};",
+        "",
+        "struct PackagePadDescriptor {",
+        "  const char* device;",
+        "  const char* package_name;",
+        "  const char* pad_id;",
+        "  const char* position_label;",
+        "  int physical_index;",
+        "  const char* pad_kind;",
+        "  const char* bonded_pin;",
+        "  const char* bonding_state;",
+        "};",
+        "inline constexpr PackagePadDescriptor kPackagePads[] = {",
+        *[
+            "  {"
+            f"{json.dumps(device_name)}, "
+            f"{json.dumps(package_name)}, "
+            f"{json.dumps(pad_id)}, "
+            f"{json.dumps(position_label)}, "
+            f"{-1 if physical_index is None else physical_index}, "
+            f"{json.dumps(pad_kind)}, "
+            f"{_quoted(bonded_pin)}, "
+            f"{json.dumps(bonding_state)}"
+            "},"
+            for (
+                device_name,
+                package_name,
+                pad_id,
+                position_label,
+                physical_index,
+                pad_kind,
+                bonded_pin,
+                bonding_state,
+            ) in pad_rows
+        ],
+        "};",
+        "",
+        "struct PinConstraintDescriptor {",
+        "  const char* device;",
+        "  const char* pin_name;",
+        "  const char* kind;",
+        "  const char* value;",
+        "};",
+        "inline constexpr PinConstraintDescriptor kPinConstraints[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(pin_name)}, "
+            f"{json.dumps(kind)}, {_quoted(value)}}},"
+            for device_name, pin_name, kind, value in constraint_rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/package_map.hpp",
+        content=content,
+    )
+
+
+def emit_clock_tree_lite_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    node_rows = [
+        (
+            device.identity.device,
+            node.node_id,
+            node.kind,
+            node.parent,
+            node.selector,
+        )
+        for device in devices
+        for node in sorted(device.clock_nodes, key=lambda item: item.node_id)
+    ]
+    selector_rows = [
+        (
+            device.identity.device,
+            selector.selector_id,
+            selector.parent_options,
+            selector.register_target,
+        )
+        for device in devices
+        for selector in sorted(device.clock_selectors, key=lambda item: item.selector_id)
+    ]
+    gate_rows = [
+        (
+            device.identity.device,
+            gate.gate_id,
+            gate.peripheral,
+            gate.enable_signal,
+            gate.parent_node,
+        )
+        for device in devices
+        for gate in sorted(device.clock_gates, key=lambda item: item.gate_id)
+    ]
+    reset_rows = [
+        (
+            device.identity.device,
+            reset.reset_id,
+            reset.peripheral,
+            reset.reset_signal,
+            reset.active_level,
+        )
+        for device in devices
+        for reset in sorted(device.resets, key=lambda item: item.reset_id)
+    ]
+    binding_rows = [
+        (
+            device.identity.device,
+            binding.peripheral,
+            binding.clock_gate_id,
+            binding.reset_id,
+            binding.selector_id,
+        )
+        for device in devices
+        for binding in sorted(device.peripheral_clock_bindings, key=lambda item: item.peripheral)
+    ]
+
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct ClockNodeDescriptor {",
+        "  const char* device;",
+        "  const char* node_id;",
+        "  const char* kind;",
+        "  const char* parent;",
+        "  const char* selector;",
+        "};",
+        "inline constexpr ClockNodeDescriptor kClockNodes[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(node_id)}, {json.dumps(kind)}, "
+            f"{_quoted(parent)}, {_quoted(selector)}}},"
+            for device_name, node_id, kind, parent, selector in node_rows
+        ],
+        "};",
+        "",
+        "struct ClockSelectorDescriptor {",
+        "  const char* device;",
+        "  const char* selector_id;",
+        "  const char* parent_options;",
+        "  const char* register_target;",
+        "};",
+        "inline constexpr ClockSelectorDescriptor kClockSelectors[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(selector_id)}, "
+            f"{json.dumps(','.join(parent_options))}, {_quoted(register_target)}}},"
+            for device_name, selector_id, parent_options, register_target in selector_rows
+        ],
+        "};",
+        "",
+        "struct ClockGateDescriptor {",
+        "  const char* device;",
+        "  const char* gate_id;",
+        "  const char* peripheral;",
+        "  const char* enable_signal;",
+        "  const char* parent_node;",
+        "};",
+        "inline constexpr ClockGateDescriptor kClockGates[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(gate_id)}, {_quoted(peripheral)}, "
+            f"{json.dumps(enable_signal)}, {_quoted(parent_node)}}},"
+            for device_name, gate_id, peripheral, enable_signal, parent_node in gate_rows
+        ],
+        "};",
+        "",
+        "struct ResetDescriptor {",
+        "  const char* device;",
+        "  const char* reset_id;",
+        "  const char* peripheral;",
+        "  const char* reset_signal;",
+        "  const char* active_level;",
+        "};",
+        "inline constexpr ResetDescriptor kResets[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(reset_id)}, {_quoted(peripheral)}, "
+            f"{json.dumps(reset_signal)}, {json.dumps(active_level)}}},"
+            for device_name, reset_id, peripheral, reset_signal, active_level in reset_rows
+        ],
+        "};",
+        "",
+        "struct PeripheralClockBindingDescriptor {",
+        "  const char* device;",
+        "  const char* peripheral;",
+        "  const char* clock_gate_id;",
+        "  const char* reset_id;",
+        "  const char* selector_id;",
+        "};",
+        "inline constexpr PeripheralClockBindingDescriptor kPeripheralClockBindings[] = {",
+        *[
+            f"  {{{json.dumps(device_name)}, {json.dumps(peripheral)}, {_quoted(clock_gate_id)}, "
+            f"{_quoted(reset_id)}, {_quoted(selector_id)}}},"
+            for device_name, peripheral, clock_gate_id, reset_id, selector_id in binding_rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/clock_tree_lite.hpp",
+        content=content,
+    )
+
+
+def emit_startup_descriptors_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "struct VectorSlotDescriptor {",
+                "  int slot;",
+                "  const char* symbol_name;",
+                "  const char* interrupt_name;",
+                "  const char* kind;",
+                "};",
+                "inline constexpr VectorSlotDescriptor kVectorSlots[] = {",
+                *[
+                    "  {"
+                    f"{vector_slot.slot}, "
+                    f"{json.dumps(vector_slot.symbol_name)}, "
+                    f"{_quoted(vector_slot.interrupt)}, "
+                    f"{json.dumps(vector_slot.kind)}"
+                    "},"
+                    for vector_slot in sorted(device.vector_slots, key=lambda item: item.slot)
+                ],
+                "};",
+                "",
+                "struct StartupDescriptor {",
+                "  const char* descriptor_id;",
+                "  const char* kind;",
+                "  const char* source_region;",
+                "  const char* target_region;",
+                "  const char* symbol;",
+                "};",
+                "inline constexpr StartupDescriptor kStartupDescriptors[] = {",
+                *[
+                    "  {"
+                    f"{json.dumps(descriptor.descriptor_id)}, "
+                    f"{json.dumps(descriptor.kind)}, "
+                    f"{_quoted(descriptor.source_region)}, "
+                    f"{_quoted(descriptor.target_region)}, "
+                    f"{_quoted(descriptor.symbol)}"
+                    "},"
+                    for descriptor in sorted(
+                        device.startup_descriptors,
+                        key=lambda item: item.descriptor_id,
+                    )
+                ],
+                "};",
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/devices/{device.identity.device}/startup_descriptors.hpp",
+        content=content,
+    )
+
+
+def emit_startup_vectors_source(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "struct StartupVectorDescriptor {",
+                "  int slot;",
+                "  const char* symbol_name;",
+                "};",
+                "inline constexpr StartupVectorDescriptor kStartupVectorTable[] = {",
+                *[
+                    "  {"
+                    f"{vector_slot.slot}, "
+                    f"{json.dumps(vector_slot.symbol_name)}"
+                    "},"
+                    for vector_slot in sorted(device.vector_slots, key=lambda item: item.slot)
+                ],
+                "};",
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "// Generated descriptor-only startup vector unit.",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/devices/{device.identity.device}/startup_vectors.cpp",
         content=content,
     )
 

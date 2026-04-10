@@ -52,6 +52,18 @@ class RawPinDocumentEntry:
 
 
 @dataclass(frozen=True, slots=True)
+class RawPackagePadEntry:
+    """One package-pad entry extracted from upstream pin/package data."""
+
+    pad_id: str
+    position_label: str
+    physical_index: int | None
+    pad_kind: str
+    bonded_pin: str | None
+    bonding_state: str = "bonded"
+
+
+@dataclass(frozen=True, slots=True)
 class RawPinDataDocument:
     """Raw package and pin connectivity extracted from open pin data."""
 
@@ -59,4 +71,5 @@ class RawPinDataDocument:
     package_name: str
     package_pin_count: int | None
     pins: tuple[RawPinDocumentEntry, ...]
+    package_pads: tuple[RawPackagePadEntry, ...]
     gpio_modes_file: str

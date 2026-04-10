@@ -141,6 +141,7 @@ class PackagePad:
     pad_kind: str
     bonded_pin: str | None
     provenance: Provenance
+    bonding_state: str = "bonded"
 
 
 @dataclass(frozen=True, slots=True)

@@ -335,9 +335,20 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/rcc_map.hpp" in artifacts
     assert f"{family_dir}/generated/signal_map.hpp" in artifacts
     assert f"{family_dir}/generated/dma_map.hpp" in artifacts
+    assert f"{family_dir}/generated/connector_tables.hpp" in artifacts
+    assert f"{family_dir}/generated/interrupt_map.hpp" in artifacts
+    assert f"{family_dir}/generated/memory_map.hpp" in artifacts
+    assert f"{family_dir}/generated/package_map.hpp" in artifacts
+    assert f"{family_dir}/generated/clock_tree_lite.hpp" in artifacts
+    assert f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp" in artifacts
+    assert f"{family_dir}/generated/devices/mimxrt1062/startup_vectors.cpp" in artifacts
 
     gpio_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/peripherals/")]
+    ip_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/ip/")]
     assert gpio_headers, "Expected at least one GPIO peripheral header"
+    ip_blocks_payload = json.loads(artifacts[f"{family_dir}/metadata/ip-blocks.json"].content)
+    if ip_blocks_payload["ip_blocks"]:
+        assert ip_headers, "Expected at least one IP block header"
 
 
 def test_emit_nxp_imxrt1060_artifact_content(
@@ -361,9 +372,27 @@ def test_emit_nxp_imxrt1060_artifact_content(
     startup = artifacts[f"{family_dir}/mimxrt1062/startup.cpp"]
     assert "kInterruptTable" in startup.content
 
+    connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
+    assert "kConnectionCandidates" in connector_tables.content
+    assert "iomuxc-mux" in connector_tables.content
+
+    ip_header_paths = sorted(
+        path for path in artifacts if path.startswith(f"{family_dir}/generated/ip/")
+    )
+    if ip_header_paths:
+        ip_header = artifacts[ip_header_paths[0]]
+        assert "kIpBlock" in ip_header.content
+        assert "kCapabilities" in ip_header.content
+
     rcc_map = artifacts[f"{family_dir}/generated/rcc_map.hpp"]
     assert "kRccMap" in rcc_map.content
     assert "CCM_CCGR" in rcc_map.content  # NXP CCM gate signals appear in the map
+
+    startup_descriptors = artifacts[
+        f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp"
+    ]
+    assert "kVectorSlots" in startup_descriptors.content
+    assert "kStartupDescriptors" in startup_descriptors.content
 
     gpio_headers = [
         a for p, a in artifacts.items() if p.startswith(f"{family_dir}/generated/peripherals/")

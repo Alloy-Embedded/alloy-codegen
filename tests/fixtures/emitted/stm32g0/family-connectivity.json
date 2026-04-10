@@ -1,0 +1,399 @@
+{
+  "dma_requests": [
+    {
+      "controller": "DMA1",
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
+      },
+      "request_line": "DMA1_CH1",
+      "signal": "RX"
+    },
+    {
+      "controller": "DMA1",
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
+      },
+      "request_line": "DMA1_CH2",
+      "signal": "TX"
+    }
+  ],
+  "family": "stm32g0",
+  "interrupts": [
+    {
+      "line": 9,
+      "name": "DMA1_Channel1",
+      "peripheral": "DMA1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      }
+    },
+    {
+      "line": 10,
+      "name": "DMA1_Channel2_3",
+      "peripheral": "DMA1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      }
+    },
+    {
+      "line": 4,
+      "name": "RCC_CRS",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      }
+    },
+    {
+      "line": 27,
+      "name": "USART1",
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      }
+    }
+  ],
+  "packages": [
+    {
+      "name": "lqfp64",
+      "pin_count": 64,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      }
+    }
+  ],
+  "peripherals": [
+    {
+      "base_address": 1073872896,
+      "instance": 1,
+      "ip_name": "dma",
+      "ip_version": "bdma_v1_0",
+      "name": "DMA1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_AHBENR.DMA1EN",
+      "rcc_reset_signal": "RCC_AHBRSTR.DMA1RST"
+    },
+    {
+      "base_address": 1073874944,
+      "instance": 1,
+      "ip_name": "dmamux",
+      "ip_version": "dmamux_v1_0",
+      "name": "DMAMUX1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_AHBENR.DMAMUX1EN",
+      "rcc_reset_signal": "RCC_AHBRSTR.DMAMUX1RST"
+    },
+    {
+      "base_address": 1342177280,
+      "instance": 0,
+      "ip_name": "gpio",
+      "ip_version": "STM32G07x_gpio_v1_0",
+      "name": "GPIOA",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_IOPENR.GPIOAEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIOARST"
+    },
+    {
+      "base_address": 1342178304,
+      "instance": 1,
+      "ip_name": "gpio",
+      "ip_version": "STM32G07x_gpio_v1_0",
+      "name": "GPIOB",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_IOPENR.GPIOBEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIOBRST"
+    },
+    {
+      "base_address": 1073876992,
+      "instance": 0,
+      "ip_name": "rcc",
+      "ip_version": "rcc_g0_v1_0",
+      "name": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "base_address": 1073821696,
+      "instance": 1,
+      "ip_name": "usart",
+      "ip_version": "usart_v3_1",
+      "name": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_APBENR2.USART1EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.USART1RST"
+    }
+  ],
+  "pins": [
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
+      "name": "PA0",
+      "number": 0,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "A",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOA",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN0"
+        }
+      ]
+    },
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
+      "name": "PA1",
+      "number": 1,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "A",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOA",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN1"
+        }
+      ]
+    },
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
+      "name": "PA2",
+      "number": 2,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "A",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOA",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN2"
+        }
+      ]
+    },
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
+      "name": "PA3",
+      "number": 3,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "A",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOA",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN3"
+        }
+      ]
+    },
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
+      "name": "PB6",
+      "number": 6,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "B",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOB",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN6"
+        },
+        {
+          "af_number": 0,
+          "function": "usart1_tx",
+          "peripheral": "USART1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "TX"
+        }
+      ]
+    },
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
+      "name": "PB7",
+      "number": 7,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "B",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOB",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN7"
+        },
+        {
+          "af_number": 0,
+          "function": "usart1_rx",
+          "peripheral": "USART1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "RX"
+        }
+      ]
+    }
+  ],
+  "schema_version": "1.1.0",
+  "vendor": "st"
+}

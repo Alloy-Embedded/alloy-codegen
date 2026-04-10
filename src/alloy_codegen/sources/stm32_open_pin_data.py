@@ -13,6 +13,7 @@ from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.patches import load_device_patch
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.raw import (
+    RawPackagePadEntry,
     RawPinAlternateFunction,
     RawPinDataDocument,
     RawPinDocumentEntry,
@@ -190,6 +191,24 @@ def _extract_package_pin_count(package_name: str) -> int | None:
     return int(match.group("count"))
 
 
+def _pad_kind(raw_type: str | None, raw_name: str) -> str:
+    normalized_type = (raw_type or "").strip().lower()
+    normalized_name = raw_name.strip().lower()
+    if normalized_name == "nc" or normalized_name.startswith("nc"):
+        return "nc"
+    if normalized_type in {"i/o", "io"}:
+        return "io"
+    if "power" in normalized_type or normalized_name.startswith("v"):
+        return "power"
+    if "ground" in normalized_type or normalized_name.startswith("gnd"):
+        return "ground"
+    if "reset" in normalized_type or normalized_name in {"nrst", "reset"}:
+        return "reset"
+    if "boot" in normalized_name:
+        return "boot"
+    return normalized_type.replace("/", "-").replace(" ", "-") or "signal"
+
+
 def _parse_af_number(pin_signal: ET.Element) -> int | None:
     for parameter in pin_signal.findall("st:SpecificParameter", XML_NAMESPACE):
         if parameter.get("Name") != "GPIO_AF":
@@ -246,9 +265,34 @@ def parse_raw_pin_data_document(
     package_name = (mcu_root.get("Package") or "").lower()
     pins_by_position: dict[int, RawPinDocumentEntry] = {}
     pins_without_position: list[RawPinDocumentEntry] = []
+    package_pads: list[RawPackagePadEntry] = []
 
     for pin_node in mcu_root.findall("st:Pin", XML_NAMESPACE):
         raw_name = pin_node.get("Name") or ""
+        position_text = pin_node.get("Position")
+        identity = _extract_pin_identity(raw_name)
+        package_pads.append(
+            RawPackagePadEntry(
+                pad_id=position_text or raw_name,
+                position_label=position_text or raw_name,
+                physical_index=(
+                    int(position_text)
+                    if position_text is not None and position_text.isdigit()
+                    else None
+                ),
+                pad_kind=_pad_kind(pin_node.get("Type"), raw_name),
+                bonded_pin=None if identity is None else identity[0],
+                bonding_state=(
+                    "bonded"
+                    if identity is not None
+                    else (
+                        "unbonded"
+                        if _pad_kind(pin_node.get("Type"), raw_name) == "nc"
+                        else "dedicated"
+                    )
+                ),
+            )
+        )
         identity = _extract_pin_identity(raw_name)
         if identity is None:
             continue
@@ -281,7 +325,6 @@ def parse_raw_pin_data_document(
                 )
             ),
         )
-        position_text = pin_node.get("Position")
         if position_text is not None and position_text.isdigit():
             pins_by_position.setdefault(int(position_text), entry)
         else:
@@ -294,6 +337,17 @@ def parse_raw_pin_data_document(
         pins=tuple(
             [pins_by_position[position] for position in sorted(pins_by_position)]
             + sorted(pins_without_position, key=lambda item: (item.port, item.number, item.name))
+        ),
+        package_pads=tuple(
+            sorted(
+                package_pads,
+                key=lambda item: (
+                    item.physical_index is None,
+                    -1 if item.physical_index is None else item.physical_index,
+                    item.position_label,
+                    item.pad_id,
+                ),
+            )
         ),
         gpio_modes_file=gpio_modes_path.name,
     )

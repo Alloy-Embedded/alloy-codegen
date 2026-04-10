@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.reporting import ValidationBundle
 from alloy_codegen.scope import PipelineScope
@@ -14,11 +15,14 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     """Run the bootstrap validate stage."""
     execution_context = context or ExecutionContext.default()
     normalize_result = run_normalize(scope, execution_context)
+    descriptor_devices = tuple(
+        ensure_connector_descriptors(device) for device in normalize_result.payload.devices
+    )
     report = build_validation_report(
         scope=normalize_result.scope,
         source_manifest=normalize_result.payload.source_manifest,
         patch_manifest=normalize_result.payload.patch_manifest,
-        devices=normalize_result.payload.devices,
+        devices=descriptor_devices,
     )
     return StageResult(
         stage="validate",
@@ -27,7 +31,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         payload=ValidationBundle(
             source_manifest=normalize_result.payload.source_manifest,
             patch_manifest=normalize_result.payload.patch_manifest,
-            devices=normalize_result.payload.devices,
+            devices=descriptor_devices,
             report=report,
         ),
     )

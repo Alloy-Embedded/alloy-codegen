@@ -40,6 +40,9 @@ IOMUXC_DEFINE_PATTERN = re.compile(
     + rf"({_VALUE_TOKEN}),\s*"
     + rf"({_VALUE_TOKEN})"
 )
+IOMUXC_PAD_COMMENT_PATTERN = re.compile(
+    r"/\*\s*(GPIO_[A-Z0-9_]+)\s*,\s*pad number\s*(\d+)\s*\*/"
+)
 
 # Known pad group prefixes for i.MX RT 1060 series.
 # Format: IOMUXC_<PAD_NAME>_<SIGNAL_NAME>
@@ -57,6 +60,7 @@ class NxpIomuxcEntry:
     pad_name: str  # e.g. "GPIO_EMC_00"
     signal_name: str  # e.g. "LPSPI1_SCK"
     mux_mode: int  # 0–7, maps to AF number in canonical IR
+    pad_number: int | None = None
 
 
 def _upstream_name(device_name: str) -> str:
@@ -213,6 +217,13 @@ def _parse_int_value(raw: str) -> int:
 def parse_iomuxc_entries(header_path: Path) -> tuple[NxpIomuxcEntry, ...]:
     """Parse fsl_iomuxc.h macros into structured NxpIomuxcEntry tuples."""
     content = header_path.read_text(encoding="utf-8")
+    pad_numbers: dict[str, int] = {}
+    for line in content.splitlines():
+        comment_match = IOMUXC_PAD_COMMENT_PATTERN.search(line)
+        if comment_match is None:
+            continue
+        pad_numbers.setdefault(comment_match.group(1), int(comment_match.group(2)))
+
     entries: list[NxpIomuxcEntry] = []
     for match in IOMUXC_DEFINE_PATTERN.finditer(content):
         macro_name = match.group(1)
@@ -224,6 +235,11 @@ def parse_iomuxc_entries(header_path: Path) -> tuple[NxpIomuxcEntry, ...]:
         signal_name = pad_match.group(2)
         mux_mode = _parse_int_value(mux_mode_raw)
         entries.append(
-            NxpIomuxcEntry(pad_name=pad_name, signal_name=signal_name, mux_mode=mux_mode)
+            NxpIomuxcEntry(
+                pad_name=pad_name,
+                signal_name=signal_name,
+                mux_mode=mux_mode,
+                pad_number=pad_numbers.get(pad_name),
+            )
         )
     return tuple(entries)

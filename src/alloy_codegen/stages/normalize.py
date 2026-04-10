@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 
 from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, IR_SCHEMA_VERSION
+from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
@@ -14,7 +15,9 @@ from alloy_codegen.ir.model import (
     InterruptDefinition,
     MemoryRegion,
     PackageDefinition,
+    PackagePad,
     PeripheralInstance,
+    PinConstraint,
     PinDefinition,
     PinSignal,
     Provenance,
@@ -71,7 +74,7 @@ from alloy_codegen.sources.nxp_mcux import (
 from alloy_codegen.sources.nxp_mcux import (
     resolve_svd_path as resolve_nxp_svd_path,
 )
-from alloy_codegen.sources.raw import RawDeviceDocument, RawPinDataDocument
+from alloy_codegen.sources.raw import RawDeviceDocument, RawPackagePadEntry, RawPinDataDocument
 from alloy_codegen.sources.stm32_open_pin_data import (
     parse_ip_version_table,
     parse_raw_pin_data_document,
@@ -93,6 +96,9 @@ RAW_PERIPHERAL_ALIASES = {
     "PIOD": "GPIOD",
     "PIOE": "GPIOE",
 }
+ANALOG_IP_NAMES = {"adc", "dac", "comp", "opamp"}
+DEBUG_SIGNAL_TOKENS = ("SWD", "JTAG", "TRACE", "TMS", "TCK", "TDI", "TDO", "SWCLK", "SWDIO")
+WAKEUP_SIGNAL_TOKENS = ("WKUP",)
 
 
 def _canonical_peripheral_name(peripheral_name: str) -> str:
@@ -142,6 +148,169 @@ def _pin_to_ir(pin: PinPatch, provenance: Provenance) -> PinDefinition:
         signals=tuple(_pin_signal_to_ir(signal, provenance) for signal in pin.signals),
         provenance=provenance,
     )
+
+
+def _package_pad_to_ir(
+    raw_pad: RawPackagePadEntry,
+    *,
+    package_name: str,
+    provenance: Provenance,
+) -> PackagePad:
+    return PackagePad(
+        pad_id=raw_pad.pad_id,
+        package=package_name,
+        position_label=raw_pad.position_label,
+        physical_index=raw_pad.physical_index,
+        pad_kind=raw_pad.pad_kind,
+        bonded_pin=raw_pad.bonded_pin,
+        provenance=provenance,
+        bonding_state=raw_pad.bonding_state,
+    )
+
+
+def _add_pin_constraint(
+    *,
+    constraints: list[PinConstraint],
+    seen_ids: set[str],
+    pin: str,
+    kind: str,
+    value: str | None,
+    provenance: Provenance,
+) -> None:
+    constraint_id = f"constraint:{pin}:{kind}"
+    if constraint_id in seen_ids:
+        return
+    seen_ids.add(constraint_id)
+    constraints.append(
+        PinConstraint(
+            constraint_id=constraint_id,
+            pin=pin,
+            kind=kind,
+            value=value,
+            provenance=provenance,
+        )
+    )
+
+
+def _signal_tokens(pin: PinDefinition) -> tuple[str, ...]:
+    return tuple(
+        signal.signal.upper()
+        for signal in pin.signals
+        if signal.signal is not None and signal.peripheral is not None
+    )
+
+
+def _non_gpio_signals(pin: PinDefinition) -> tuple[PinSignal, ...]:
+    return tuple(
+        signal
+        for signal in pin.signals
+        if signal.peripheral is not None and not signal.peripheral.startswith("GPIO")
+    )
+
+
+def _is_debug_signal(signal_name: str) -> bool:
+    normalized = signal_name.upper()
+    return any(token in normalized for token in DEBUG_SIGNAL_TOKENS)
+
+
+def _is_wakeup_signal(signal_name: str) -> bool:
+    normalized = signal_name.upper()
+    return any(token in normalized for token in WAKEUP_SIGNAL_TOKENS)
+
+
+def _derive_pin_constraints(
+    *,
+    package_pads: tuple[PackagePad, ...],
+    pins: tuple[PinDefinition, ...],
+    provenance: Provenance,
+) -> tuple[PinConstraint, ...]:
+    pin_names = {pin.name for pin in pins}
+    constraints: list[PinConstraint] = []
+    seen_ids: set[str] = set()
+
+    for pad in package_pads:
+        if pad.bonded_pin is None or pad.bonded_pin not in pin_names:
+            continue
+        if pad.pad_kind == "io":
+            continue
+        _add_pin_constraint(
+            constraints=constraints,
+            seen_ids=seen_ids,
+            pin=pad.bonded_pin,
+            kind=pad.pad_kind,
+            value=pad.position_label,
+            provenance=provenance,
+        )
+
+    for pin in pins:
+        non_gpio_signals = _non_gpio_signals(pin)
+        if not non_gpio_signals:
+            continue
+
+        analog_signals = tuple(
+            signal
+            for signal in non_gpio_signals
+            if signal.peripheral is not None
+            and _infer_ip_metadata(signal.peripheral)[0] in ANALOG_IP_NAMES
+        )
+        if analog_signals:
+            analog_kind = (
+                "analog-only" if len(analog_signals) == len(non_gpio_signals) else "analog-capable"
+            )
+            _add_pin_constraint(
+                constraints=constraints,
+                seen_ids=seen_ids,
+                pin=pin.name,
+                kind=analog_kind,
+                value=",".join(
+                    sorted(
+                        {
+                            signal.signal.lower()
+                            for signal in analog_signals
+                            if signal.signal is not None
+                        }
+                    )
+                )
+                or None,
+                provenance=provenance,
+            )
+
+        signal_tokens = _signal_tokens(pin)
+        wakeup_signals = tuple(
+            sorted({signal for signal in signal_tokens if _is_wakeup_signal(signal)})
+        )
+        if wakeup_signals:
+            _add_pin_constraint(
+                constraints=constraints,
+                seen_ids=seen_ids,
+                pin=pin.name,
+                kind="wakeup-capable",
+                value=",".join(wakeup_signals),
+                provenance=provenance,
+            )
+
+        debug_signals = tuple(
+            sorted({signal for signal in signal_tokens if _is_debug_signal(signal)})
+        )
+        if debug_signals:
+            debug_kind = (
+                "debug-only"
+                if all(
+                    signal.signal is not None and _is_debug_signal(signal.signal)
+                    for signal in non_gpio_signals
+                )
+                else "debug-shared"
+            )
+            _add_pin_constraint(
+                constraints=constraints,
+                seen_ids=seen_ids,
+                pin=pin.name,
+                kind=debug_kind,
+                value=",".join(debug_signals),
+                provenance=provenance,
+            )
+
+    return tuple(sorted(constraints, key=lambda item: item.constraint_id))
 
 
 def _peripheral_patch_map(
@@ -312,6 +481,20 @@ def build_canonical_ir(
         for peripheral in patch.peripherals
         if peripheral.rcc_enable_signal is not None
     }
+    pins = _build_pins_from_source(
+        pin_data=pin_data,
+        discovered_peripherals=discovered_peripherals,
+        allowed_signal_peripherals=allowed_signal_peripherals,
+        provenance=pin_provenance,
+    )
+    package_pads = tuple(
+        _package_pad_to_ir(
+            raw_pad,
+            package_name=patch.package,
+            provenance=pin_provenance,
+        )
+        for raw_pad in pin_data.package_pads
+    )
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -330,12 +513,7 @@ def build_canonical_ir(
                 provenance=pin_provenance,
             ),
         ),
-        pins=_build_pins_from_source(
-            pin_data=pin_data,
-            discovered_peripherals=discovered_peripherals,
-            allowed_signal_peripherals=allowed_signal_peripherals,
-            provenance=pin_provenance,
-        ),
+        pins=pins,
         peripherals=tuple(
             _peripheral_to_ir(
                 peripheral_name=_canonical_peripheral_name(peripheral.name),
@@ -365,6 +543,12 @@ def build_canonical_ir(
             _dma_request_to_ir(request, patch_provenance) for request in patch.dma_requests
         ),
         provenance=pin_provenance,
+        package_pads=package_pads,
+        pin_constraints=_derive_pin_constraints(
+            package_pads=package_pads,
+            pins=pins,
+            provenance=pin_provenance,
+        ),
     )
 
 
@@ -504,6 +688,31 @@ def _build_nxp_pins(
     return tuple(pins)
 
 
+def _build_nxp_package_pads(
+    *,
+    iomuxc_entries: tuple[NxpIomuxcEntry, ...],
+    package_name: str,
+    provenance: Provenance,
+) -> tuple[PackagePad, ...]:
+    pad_rows: dict[str, NxpIomuxcEntry] = {}
+    for entry in iomuxc_entries:
+        pad_rows.setdefault(entry.pad_name, entry)
+
+    return tuple(
+        PackagePad(
+            pad_id=pad_name,
+            package=package_name,
+            position_label=pad_name,
+            physical_index=None,
+            pad_kind="io",
+            bonded_pin=pad_name,
+            provenance=provenance,
+            bonding_state="bonded",
+        )
+        for pad_name, _entry in sorted(pad_rows.items())
+    )
+
+
 def build_nxp_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -539,6 +748,16 @@ def build_nxp_canonical_ir(
     )
     peripheral_patches = _peripheral_patch_map(patch)
     discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw.peripherals}
+    pins = _build_nxp_pins(
+        iomuxc_entries=iomuxc_entries,
+        discovered_peripherals=discovered_peripherals,
+        provenance=sdk_provenance,
+    )
+    package_pads = _build_nxp_package_pads(
+        iomuxc_entries=iomuxc_entries,
+        package_name=patch.package,
+        provenance=sdk_provenance,
+    )
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -557,11 +776,7 @@ def build_nxp_canonical_ir(
                 provenance=sdk_provenance,
             ),
         ),
-        pins=_build_nxp_pins(
-            iomuxc_entries=iomuxc_entries,
-            discovered_peripherals=discovered_peripherals,
-            provenance=sdk_provenance,
-        ),
+        pins=pins,
         peripherals=tuple(
             _peripheral_to_ir(
                 peripheral_name=_canonical_peripheral_name(p.name),
@@ -585,6 +800,12 @@ def build_nxp_canonical_ir(
         ),
         dma_requests=tuple(_dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests),
         provenance=sdk_provenance,
+        package_pads=package_pads,
+        pin_constraints=_derive_pin_constraints(
+            package_pads=package_pads,
+            pins=pins,
+            provenance=sdk_provenance,
+        ),
     )
 
 
@@ -662,6 +883,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         payload=NormalizationBundle(
             source_manifest=patch_result.payload.source_manifest,
             patch_manifest=patch_result.payload.patch_manifest,
-            devices=tuple(devices),
+            devices=tuple(ensure_connector_descriptors(device) for device in devices),
         ),
     )

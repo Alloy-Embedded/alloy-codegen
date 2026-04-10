@@ -1,5 +1,5 @@
 from alloy_codegen.context import ExecutionContext
-from alloy_codegen.ir.model import CanonicalDeviceIR, PeripheralInstance, PinDefinition
+from alloy_codegen.ir.model import CanonicalDeviceIR, PackagePad, PeripheralInstance, PinDefinition
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.normalize import run as run_normalize
 from alloy_codegen.stages.validate import run as run_validate
@@ -9,12 +9,79 @@ from alloy_codegen.validation import build_validation_report
 def test_validate_reports_gate_statuses(execution_context: ExecutionContext) -> None:
     result = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
     report = result.payload.report
+    device = result.payload.devices[0]
 
     assert result.status == "completed"
     assert report.report_id == "bootstrap-validation-v1"
     assert report.gate_status("gate-a").passed is True
     assert report.gate_status("gate-b").passed is True
     assert report.gate_status("gate-c").passed is True
+    assert device.connection_candidates
+    assert device.connection_groups
+    assert device.vector_slots
+    assert device.startup_descriptors
+
+
+def test_validation_fails_gate_c_when_route_candidate_references_unknown_requirement(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    candidate = original_device.connection_candidates[0]
+    broken_candidate = type(candidate)(
+        candidate_id=candidate.candidate_id,
+        pin=candidate.pin,
+        peripheral=candidate.peripheral,
+        signal=candidate.signal,
+        route_kind=candidate.route_kind,
+        route_selector=candidate.route_selector,
+        route_group_id=candidate.route_group_id,
+        requirement_ids=("requirement:missing",),
+        operation_ids=candidate.operation_ids,
+        capability_ids=candidate.capability_ids,
+        provenance=candidate.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=(broken_candidate,) + original_device.connection_candidates[1:],
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-connection-candidates-reference-known-requirements" in failing_rules
 
 
 def test_validation_fails_gate_c_when_pin_gpio_mapping_is_invalid(
@@ -93,3 +160,457 @@ def test_validation_fails_gate_c_when_referenced_peripheral_lacks_rcc_enable(
     assert report.gate_status("gate-c").passed is False
     failing_rules = {result.rule_id for result in report.results if not result.passed}
     assert "stm32g071rb-referenced-peripherals-have-rcc-enable" in failing_rules
+
+
+def test_validation_fails_gate_c_when_package_pad_references_unknown_pin(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    bad_pad = PackagePad(
+        pad_id="BADPAD",
+        package=original_device.identity.package,
+        position_label="999",
+        physical_index=999,
+        pad_kind="io",
+        bonded_pin="PZ99",
+        provenance=original_device.provenance,
+    )
+    broken_device = CanonicalDeviceIR(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads + (bad_pad,),
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=original_device.connection_candidates,
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-package-pads-reference-known-pins" in failing_rules
+
+
+def test_validation_fails_gate_c_when_bonded_pin_has_no_package_pad(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    filtered_pads = tuple(
+        pad for pad in original_device.package_pads if pad.bonded_pin != "PA0"
+    )
+    broken_device = CanonicalDeviceIR(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=filtered_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=original_device.connection_candidates,
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-bonded-pins-have-package-pad" in failing_rules
+
+
+def test_validation_fails_gate_c_when_candidate_has_no_package_requirement(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    candidate = original_device.connection_candidates[0]
+    broken_candidate = type(candidate)(
+        candidate_id=candidate.candidate_id,
+        pin=candidate.pin,
+        peripheral=candidate.peripheral,
+        signal=candidate.signal,
+        route_kind=candidate.route_kind,
+        route_selector=candidate.route_selector,
+        route_group_id=candidate.route_group_id,
+        requirement_ids=tuple(
+            requirement_id
+            for requirement_id in candidate.requirement_ids
+            if not requirement_id.startswith("requirement:package:")
+        ),
+        operation_ids=candidate.operation_ids,
+        capability_ids=candidate.capability_ids,
+        provenance=candidate.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=(broken_candidate,) + original_device.connection_candidates[1:],
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-connection-candidates-carry-package-requirement" in failing_rules
+
+
+def test_validation_fails_gate_c_when_candidate_has_no_source_requirement(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    candidate = next(
+        candidate for candidate in original_device.connection_candidates if candidate.route_selector
+    )
+    broken_candidate = type(candidate)(
+        candidate_id=candidate.candidate_id,
+        pin=candidate.pin,
+        peripheral=candidate.peripheral,
+        signal=candidate.signal,
+        route_kind=candidate.route_kind,
+        route_selector=candidate.route_selector,
+        route_group_id=candidate.route_group_id,
+        requirement_ids=tuple(
+            requirement_id
+            for requirement_id in candidate.requirement_ids
+            if not requirement_id.startswith("requirement:source-select:")
+        ),
+        operation_ids=candidate.operation_ids,
+        capability_ids=candidate.capability_ids,
+        provenance=candidate.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=(broken_candidate,) + tuple(
+            item
+            for item in original_device.connection_candidates
+            if item.candidate_id != candidate.candidate_id
+        ),
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-connection-candidates-carry-source-requirement" in failing_rules
+
+
+def test_validation_fails_gate_c_when_group_signals_are_not_satisfiable(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    group = original_device.connection_groups[0]
+    broken_group = type(group)(
+        group_id=group.group_id,
+        peripheral=group.peripheral,
+        signals=group.signals + ("cts",),
+        candidate_ids=group.candidate_ids,
+        package=group.package,
+        conflict_group=group.conflict_group,
+        provenance=group.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=original_device.connection_candidates,
+        connection_groups=(broken_group,) + original_device.connection_groups[1:],
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-connection-groups-have-satisfiable-signals" in failing_rules
+
+
+def test_validation_fails_gate_c_when_group_candidate_lacks_bonded_package_requirement(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    group = next(group for group in original_device.connection_groups if group.candidate_ids)
+    candidate_id = group.candidate_ids[0]
+    candidate = next(
+        candidate
+        for candidate in original_device.connection_candidates
+        if candidate.candidate_id == candidate_id
+    )
+    broken_candidate = type(candidate)(
+        candidate_id=candidate.candidate_id,
+        pin=candidate.pin,
+        peripheral=candidate.peripheral,
+        signal=candidate.signal,
+        route_kind=candidate.route_kind,
+        route_selector=candidate.route_selector,
+        route_group_id=candidate.route_group_id,
+        requirement_ids=tuple(
+            requirement_id
+            for requirement_id in candidate.requirement_ids
+            if not requirement_id.startswith("requirement:bonded-pin:")
+        ),
+        operation_ids=candidate.operation_ids,
+        capability_ids=candidate.capability_ids,
+        provenance=candidate.provenance,
+    )
+    broken_candidates = tuple(
+        broken_candidate if item.candidate_id == candidate_id else item
+        for item in original_device.connection_candidates
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=broken_candidates,
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-connection-groups-match-selected-package" in failing_rules
+
+
+def test_family_scope_reports_multi_signal_groups_for_all_devices(
+    execution_context: ExecutionContext,
+) -> None:
+    result = run_validate(PipelineScope(vendor="st", family="stm32g0"), execution_context)
+    report = result.payload.report
+
+    assert result.status == "completed"
+    family_rule = next(
+        rule
+        for rule in report.results
+        if rule.rule_id == "st-stm32g0-family-devices-expose-multi-signal-groups"
+    )
+    assert family_rule.passed is True
+
+
+def test_validation_fails_gate_c_when_package_pad_bonding_is_inconsistent(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    original_pad = original_device.package_pads[0]
+    broken_pad = PackagePad(
+        pad_id=original_pad.pad_id,
+        package=original_pad.package,
+        position_label=original_pad.position_label,
+        physical_index=original_pad.physical_index,
+        pad_kind=original_pad.pad_kind,
+        bonded_pin=None,
+        provenance=original_pad.provenance,
+        bonding_state="bonded",
+    )
+    broken_device = CanonicalDeviceIR(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=(broken_pad,) + original_device.package_pads[1:],
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=original_device.connection_candidates,
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-package-pad-bonding-state-consistent" in failing_rules

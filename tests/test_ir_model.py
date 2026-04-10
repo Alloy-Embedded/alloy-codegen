@@ -323,6 +323,7 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
     assert payload["ip_blocks"][0]["ip_version"] == "usart_v3_1"
     assert payload["capabilities"][0]["capability_id"] == "uart-fifo"
     assert payload["package_pads"][0]["position_label"] == "42"
+    assert payload["package_pads"][0]["bonding_state"] == "bonded"
     assert payload["pin_constraints"][0]["constraint_id"] == "pa9-debug-conflict"
     assert payload["signal_endpoints"][0]["endpoint_id"] == "uart-tx"
     assert payload["route_requirements"][0]["requirement_id"] == "req-usart1-clock"

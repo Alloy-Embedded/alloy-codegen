@@ -1,0 +1,655 @@
+"""Connector-driven descriptor enrichment over the transitional canonical IR."""
+
+from __future__ import annotations
+
+from collections import defaultdict
+
+from alloy_codegen.ir.model import (
+    CanonicalDeviceIR,
+    CapabilityDescriptor,
+    ClockGateDescriptor,
+    ClockNodeLite,
+    ConnectionCandidate,
+    ConnectionGroup,
+    DmaConflictGroup,
+    DmaControllerDescriptor,
+    DmaRouteDescriptor,
+    IpBlockDefinition,
+    PeripheralClockBinding,
+    ResetDescriptor,
+    RouteOperation,
+    RouteRequirement,
+    SignalEndpoint,
+    StartupDescriptor,
+    VectorSlotDescriptor,
+)
+
+PERIPHERAL_CLASS_ALIASES = {
+    "gpio": "gpio",
+    "pio": "gpio",
+    "usart": "uart",
+    "uart": "uart",
+    "lpuart": "uart",
+    "spi": "spi",
+    "lpspi": "spi",
+    "i2c": "i2c",
+    "twihs": "i2c",
+    "dma": "dma",
+    "dmamux": "dma-router",
+    "xdmac": "dma",
+    "adc": "adc",
+    "pwm": "pwm",
+    "tc": "timer",
+    "tcc": "timer",
+    "tim": "timer",
+    "mcan": "can",
+    "can": "can",
+}
+
+OUTPUT_SIGNALS = {"tx", "sck", "mosi", "pwmh", "pwml", "tioa", "tclk", "cantx", "ck"}
+INPUT_SIGNALS = {"rx", "miso", "cts", "rts", "tiob", "canrx", "d", "din"}
+BIDIRECTIONAL_SIGNALS = {"sda", "sdio"}
+GROUP_SIGNAL_BUNDLES: dict[str, tuple[tuple[str, ...], ...]] = {
+    "uart": (("tx", "rx"), ("tx", "rx", "cts", "rts")),
+    "i2c": (("scl", "sda"),),
+    "spi": (("sck", "mosi", "miso"), ("sck", "cs")),
+    "can": (("tx", "rx"),),
+}
+
+
+def _sanitize(value: str) -> str:
+    return "".join(character.lower() if character.isalnum() else "-" for character in value).strip(
+        "-"
+    )
+
+
+def canonical_peripheral_class(ip_name: str) -> str:
+    return PERIPHERAL_CLASS_ALIASES.get(ip_name.lower(), ip_name.lower())
+
+
+def _direction_for_signal(signal_name: str) -> str | None:
+    token = signal_name.lower()
+    if token in BIDIRECTIONAL_SIGNALS:
+        return "bidirectional"
+    if any(token.startswith(prefix) for prefix in OUTPUT_SIGNALS):
+        return "output"
+    if any(token.startswith(prefix) for prefix in INPUT_SIGNALS):
+        return "input"
+    return None
+
+
+def _domain_node_id(signal: str) -> str:
+    register_domain = signal.rsplit(".", maxsplit=1)[0] if "." in signal else signal
+    return f"clock-node:{_sanitize(register_domain)}"
+
+
+def _symbol_name(interrupt_name: str) -> str:
+    if interrupt_name.endswith("_IRQHandler"):
+        return interrupt_name
+    return f"{interrupt_name}_IRQHandler"
+
+
+def canonical_signal_role(peripheral_class: str, signal_name: str) -> str | None:
+    normalized = signal_name.lower()
+    if peripheral_class == "uart":
+        if normalized.startswith("tx"):
+            return "tx"
+        if normalized.startswith("rx"):
+            return "rx"
+        if normalized.startswith("cts"):
+            return "cts"
+        if normalized.startswith("rts"):
+            return "rts"
+    if peripheral_class == "i2c":
+        if normalized.startswith("scl") or normalized.startswith("twck"):
+            return "scl"
+        if normalized.startswith("sda") or normalized.startswith("twd"):
+            return "sda"
+    if peripheral_class == "spi":
+        if normalized in {"miso", "mosi"}:
+            return normalized
+        if normalized.endswith("sck") or normalized == "spck":
+            return "sck"
+        if "pcs" in normalized:
+            return "cs"
+    if peripheral_class == "can":
+        if normalized.startswith("cantx") or normalized.startswith("tx"):
+            return "tx"
+        if normalized.startswith("canrx") or normalized.startswith("rx"):
+            return "rx"
+    return None
+
+
+def _bundle_candidates(
+    *,
+    peripheral_name: str,
+    peripheral_class: str,
+    package_name: str,
+    candidate_map: dict[str, ConnectionCandidate],
+) -> tuple[tuple[ConnectionGroup, ...], dict[str, str]]:
+    candidates = [
+        candidate
+        for candidate in candidate_map.values()
+        if candidate.peripheral == peripheral_name
+    ]
+    by_role: dict[str, list[str]] = defaultdict(list)
+    for candidate in candidates:
+        role = canonical_signal_role(peripheral_class, candidate.signal)
+        if role is None:
+            continue
+        by_role[role].append(candidate.candidate_id)
+
+    groups: list[ConnectionGroup] = []
+    primary_group_ids: dict[str, str] = {}
+    for bundle in GROUP_SIGNAL_BUNDLES.get(peripheral_class, ()):
+        if not all(by_role.get(role) for role in bundle):
+            continue
+        candidate_ids = tuple(
+            sorted(
+                {
+                    candidate_id
+                    for role in bundle
+                    for candidate_id in by_role[role]
+                }
+            )
+        )
+        groups.append(
+            ConnectionGroup(
+                group_id=(
+                    f"group:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:"
+                    f"{'-'.join(bundle)}"
+                ),
+                peripheral=peripheral_name,
+                signals=bundle,
+                candidate_ids=candidate_ids,
+                package=package_name,
+                conflict_group=(
+                    f"conflict:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:"
+                    f"{'-'.join(bundle)}"
+                ),
+                provenance=candidate_map[candidate_ids[0]].provenance,
+            )
+        )
+        for candidate_id in candidate_ids:
+            primary_group_ids.setdefault(candidate_id, groups[-1].group_id)
+
+    if groups:
+        return tuple(groups), primary_group_ids
+
+    distinct_signals = sorted({candidate.signal for candidate in candidates})
+    if len(distinct_signals) < 2:
+        return (), {}
+    candidate_ids = tuple(sorted(candidate.candidate_id for candidate in candidates))
+    group = ConnectionGroup(
+            group_id=f"group:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:all-signals",
+            peripheral=peripheral_name,
+            signals=tuple(distinct_signals),
+            candidate_ids=candidate_ids,
+            package=package_name,
+            conflict_group=(
+                f"conflict:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:all-signals"
+            ),
+            provenance=candidate_map[candidate_ids[0]].provenance,
+        )
+    return (group,), {candidate_id: group.group_id for candidate_id in candidate_ids}
+
+
+def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR:
+    """Derive connector-driven descriptors from the transitional canonical IR."""
+    peripheral_map = {peripheral.name: peripheral for peripheral in device.peripherals}
+    pin_constraints = defaultdict(list)
+    for constraint in device.pin_constraints:
+        pin_constraints[constraint.pin].append(constraint)
+    bonded_pads_by_pin = defaultdict(list)
+    for package_pad in device.package_pads:
+        if package_pad.bonding_state == "bonded" and package_pad.bonded_pin is not None:
+            bonded_pads_by_pin[package_pad.bonded_pin].append(package_pad)
+
+    endpoint_map: dict[str, SignalEndpoint] = {}
+    block_roles: dict[tuple[str, str], set[str]] = defaultdict(set)
+    block_capabilities: dict[tuple[str, str], set[str]] = defaultdict(set)
+    capability_map: dict[str, CapabilityDescriptor] = {}
+    requirement_map: dict[str, RouteRequirement] = {}
+    operation_map: dict[str, RouteOperation] = {}
+    candidate_map: dict[str, ConnectionCandidate] = {}
+    for peripheral in device.peripherals:
+        if peripheral.rcc_enable_signal is not None:
+            requirement_id = f"requirement:clock-enable:{_sanitize(peripheral.name)}"
+            requirement_map.setdefault(
+                requirement_id,
+                RouteRequirement(
+                    requirement_id=requirement_id,
+                    kind="clock-enable",
+                    target=peripheral.rcc_enable_signal,
+                    value="1",
+                    provenance=peripheral.provenance,
+                ),
+            )
+            operation_id = f"operation:clock-enable:{_sanitize(peripheral.name)}"
+            operation_map.setdefault(
+                operation_id,
+                RouteOperation(
+                    operation_id=operation_id,
+                    kind="set-bit",
+                    target=peripheral.rcc_enable_signal,
+                    value="1",
+                    provenance=peripheral.provenance,
+                ),
+            )
+        if peripheral.rcc_reset_signal is not None:
+            requirement_id = f"requirement:reset-release:{_sanitize(peripheral.name)}"
+            requirement_map.setdefault(
+                requirement_id,
+                RouteRequirement(
+                    requirement_id=requirement_id,
+                    kind="reset-release",
+                    target=peripheral.rcc_reset_signal,
+                    value="0",
+                    provenance=peripheral.provenance,
+                ),
+            )
+            operation_id = f"operation:reset-release:{_sanitize(peripheral.name)}"
+            operation_map.setdefault(
+                operation_id,
+                RouteOperation(
+                    operation_id=operation_id,
+                    kind="clear-bit",
+                    target=peripheral.rcc_reset_signal,
+                    value="0",
+                    provenance=peripheral.provenance,
+                ),
+            )
+
+    package_requirement_id = f"requirement:package:{_sanitize(device.identity.package)}"
+    requirement_map.setdefault(
+        package_requirement_id,
+        RouteRequirement(
+            requirement_id=package_requirement_id,
+            kind="package",
+            target=device.identity.package,
+            value="selected",
+            provenance=device.provenance,
+        ),
+    )
+
+    for pin in device.pins:
+        for signal in pin.signals:
+            if signal.peripheral is None or signal.signal is None:
+                continue
+            peripheral = peripheral_map.get(signal.peripheral)
+            if peripheral is None:
+                continue
+            peripheral_class = canonical_peripheral_class(peripheral.ip_name)
+            endpoint_id = f"endpoint:{peripheral_class}:{_sanitize(signal.signal)}"
+            endpoint_map.setdefault(
+                endpoint_id,
+                SignalEndpoint(
+                    endpoint_id=endpoint_id,
+                    peripheral_class=peripheral_class,
+                    signal=signal.signal,
+                    direction=_direction_for_signal(signal.signal),
+                    provenance=signal.provenance,
+                ),
+            )
+
+            if signal.af_number is None and signal.function == "gpio":
+                continue
+
+            route_kind = {
+                "st": "alternate-function",
+                "microchip": "peripheral-mux",
+                "nxp": "iomuxc-mux",
+            }.get(device.identity.vendor, "mux")
+            route_selector = (
+                None if signal.af_number is None else f"selector:{signal.af_number}"
+            )
+            requirement_ids = [package_requirement_id]
+            operation_ids = []
+
+            if bonded_pads_by_pin.get(pin.name):
+                bonded_requirement_id = (
+                    f"requirement:bonded-pin:{_sanitize(device.identity.package)}:"
+                    f"{_sanitize(pin.name)}"
+                )
+                requirement_map.setdefault(
+                    bonded_requirement_id,
+                    RouteRequirement(
+                        requirement_id=bonded_requirement_id,
+                        kind="bonded-pin",
+                        target=pin.name,
+                        value=device.identity.package,
+                        provenance=signal.provenance,
+                    ),
+                )
+                requirement_ids.append(bonded_requirement_id)
+
+            for constraint in sorted(
+                pin_constraints.get(pin.name, ()),
+                key=lambda item: item.constraint_id,
+            ):
+                requirement_map.setdefault(
+                    f"requirement:{constraint.constraint_id}",
+                    RouteRequirement(
+                        requirement_id=f"requirement:{constraint.constraint_id}",
+                        kind="pin-constraint",
+                        target=constraint.pin,
+                        value=constraint.kind
+                        if constraint.value is None
+                        else f"{constraint.kind}:{constraint.value}",
+                        provenance=constraint.provenance,
+                    ),
+                )
+                requirement_ids.append(f"requirement:{constraint.constraint_id}")
+
+            clock_requirement_id = f"requirement:clock-enable:{_sanitize(peripheral.name)}"
+            reset_requirement_id = f"requirement:reset-release:{_sanitize(peripheral.name)}"
+            if clock_requirement_id in requirement_map:
+                requirement_ids.append(clock_requirement_id)
+                operation_ids.append(f"operation:clock-enable:{_sanitize(peripheral.name)}")
+            if reset_requirement_id in requirement_map:
+                requirement_ids.append(reset_requirement_id)
+                operation_ids.append(f"operation:reset-release:{_sanitize(peripheral.name)}")
+
+            if route_selector is not None:
+                selector_requirement_id = (
+                    f"requirement:source-select:{_sanitize(pin.name)}:{_sanitize(peripheral.name)}:"
+                    f"{_sanitize(signal.signal)}"
+                )
+                requirement_map.setdefault(
+                    selector_requirement_id,
+                    RouteRequirement(
+                        requirement_id=selector_requirement_id,
+                        kind="source-select",
+                        target=f"pinmux.{pin.name}",
+                        value=route_selector,
+                        provenance=signal.provenance,
+                    ),
+                )
+                requirement_ids.append(selector_requirement_id)
+                operation_id = (
+                    f"operation:route:{_sanitize(pin.name)}:{_sanitize(peripheral.name)}:"
+                    f"{_sanitize(signal.signal)}"
+                )
+                operation_map.setdefault(
+                    operation_id,
+                    RouteOperation(
+                        operation_id=operation_id,
+                        kind="write-selector",
+                        target=f"pinmux.{pin.name}",
+                        value=str(signal.af_number),
+                        provenance=signal.provenance,
+                    ),
+                )
+                operation_ids.append(operation_id)
+
+            candidate_id = (
+                f"candidate:{_sanitize(pin.name)}:{_sanitize(peripheral.name)}:"
+                f"{_sanitize(signal.signal)}"
+            )
+            capability_ids: tuple[str, ...] = ()
+            if peripheral.ip_version is not None:
+                capability_id = (
+                    f"capability:{_sanitize(peripheral.ip_name)}:{_sanitize(peripheral.ip_version)}:"
+                    f"{_sanitize(signal.signal)}"
+                )
+                capability_map.setdefault(
+                    capability_id,
+                    CapabilityDescriptor(
+                        capability_id=capability_id,
+                        peripheral_class=peripheral_class,
+                        name="signal-role",
+                        value=signal.signal.lower(),
+                        provenance=signal.provenance,
+                    ),
+                )
+                capability_ids = (capability_id,)
+                block_roles[(peripheral.ip_name, peripheral.ip_version)].add(signal.signal.lower())
+                block_capabilities[(peripheral.ip_name, peripheral.ip_version)].add(capability_id)
+
+            candidate_map[candidate_id] = ConnectionCandidate(
+                candidate_id=candidate_id,
+                pin=pin.name,
+                peripheral=peripheral.name,
+                signal=signal.signal.lower(),
+                route_kind=route_kind,
+                route_selector=route_selector,
+                route_group_id=None,
+                requirement_ids=tuple(requirement_ids),
+                operation_ids=tuple(operation_ids),
+                capability_ids=capability_ids,
+                provenance=signal.provenance,
+            )
+
+    connection_groups_list: list[ConnectionGroup] = []
+    primary_group_by_candidate: dict[str, str] = {}
+    for peripheral in sorted(device.peripherals, key=lambda item: item.name):
+        groups, candidate_group_ids = _bundle_candidates(
+            peripheral_name=peripheral.name,
+            peripheral_class=canonical_peripheral_class(peripheral.ip_name),
+            package_name=device.identity.package,
+            candidate_map=candidate_map,
+        )
+        connection_groups_list.extend(groups)
+        for candidate_id, group_id in candidate_group_ids.items():
+            primary_group_by_candidate.setdefault(candidate_id, group_id)
+
+    candidate_map = {
+        candidate_id: ConnectionCandidate(
+            candidate_id=candidate.candidate_id,
+            pin=candidate.pin,
+            peripheral=candidate.peripheral,
+            signal=candidate.signal,
+            route_kind=candidate.route_kind,
+            route_selector=candidate.route_selector,
+            route_group_id=primary_group_by_candidate.get(candidate_id),
+            requirement_ids=candidate.requirement_ids,
+            operation_ids=candidate.operation_ids,
+            capability_ids=candidate.capability_ids,
+            provenance=candidate.provenance,
+        )
+        for candidate_id, candidate in candidate_map.items()
+    }
+    connection_groups = tuple(connection_groups_list)
+
+    ip_blocks = tuple(
+        IpBlockDefinition(
+            ip_name=ip_name,
+            ip_version=ip_version,
+            peripheral_class=canonical_peripheral_class(ip_name),
+            register_profile=f"{ip_name}:{ip_version}",
+            signal_roles=tuple(sorted(block_roles[(ip_name, ip_version)])),
+            capability_ids=tuple(sorted(block_capabilities[(ip_name, ip_version)])),
+            provenance=next(
+                peripheral.provenance
+                for peripheral in device.peripherals
+                if peripheral.ip_name == ip_name and peripheral.ip_version == ip_version
+            ),
+        )
+        for ip_name, ip_version in sorted(
+            {
+                (peripheral.ip_name, peripheral.ip_version)
+                for peripheral in device.peripherals
+                if peripheral.ip_version is not None
+            }
+        )
+    )
+
+    vector_slots = tuple(
+        VectorSlotDescriptor(
+            slot=16 + interrupt.line,
+            symbol_name=_symbol_name(interrupt.name),
+            interrupt=interrupt.name,
+            kind="external-interrupt",
+            provenance=interrupt.provenance,
+        )
+        for interrupt in sorted(device.interrupts, key=lambda item: item.line)
+    )
+
+    startup_descriptors = (
+        StartupDescriptor(
+            descriptor_id="startup:vectors",
+            kind="vector-table",
+            source_region=None,
+            target_region=None,
+            symbol="_vectors",
+            provenance=device.provenance,
+        ),
+    ) + tuple(
+        StartupDescriptor(
+            descriptor_id=f"startup:memory:{_sanitize(memory.name)}",
+            kind="memory-region",
+            source_region=memory.name,
+            target_region=memory.name,
+            symbol=None,
+            provenance=memory.provenance,
+        )
+        for memory in device.memories
+    )
+
+    clock_node_map: dict[str, ClockNodeLite] = {}
+    clock_gate_map: dict[str, ClockGateDescriptor] = {}
+    reset_map: dict[str, ResetDescriptor] = {}
+    binding_map: dict[str, PeripheralClockBinding] = {}
+
+    for peripheral in device.peripherals:
+        parent_node = None
+        if peripheral.rcc_enable_signal is not None:
+            parent_node = _domain_node_id(peripheral.rcc_enable_signal)
+            clock_node_map.setdefault(
+                parent_node,
+                ClockNodeLite(
+                    node_id=parent_node,
+                    kind="gate-domain",
+                    parent="clock-root",
+                    selector=None,
+                    provenance=peripheral.provenance,
+                ),
+            )
+            gate_id = f"gate:{_sanitize(peripheral.name)}"
+            clock_gate_map[gate_id] = ClockGateDescriptor(
+                gate_id=gate_id,
+                peripheral=peripheral.name,
+                enable_signal=peripheral.rcc_enable_signal,
+                parent_node=parent_node,
+                provenance=peripheral.provenance,
+            )
+        else:
+            gate_id = None
+
+        if peripheral.rcc_reset_signal is not None:
+            reset_id = f"reset:{_sanitize(peripheral.name)}"
+            reset_map[reset_id] = ResetDescriptor(
+                reset_id=reset_id,
+                peripheral=peripheral.name,
+                reset_signal=peripheral.rcc_reset_signal,
+                active_level="high",
+                provenance=peripheral.provenance,
+            )
+        else:
+            reset_id = None
+
+        if gate_id is not None or reset_id is not None:
+            binding_map[peripheral.name] = PeripheralClockBinding(
+                peripheral=peripheral.name,
+                clock_gate_id=gate_id,
+                reset_id=reset_id,
+                selector_id=None,
+                provenance=peripheral.provenance,
+            )
+
+    dma_controller_map: dict[str, DmaControllerDescriptor] = {}
+    dma_route_map: dict[str, DmaRouteDescriptor] = {}
+    dma_conflict_accumulator: dict[str, list[str]] = defaultdict(list)
+    for request in device.dma_requests:
+        dma_controller_map.setdefault(
+            request.controller,
+            DmaControllerDescriptor(
+                controller=request.controller,
+                version=None,
+                channel_count=None,
+                provenance=request.provenance,
+            ),
+        )
+        route_id = (
+            f"dma-route:{_sanitize(request.controller)}:{_sanitize(request.request_line)}:"
+            f"{_sanitize(request.peripheral or 'none')}:{_sanitize(request.signal or 'none')}"
+        )
+        conflict_group_id = (
+            f"dma-conflict:{_sanitize(request.controller)}:"
+            f"{_sanitize(request.request_line)}"
+        )
+        dma_route_map[route_id] = DmaRouteDescriptor(
+            route_id=route_id,
+            controller=request.controller,
+            request_line=request.request_line,
+            peripheral=request.peripheral,
+            signal=request.signal,
+            conflict_group=conflict_group_id,
+            provenance=request.provenance,
+        )
+        dma_conflict_accumulator[conflict_group_id].append(route_id)
+
+    dma_conflict_groups = tuple(
+        DmaConflictGroup(
+            conflict_group_id=group_id,
+            route_ids=tuple(sorted(route_ids)),
+            provenance=next(iter(dma_route_map.values())).provenance,
+        )
+        for group_id, route_ids in sorted(dma_conflict_accumulator.items())
+    )
+
+    return CanonicalDeviceIR(
+        schema_version=device.schema_version,
+        identity=device.identity,
+        memories=device.memories,
+        packages=device.packages,
+        pins=device.pins,
+        peripherals=device.peripherals,
+        interrupts=device.interrupts,
+        dma_requests=device.dma_requests,
+        provenance=device.provenance,
+        ip_blocks=ip_blocks,
+        capabilities=tuple(
+            capability_map[capability_id] for capability_id in sorted(capability_map)
+        ),
+        package_pads=device.package_pads,
+        pin_constraints=device.pin_constraints,
+        signal_endpoints=tuple(endpoint_map[endpoint_id] for endpoint_id in sorted(endpoint_map)),
+        route_requirements=tuple(
+            requirement_map[requirement_id] for requirement_id in sorted(requirement_map)
+        ),
+        route_operations=tuple(
+            operation_map[operation_id] for operation_id in sorted(operation_map)
+        ),
+        connection_candidates=tuple(
+            candidate_map[candidate_id] for candidate_id in sorted(candidate_map)
+        ),
+        connection_groups=connection_groups,
+        vector_slots=vector_slots,
+        startup_descriptors=startup_descriptors,
+        clock_nodes=tuple(clock_node_map[node_id] for node_id in sorted(clock_node_map)),
+        clock_selectors=device.clock_selectors,
+        clock_gates=tuple(clock_gate_map[gate_id] for gate_id in sorted(clock_gate_map)),
+        resets=tuple(reset_map[reset_id] for reset_id in sorted(reset_map)),
+        peripheral_clock_bindings=tuple(
+            binding_map[peripheral_name] for peripheral_name in sorted(binding_map)
+        ),
+        dma_controllers=tuple(
+            dma_controller_map[controller] for controller in sorted(dma_controller_map)
+        ),
+        dma_routes=tuple(dma_route_map[route_id] for route_id in sorted(dma_route_map)),
+        dma_conflict_groups=dma_conflict_groups,
+    )
+
+
+def ensure_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR:
+    """Return a device with connector/system descriptors populated."""
+    if (
+        device.signal_endpoints
+        and device.connection_candidates
+        and device.connection_groups
+        and device.vector_slots
+        and device.startup_descriptors
+    ):
+        return device
+    return enrich_connector_descriptors(device)

@@ -16,6 +16,7 @@ from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.patches import DevicePatch, DmaRequestPatch, MemoryPatch, PeripheralPatch
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.raw import (
+    RawPackagePadEntry,
     RawPinAlternateFunction,
     RawPinDataDocument,
     RawPinDocumentEntry,
@@ -470,6 +471,25 @@ def _position_sort_key(position: str) -> tuple[tuple[int, ...], int, str]:
     return (row, column, position)
 
 
+def _microchip_pad_kind(pad: str) -> str:
+    upper_pad = pad.upper()
+    if upper_pad == "NC" or upper_pad.startswith("NC"):
+        return "nc"
+    if GPIO_PAD_PATTERN.match(upper_pad):
+        return "io"
+    if upper_pad.startswith(("VDD", "VSS", "VBAT", "VREF", "ADVREF", "VBG")):
+        return "power"
+    if upper_pad.startswith("GND"):
+        return "ground"
+    if upper_pad in {"NRST", "RESET"}:
+        return "reset"
+    if "JTAG" in upper_pad or upper_pad in {"TDI", "TDO", "TCK", "TMS"}:
+        return "debug"
+    if "BOOT" in upper_pad:
+        return "boot"
+    return "signal"
+
+
 def parse_raw_pin_data_document(*, atdf_path: Path, package_name: str) -> RawPinDataDocument:
     """Parse GPIO-capable pin and alternate-function data from a Microchip ATDF."""
     root = ET.parse(atdf_path).getroot()
@@ -550,11 +570,27 @@ def parse_raw_pin_data_document(*, atdf_path: Path, package_name: str) -> RawPin
                 )
 
     pins_by_position: dict[str, RawPinDocumentEntry] = {}
+    package_pads: list[RawPackagePadEntry] = []
     for pin_node in pinout_node.findall("pin"):
         position = pin_node.get("position")
         pad = pin_node.get("pad")
         if position is None or pad is None:
             continue
+        match = GPIO_PAD_PATTERN.match(pad)
+        package_pads.append(
+            RawPackagePadEntry(
+                pad_id=position,
+                position_label=position,
+                physical_index=int(position) if position.isdigit() else None,
+                pad_kind=_microchip_pad_kind(pad),
+                bonded_pin=None if match is None else pad,
+                bonding_state=(
+                    "bonded"
+                    if match is not None
+                    else ("unbonded" if _microchip_pad_kind(pad) == "nc" else "dedicated")
+                ),
+            )
+        )
         match = GPIO_PAD_PATTERN.match(pad)
         if match is None:
             continue
@@ -578,6 +614,17 @@ def parse_raw_pin_data_document(*, atdf_path: Path, package_name: str) -> RawPin
         pins=tuple(
             pins_by_position[position]
             for position in sorted(pins_by_position, key=_position_sort_key)
+        ),
+        package_pads=tuple(
+            sorted(
+                package_pads,
+                key=lambda item: (
+                    item.physical_index is None,
+                    -1 if item.physical_index is None else item.physical_index,
+                    _position_sort_key(item.position_label),
+                    item.pad_id,
+                ),
+            )
         ),
         gpio_modes_file=selected_pinout,
     )

@@ -1,0 +1,35 @@
+{
+  "capabilities": [
+    {
+      "capability_id": "capability:usart:usart-v3-1:rx",
+      "name": "signal-role",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:tx",
+      "name": "signal-role",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "value": "tx"
+    }
+  ],
+  "family": "stm32g0",
+  "schema_version": "1.1.0",
+  "vendor": "st"
+}

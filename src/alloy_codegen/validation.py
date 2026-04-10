@@ -5,7 +5,12 @@ from __future__ import annotations
 from collections import Counter
 
 from alloy_codegen.bootstrap import source_bundle_for
-from alloy_codegen.ir.model import CanonicalDeviceIR
+from alloy_codegen.connector_model import (
+    canonical_peripheral_class,
+    canonical_signal_role,
+    ensure_connector_descriptors,
+)
+from alloy_codegen.ir.model import CanonicalDeviceIR, RouteRequirement
 from alloy_codegen.manifests import PatchManifest, SourceManifest
 from alloy_codegen.reporting import ValidationGateStatus, ValidationReport, ValidationRuleResult
 from alloy_codegen.scope import PipelineScope
@@ -324,6 +329,490 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
     )
 
 
+def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRuleResult, ...]:
+    pin_names = {pin.name for pin in device.pins}
+    peripheral_names = {peripheral.name for peripheral in device.peripherals}
+    peripheral_map = {peripheral.name: peripheral for peripheral in device.peripherals}
+    package_names = {package.name for package in device.packages}
+    package_pad_ids = {pad.pad_id for pad in device.package_pads}
+    package_position_keys = [(pad.package, pad.position_label) for pad in device.package_pads]
+    bonded_pin_names = {
+        pad.bonded_pin
+        for pad in device.package_pads
+        if pad.bonding_state == "bonded" and pad.bonded_pin is not None
+    }
+    requirement_ids = {requirement.requirement_id for requirement in device.route_requirements}
+    requirement_map = {
+        requirement.requirement_id: requirement for requirement in device.route_requirements
+    }
+    operation_ids = {operation.operation_id for operation in device.route_operations}
+    capability_ids = {capability.capability_id for capability in device.capabilities}
+    candidate_ids = {candidate.candidate_id for candidate in device.connection_candidates}
+    candidate_lookup = {
+        candidate.candidate_id: candidate for candidate in device.connection_candidates
+    }
+    group_ids = {group.group_id for group in device.connection_groups}
+    interrupt_names = {interrupt.name for interrupt in device.interrupts}
+    memory_names = {memory.name for memory in device.memories}
+    clock_gate_ids = {gate.gate_id for gate in device.clock_gates}
+    reset_ids = {reset.reset_id for reset in device.resets}
+    selector_ids = {selector.selector_id for selector in device.clock_selectors}
+    dma_controller_ids = {controller.controller for controller in device.dma_controllers}
+    dma_route_ids = {route.route_id for route in device.dma_routes}
+    dma_conflict_ids = {group.conflict_group_id for group in device.dma_conflict_groups}
+    ip_block_ids = {(block.ip_name, block.ip_version) for block in device.ip_blocks}
+
+    def _candidate_requirements(candidate_id: str) -> tuple[RouteRequirement, ...]:
+        candidate = candidate_lookup.get(candidate_id)
+        if candidate is None:
+            return ()
+        return tuple(
+            requirement_map[requirement_id]
+            for requirement_id in candidate.requirement_ids
+            if requirement_id in requirement_map
+        )
+
+    package_pads_present = bool(device.package_pads)
+    package_pad_ids_unique = len(package_pad_ids) == len(device.package_pads)
+    package_pads_reference_known_packages = all(
+        pad.package in package_names for pad in device.package_pads
+    )
+    package_variants_have_pad_coverage = all(
+        any(pad.package == package_name for pad in device.package_pads)
+        for package_name in package_names
+    )
+    package_pad_positions_unique = len(package_position_keys) == len(set(package_position_keys))
+    package_pad_bonding_consistent = all(
+        (
+            pad.bonding_state == "bonded"
+            and pad.bonded_pin is not None
+        )
+        or (
+            pad.bonding_state in {"dedicated", "unbonded"}
+            and pad.bonded_pin is None
+        )
+        for pad in device.package_pads
+    )
+    package_pads_reference_known_pins = all(
+        pad.bonded_pin is None or pad.bonded_pin in pin_names for pad in device.package_pads
+    )
+    bonded_pins_have_package_pad = pin_names <= bonded_pin_names
+    signal_endpoints_present = bool(device.signal_endpoints)
+    connection_candidates_present = bool(device.connection_candidates)
+    candidate_pin_refs_known = all(
+        candidate.pin in pin_names for candidate in device.connection_candidates
+    )
+    candidate_peripherals_known = all(
+        candidate.peripheral in peripheral_names for candidate in device.connection_candidates
+    )
+    candidate_group_refs_known = all(
+        candidate.route_group_id is None or candidate.route_group_id in group_ids
+        for candidate in device.connection_candidates
+    )
+    candidate_requirements_known = all(
+        requirement_id in requirement_ids
+        for candidate in device.connection_candidates
+        for requirement_id in candidate.requirement_ids
+    )
+    candidate_package_requirements_known = all(
+        any(
+            requirement_id in requirement_map
+            and requirement_map[requirement_id].kind == "package"
+            and requirement_map[requirement_id].target == device.identity.package
+            for requirement_id in candidate.requirement_ids
+        )
+        for candidate in device.connection_candidates
+    )
+    candidate_source_requirements_known = all(
+        candidate.route_selector is None
+        or any(
+            requirement.kind == "source-select"
+            and requirement.value == candidate.route_selector
+            for requirement in _candidate_requirements(candidate.candidate_id)
+        )
+        for candidate in device.connection_candidates
+    )
+    candidate_operations_known = all(
+        operation_id in operation_ids
+        for candidate in device.connection_candidates
+        for operation_id in candidate.operation_ids
+    )
+    candidate_capabilities_known = all(
+        capability_id in capability_ids
+        for candidate in device.connection_candidates
+        for capability_id in candidate.capability_ids
+    )
+    group_candidates_known = all(
+        candidate_id in candidate_ids
+        for group in device.connection_groups
+        for candidate_id in group.candidate_ids
+    )
+    group_signals_satisfiable = all(
+        set(group.signals)
+        <= {
+            signal
+            for candidate_id in group.candidate_ids
+            if (candidate := candidate_lookup.get(candidate_id)) is not None
+            for signal in (
+                candidate.signal,
+                canonical_signal_role(
+                    canonical_peripheral_class(peripheral_map[group.peripheral].ip_name),
+                    candidate.signal,
+                ),
+            )
+            if signal is not None
+        }
+        for group in device.connection_groups
+        if group.peripheral in peripheral_map
+    )
+    group_packages_known = all(
+        group.package is None or group.package in package_names
+        for group in device.connection_groups
+    )
+    group_packages_match_selected_package = all(
+        group.package in {None, device.identity.package}
+        for group in device.connection_groups
+    )
+    group_candidates_match_selected_package = all(
+        all(
+            any(
+                requirement.kind == "package"
+                and requirement.target == (group.package or device.identity.package)
+                for requirement in _candidate_requirements(candidate_id)
+            )
+            and (
+                candidate_lookup[candidate_id].pin not in bonded_pin_names
+                or any(
+                    requirement.kind == "bonded-pin"
+                    and requirement.target == candidate_lookup[candidate_id].pin
+                    and requirement.value == (group.package or device.identity.package)
+                    for requirement in _candidate_requirements(candidate_id)
+                )
+            )
+            for candidate_id in group.candidate_ids
+            if candidate_id in candidate_lookup
+        )
+        for group in device.connection_groups
+    )
+    multi_signal_groups_present = any(len(group.signals) >= 2 for group in device.connection_groups)
+    ip_blocks_resolve_instance_versions = all(
+        peripheral.ip_version is None or (peripheral.ip_name, peripheral.ip_version) in ip_block_ids
+        for peripheral in device.peripherals
+    )
+    vector_slots_reference_known_interrupts = all(
+        vector_slot.interrupt is None or vector_slot.interrupt in interrupt_names
+        for vector_slot in device.vector_slots
+    )
+    startup_descriptors_are_present = bool(device.startup_descriptors)
+    startup_descriptors_reference_known_memories = all(
+        descriptor.source_region is None or descriptor.source_region in memory_names
+        for descriptor in device.startup_descriptors
+    ) and all(
+        descriptor.target_region is None or descriptor.target_region in memory_names
+        for descriptor in device.startup_descriptors
+    )
+    clock_bindings_reference_known_descriptors = all(
+        (binding.clock_gate_id is None or binding.clock_gate_id in clock_gate_ids)
+        and (binding.reset_id is None or binding.reset_id in reset_ids)
+        and (binding.selector_id is None or binding.selector_id in selector_ids)
+        for binding in device.peripheral_clock_bindings
+    )
+    dma_routes_reference_known_controllers = all(
+        route.controller in dma_controller_ids for route in device.dma_routes
+    )
+    dma_routes_reference_known_conflicts = all(
+        route.conflict_group is None or route.conflict_group in dma_conflict_ids
+        for route in device.dma_routes
+    )
+    dma_conflict_groups_reference_known_routes = all(
+        route_id in dma_route_ids
+        for conflict_group in device.dma_conflict_groups
+        for route_id in conflict_group.route_ids
+    )
+
+    return (
+        _rule(
+            rule_id=f"{device.identity.device}-package-pads-present",
+            category="semantic",
+            severity="error",
+            passed=package_pads_present,
+            message=f"{device.identity.device} exposes package pad descriptors.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-package-pad-ids-unique",
+            category="semantic",
+            severity="error",
+            passed=package_pad_ids_unique,
+            message=f"{device.identity.device} package pad identifiers are unique.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-package-pads-reference-known-packages",
+            category="semantic",
+            severity="error",
+            passed=package_pads_reference_known_packages,
+            message=f"{device.identity.device} package pads reference declared packages.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-package-variants-have-pad-coverage",
+            category="semantic",
+            severity="error",
+            passed=package_variants_have_pad_coverage,
+            message=f"{device.identity.device} every declared package exposes package pads.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-package-pad-positions-unique",
+            category="semantic",
+            severity="error",
+            passed=package_pad_positions_unique,
+            message=f"{device.identity.device} package pad positions are unique per package.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-package-pad-bonding-state-consistent",
+            category="semantic",
+            severity="error",
+            passed=package_pad_bonding_consistent,
+            message=(
+                f"{device.identity.device} package pad bonding state matches bonded-pin coverage."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-package-pads-reference-known-pins",
+            category="semantic",
+            severity="error",
+            passed=package_pads_reference_known_pins,
+            message=f"{device.identity.device} package pads reference declared bonded pins.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-bonded-pins-have-package-pad",
+            category="semantic",
+            severity="error",
+            passed=bonded_pins_have_package_pad,
+            message=(
+                f"{device.identity.device} every declared GPIO pin is covered "
+                "by a package pad."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-signal-endpoints-present",
+            category="semantic",
+            severity="error",
+            passed=signal_endpoints_present,
+            message=f"{device.identity.device} exposes canonical signal endpoints.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-present",
+            category="semantic",
+            severity="error",
+            passed=connection_candidates_present,
+            message=f"{device.identity.device} exposes route-driven connection candidates.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-reference-known-pins",
+            category="semantic",
+            severity="error",
+            passed=candidate_pin_refs_known,
+            message=f"{device.identity.device} connection candidates reference known pins.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-reference-known-peripherals",
+            category="semantic",
+            severity="error",
+            passed=candidate_peripherals_known,
+            message=f"{device.identity.device} connection candidates reference known peripherals.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-reference-known-groups",
+            category="semantic",
+            severity="error",
+            passed=candidate_group_refs_known,
+            message=f"{device.identity.device} connection candidates reference known route groups.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-reference-known-requirements",
+            category="semantic",
+            severity="error",
+            passed=candidate_requirements_known,
+            message=(
+                f"{device.identity.device} route candidates only reference "
+                "declared requirements."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-carry-package-requirement",
+            category="semantic",
+            severity="error",
+            passed=candidate_package_requirements_known,
+            message=(
+                f"{device.identity.device} route candidates carry an explicit "
+                "package requirement."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-carry-source-requirement",
+            category="semantic",
+            severity="error",
+            passed=candidate_source_requirements_known,
+            message=(
+                f"{device.identity.device} route candidates with selectors carry "
+                "an explicit source-selection requirement."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-reference-known-operations",
+            category="semantic",
+            severity="error",
+            passed=candidate_operations_known,
+            message=(
+                f"{device.identity.device} route candidates only reference "
+                "declared operations."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-candidates-reference-known-capabilities",
+            category="semantic",
+            severity="error",
+            passed=candidate_capabilities_known,
+            message=(
+                f"{device.identity.device} route candidates only reference "
+                "declared capabilities."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-groups-reference-known-candidates",
+            category="semantic",
+            severity="error",
+            passed=group_candidates_known,
+            message=f"{device.identity.device} route groups only reference declared candidates.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-groups-match-selected-package",
+            category="semantic",
+            severity="error",
+            passed=(
+                group_packages_match_selected_package
+                and group_candidates_match_selected_package
+            ),
+            message=(
+                f"{device.identity.device} route groups only admit candidates "
+                "valid for the selected package and bonded pinout."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-groups-have-satisfiable-signals",
+            category="semantic",
+            severity="error",
+            passed=group_signals_satisfiable,
+            message=f"{device.identity.device} route groups declare satisfiable signal bundles.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-connection-groups-reference-known-packages",
+            category="semantic",
+            severity="error",
+            passed=group_packages_known,
+            message=f"{device.identity.device} route groups only reference declared packages.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-multi-signal-connection-groups-present",
+            category="semantic",
+            severity="error",
+            passed=multi_signal_groups_present,
+            message=f"{device.identity.device} exposes at least one multi-signal connection group.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-ip-blocks-cover-versioned-instances",
+            category="semantic",
+            severity="error",
+            passed=ip_blocks_resolve_instance_versions,
+            message=f"{device.identity.device} IP block descriptors cover versioned instances.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-vector-slots-reference-known-interrupts",
+            category="semantic",
+            severity="error",
+            passed=vector_slots_reference_known_interrupts,
+            message=f"{device.identity.device} vector slots only reference declared interrupts.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-startup-descriptors-present",
+            category="semantic",
+            severity="error",
+            passed=startup_descriptors_are_present,
+            message=f"{device.identity.device} exposes startup descriptors separately from logic.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-startup-descriptors-reference-known-memories",
+            category="semantic",
+            severity="error",
+            passed=startup_descriptors_reference_known_memories,
+            message=(
+                f"{device.identity.device} startup descriptors only reference "
+                "declared memories."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-clock-bindings-reference-known-descriptors",
+            category="semantic",
+            severity="error",
+            passed=clock_bindings_reference_known_descriptors,
+            message=(
+                f"{device.identity.device} clock bindings reference known "
+                "gate/reset/selector descriptors."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-routes-reference-known-controllers",
+            category="semantic",
+            severity="error",
+            passed=dma_routes_reference_known_controllers,
+            message=f"{device.identity.device} DMA routes reference known controller descriptors.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-routes-reference-known-conflicts",
+            category="semantic",
+            severity="error",
+            passed=dma_routes_reference_known_conflicts,
+            message=f"{device.identity.device} DMA routes reference declared conflict groups.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-conflict-groups-reference-known-routes",
+            category="semantic",
+            severity="error",
+            passed=dma_conflict_groups_reference_known_routes,
+            message=f"{device.identity.device} DMA conflict groups reference known DMA routes.",
+        ),
+    )
+
+
+def _validate_scope_semantics(
+    scope: PipelineScope,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> tuple[ValidationRuleResult, ...]:
+    if scope.device is not None or scope.family is None or not devices:
+        return ()
+
+    family_has_multi_signal_groups = all(
+        any(len(group.signals) >= 2 for group in device.connection_groups)
+        for device in devices
+    )
+    scope_label = (
+        f"{scope.vendor}-{scope.family}"
+        if scope.vendor is not None
+        else str(scope.family)
+    )
+    return (
+        _rule(
+            rule_id=f"{scope_label}-family-devices-expose-multi-signal-groups",
+            category="semantic",
+            severity="error",
+            passed=family_has_multi_signal_groups,
+            message=(
+                f"{scope_label} family scope exposes at least one multi-signal "
+                "connection group for every normalized device."
+            ),
+        ),
+    )
+
+
 def build_validation_report(
     *,
     scope: PipelineScope,
@@ -332,14 +821,17 @@ def build_validation_report(
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> ValidationReport:
     """Build a structured validation report and gate statuses."""
+    descriptor_devices = tuple(ensure_connector_descriptors(device) for device in devices)
     source_results = _validate_source_manifest(source_manifest)
     patch_results = _validate_patch_manifest(patch_manifest, source_manifest)
     schema_results = tuple(
-        result for device in devices for result in _validate_device_structure(device)
+        result for device in descriptor_devices for result in _validate_device_structure(device)
     )
     semantic_results = tuple(
-        result for device in devices for result in _validate_device_semantics(device)
-    )
+        result
+        for device in descriptor_devices
+        for result in (_validate_device_semantics(device) + _validate_descriptor_semantics(device))
+    ) + _validate_scope_semantics(scope, descriptor_devices)
 
     gate_a_results = source_results + patch_results
     gate_b_results = schema_results

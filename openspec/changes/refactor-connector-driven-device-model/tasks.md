@@ -5,33 +5,33 @@
 - [x] A.3 Add package, pad, and pin-constraint domains
 - [x] A.4 Add interrupt, memory, startup, clock-lite, and DMA descriptor domains
 - [x] A.5 Keep transitional compatibility with the bootstrap IR while new emitters are built
-- [ ] A.6 Add golden canonical fixtures exercising the new fields for ST, Microchip, and NXP
+- [x] A.6 Add golden canonical fixtures exercising the new fields for ST, Microchip, and NXP
 
 ### Gate C1: IR completeness
 - [ ] C1.1 No publishability-critical domain remains encoded only as `PinSignal.af_number`
-- [ ] C1.2 The same IR schema can represent ST, Microchip, and NXP connectivity without vendor
+- [x] C1.2 The same IR schema can represent ST, Microchip, and NXP connectivity without vendor
       forks
-- [ ] C1.3 Canonical fixtures exist for at least one family from each foundational vendor shape
+- [x] C1.3 Canonical fixtures exist for at least one family from each foundational vendor shape
 
 ## Phase B: Generic connector graph normalization
 
-- [ ] B.1 Define canonical `SignalEndpoint` identities per peripheral class
-- [ ] B.2 Normalize ST AF-based pinmux into `ConnectionCandidate` and `RouteOperation`
-- [ ] B.3 Normalize Microchip PIO/matrix-derived routing into the same route model
-- [ ] B.4 Normalize NXP mux/daisy/pad facts into the same route model
-- [ ] B.5 Add `ConnectionGroup` generation for valid multi-signal configurations
-- [ ] B.6 Add `RouteRequirement` generation for package, clock, reset, and source constraints
-- [ ] B.7 Record route-level provenance for every candidate, group, and operation
+- [x] B.1 Define canonical `SignalEndpoint` identities per peripheral class
+- [x] B.2 Normalize ST AF-based pinmux into `ConnectionCandidate` and `RouteOperation`
+- [x] B.3 Normalize Microchip PIO/matrix-derived routing into the same route model
+- [x] B.4 Normalize NXP mux/daisy/pad facts into the same route model
+- [x] B.5 Add `ConnectionGroup` generation for valid multi-signal configurations
+- [x] B.6 Add `RouteRequirement` generation for package, clock, reset, and source constraints
+- [x] B.7 Record route-level provenance for every candidate, group, and operation
 
 ### Gate C2: Generic `connect()` data shape
-- [ ] C2.1 All foundational vendors normalize into the same route graph abstractions
-- [ ] C2.2 Connector candidates can be validated without inspecting raw vendor-specific blobs
-- [ ] C2.3 Every publishable family exposes at least one non-trivial multi-signal connection group
+- [x] C2.1 All foundational vendors normalize into the same route graph abstractions
+- [x] C2.2 Connector candidates can be validated without inspecting raw vendor-specific blobs
+- [x] C2.3 Every publishable family exposes at least one non-trivial multi-signal connection group
 
 ## Phase C: IP-version and capability completion
 
-- [ ] C.1 Define `ip_block` normalization keyed by `ip_name + ip_version`
-- [ ] C.2 Add capability descriptors shared by peripheral class and version
+- [x] C.1 Define `ip_block` normalization keyed by `ip_name + ip_version`
+- [x] C.2 Add capability descriptors shared by peripheral class and version
 - [ ] C.3 Add instance-level capability overlays for package- or instance-specific limits
 - [ ] C.4 Add validators ensuring capabilities can be resolved from descriptors alone
 - [ ] C.5 Add golden fixtures for versioned IP reuse across multiple devices
@@ -43,14 +43,14 @@
 
 ## Phase D: Package and pinout completion
 
-- [ ] D.1 Add package variants with physical pad positions and pad kinds
-- [ ] D.2 Add bonded/unbonded pad modeling per package variant
-- [ ] D.3 Add pin constraints such as analog-only, debug-only, wakeup-only, and NC
-- [ ] D.4 Add validators for package-to-pin consistency and variant coverage
-- [ ] D.5 Emit family package metadata and generated package descriptors
+- [x] D.1 Add package variants with physical pad positions and pad kinds
+- [x] D.2 Add bonded/unbonded pad modeling per package variant
+- [x] D.3 Add pin constraints such as analog-only, debug-only, wakeup-only, and NC
+- [x] D.4 Add validators for package-to-pin consistency and variant coverage
+- [x] D.5 Emit family package metadata and generated package descriptors
 
 ### Gate C4: Package-aware connectivity
-- [ ] C4.1 Connector validation can reject routes that are invalid in a selected package
+- [x] C4.1 Connector validation can reject routes that are invalid in a selected package
 - [ ] C4.2 Published package metadata is sufficient to reconstruct the physical pinout
 
 ## Phase E: System descriptor completion
@@ -70,14 +70,14 @@
 ## Phase F: Artifact contract upgrade
 
 - [ ] F.1 Migrate emission to the final `metadata/`, `generated/`, and `reports/` family layout
-- [ ] F.2 Emit `metadata/ip-blocks.json`, `metadata/capabilities.json`, and `metadata/connectors.json`
-- [ ] F.3 Emit `generated/ip/<ip-version>.hpp`
-- [ ] F.4 Emit `generated/connector_tables.hpp`
-- [ ] F.5 Emit `generated/interrupt_map.hpp`, `generated/memory_map.hpp`, and `generated/package_map.hpp`
-- [ ] F.6 Emit `generated/clock_tree_lite.hpp` and the generalized clock/reset descriptors
-- [ ] F.7 Emit `generated/devices/<device>/startup_descriptors.hpp`
-- [ ] F.8 Emit descriptor-only startup vector translation units
-- [ ] F.9 Add artifact golden tests for every new descriptor family
+- [x] F.2 Emit `metadata/ip-blocks.json`, `metadata/capabilities.json`, and `metadata/connectors.json`
+- [x] F.3 Emit `generated/ip/<ip-version>.hpp`
+- [x] F.4 Emit `generated/connector_tables.hpp`
+- [x] F.5 Emit `generated/interrupt_map.hpp`, `generated/memory_map.hpp`, and `generated/package_map.hpp`
+- [x] F.6 Emit `generated/clock_tree_lite.hpp` and the generalized clock/reset descriptors
+- [x] F.7 Emit `generated/devices/<device>/startup_descriptors.hpp`
+- [x] F.8 Emit descriptor-only startup vector translation units
+- [x] F.9 Add artifact golden tests for every new descriptor family
 
 ### Gate C6: Descriptor-first artifact set
 - [ ] C6.1 Every generated artifact category is descriptor-oriented and contains no runtime policy

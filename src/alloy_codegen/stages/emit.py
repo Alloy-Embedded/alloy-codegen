@@ -12,16 +12,29 @@ from alloy_codegen.bootstrap import (
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     emit_artifact_manifest,
+    emit_capabilities_metadata,
+    emit_clock_tree_lite_header,
+    emit_connector_tables_header,
+    emit_connectors_metadata,
     emit_device_metadata,
     emit_dma_map_header,
     emit_family_connectivity,
     emit_family_index,
     emit_gpio_header,
+    emit_interrupt_map_header,
+    emit_ip_block_header,
+    emit_ip_blocks_metadata,
+    emit_memory_map_header,
+    emit_package_map_header,
+    emit_packages_metadata,
     emit_pin_functions_header,
     emit_rcc_map_header,
     emit_register_map_header,
     emit_signal_map_header,
+    emit_startup_descriptors_header,
     emit_startup_source,
+    emit_startup_vectors_source,
+    emit_system_descriptors_metadata,
     emit_validation_report,
     materialize_artifacts,
 )
@@ -64,6 +77,11 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         emit_validation_report(family_dir=family_dir, report=validation_report),
         emit_family_index(family_dir=family_dir, devices=devices),
         emit_family_connectivity(family_dir=family_dir, devices=devices),
+        emit_ip_blocks_metadata(family_dir=family_dir, devices=devices),
+        emit_capabilities_metadata(family_dir=family_dir, devices=devices),
+        emit_packages_metadata(family_dir=family_dir, devices=devices),
+        emit_connectors_metadata(family_dir=family_dir, devices=devices),
+        emit_system_descriptors_metadata(family_dir=family_dir, devices=devices),
     ]
     for device in devices:
         artifacts.extend(
@@ -72,6 +90,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 emit_register_map_header(family_dir=family_dir, device=device),
                 emit_pin_functions_header(family_dir=family_dir, device=device),
                 emit_startup_source(family_dir=family_dir, device=device),
+                emit_startup_descriptors_header(family_dir=family_dir, device=device),
+                emit_startup_vectors_source(family_dir=family_dir, device=device),
             )
         )
     gpio_names = sorted(
@@ -90,9 +110,29 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 peripheral_name=gpio_name,
             )
         )
+    for ip_name, ip_version in sorted(
+        {
+            (ip_block.ip_name, ip_block.ip_version)
+            for device in devices
+            for ip_block in device.ip_blocks
+        }
+    ):
+        artifacts.append(
+            emit_ip_block_header(
+                family_dir=family_dir,
+                devices=devices,
+                ip_name=ip_name,
+                ip_version=ip_version,
+            )
+        )
     artifacts.append(emit_signal_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_connector_tables_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_rcc_map_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_dma_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_interrupt_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_memory_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_package_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_clock_tree_lite_header(family_dir=family_dir, devices=devices))
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
         artifacts=tuple(artifacts),

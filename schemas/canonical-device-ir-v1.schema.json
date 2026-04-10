@@ -149,6 +149,7 @@
         "physical_index",
         "pad_kind",
         "bonded_pin",
+        "bonding_state",
         "provenance"
       ],
       "properties": {
@@ -158,6 +159,7 @@
         "physical_index": { "type": ["integer", "null"] },
         "pad_kind": { "type": "string" },
         "bonded_pin": { "type": ["string", "null"] },
+        "bonding_state": { "type": "string" },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
