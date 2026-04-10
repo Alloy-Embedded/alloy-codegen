@@ -412,6 +412,133 @@ jobs:
           assert tree_revision_a == tree_revision_b, mismatch_report
           PY
 
+      - name: Publish NXP imxrt1060 family to real alloy-devices checkout cycle 1
+        run: |
+          set -o pipefail
+          mkdir -p out/alloy-devices
+          artifact_root="$RUNNER_TEMP/alloy-devices-artifacts"
+          publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          publish_path="out/alloy-devices/imxrt1060-cycle1.json"
+          git -C "$publication_root" reset --hard HEAD
+          git -C "$publication_root" clean -fdx
+          rm -rf "$artifact_root"
+          python -m alloy_codegen.cli publish \
+            --vendor nxp \
+            --family imxrt1060 \
+            --source nxp-mcux-soc-svd=tests/fixtures/nxp-mcux-imxrt1060/svd \
+            --source nxp-mcux-sdk=tests/fixtures/nxp-mcux-imxrt1060/sdk \
+            --artifact-root "$artifact_root" \
+            --publication-root "$publication_root" \
+            --alloy-root "$GITHUB_WORKSPACE/alloy" \
+            --json | tee "$publish_path"
+          tree_revision_a=$(PYTHONPATH=src python - "$publication_root" <<'PY'
+          import sys
+          from pathlib import Path
+          from alloy_codegen.publication import compute_materialized_tree_revision
+
+          print(compute_materialized_tree_revision(Path(sys.argv[1])))
+          PY
+          )
+          printf '%s' "$tree_revision_a" > out/alloy-devices/imxrt1060-tree-cycle1.txt
+          python - "$publish_path" "$publication_root" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          payload = json.loads(Path(sys.argv[1]).read_text())
+          publication_root = Path(sys.argv[2])
+          plan = payload["payload"]
+
+          assert payload["stage"] == "publish", payload
+          assert payload["status"] == "completed", payload
+          assert plan["publication_mode"] == "published", payload
+          assert plan["consumer_verification"]["succeeded"] is True, payload
+          assert (publication_root / "nxp" / "imxrt1060" / "mimxrt1062" / "register_map.hpp").exists()
+          assert (publication_root / "nxp" / "imxrt1060" / "mimxrt1064" / "register_map.hpp").exists()
+          assert (publication_root / "nxp" / "imxrt1060" / "family-index.json").exists()
+          assert (publication_root / "nxp" / "imxrt1060" / "publication-record.json").exists()
+          PY
+          git -C "$publication_root" status --short > out/alloy-devices/imxrt1060-git-status-cycle1.txt
+
+      - name: Publish NXP imxrt1060 family to real alloy-devices checkout cycle 2
+        run: |
+          set -o pipefail
+          artifact_root="$RUNNER_TEMP/alloy-devices-artifacts"
+          publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          publish_path_a="out/alloy-devices/imxrt1060-cycle1.json"
+          publish_path_b="out/alloy-devices/imxrt1060-cycle2.json"
+          tree_revision_a=$(cat out/alloy-devices/imxrt1060-tree-cycle1.txt)
+          git -C "$publication_root" reset --hard HEAD
+          git -C "$publication_root" clean -fdx
+          rm -rf "$artifact_root"
+          python -m alloy_codegen.cli publish \
+            --vendor nxp \
+            --family imxrt1060 \
+            --source nxp-mcux-soc-svd=tests/fixtures/nxp-mcux-imxrt1060/svd \
+            --source nxp-mcux-sdk=tests/fixtures/nxp-mcux-imxrt1060/sdk \
+            --artifact-root "$artifact_root" \
+            --publication-root "$publication_root" \
+            --alloy-root "$GITHUB_WORKSPACE/alloy" \
+            --json | tee "$publish_path_b"
+          tree_revision_b=$(PYTHONPATH=src python - "$publication_root" <<'PY'
+          import sys
+          from pathlib import Path
+          from alloy_codegen.publication import compute_materialized_tree_revision
+
+          print(compute_materialized_tree_revision(Path(sys.argv[1])))
+          PY
+          )
+          printf '%s' "$tree_revision_b" > out/alloy-devices/imxrt1060-tree-cycle2.txt
+          git -C "$publication_root" status --short > out/alloy-devices/imxrt1060-git-status-cycle2.txt
+          python - "$publish_path_a" "$publish_path_b" "$tree_revision_a" "$tree_revision_b" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          payload_a = json.loads(Path(sys.argv[1]).read_text())
+          payload_b = json.loads(Path(sys.argv[2]).read_text())
+          tree_revision_a = sys.argv[3]
+          tree_revision_b = sys.argv[4]
+          plan_a = payload_a["payload"]
+          plan_b = payload_b["payload"]
+
+          assert payload_b["stage"] == "publish", payload_b
+          assert payload_b["status"] == "completed", payload_b
+          assert plan_b["publication_mode"] == "published", payload_b
+          assert plan_b["consumer_verification"]["succeeded"] is True, payload_b
+          published_sha_a = [artifact["content_sha256"] for artifact in plan_a["published_artifacts"]]
+          published_sha_b = [artifact["content_sha256"] for artifact in plan_b["published_artifacts"]]
+          mismatch_report = {
+              "target_artifact_revision": [
+                  plan_a["target_artifact_revision"],
+                  plan_b["target_artifact_revision"],
+              ],
+              "publication_record": [
+                  plan_a["publication_record"]["content_sha256"],
+                  plan_b["publication_record"]["content_sha256"],
+              ],
+              "publication_summary": [
+                  plan_a["publication_summary"]["content_sha256"],
+                  plan_b["publication_summary"]["content_sha256"],
+              ],
+              "published_artifacts": [published_sha_a, published_sha_b],
+              "tree_revision": [tree_revision_a, tree_revision_b],
+          }
+          assert (
+              plan_a["target_artifact_revision"] == plan_b["target_artifact_revision"]
+          ), mismatch_report
+          assert (
+              plan_a["publication_record"]["content_sha256"]
+              == plan_b["publication_record"]["content_sha256"]
+          ), mismatch_report
+          assert (
+              plan_a["publication_summary"]["content_sha256"]
+              == plan_b["publication_summary"]["content_sha256"]
+          ), mismatch_report
+          assert published_sha_a == published_sha_b, mismatch_report
+          assert tree_revision_a == tree_revision_b, mismatch_report
+          PY
+
       - name: Upload alloy-devices integration artifacts
         if: always()
         uses: actions/upload-artifact@v7
