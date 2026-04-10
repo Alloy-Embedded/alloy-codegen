@@ -30,13 +30,21 @@ on:
 
 jobs:
   publish:
-    name: Publish bootstrap family to alloy-devices
+    name: Publish ${{ matrix.vendor }}/${{ matrix.family }} to alloy-devices
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - vendor: st
+            family: stm32g0
+          - vendor: nxp
+            family: imxrt1060
     env:
       ALLOY_DEVICES_REPOSITORY: ${{ github.repository_owner }}/alloy-devices
 
@@ -68,8 +76,8 @@ jobs:
             family="${INPUT_FAMILY:-stm32g0}"
             requested_push="${INPUT_PUSH_CHANGES:-false}"
           else
-            vendor="st"
-            family="stm32g0"
+            vendor="${{ matrix.vendor }}"
+            family="${{ matrix.family }}"
             requested_push="true"
           fi
 
