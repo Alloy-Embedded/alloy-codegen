@@ -87,8 +87,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (
-        family_index_payload["devices"][0]["metadata_path"]
-        == "st/stm32g0/stm32g071rb/device.json"
+        family_index_payload["devices"][0]["metadata_path"] == "st/stm32g0/stm32g071rb/device.json"
     )
     assert any(pin["name"] == "PA0" for pin in connectivity_payload["pins"])
     assert device_payload["identity"]["device"] == "stm32g071rb"

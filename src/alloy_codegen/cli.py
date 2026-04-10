@@ -40,9 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
         stage_parser.add_argument(
             "--pin-source-root",
             default=None,
-            help=(
-                "Optional local STM32_open_pin_data checkout to use instead of the cache clone."
-            ),
+            help=("Optional local STM32_open_pin_data checkout to use instead of the cache clone."),
         )
         stage_parser.add_argument(
             "--patch-root",

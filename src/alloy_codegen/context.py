@@ -69,12 +69,9 @@ class ExecutionContext:
             publication_root=Path(publication_root).resolve()
             if publication_root
             else (
-                discover_publication_root(repo_root)
-                or (repo_root / ".published" / "alloy-devices")
+                discover_publication_root(repo_root) or (repo_root / ".published" / "alloy-devices")
             ),
-            alloy_root=Path(alloy_root).resolve()
-            if alloy_root
-            else discover_alloy_root(repo_root),
+            alloy_root=Path(alloy_root).resolve() if alloy_root else discover_alloy_root(repo_root),
         )
 
     def with_overrides(
@@ -92,9 +89,7 @@ class ExecutionContext:
             repo_root=self.repo_root,
             source_root=Path(source_root).resolve() if source_root else self.source_root,
             pin_source_root=(
-                Path(pin_source_root).resolve()
-                if pin_source_root
-                else self.pin_source_root
+                Path(pin_source_root).resolve() if pin_source_root else self.pin_source_root
             ),
             patch_root=Path(patch_root).resolve() if patch_root else self.patch_root,
             source_cache_dir=Path(cache_dir).resolve() if cache_dir else self.source_cache_dir,

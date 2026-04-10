@@ -292,10 +292,7 @@ def parse_raw_pin_data_document(
         package_name=package_name,
         package_pin_count=_extract_package_pin_count(package_name),
         pins=tuple(
-            [
-                pins_by_position[position]
-                for position in sorted(pins_by_position)
-            ]
+            [pins_by_position[position] for position in sorted(pins_by_position)]
             + sorted(pins_without_position, key=lambda item: (item.port, item.number, item.name))
         ),
         gpio_modes_file=gpio_modes_path.name,

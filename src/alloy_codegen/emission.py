@@ -145,8 +145,7 @@ def _build_pin_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str,
                 "packages": sorted(entry["packages"]),
                 "devices": sorted(entry["devices"]),
                 "signals": [
-                    entry["signals"][signal_key]
-                    for signal_key in sorted(entry["signals"])
+                    entry["signals"][signal_key] for signal_key in sorted(entry["signals"])
                 ],
             }
         )
@@ -268,8 +267,7 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
         _namespace_components(device),
         "\n".join(
             [
-                "inline constexpr const char* kDevice = "
-                f"{json.dumps(device.identity.device)};",
+                f"inline constexpr const char* kDevice = {json.dumps(device.identity.device)};",
                 "struct PeripheralBase {",
                 "  const char* name;",
                 "  std::uintptr_t address;",

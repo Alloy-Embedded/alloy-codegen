@@ -39,9 +39,8 @@ def test_publish_includes_materialized_summary(
     assert summary_path.exists()
     assert record_path.exists()
     assert any(
-        artifact.materialized_path == str(
-            execution_context.publication_root / "st/stm32g0/stm32g071rb/register_map.hpp"
-        )
+        artifact.materialized_path
+        == str(execution_context.publication_root / "st/stm32g0/stm32g071rb/register_map.hpp")
         for artifact in result.payload.published_artifacts
     )
 

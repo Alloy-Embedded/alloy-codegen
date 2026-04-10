@@ -49,9 +49,7 @@ def _validate_source_manifest(source_manifest: SourceManifest) -> tuple[Validati
     target_devices = {source.target_device for source in source_manifest.sources}
     target_coverage = {
         target: {
-            source.source_id
-            for source in source_manifest.sources
-            if source.target_device == target
+            source.source_id for source in source_manifest.sources if source.target_device == target
         }
         for target in source_manifest.targets
     }
@@ -193,8 +191,7 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
     )
     referenced_peripherals.update(request.controller for request in device.dma_requests)
     referenced_peripherals_have_rcc = all(
-        peripheral_map.get(name) is not None
-        and peripheral_map[name].rcc_enable_signal is not None
+        peripheral_map.get(name) is not None and peripheral_map[name].rcc_enable_signal is not None
         for name in referenced_peripherals
     )
     interrupt_peripherals_known = all(
@@ -209,9 +206,7 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
         for request in device.dma_requests
     )
     dma_route_keys = [(request.controller, request.request_line) for request in device.dma_requests]
-    duplicate_dma_routes = [
-        route for route, count in Counter(dma_route_keys).items() if count > 1
-    ]
+    duplicate_dma_routes = [route for route, count in Counter(dma_route_keys).items() if count > 1]
 
     return (
         _rule(
@@ -251,8 +246,7 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
             severity="error",
             passed=alternate_functions_explicit,
             message=(
-                f"{device.identity.device} non-GPIO alternate functions carry "
-                "explicit AF numbers."
+                f"{device.identity.device} non-GPIO alternate functions carry explicit AF numbers."
             ),
         ),
         _rule(
@@ -282,8 +276,7 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
             severity="error",
             passed=interrupt_peripherals_known,
             message=(
-                f"{device.identity.device} interrupt entries only reference "
-                "discovered peripherals."
+                f"{device.identity.device} interrupt entries only reference discovered peripherals."
             ),
         ),
         _rule(
@@ -299,8 +292,7 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
             severity="error",
             passed=dma_controllers_known,
             message=(
-                f"{device.identity.device} DMA requests reference known "
-                "controller peripherals."
+                f"{device.identity.device} DMA requests reference known controller peripherals."
             ),
         ),
         _rule(
@@ -331,14 +323,10 @@ def build_validation_report(
     source_results = _validate_source_manifest(source_manifest)
     patch_results = _validate_patch_manifest(patch_manifest, source_manifest)
     schema_results = tuple(
-        result
-        for device in devices
-        for result in _validate_device_structure(device)
+        result for device in devices for result in _validate_device_structure(device)
     )
     semantic_results = tuple(
-        result
-        for device in devices
-        for result in _validate_device_semantics(device)
+        result for device in devices for result in _validate_device_semantics(device)
     )
 
     gate_a_results = source_results + patch_results

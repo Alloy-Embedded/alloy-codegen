@@ -64,10 +64,8 @@ def verify_alloy_smoke_consumer(
         "-pedantic",
         f"-I{alloy_root / 'src'}",
         f"-I{publication_root}",
-        '-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER="st/stm32g0/'
-        f'{device}/register_map.hpp"',
-        '-DALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER="st/stm32g0/'
-        f'{device}/pin_functions.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER="st/stm32g0/{device}/register_map.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER="st/stm32g0/{device}/pin_functions.hpp"',
         '-DALLOY_CODEGEN_SMOKE_GPIO_HEADER="st/stm32g0/generated/peripherals/gpioa.hpp"',
         f"-DALLOY_CODEGEN_SMOKE_DEVICE_NAMESPACE=st::stm32g0::{device}",
         "-DALLOY_CODEGEN_SMOKE_GPIO_NAMESPACE=st::stm32g0::generated::peripherals",

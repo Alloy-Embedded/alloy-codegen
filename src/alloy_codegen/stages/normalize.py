@@ -287,14 +287,10 @@ def build_canonical_ir(
             _peripheral_to_ir(
                 peripheral_name=_canonical_peripheral_name(peripheral.name),
                 base_address=peripheral.base_address,
-                patch_metadata=peripheral_patches.get(
-                    _canonical_peripheral_name(peripheral.name)
-                ),
+                patch_metadata=peripheral_patches.get(_canonical_peripheral_name(peripheral.name)),
                 ip_version=None
                 if ip_version_table is None
-                else ip_version_table.get(
-                    _canonical_peripheral_name(peripheral.name)
-                ),
+                else ip_version_table.get(_canonical_peripheral_name(peripheral.name)),
                 provenance=svd_provenance,
             )
             for peripheral in raw.peripherals

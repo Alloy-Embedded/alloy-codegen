@@ -42,9 +42,7 @@ def resolve_device_family(device_name: str) -> tuple[str, str]:
     entry = _DEVICE_TO_FAMILY.get(device_name.lower())
     if entry is None:
         supported = ", ".join(sorted(_DEVICE_TO_FAMILY))
-        raise UnsupportedScopeError(
-            f"Unsupported device '{device_name}'. Supported: {supported}."
-        )
+        raise UnsupportedScopeError(f"Unsupported device '{device_name}'. Supported: {supported}.")
     return entry
 
 

@@ -27,4 +27,3 @@ def test_scope_auto_resolves_family_from_device() -> None:
     scope = PipelineScope(device="stm32f401re").validate_supported()
     assert scope.resolved_vendor() == "st"
     assert scope.resolved_family() == "stm32f4"
-

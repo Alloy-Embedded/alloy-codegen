@@ -56,9 +56,7 @@ def build_release_metadata(
     )
     scope_path = build_scope_path(scope)
     short_revision = source_revision[:12]
-    commit_subject = (
-        f"chore(devices): publish {scope_path} from alloy-codegen {short_revision}"
-    )
+    commit_subject = f"chore(devices): publish {scope_path} from alloy-codegen {short_revision}"
     commit_body = "\n".join(
         [
             "Publish validated artifacts to alloy-devices.",

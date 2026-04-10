@@ -284,9 +284,7 @@ def load_family_patch_catalog(
         patch_id=payload["patch_id"],
         packages=tuple(_parse_package_patch(item) for item in payload.get("packages", ())),
         pins=tuple(_parse_pin_catalog_entry(item) for item in payload.get("pins", ())),
-        peripherals=tuple(
-            _parse_peripheral_patch(item) for item in payload.get("peripherals", ())
-        ),
+        peripherals=tuple(_parse_peripheral_patch(item) for item in payload.get("peripherals", ())),
         pin_signals=tuple(
             _parse_pin_signal_catalog_entry(item) for item in payload.get("pin_signals", ())
         ),
@@ -441,7 +439,7 @@ def _resolve_pin_count(
         raise StageExecutionError(
             f"Pin count mismatch for package {package.name}: "
             f"overlay={declared_pin_count}, catalog={package.pin_count}."
-    )
+        )
     return declared_pin_count
 
 

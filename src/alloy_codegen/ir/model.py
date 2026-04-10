@@ -122,4 +122,3 @@ class CanonicalDeviceIR:
 
     def to_dict(self) -> dict[str, object]:
         return to_primitive(self)
-
