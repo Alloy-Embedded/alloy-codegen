@@ -79,10 +79,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        device:
-          - stm32g030f6
-          - stm32g071rb
-          - stm32g0b1re
+        include:
+          - device: stm32g030f6
+            sources: >-
+              --source cmsis-svd-data=tests/fixtures/cmsis-svd-data
+              --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data
+          - device: stm32g071rb
+            sources: >-
+              --source cmsis-svd-data=tests/fixtures/cmsis-svd-data
+              --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data
+          - device: stm32g0b1re
+            sources: >-
+              --source cmsis-svd-data=tests/fixtures/cmsis-svd-data
+              --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data
+          - device: mimxrt1062
+            sources: >-
+              --source nxp-mcux-soc-svd=tests/fixtures/nxp-mcux-imxrt1060/svd
+              --source nxp-mcux-sdk=tests/fixtures/nxp-mcux-imxrt1060/sdk
+          - device: mimxrt1064
+            sources: >-
+              --source nxp-mcux-soc-svd=tests/fixtures/nxp-mcux-imxrt1060/svd
+              --source nxp-mcux-sdk=tests/fixtures/nxp-mcux-imxrt1060/sdk
 
     steps:
       - name: Checkout alloy-codegen
@@ -117,8 +134,7 @@ jobs:
           set +e
           python -m alloy_codegen.cli validate \
             --device "${{ matrix.device }}" \
-            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
-            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
+            ${{ matrix.sources }} \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -149,8 +165,7 @@ jobs:
           publish_path="out/publish/${{ matrix.device }}-cycle1.json"
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
-            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
-            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
+            ${{ matrix.sources }} \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -188,8 +203,7 @@ jobs:
           rm -rf "$artifact_root" "$publication_root"
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
-            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
-            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
+            ${{ matrix.sources }} \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \

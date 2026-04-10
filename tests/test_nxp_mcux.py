@@ -10,10 +10,14 @@ import pytest
 from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
+from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.fetch import run as run_fetch
 from alloy_codegen.stages.normalize import run as run_normalize
+from alloy_codegen.stages.publish import run as run_publish
+from alloy_codegen.stages.validate import run as run_validate
 
 IMXRT1060_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "imxrt1060"
+IMXRT1060_EMITTED_DIR = Path(__file__).parent / "fixtures" / "emitted" / "imxrt1060"
 
 
 @pytest.mark.parametrize("device_name", registered_device_names("nxp", "imxrt1060"))
@@ -190,3 +194,250 @@ def test_normalize_mimxrt1064_has_flash_and_ocram(nxp_execution_context: Executi
 
     assert "OCRAM" in memory_names
     assert "FLASH" in memory_names
+
+
+# ---------------------------------------------------------------------------
+# Task 2.6: SVD/SDK naming alignment tests
+# ---------------------------------------------------------------------------
+
+
+def test_normalize_nxp_sdk_signal_peripherals_align_with_svd_names(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Signal.peripheral must use the same case/name as the SVD peripheral."""
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    device = result.payload.devices[0]
+    svd_names = {p.name for p in device.peripherals}
+
+    for pin in device.pins:
+        for signal in pin.signals:
+            assert signal.peripheral in svd_names, (
+                f"Pin {pin.name!r} signal peripheral {signal.peripheral!r} is not "
+                f"an SVD peripheral name (known: {sorted(svd_names)})"
+            )
+
+
+def test_normalize_nxp_signaling_peripherals_have_ccm_clock_gate(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Every peripheral referenced in SDK pin signals must have a CCM gate from the family patch."""
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    device = result.payload.devices[0]
+    peripheral_map = {p.name: p for p in device.peripherals}
+    signaled_peripherals = {signal.peripheral for pin in device.pins for signal in pin.signals}
+
+    for name in signaled_peripherals:
+        peripheral = peripheral_map.get(name)
+        assert peripheral is not None
+        assert peripheral.rcc_enable_signal is not None, (
+            f"Peripheral {name!r} appears in SDK signals but has no CCM clock gate in family patch"
+        )
+
+
+def test_normalize_nxp_gpio_instance_numbers_match_name_suffix(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """GPIO1->instance=1, GPIO4->instance=4; NXP-style digit-suffixed names must not be mangled."""
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    device = result.payload.devices[0]
+
+    for peripheral in device.peripherals:
+        if peripheral.name.startswith("GPIO") and peripheral.name[4:].isdigit():
+            expected = int(peripheral.name[4:])
+            assert peripheral.instance == expected, (
+                f"Peripheral {peripheral.name!r}: expected instance={expected}, "
+                f"got instance={peripheral.instance}"
+            )
+
+
+def test_normalize_nxp_signal_function_names_use_peripheral_prefix(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """signal.function should be the lowercased SDK macro signal name (PERIPHERAL_SIGNAL)."""
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    device = result.payload.devices[0]
+
+    for pin in device.pins:
+        for signal in pin.signals:
+            expected_prefix = signal.peripheral.lower() + "_"
+            assert signal.function.startswith(expected_prefix), (
+                f"Pin {pin.name!r} signal function {signal.function!r} does not start with "
+                f"peripheral prefix {expected_prefix!r}"
+            )
+
+
+# ---------------------------------------------------------------------------
+# Gate N3: Semantic closure — validation passes with zero critical conflicts
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("device_name", registered_device_names("nxp", "imxrt1060"))
+def test_gate_n3_validation_passes_all_gates(
+    device_name: str,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Gate N3: full validate stage must pass gates A, B, and C with zero critical conflicts."""
+    result = run_validate(PipelineScope(device=device_name), nxp_execution_context)
+    report = result.payload.report
+
+    assert result.status == "completed"
+    assert report.gate_status("gate-a").passed, (
+        f"{device_name}: gate-a failed — source manifest or schema rules not met"
+    )
+    assert report.gate_status("gate-b").passed, (
+        f"{device_name}: gate-b failed — patch manifest or structural rules not met"
+    )
+    assert report.gate_status("gate-c").passed, (
+        f"{device_name}: gate-c failed — semantic rules not met: "
+        + str([r.rule_id for r in report.results if not r.passed])
+    )
+
+
+@pytest.mark.parametrize("device_name", registered_device_names("nxp", "imxrt1060"))
+def test_gate_n3_no_critical_validation_failures(
+    device_name: str,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """All validation rules must pass — no error-severity conflicts allowed."""
+    result = run_validate(PipelineScope(device=device_name), nxp_execution_context)
+    report = result.payload.report
+
+    failed = [r for r in report.results if not r.passed and r.severity == "error"]
+    assert not failed, (
+        f"{device_name}: {len(failed)} critical validation failure(s): "
+        + ", ".join(r.rule_id for r in failed)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Emission, publication, and Alloy consumption
+# ---------------------------------------------------------------------------
+
+
+def test_emit_nxp_imxrt1060_produces_required_artifacts(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Task 3.1: emit stage produces all required artifact types for nxp/imxrt1060."""
+    result = run_emit(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    assert result.stage == "emit"
+    assert result.status == "completed"
+
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    family_dir = "nxp/imxrt1060"
+
+    assert f"{family_dir}/artifact-manifest.json" in artifacts
+    assert f"{family_dir}/validation-report.json" in artifacts
+    assert f"{family_dir}/family-index.json" in artifacts
+    assert f"{family_dir}/family-connectivity.json" in artifacts
+    assert f"{family_dir}/mimxrt1062/register_map.hpp" in artifacts
+    assert f"{family_dir}/mimxrt1062/pin_functions.hpp" in artifacts
+    assert f"{family_dir}/mimxrt1062/startup.cpp" in artifacts
+    assert f"{family_dir}/generated/rcc_map.hpp" in artifacts
+    assert f"{family_dir}/generated/signal_map.hpp" in artifacts
+    assert f"{family_dir}/generated/dma_map.hpp" in artifacts
+
+    gpio_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/peripherals/")]
+    assert gpio_headers, "Expected at least one GPIO peripheral header"
+
+
+def test_emit_nxp_imxrt1060_artifact_content(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Task 3.1: emitted NXP artifacts contain correct C++ constructs."""
+    result = run_emit(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    family_dir = "nxp/imxrt1060"
+
+    register_map = artifacts[f"{family_dir}/mimxrt1062/register_map.hpp"]
+    assert "kPeripheralBases" in register_map.content
+    assert "nxp" in register_map.content
+    assert "imxrt1060" in register_map.content
+    assert "mimxrt1062" in register_map.content
+
+    pin_functions = artifacts[f"{family_dir}/mimxrt1062/pin_functions.hpp"]
+    assert "kPinFunctions" in pin_functions.content
+    assert "GPIO_AD_B0_00" in pin_functions.content  # from fixture header
+
+    startup = artifacts[f"{family_dir}/mimxrt1062/startup.cpp"]
+    assert "kInterruptTable" in startup.content
+
+    rcc_map = artifacts[f"{family_dir}/generated/rcc_map.hpp"]
+    assert "kRccMap" in rcc_map.content
+    assert "CCM_CCGR" in rcc_map.content  # NXP CCM gate signals appear in the map
+
+    gpio_headers = [a for p, a in artifacts.items()
+                    if p.startswith(f"{family_dir}/generated/peripherals/")]
+    for gpio_art in gpio_headers:
+        assert "kPeripheral" in gpio_art.content
+        assert "CCM_CCGR" in gpio_art.content  # CCM gate for every GPIO peripheral
+
+
+def test_emit_nxp_imxrt1060_matches_golden_fixtures(
+    nxp_execution_context: ExecutionContext,
+    fixture_nxp_sources_root: Path,
+) -> None:
+    """Task 3.3: emitted mimxrt1062 C++ artifacts match committed golden files."""
+    result = run_emit(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    family_dir = "nxp/imxrt1060"
+    fixture_root = IMXRT1060_EMITTED_DIR
+
+    for name in ("register_map.hpp", "pin_functions.hpp", "startup.cpp"):
+        assert artifacts[f"{family_dir}/mimxrt1062/{name}"].content == (
+            fixture_root / "mimxrt1062" / name
+        ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"
+
+    for gpio_fixture in sorted((fixture_root / "generated" / "peripherals").iterdir()):
+        artifact_path = f"{family_dir}/generated/peripherals/{gpio_fixture.name}"
+        assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8"), (
+            f"generated/peripherals/{gpio_fixture.name} does not match golden fixture"
+        )
+
+    for name in ("signal_map.hpp", "rcc_map.hpp", "dma_map.hpp"):
+        assert artifacts[f"{family_dir}/generated/{name}"].content == (
+            fixture_root / "generated" / name
+        ).read_text(encoding="utf-8"), f"generated/{name} does not match golden fixture"
+
+
+def test_emit_nxp_imxrt1060_is_byte_stable(nxp_execution_context: ExecutionContext) -> None:
+    """Task 3.1: repeated emit runs produce byte-identical output."""
+    result_a = json.dumps(
+        run_emit(PipelineScope(device="mimxrt1062"), nxp_execution_context).to_dict(),
+        sort_keys=True,
+    )
+    result_b = json.dumps(
+        run_emit(PipelineScope(device="mimxrt1062"), nxp_execution_context).to_dict(),
+        sort_keys=True,
+    )
+    assert result_a == result_b
+
+
+def test_publish_nxp_imxrt1060_completes_successfully(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Task 3.2: publish stage completes for nxp/imxrt1060 and materializes artifacts."""
+    result = run_publish(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+
+    assert result.stage == "publish"
+    assert result.status == "completed"
+    assert result.payload.publication_mode == "published"
+
+    pub_root = nxp_execution_context.publication_root
+    assert (pub_root / "nxp" / "imxrt1060" / "mimxrt1062" / "register_map.hpp").exists()
+    assert (pub_root / "nxp" / "imxrt1060" / "mimxrt1062" / "pin_functions.hpp").exists()
+    assert (pub_root / "nxp" / "imxrt1060" / "mimxrt1062" / "startup.cpp").exists()
+    assert (pub_root / "nxp" / "imxrt1060" / "artifact-manifest.json").exists()
+    assert (pub_root / "nxp" / "imxrt1060" / "validation-report.json").exists()
+
+
+def test_publish_nxp_imxrt1060_consumer_smoke_passes(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    """Task 3.4: Alloy consumer smoke path succeeds when built from published NXP artifacts."""
+    result = run_publish(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+
+    assert result.payload.consumer_verification is not None
+    assert result.payload.consumer_verification.succeeded is True, (
+        "Alloy consumer smoke build failed for nxp/imxrt1060/mimxrt1062:\n"
+        + result.payload.consumer_verification.stderr
+    )
