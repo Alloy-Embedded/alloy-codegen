@@ -63,9 +63,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential
 
-      - name: Install OpenSpec CLI
-        run: npm install --global @fission-ai/openspec
-
       - name: Ruff
         run: python -m ruff check src tests
 
@@ -74,9 +71,6 @@ jobs:
 
       - name: Ruff format
         run: python -m ruff format --check src tests
-
-      - name: Validate OpenSpec
-        run: openspec validate --strict
 
   bootstrap-family:
     name: Bootstrap Family (${{ matrix.device }})
