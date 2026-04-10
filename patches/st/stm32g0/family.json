@@ -72,6 +72,26 @@
       "rcc_reset_signal": "RCC_IOPRSTR.GPIOBRST"
     },
     {
+      "name": "GPIOC",
+      "rcc_enable_signal": "RCC_IOPENR.GPIOCEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIOCRST"
+    },
+    {
+      "name": "GPIOD",
+      "rcc_enable_signal": "RCC_IOPENR.GPIODEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIODRST"
+    },
+    {
+      "name": "GPIOF",
+      "rcc_enable_signal": "RCC_IOPENR.GPIOFEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIOFRST"
+    },
+    {
+      "name": "ADC1",
+      "rcc_enable_signal": "RCC_APBENR2.ADCEN",
+      "rcc_reset_signal": "RCC_APBRSTR2.ADCRST"
+    },
+    {
       "name": "DMA1",
       "rcc_enable_signal": "RCC_AHBENR.DMA1EN",
       "rcc_reset_signal": "RCC_AHBRSTR.DMA1RST"
@@ -92,9 +112,144 @@
       "rcc_reset_signal": "RCC_APBRSTR1.USART2RST"
     },
     {
+      "name": "USART3",
+      "rcc_enable_signal": "RCC_APBENR1.USART3EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.USART3RST"
+    },
+    {
+      "name": "USART4",
+      "rcc_enable_signal": "RCC_APBENR1.USART4EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.USART4RST"
+    },
+    {
+      "name": "USART5",
+      "rcc_enable_signal": "RCC_APBENR1.USART5EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.USART5RST"
+    },
+    {
+      "name": "USART6",
+      "rcc_enable_signal": "RCC_APBENR1.USART6EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.USART6RST"
+    },
+    {
+      "name": "LPUART1",
+      "rcc_enable_signal": "RCC_APBENR1.LPUART1EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.LPUART1RST"
+    },
+    {
+      "name": "LPUART2",
+      "rcc_enable_signal": "RCC_APBENR1.LPUART2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.LPUART2RST"
+    },
+    {
+      "name": "SPI1",
+      "rcc_enable_signal": "RCC_APBENR2.SPI1EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.SPI1RST"
+    },
+    {
+      "name": "SPI2",
+      "rcc_enable_signal": "RCC_APBENR1.SPI2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.SPI2RST"
+    },
+    {
+      "name": "SPI3",
+      "rcc_enable_signal": "RCC_APBENR1.SPI3EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.SPI3RST"
+    },
+    {
+      "name": "I2C1",
+      "rcc_enable_signal": "RCC_APBENR1.I2C1EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.I2C1RST"
+    },
+    {
+      "name": "I2C2",
+      "rcc_enable_signal": "RCC_APBENR1.I2C2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.I2C2RST"
+    },
+    {
+      "name": "I2C3",
+      "rcc_enable_signal": "RCC_APBENR1.I2C3EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.I2C3RST"
+    },
+    {
+      "name": "LPTIM1",
+      "rcc_enable_signal": "RCC_APBENR1.LPTIM1EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.LPTIM1RST"
+    },
+    {
+      "name": "LPTIM2",
+      "rcc_enable_signal": "RCC_APBENR1.LPTIM2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.LPTIM2RST"
+    },
+    {
+      "name": "TIM1",
+      "rcc_enable_signal": "RCC_APBENR2.TIM1EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.TIM1RST"
+    },
+    {
+      "name": "TIM2",
+      "rcc_enable_signal": "RCC_APBENR1.TIM2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.TIM2RST"
+    },
+    {
+      "name": "TIM3",
+      "rcc_enable_signal": "RCC_APBENR1.TIM3EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.TIM3RST"
+    },
+    {
+      "name": "TIM4",
+      "rcc_enable_signal": "RCC_APBENR1.TIM4EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.TIM4RST"
+    },
+    {
+      "name": "TIM6",
+      "rcc_enable_signal": "RCC_APBENR1.TIM6EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.TIM6RST"
+    },
+    {
+      "name": "TIM7",
+      "rcc_enable_signal": "RCC_APBENR1.TIM7EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.TIM7RST"
+    },
+    {
+      "name": "TIM14",
+      "rcc_enable_signal": "RCC_APBENR2.TIM14EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.TIM14RST"
+    },
+    {
+      "name": "TIM15",
+      "rcc_enable_signal": "RCC_APBENR2.TIM15EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.TIM15RST"
+    },
+    {
+      "name": "TIM16",
+      "rcc_enable_signal": "RCC_APBENR2.TIM16EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.TIM16RST"
+    },
+    {
+      "name": "TIM17",
+      "rcc_enable_signal": "RCC_APBENR2.TIM17EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.TIM17RST"
+    },
+    {
       "name": "FDCAN1",
       "rcc_enable_signal": "RCC_APBENR1.FDCANEN",
       "rcc_reset_signal": "RCC_APBRSTR1.FDCANRST"
+    },
+    {
+      "name": "FDCAN2",
+      "rcc_enable_signal": "RCC_APBENR1.FDCANEN",
+      "rcc_reset_signal": "RCC_APBRSTR1.FDCANRST"
+    },
+    {
+      "name": "UCPD1",
+      "rcc_enable_signal": "RCC_APBENR1.UCPD1EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.UCPD1RST"
+    },
+    {
+      "name": "UCPD2",
+      "rcc_enable_signal": "RCC_APBENR1.UCPD2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.UCPD2RST"
     }
   ],
   "pin_signals": [

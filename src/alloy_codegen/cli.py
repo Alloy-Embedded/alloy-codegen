@@ -38,6 +38,13 @@ def build_parser() -> argparse.ArgumentParser:
             help="Optional local cmsis-svd-data checkout to use instead of the cache clone.",
         )
         stage_parser.add_argument(
+            "--pin-source-root",
+            default=None,
+            help=(
+                "Optional local STM32_open_pin_data checkout to use instead of the cache clone."
+            ),
+        )
+        stage_parser.add_argument(
             "--patch-root",
             default=None,
             help="Optional patch root override.",
@@ -78,6 +85,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     scope = PipelineScope(vendor=args.vendor, family=args.family, device=args.device)
     context = ExecutionContext.default().with_overrides(
         source_root=args.source_root,
+        pin_source_root=args.pin_source_root,
         patch_root=args.patch_root,
         cache_dir=args.cache_dir,
         artifact_root=args.artifact_root,

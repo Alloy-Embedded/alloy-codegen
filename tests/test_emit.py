@@ -16,12 +16,16 @@ def _normalize_manifest_payload(
     payload: dict[str, object],
     *,
     fixture_source_root: Path,
+    fixture_pin_source_root: Path,
 ) -> dict[str, object]:
     normalized = json.loads(json.dumps(payload))
     source_manifest = normalized["source_manifest"]
     for source in source_manifest["sources"]:
         local_path = Path(source["local_path"])
-        source["local_path"] = str(local_path.relative_to(fixture_source_root))
+        if fixture_source_root in local_path.parents:
+            source["local_path"] = str(local_path.relative_to(fixture_source_root))
+        elif fixture_pin_source_root in local_path.parents:
+            source["local_path"] = str(local_path.relative_to(fixture_pin_source_root))
     return normalized
 
 
@@ -103,6 +107,7 @@ def test_emit_includes_metadata_artifacts_with_content(
 def test_emit_matches_golden_artifacts(
     execution_context: ExecutionContext,
     fixture_source_root: Path,
+    fixture_pin_source_root: Path,
 ) -> None:
     result = run(PipelineScope(device="stm32g071rb"), execution_context)
     artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
@@ -114,6 +119,7 @@ def test_emit_matches_golden_artifacts(
     assert _normalize_manifest_payload(
         manifest_payload,
         fixture_source_root=fixture_source_root,
+        fixture_pin_source_root=fixture_pin_source_root,
     ) == _load_json_fixture(fixture_root / "stm32g071rb" / "artifact-manifest.json")
     assert validation_payload == _load_json_fixture(
         fixture_root / "stm32g071rb" / "validation-report.json"

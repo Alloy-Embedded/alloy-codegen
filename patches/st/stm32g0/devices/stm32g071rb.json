@@ -2,6 +2,7 @@
   "patch_id": "st-stm32g0-stm32g071rb-bootstrap",
   "device": "stm32g071rb",
   "svd_file": "STM32G071.svd",
+  "pin_data_file": "STM32G071R(6-8-B)Tx.xml",
   "package": "lqfp64",
   "core": "cortex-m0plus",
   "summary": "Representative mid-range bootstrap device.",
@@ -22,18 +23,5 @@
     }
   ],
   "peripherals": ["GPIOA", "GPIOB", "USART1", "DMA1", "DMAMUX1"],
-  "pins": [
-    {
-      "name": "PA0",
-      "signal_refs": ["pa0-usart1-tx"]
-    },
-    {
-      "name": "PA1",
-      "signal_refs": ["pa1-usart1-rx"]
-    },
-    {
-      "name": "PB6"
-    }
-  ],
   "dma_request_refs": ["dma1-usart1-rx", "dma1-usart1-tx"]
 }

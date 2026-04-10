@@ -8,7 +8,11 @@ from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.common import StageResult
 
 
-def test_cli_fetch_json_output(capsys, fixture_source_root: Path) -> None:
+def test_cli_fetch_json_output(
+    capsys,
+    fixture_source_root: Path,
+    fixture_pin_source_root: Path,
+) -> None:
     exit_code = cli_module.main(
         [
             "fetch",
@@ -16,6 +20,8 @@ def test_cli_fetch_json_output(capsys, fixture_source_root: Path) -> None:
             "stm32g071rb",
             "--source-root",
             str(fixture_source_root),
+            "--pin-source-root",
+            str(fixture_pin_source_root),
             "--json",
         ]
     )
@@ -32,7 +38,9 @@ def test_cli_fetch_json_output(capsys, fixture_source_root: Path) -> None:
 
 
 def test_cli_validate_json_output_includes_report_summary(
-    capsys, fixture_source_root: Path
+    capsys,
+    fixture_source_root: Path,
+    fixture_pin_source_root: Path,
 ) -> None:
     exit_code = cli_module.main(
         [
@@ -41,6 +49,8 @@ def test_cli_validate_json_output_includes_report_summary(
             "stm32g071rb",
             "--source-root",
             str(fixture_source_root),
+            "--pin-source-root",
+            str(fixture_pin_source_root),
             "--json",
         ]
     )

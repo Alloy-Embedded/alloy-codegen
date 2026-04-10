@@ -118,7 +118,6 @@ jobs:
           rm -rf "$artifact_root"
           python -m alloy_codegen.cli publish \
             --family "${{ steps.settings.outputs.family }}" \
-            --source-root tests/fixtures/cmsis-svd-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \

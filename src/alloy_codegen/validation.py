@@ -44,17 +44,34 @@ def _evaluate_gate(
 
 
 def _validate_source_manifest(source_manifest: SourceManifest) -> tuple[ValidationRuleResult, ...]:
-    target_count = len(source_manifest.targets)
-    source_count = len(source_manifest.sources)
     revisions = {source.revision for source in source_manifest.sources}
     local_paths = [source.local_path for source in source_manifest.sources]
+    target_devices = {source.target_device for source in source_manifest.sources}
+    target_coverage = {
+        target: {
+            source.source_id
+            for source in source_manifest.sources
+            if source.target_device == target
+        }
+        for target in source_manifest.targets
+    }
+    expected_source_ids = {"cmsis-svd-data", "stm32-open-pin-data"}
     return (
         _rule(
-            rule_id="source-target-count-match",
+            rule_id="source-records-cover-targets",
             category="schema",
             severity="error",
-            passed=target_count == source_count,
-            message=f"Found {source_count} source record(s) for {target_count} target(s).",
+            passed=target_devices == set(source_manifest.targets),
+            message="Source records cover every requested bootstrap target.",
+        ),
+        _rule(
+            rule_id="source-records-provide-required-upstreams",
+            category="schema",
+            severity="error",
+            passed=all(
+                target_coverage[target] >= expected_source_ids for target in source_manifest.targets
+            ),
+            message="Every target carries cmsis-svd-data and stm32-open-pin-data records.",
         ),
         _rule(
             rule_id="source-records-have-revisions",

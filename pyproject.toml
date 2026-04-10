@@ -31,3 +31,9 @@ select = ["E", "F", "I", "B", "UP", "N"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/alloy_codegen"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "ruff>=0.15.10",
+]

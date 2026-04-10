@@ -121,6 +121,7 @@ jobs:
           python -m alloy_codegen.cli validate \
             --device "${{ matrix.device }}" \
             --source-root tests/fixtures/cmsis-svd-data \
+            --pin-source-root tests/fixtures/stm32-open-pin-data \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -152,6 +153,7 @@ jobs:
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
             --source-root tests/fixtures/cmsis-svd-data \
+            --pin-source-root tests/fixtures/stm32-open-pin-data \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -190,6 +192,7 @@ jobs:
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
             --source-root tests/fixtures/cmsis-svd-data \
+            --pin-source-root tests/fixtures/stm32-open-pin-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -285,6 +288,7 @@ jobs:
           python -m alloy_codegen.cli publish \
             --family stm32g0 \
             --source-root tests/fixtures/cmsis-svd-data \
+            --pin-source-root tests/fixtures/stm32-open-pin-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -333,6 +337,7 @@ jobs:
           python -m alloy_codegen.cli publish \
             --family stm32g0 \
             --source-root tests/fixtures/cmsis-svd-data \
+            --pin-source-root tests/fixtures/stm32-open-pin-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \

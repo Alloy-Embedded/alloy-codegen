@@ -24,31 +24,25 @@ def test_all_bootstrap_devices_have_patch_documents(execution_context) -> None:
         assert patch.device == device_name
         assert patch.family_patch_id == family_catalog.patch_id
         assert patch.svd_file.endswith(".svd")
-        assert patch.pins
-        assert all(pin.signals for pin in patch.pins)
+        assert patch.pin_data_file.endswith(".xml")
+        assert patch.pins == ()
         assert all(peripheral.rcc_enable_signal for peripheral in patch.peripherals)
 
 
-def test_device_patch_synthesizes_default_gpio_signal(execution_context) -> None:
+def test_device_patch_declares_open_pin_data_source(execution_context) -> None:
     patch = load_device_patch(execution_context, "stm32g071rb")
-    pa0 = next(pin for pin in patch.pins if pin.name == "PA0")
 
     assert patch.pin_count == 64
-    assert pa0.signals[0].function == "gpio"
-    assert pa0.signals[0].peripheral == "GPIOA"
-    assert pa0.signals[0].signal == "IN0"
-    assert pa0.signals[1].function == "usart1_tx"
+    assert patch.package == "lqfp64"
+    assert patch.pin_data_file == "STM32G071R(6-8-B)Tx.xml"
 
 
-def test_device_patch_derives_pin_metadata_from_family_catalog(execution_context) -> None:
+def test_device_patch_derives_package_metadata_from_family_catalog(execution_context) -> None:
     patch = load_device_patch(execution_context, "stm32g030f6")
-    pa2 = next(pin for pin in patch.pins if pin.name == "PA2")
 
     assert patch.package == "tssop20"
     assert patch.pin_count == 20
-    assert pa2.port == "A"
-    assert pa2.number == 2
-    assert pa2.signals[1].function == "usart2_tx"
+    assert patch.pin_data_file == "STM32G030F6Px.xml"
 
 
 def test_device_patch_resolves_dma_requests_from_family_catalog(execution_context) -> None:

@@ -13,6 +13,7 @@ class SourceRecord:
     """One upstream source entry."""
 
     source_id: str
+    target_device: str
     origin_url: str
     revision: str
     local_path: str

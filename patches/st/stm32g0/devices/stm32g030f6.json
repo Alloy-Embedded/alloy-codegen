@@ -2,6 +2,7 @@
   "patch_id": "st-stm32g0-stm32g030f6-bootstrap",
   "device": "stm32g030f6",
   "svd_file": "STM32G030.svd",
+  "pin_data_file": "STM32G030F6Px.xml",
   "package": "tssop20",
   "core": "cortex-m0plus",
   "summary": "Low-pin-count bootstrap device.",
@@ -22,18 +23,5 @@
     }
   ],
   "peripherals": ["GPIOA", "USART2", "DMA1"],
-  "pins": [
-    {
-      "name": "PA0"
-    },
-    {
-      "name": "PA2",
-      "signal_refs": ["pa2-usart2-tx"]
-    },
-    {
-      "name": "PA3",
-      "signal_refs": ["pa3-usart2-rx"]
-    }
-  ],
   "dma_request_refs": ["dma1-usart2-tx", "dma1-usart2-rx"]
 }

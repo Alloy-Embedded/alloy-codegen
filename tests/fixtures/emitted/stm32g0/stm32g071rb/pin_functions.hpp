@@ -12,10 +12,13 @@ struct PinFunctionDescriptor {
 };
 inline constexpr PinFunctionDescriptor kPinFunctions[] = {
   {"PA0", "gpio", "GPIOA", "IN0", -1},
-  {"PA0", "usart1_tx", "USART1", "TX", 1},
   {"PA1", "gpio", "GPIOA", "IN1", -1},
-  {"PA1", "usart1_rx", "USART1", "RX", 1},
+  {"PA2", "gpio", "GPIOA", "IN2", -1},
+  {"PA3", "gpio", "GPIOA", "IN3", -1},
   {"PB6", "gpio", "GPIOB", "IN6", -1},
+  {"PB6", "usart1_tx", "USART1", "TX", 0},
+  {"PB7", "gpio", "GPIOB", "IN7", -1},
+  {"PB7", "usart1_rx", "USART1", "RX", 0},
 };
 }
 }

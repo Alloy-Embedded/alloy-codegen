@@ -38,7 +38,7 @@
 - [x] 2.2 Implement vendor-specific normalization into the canonical IR
 - [x] 2.3 Record provenance for normalized facts
 - [x] 2.4 Add golden tests for normalized device data
-- [ ] 2.5 Add schema evolution rules and compatibility tests
+- [x] 2.5 Add schema evolution rules and compatibility tests
 
 ### Gate C: Semantic Correctness
 - [x] C.1 Pin/package/connectivity validation reports zero critical errors for the bootstrap family
@@ -80,8 +80,8 @@
 
 ### Gate E: Family Expansion
 - [x] E.1 Gate D passes in CI for the bootstrap family
-- [ ] E.2 Regression fixtures protect already-supported families
-- [ ] E.3 Family-specific logic is isolated to adapters and normalizers
+- [x] E.2 Regression fixtures protect already-supported families
+- [x] E.3 Family-specific logic is isolated to adapters and normalizers
 - [x] E.4 Repeated publication runs are deterministic
 - [x] E.5 The bootstrap family completes at least two successful publication cycles without
       artifact contract changes

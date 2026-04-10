@@ -22,11 +22,21 @@ def fixture_source_root() -> Path:
 
 
 @pytest.fixture
-def execution_context(fixture_source_root: Path, tmp_path: Path) -> ExecutionContext:
+def fixture_pin_source_root() -> Path:
+    return ROOT / "tests" / "fixtures" / "stm32-open-pin-data"
+
+
+@pytest.fixture
+def execution_context(
+    fixture_source_root: Path,
+    fixture_pin_source_root: Path,
+    tmp_path: Path,
+) -> ExecutionContext:
     default_context = ExecutionContext.default()
     alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
     return default_context.with_overrides(
         source_root=str(fixture_source_root),
+        pin_source_root=str(fixture_pin_source_root),
         artifact_root=str(tmp_path / "artifacts"),
         publication_root=str(tmp_path / "publication"),
         alloy_root=str(alloy_root),

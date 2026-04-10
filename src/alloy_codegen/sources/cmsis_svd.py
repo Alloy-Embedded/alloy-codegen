@@ -106,6 +106,7 @@ def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict
         records.append(
             {
                 "source_id": "cmsis-svd-data",
+                "target_device": device_name,
                 "origin_url": CMSIS_SVD_REMOTE,
                 "revision": revision,
                 "local_path": str(local_path),

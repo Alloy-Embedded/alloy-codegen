@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Mcu Package="TSSOP20" RefName="STM32G030F6Px" xmlns="http://dummy.com">
+    <Core>ARM Cortex-M0+</Core>
+    <IP InstanceName="GPIO" Name="GPIO" Version="STM32G03x_gpio_v1_0"/>
+    <Pin Name="PA0" Position="7" Type="I/O">
+        <Signal Name="USART2_CTS"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA1" Position="8" Type="I/O">
+        <Signal Name="USART2_RTS"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA2" Position="9" Type="I/O">
+        <Signal Name="USART2_TX"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA3" Position="10" Type="I/O">
+        <Signal Name="USART2_RX"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA4" Position="11" Type="I/O">
+        <Signal Name="SPI1_NSS"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA5" Position="12" Type="I/O">
+        <Signal Name="SPI1_SCK"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+</Mcu>

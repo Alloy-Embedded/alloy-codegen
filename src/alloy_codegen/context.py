@@ -38,6 +38,7 @@ class ExecutionContext:
 
     repo_root: Path
     source_root: Path | None
+    pin_source_root: Path | None
     patch_root: Path
     source_cache_dir: Path
     artifact_root: Path
@@ -48,6 +49,7 @@ class ExecutionContext:
     def default(cls) -> ExecutionContext:
         repo_root = discover_repo_root()
         source_root = os.getenv("ALLOY_CODEGEN_CMSIS_SVD_ROOT")
+        pin_source_root = os.getenv("ALLOY_CODEGEN_STM32_OPEN_PIN_DATA_ROOT")
         cache_dir = os.getenv("ALLOY_CODEGEN_SOURCE_CACHE_DIR")
         patch_root = os.getenv("ALLOY_CODEGEN_PATCH_ROOT")
         artifact_root = os.getenv("ALLOY_CODEGEN_ARTIFACT_ROOT")
@@ -56,6 +58,7 @@ class ExecutionContext:
         return cls(
             repo_root=repo_root,
             source_root=Path(source_root).resolve() if source_root else None,
+            pin_source_root=Path(pin_source_root).resolve() if pin_source_root else None,
             patch_root=Path(patch_root).resolve() if patch_root else (repo_root / "patches"),
             source_cache_dir=Path(cache_dir).resolve()
             if cache_dir
@@ -78,6 +81,7 @@ class ExecutionContext:
         self,
         *,
         source_root: str | None = None,
+        pin_source_root: str | None = None,
         patch_root: str | None = None,
         cache_dir: str | None = None,
         artifact_root: str | None = None,
@@ -87,6 +91,11 @@ class ExecutionContext:
         return ExecutionContext(
             repo_root=self.repo_root,
             source_root=Path(source_root).resolve() if source_root else self.source_root,
+            pin_source_root=(
+                Path(pin_source_root).resolve()
+                if pin_source_root
+                else self.pin_source_root
+            ),
             patch_root=Path(patch_root).resolve() if patch_root else self.patch_root,
             source_cache_dir=Path(cache_dir).resolve() if cache_dir else self.source_cache_dir,
             artifact_root=Path(artifact_root).resolve() if artifact_root else self.artifact_root,

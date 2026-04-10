@@ -116,6 +116,7 @@ class DevicePatch:
     family_patch_id: str | None
     device: str
     svd_file: str
+    pin_data_file: str
     package: str
     pin_count: int
     core: str
@@ -131,6 +132,7 @@ class DevicePatch:
             "family_patch_id": self.family_patch_id,
             "device": self.device,
             "svd_file": self.svd_file,
+            "pin_data_file": self.pin_data_file,
             "package": self.package,
             "pin_count": self.pin_count,
             "core": self.core,
@@ -503,6 +505,7 @@ def load_device_patch(context: ExecutionContext, device_name: str) -> DevicePatc
         family_patch_id=family_catalog.patch_id,
         device=payload["device"],
         svd_file=payload["svd_file"],
+        pin_data_file=payload["pin_data_file"],
         package=package.name,
         pin_count=_resolve_pin_count(payload=payload, package=package),
         core=payload["core"],
@@ -518,8 +521,16 @@ def load_device_patch(context: ExecutionContext, device_name: str) -> DevicePatc
             for item in payload["memories"]
         ),
         peripherals=tuple(
-            _resolve_peripheral_patch(item=item, catalog=catalog_by_name)
-            for item in payload.get("peripherals", ())
+            {
+                peripheral.name: peripheral
+                for peripheral in (
+                    *family_catalog.peripherals,
+                    *(
+                        _resolve_peripheral_patch(item=item, catalog=catalog_by_name)
+                        for item in payload.get("peripherals", ())
+                    ),
+                )
+            }.values()
         ),
         pins=tuple(
             (
@@ -532,7 +543,7 @@ def load_device_patch(context: ExecutionContext, device_name: str) -> DevicePatc
                 if "port" not in item or "number" not in item
                 else _parse_pin_patch(item)
             )
-            for item in payload["pins"]
+            for item in payload.get("pins", ())
         ),
         dma_requests=tuple(
             _resolve_dma_request(

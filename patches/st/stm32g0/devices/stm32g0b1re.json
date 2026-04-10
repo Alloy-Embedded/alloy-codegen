@@ -2,6 +2,7 @@
   "patch_id": "st-stm32g0-stm32g0b1re-bootstrap",
   "device": "stm32g0b1re",
   "svd_file": "STM32G0B1.svd",
+  "pin_data_file": "STM32G0B1R(B-C-E)Tx.xml",
   "package": "lqfp64",
   "core": "cortex-m0plus",
   "summary": "Higher-feature bootstrap device.",
@@ -22,18 +23,5 @@
     }
   ],
   "peripherals": ["GPIOA", "GPIOB", "FDCAN1"],
-  "pins": [
-    {
-      "name": "PA11",
-      "signal_refs": ["pa11-fdcan1-rx"]
-    },
-    {
-      "name": "PA12",
-      "signal_refs": ["pa12-fdcan1-tx"]
-    },
-    {
-      "name": "PB8"
-    }
-  ],
   "dma_requests": []
 }
