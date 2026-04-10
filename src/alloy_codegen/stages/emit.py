@@ -28,10 +28,8 @@ from alloy_codegen.emission import (
     emit_memory_map_header,
     emit_package_map_header,
     emit_packages_metadata,
-    emit_pin_functions_header,
     emit_rcc_map_header,
     emit_register_map_header,
-    emit_signal_map_header,
     emit_startup_descriptors_header,
     emit_startup_source,
     emit_startup_vectors_source,
@@ -100,7 +98,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
                 emit_register_map_header(family_dir=family_dir, device=device),
-                emit_pin_functions_header(family_dir=family_dir, device=device),
                 emit_startup_source(family_dir=family_dir, device=device),
                 emit_startup_descriptors_header(family_dir=family_dir, device=device),
                 emit_startup_vectors_source(family_dir=family_dir, device=device),
@@ -137,7 +134,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 ip_version=ip_version,
             )
         )
-    artifacts.append(emit_signal_map_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_connector_tables_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_rcc_map_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_dma_map_header(family_dir=family_dir, devices=devices))

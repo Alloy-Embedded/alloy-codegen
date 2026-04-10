@@ -104,12 +104,8 @@ def verify_alloy_smoke_consumer(
         f"-I{alloy_root / 'src'}",
         f"-I{publication_root}",
         (
-            f'-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER='
+            f"-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER="
             f'"{vendor}/{family}/generated/devices/{device}/register_map.hpp"'
-        ),
-        (
-            f'-DALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER='
-            f'"{vendor}/{family}/generated/devices/{device}/pin_functions.hpp"'
         ),
         f'-DALLOY_CODEGEN_SMOKE_GPIO_HEADER="{gpio_header_include}"',
         f'-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER="{vendor}/{family}/generated/connector_tables.hpp"',
@@ -118,7 +114,7 @@ def verify_alloy_smoke_consumer(
         f'-DALLOY_CODEGEN_SMOKE_PACKAGE_MAP_HEADER="{vendor}/{family}/generated/package_map.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER="{vendor}/{family}/generated/clock_tree_lite.hpp"',
         (
-            f'-DALLOY_CODEGEN_SMOKE_STARTUP_DESCRIPTORS_HEADER='
+            f"-DALLOY_CODEGEN_SMOKE_STARTUP_DESCRIPTORS_HEADER="
             f'"{vendor}/{family}/generated/devices/{device}/startup_descriptors.hpp"'
         ),
         f"-DALLOY_CODEGEN_SMOKE_DEVICE_NAMESPACE={vendor}::{family}::generated::devices::{device}",

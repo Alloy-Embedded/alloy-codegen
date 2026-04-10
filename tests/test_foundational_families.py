@@ -43,7 +43,6 @@ def _common_family_artifact_paths(family_dir: str) -> tuple[str, ...]:
         f"{family_dir}/generated/clock_tree_lite.hpp",
         f"{family_dir}/generated/dma_map.hpp",
         f"{family_dir}/generated/rcc_map.hpp",
-        f"{family_dir}/generated/signal_map.hpp",
     )
 
 
@@ -57,7 +56,6 @@ def _device_artifact_paths(
             (
                 f"{family_dir}/metadata/devices/{device_name}.json",
                 f"{family_dir}/generated/devices/{device_name}/register_map.hpp",
-                f"{family_dir}/generated/devices/{device_name}/pin_functions.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup.cpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_descriptors.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",

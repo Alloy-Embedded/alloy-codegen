@@ -51,7 +51,6 @@ def test_emit_includes_metadata_artifacts_with_content(
     system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
     device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
     register_map_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"]
-    pin_functions_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/pin_functions.hpp"]
     startup_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
     dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
@@ -186,7 +185,7 @@ def test_emit_includes_metadata_artifacts_with_content(
         for pin_entry in packages_payload["packages"][0]["pinouts"][0]["pin_index"]
     )
 
-    for artifact in (register_map_artifact, pin_functions_artifact, startup_artifact):
+    for artifact in (register_map_artifact, startup_artifact):
         assert artifact.artifact_kind == "generated-cpp"
         assert artifact.content is not None
         assert artifact.content_sha256 is not None
@@ -205,13 +204,7 @@ def test_emit_includes_metadata_artifacts_with_content(
         assert "kCapabilities" in ip_block_artifact.content
 
     assert "kPeripheralBases" in register_map_artifact.content
-    assert "kPinFunctions" in pin_functions_artifact.content
     assert "kInterruptTable" in startup_artifact.content
-
-    signal_map_artifact = artifacts["st/stm32g0/generated/signal_map.hpp"]
-    assert signal_map_artifact.artifact_kind == "generated-cpp"
-    assert "kSignalMap" in signal_map_artifact.content
-    assert "SignalDescriptor" in signal_map_artifact.content
 
     assert connector_tables_artifact.artifact_kind == "generated-cpp"
     assert "kConnectionCandidates" in connector_tables_artifact.content
@@ -291,9 +284,9 @@ def test_emit_matches_golden_artifacts(
     assert json.loads(
         artifacts["st/stm32g0/metadata/capabilities.json"].content
     ) == _load_json_fixture(fixture_root / "metadata" / "capabilities.json")
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/packages.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "packages.json")
+    assert json.loads(artifacts["st/stm32g0/metadata/packages.json"].content) == _load_json_fixture(
+        fixture_root / "metadata" / "packages.json"
+    )
     assert json.loads(
         artifacts["st/stm32g0/metadata/connectors.json"].content
     ) == _load_json_fixture(fixture_root / "metadata" / "connectors.json")
@@ -306,18 +299,12 @@ def test_emit_matches_golden_artifacts(
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "register_map.hpp"
     ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/pin_functions.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "pin_functions.hpp"
-    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"
     ).read_text(encoding="utf-8")
     for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
         artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"
         assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/signal_map.hpp"].content == (
-        fixture_root / "generated" / "signal_map.hpp"
-    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/rcc_map.hpp"].content == (
         fixture_root / "generated" / "rcc_map.hpp"
     ).read_text(encoding="utf-8")
@@ -339,12 +326,11 @@ def test_emit_matches_golden_artifacts(
     assert artifacts["st/stm32g0/generated/clock_tree_lite.hpp"].content == (
         fixture_root / "generated" / "clock_tree_lite.hpp"
     ).read_text(encoding="utf-8")
-    assert (
-        artifacts["st/stm32g0/generated/devices/stm32g071rb/startup_descriptors.hpp"].content
-        == (
-            fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_descriptors.hpp"
-        ).read_text(encoding="utf-8")
-    )
+    assert artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/startup_descriptors.hpp"
+    ].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_descriptors.hpp"
+    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_vectors.cpp"
     ).read_text(encoding="utf-8")

@@ -9,10 +9,6 @@
     #error "ALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER must be defined"
 #endif
 
-#ifndef ALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER
-    #error "ALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER must be defined"
-#endif
-
 #ifndef ALLOY_CODEGEN_SMOKE_GPIO_HEADER
     #error "ALLOY_CODEGEN_SMOKE_GPIO_HEADER must be defined"
 #endif
@@ -56,7 +52,6 @@
 #include "core/result.hpp"
 
 #include ALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER
-#include ALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER
 #include ALLOY_CODEGEN_SMOKE_GPIO_HEADER
 #include ALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER
 #include ALLOY_CODEGEN_SMOKE_INTERRUPT_MAP_HEADER
@@ -76,7 +71,6 @@ namespace published_ip = ALLOY_CODEGEN_SMOKE_GENERATED_NAMESPACE::ip;
 #endif
 
 static_assert(published_device::kPeripheralBases[0].address != 0u);
-static_assert(published_device::kPinFunctions[0].pin_name != nullptr);
 static_assert(published_gpio::kPeripheral.base_address != 0u);
 static_assert(published_generated::kConnectionCandidates[0].candidate_id != nullptr);
 static_assert(published_generated::kConnectionGroups[0].group_id != nullptr);

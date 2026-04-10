@@ -8,7 +8,7 @@
 - [x] A.6 Add golden canonical fixtures exercising the new fields for ST, Microchip, and NXP
 
 ### Gate C1: IR completeness
-- [ ] C1.1 No publishability-critical domain remains encoded only as `PinSignal.af_number`
+- [x] C1.1 No publishability-critical domain remains encoded only as `PinSignal.af_number`
 - [x] C1.2 The same IR schema can represent ST, Microchip, and NXP connectivity without vendor
       forks
 - [x] C1.3 Canonical fixtures exist for at least one family from each foundational vendor shape
@@ -112,7 +112,7 @@
 
 ## Phase I: Legacy cleanup
 
-- [ ] I.1 Remove transitional emitter dependence on legacy AF-centric connectivity fields
+- [x] I.1 Remove transitional emitter dependence on legacy AF-centric connectivity fields
 - [ ] I.2 Remove obsolete bootstrap-only artifact names once Alloy migration is ready
 - [ ] I.3 Update docs, fixtures, and workflows to reference the final descriptor contract only
 

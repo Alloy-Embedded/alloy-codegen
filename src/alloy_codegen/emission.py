@@ -171,9 +171,7 @@ def _build_package_metadata(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict
             )
 
             bonded_pin = (
-                None
-                if package_pad["bonded_pin"] is None
-                else str(package_pad["bonded_pin"])
+                None if package_pad["bonded_pin"] is None else str(package_pad["bonded_pin"])
             )
             constraint_ids = [
                 str(constraint["constraint_id"])
@@ -226,10 +224,7 @@ def _build_package_metadata(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict
                 "device": device.identity.device,
                 "package": device.identity.package,
                 "pinout": device_pinout,
-                "pin_index": [
-                    pin_index[pin_name]
-                    for pin_name in sorted(pin_index)
-                ],
+                "pin_index": [pin_index[pin_name] for pin_name in sorted(pin_index)],
                 "pin_constraints": [
                     to_primitive(constraint)
                     for constraint in sorted(
@@ -870,44 +865,6 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
     )
 
 
-def emit_pin_functions_header(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
-    pin_lines = [
-        "struct PinFunctionDescriptor {",
-        "  const char* pin_name;",
-        "  const char* function;",
-        "  const char* peripheral;",
-        "  const char* signal;",
-        "  int af_number;",
-        "};",
-        "inline constexpr PinFunctionDescriptor kPinFunctions[] = {",
-    ]
-    for pin in sorted(device.pins, key=lambda item: (item.port or "", item.number, item.name)):
-        for signal in pin.signals:
-            pin_lines.append(
-                "  {"
-                f"{json.dumps(pin.name)}, "
-                f"{json.dumps(signal.function)}, "
-                f"{_quoted(signal.peripheral)}, "
-                f"{_quoted(signal.signal)}, "
-                f"{-1 if signal.af_number is None else signal.af_number}"
-                "},"
-            )
-    pin_lines.append("};")
-    namespace_block = _cpp_namespace_block(_namespace_components(device), "\n".join(pin_lines))
-    content = "\n".join(
-        [
-            "#pragma once",
-            "",
-            namespace_block,
-            "",
-        ]
-    )
-    return _cpp_artifact(
-        path=_device_generated_path(family_dir, device.identity.device, "pin_functions.hpp"),
-        content=content,
-    )
-
-
 def emit_startup_source(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
@@ -990,60 +947,6 @@ def emit_gpio_header(
     )
     return _cpp_artifact(
         path=f"{family_dir}/generated/peripherals/{peripheral_name.lower()}.hpp",
-        content=content,
-    )
-
-
-def emit_signal_map_header(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    """Emit a family-level C++ header mapping (peripheral, signal) → (pin, af_number)."""
-    # Collect all alternate-function signals across every device, deduplicated.
-    seen: set[tuple[str, str, str, int]] = set()
-    rows: list[tuple[str, str, str, int]] = []
-    for device in devices:
-        for pin in device.pins:
-            for signal in pin.signals:
-                if signal.peripheral is None or signal.af_number is None:
-                    continue
-                key = (signal.peripheral, signal.signal or "", pin.name, signal.af_number)
-                if key not in seen:
-                    seen.add(key)
-                    rows.append(key)
-    rows.sort()
-
-    _vendor, _family = family_dir.split("/", 1)
-    body_lines = [
-        "struct SignalDescriptor {",
-        "  const char* peripheral;",
-        "  const char* signal;",
-        "  const char* pin_name;",
-        "  int af_number;",
-        "};",
-        "inline constexpr SignalDescriptor kSignalMap[] = {",
-        *[
-            f"  {{{json.dumps(peripheral)}, {json.dumps(signal)}, "
-            f"{json.dumps(pin_name)}, {af_number}}},"
-            for peripheral, signal, pin_name, af_number in rows
-        ],
-        "};",
-    ]
-    namespace_block = _cpp_namespace_block(
-        (_vendor, _family, "generated"),
-        "\n".join(body_lines),
-    )
-    content = "\n".join(
-        [
-            "#pragma once",
-            "",
-            namespace_block,
-            "",
-        ]
-    )
-    return _cpp_artifact(
-        path=f"{family_dir}/generated/signal_map.hpp",
         content=content,
     )
 
@@ -1260,7 +1163,8 @@ def emit_interrupt_map_header(
     ] = []
     for device in devices:
         vector_map = {
-            vector_slot.interrupt: vector_slot for vector_slot in device.vector_slots
+            vector_slot.interrupt: vector_slot
+            for vector_slot in device.vector_slots
             if vector_slot.interrupt is not None
         }
         for interrupt in sorted(device.interrupts, key=lambda item: (item.line, item.name)):
@@ -1765,10 +1669,7 @@ def emit_startup_vectors_source(
                 "};",
                 "inline constexpr StartupVectorDescriptor kStartupVectorTable[] = {",
                 *[
-                    "  {"
-                    f"{vector_slot.slot}, "
-                    f"{json.dumps(vector_slot.symbol_name)}"
-                    "},"
+                    f"  {{{vector_slot.slot}, {json.dumps(vector_slot.symbol_name)}}},"
                     for vector_slot in sorted(device.vector_slots, key=lambda item: item.slot)
                 ],
                 "};",

@@ -330,10 +330,8 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/metadata/family-index.json" in artifacts
     assert f"{family_dir}/metadata/family-connectivity.json" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp" in artifacts
-    assert f"{family_dir}/generated/devices/mimxrt1062/pin_functions.hpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
     assert f"{family_dir}/generated/rcc_map.hpp" in artifacts
-    assert f"{family_dir}/generated/signal_map.hpp" in artifacts
     assert f"{family_dir}/generated/dma_map.hpp" in artifacts
     assert f"{family_dir}/generated/connector_tables.hpp" in artifacts
     assert f"{family_dir}/generated/interrupt_map.hpp" in artifacts
@@ -364,10 +362,6 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "nxp" in register_map.content
     assert "imxrt1060" in register_map.content
     assert "mimxrt1062" in register_map.content
-
-    pin_functions = artifacts[f"{family_dir}/generated/devices/mimxrt1062/pin_functions.hpp"]
-    assert "kPinFunctions" in pin_functions.content
-    assert "GPIO_AD_B0_00" in pin_functions.content  # from fixture header
 
     startup = artifacts[f"{family_dir}/generated/devices/mimxrt1062/startup.cpp"]
     assert "kInterruptTable" in startup.content
@@ -425,7 +419,7 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     family_dir = "nxp/imxrt1060"
     fixture_root = IMXRT1060_EMITTED_DIR
 
-    for name in ("register_map.hpp", "pin_functions.hpp", "startup.cpp"):
+    for name in ("register_map.hpp", "startup.cpp"):
         assert artifacts[f"{family_dir}/generated/devices/mimxrt1062/{name}"].content == (
             fixture_root / "generated" / "devices" / "mimxrt1062" / name
         ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"
@@ -436,7 +430,7 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
             f"generated/peripherals/{gpio_fixture.name} does not match golden fixture"
         )
 
-    for name in ("signal_map.hpp", "rcc_map.hpp", "dma_map.hpp"):
+    for name in ("rcc_map.hpp", "dma_map.hpp"):
         assert artifacts[f"{family_dir}/generated/{name}"].content == (
             fixture_root / "generated" / name
         ).read_text(encoding="utf-8"), f"generated/{name} does not match golden fixture"
@@ -468,15 +462,6 @@ def test_publish_nxp_imxrt1060_completes_successfully(
     pub_root = nxp_execution_context.publication_root
     assert (
         pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "register_map.hpp"
-    ).exists()
-    assert (
-        pub_root
-        / "nxp"
-        / "imxrt1060"
-        / "generated"
-        / "devices"
-        / "mimxrt1062"
-        / "pin_functions.hpp"
     ).exists()
     assert (
         pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "startup.cpp"
