@@ -23,9 +23,7 @@ def _first_generated_gpio_header(family_root: Path) -> Path:
     candidates = sorted((family_root / "generated" / "peripherals").glob("*.hpp"))
     if not candidates:
         generated_dir = family_root / "generated" / "peripherals"
-        raise StageExecutionError(
-            f"No generated peripheral headers found under {generated_dir}"
-        )
+        raise StageExecutionError(f"No generated peripheral headers found under {generated_dir}")
     return candidates[0]
 
 

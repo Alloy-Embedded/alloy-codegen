@@ -32,8 +32,7 @@ def ensure_source_root(context: ExecutionContext) -> Path:
     if configured_root is not None:
         if not (configured_root / MCU_SUBTREE).exists():
             raise StageExecutionError(
-                "Configured pin source root does not contain "
-                f"'{MCU_SUBTREE}': {configured_root}"
+                f"Configured pin source root does not contain '{MCU_SUBTREE}': {configured_root}"
             )
         return configured_root
 

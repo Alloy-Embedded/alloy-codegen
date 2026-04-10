@@ -487,14 +487,10 @@ def parse_raw_pin_data_document(*, atdf_path: Path, package_name: str) -> RawPin
         None,
     )
     if selected_variant is None:
-        raise StageExecutionError(
-            f"ATDF {atdf_path.name} does not declare package {package_key}."
-        )
+        raise StageExecutionError(f"ATDF {atdf_path.name} does not declare package {package_key}.")
     selected_pinout = selected_variant.get("pinout")
     if selected_pinout is None:
-        raise StageExecutionError(
-            f"ATDF variant for {package_key} does not declare a pinout name."
-        )
+        raise StageExecutionError(f"ATDF variant for {package_key} does not declare a pinout name.")
 
     pinouts_node = root.find("pinouts")
     if pinouts_node is None:

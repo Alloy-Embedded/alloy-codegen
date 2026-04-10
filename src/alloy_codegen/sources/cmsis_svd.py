@@ -23,8 +23,7 @@ def ensure_source_root(context: ExecutionContext) -> Path:
     if configured_root is not None:
         if not (configured_root / STMICRO_SUBTREE).exists():
             raise StageExecutionError(
-                "Configured source root does not contain "
-                f"'{STMICRO_SUBTREE}': {configured_root}"
+                f"Configured source root does not contain '{STMICRO_SUBTREE}': {configured_root}"
             )
         return configured_root
 
