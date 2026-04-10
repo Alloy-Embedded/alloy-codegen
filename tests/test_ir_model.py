@@ -303,6 +303,7 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
                 controller="DMA1",
                 version="dma_v1",
                 channel_count=7,
+                request_count=2,
                 provenance=provenance,
             ),
         ),
@@ -316,11 +317,20 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
                 conflict_group="dma1-shared",
                 provenance=provenance,
             ),
+            DmaRouteDescriptor(
+                route_id="dma-usart1-rx",
+                controller="DMA1",
+                request_line="DMA1_CH1",
+                peripheral="USART1",
+                signal="RX",
+                conflict_group="dma1-shared",
+                provenance=provenance,
+            ),
         ),
         dma_conflict_groups=(
             DmaConflictGroup(
                 conflict_group_id="dma1-shared",
-                route_ids=("dma-usart1-tx",),
+                route_ids=("dma-usart1-rx", "dma-usart1-tx"),
                 provenance=provenance,
             ),
         ),
@@ -353,5 +363,6 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
     assert payload["resets"][0]["reset_id"] == "reset-usart1"
     assert payload["peripheral_clock_bindings"][0]["peripheral"] == "USART1"
     assert payload["dma_controllers"][0]["controller"] == "DMA1"
+    assert payload["dma_controllers"][0]["request_count"] == 2
     assert payload["dma_routes"][0]["route_id"] == "dma-usart1-tx"
     assert payload["dma_conflict_groups"][0]["conflict_group_id"] == "dma1-shared"

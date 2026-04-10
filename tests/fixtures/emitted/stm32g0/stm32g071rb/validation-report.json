@@ -28,7 +28,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 60 rule(s).",
+      "message": "gate-c passed with 66 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -84,13 +84,19 @@
         "stm32g071rb-startup-descriptors-include-runtime-baseline",
         "stm32g071rb-clock-bindings-reference-known-descriptors",
         "stm32g071rb-clock-node-parents-known",
+        "stm32g071rb-clock-graph-reaches-root",
+        "stm32g071rb-clock-selectors-structured",
         "stm32g071rb-clock-gates-reference-known-nodes",
         "stm32g071rb-clock-bound-peripherals-covered",
         "stm32g071rb-dma-controller-descriptors-complete",
+        "stm32g071rb-dma-controller-request-counts-match",
+        "stm32g071rb-dma-routes-cover-requests",
         "stm32g071rb-dma-routes-reference-known-controllers",
         "stm32g071rb-dma-routes-reference-known-peripherals",
         "stm32g071rb-dma-routes-reference-known-conflicts",
-        "stm32g071rb-dma-conflict-groups-reference-known-routes"
+        "stm32g071rb-dma-conflict-groups-reference-known-routes",
+        "stm32g071rb-dma-conflict-groups-nontrivial",
+        "stm32g071rb-dma-route-conflict-annotations-consistent"
       ]
     }
   ],
@@ -533,6 +539,20 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb clock graph remains root-reachable and acyclic.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-graph-reaches-root",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb clock selectors expose at least one parent option when present.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-selectors-structured",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb clock gates reference known clock nodes.",
       "passed": true,
       "rule_id": "stm32g071rb-clock-gates-reference-known-nodes",
@@ -547,9 +567,23 @@
     },
     {
       "category": "semantic",
-      "message": "stm32g071rb DMA controllers expose non-empty channel counts.",
+      "message": "stm32g071rb DMA controllers expose non-empty channel and request counts.",
       "passed": true,
       "rule_id": "stm32g071rb-dma-controller-descriptors-complete",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA controller request counts match the normalized DMA route set.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-controller-request-counts-match",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA routes cover the normalized DMA request set.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-routes-cover-requests",
       "severity": "error"
     },
     {
@@ -578,6 +612,20 @@
       "message": "stm32g071rb DMA conflict groups reference known DMA routes.",
       "passed": true,
       "rule_id": "stm32g071rb-dma-conflict-groups-reference-known-routes",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA conflict groups only exist for true multi-route conflicts.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-conflict-groups-nontrivial",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA route conflict annotations match the declared conflict groups.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-route-conflict-annotations-consistent",
       "severity": "error"
     }
   ],

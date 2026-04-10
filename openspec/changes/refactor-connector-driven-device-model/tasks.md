@@ -59,12 +59,12 @@
 - [x] E.2 Add memory-region descriptors with startup-relevant classification
 - [x] E.3 Add startup copy/zero/vector descriptors separated from startup logic
 - [ ] E.4 Add `ClockGraphLite` descriptors for enable, reset, parent selection, and source choice
-- [ ] E.5 Add complete DMA controller/request/route/conflict descriptors
+- [x] E.5 Add complete DMA controller/request/route/conflict descriptors
 - [x] E.6 Add validators for all system descriptor families
 
 ### Gate C5: Publishable system descriptors
 - [ ] C5.1 Startup data can be emitted without handwritten device-local tables
-- [ ] C5.2 Clock, interrupt, memory, and DMA completeness are all machine-verifiable
+- [x] C5.2 Clock, interrupt, memory, and DMA completeness are all machine-verifiable
 - [ ] C5.3 Publish is blocked automatically when any required system descriptor domain is draft
 
 ## Phase F: Artifact contract upgrade

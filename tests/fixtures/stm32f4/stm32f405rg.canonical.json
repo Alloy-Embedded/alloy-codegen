@@ -217,7 +217,7 @@
   ],
   "clock_nodes": [
     {
-      "kind": "gate-domain",
+      "kind": "ahb-domain",
       "node_id": "clock-node:rcc-ahb1enr",
       "parent": "clock-root",
       "provenance": {
@@ -231,7 +231,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "ahb-domain",
       "node_id": "clock-node:rcc-ahb2enr",
       "parent": "clock-root",
       "provenance": {
@@ -245,7 +245,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "apb-domain",
       "node_id": "clock-node:rcc-apb1enr",
       "parent": "clock-root",
       "provenance": {
@@ -259,7 +259,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "apb-domain",
       "node_id": "clock-node:rcc-apb2enr",
       "parent": "clock-root",
       "provenance": {
@@ -467,39 +467,9 @@
       ]
     }
   ],
-  "dma_conflict_groups": [
-    {
-      "conflict_group_id": "dma-conflict:dma2:dma2-stream2",
-      "provenance": {
-        "patch_ids": [
-          "st-stm32f4-family-bootstrap-v1",
-          "st-stm32f4-stm32f405rg-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
-      },
-      "route_ids": [
-        "dma-route:dma2:dma2-stream2:usart1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:dma2:dma2-stream7",
-      "provenance": {
-        "patch_ids": [
-          "st-stm32f4-family-bootstrap-v1",
-          "st-stm32f4-stm32f405rg-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
-      },
-      "route_ids": [
-        "dma-route:dma2:dma2-stream7:usart1:tx"
-      ]
-    }
-  ],
   "dma_controllers": [
     {
-      "channel_count": 2,
+      "channel_count": 8,
       "controller": "DMA2",
       "provenance": {
         "patch_ids": [
@@ -509,6 +479,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
       },
+      "request_count": 2,
       "version": "bdma_f4_v1_0"
     }
   ],
@@ -544,7 +515,7 @@
   ],
   "dma_routes": [
     {
-      "conflict_group": "dma-conflict:dma2:dma2-stream2",
+      "conflict_group": null,
       "controller": "DMA2",
       "peripheral": "USART1",
       "provenance": {
@@ -560,7 +531,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:dma2:dma2-stream7",
+      "conflict_group": null,
       "controller": "DMA2",
       "peripheral": "USART1",
       "provenance": {

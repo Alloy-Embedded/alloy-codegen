@@ -158,6 +158,18 @@
       "af_number": 7
     }
   ],
+  "dma_controllers": [
+    {
+      "controller": "DMA1",
+      "channel_count": 8,
+      "version": null
+    },
+    {
+      "controller": "DMA2",
+      "channel_count": 8,
+      "version": null
+    }
+  ],
   "dma_requests": [
     {
       "request_id": "dma1-usart2-tx",

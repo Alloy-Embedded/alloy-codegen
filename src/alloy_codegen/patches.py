@@ -78,6 +78,15 @@ class PinSignalCatalogEntry:
 
 
 @dataclass(frozen=True, slots=True)
+class DmaControllerPatch:
+    """Curated DMA controller metadata supplied by a patch document."""
+
+    controller: str
+    channel_count: int | None
+    version: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class FamilyPatchCatalog:
     """Family-level curated catalog used by device overlays."""
 
@@ -86,6 +95,7 @@ class FamilyPatchCatalog:
     pins: tuple[PinCatalogEntry, ...]
     peripherals: tuple[PeripheralPatch, ...]
     pin_signals: tuple[PinSignalCatalogEntry, ...]
+    dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestCatalogEntry, ...]
 
 
@@ -123,6 +133,7 @@ class DevicePatch:
     memories: tuple[MemoryPatch, ...]
     peripherals: tuple[PeripheralPatch, ...]
     pins: tuple[PinPatch, ...]
+    dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestPatch, ...]
 
     def to_dict(self) -> dict[str, object]:
@@ -170,6 +181,14 @@ class DevicePatch:
                     ],
                 }
                 for pin in self.pins
+            ],
+            "dma_controllers": [
+                {
+                    "controller": controller.controller,
+                    "channel_count": controller.channel_count,
+                    "version": controller.version,
+                }
+                for controller in self.dma_controllers
             ],
             "dma_requests": [
                 {
@@ -271,6 +290,16 @@ def _parse_dma_request_catalog_entry(payload: dict[str, object]) -> DmaRequestCa
     )
 
 
+def _parse_dma_controller_patch(payload: dict[str, object]) -> DmaControllerPatch:
+    return DmaControllerPatch(
+        controller=str(payload["controller"]),
+        channel_count=(
+            int(payload["channel_count"]) if payload.get("channel_count") is not None else None
+        ),
+        version=str(payload["version"]) if payload.get("version") is not None else None,
+    )
+
+
 def load_family_patch_catalog(
     context: ExecutionContext, *, vendor: str, family: str
 ) -> FamilyPatchCatalog:
@@ -287,6 +316,9 @@ def load_family_patch_catalog(
         peripherals=tuple(_parse_peripheral_patch(item) for item in payload.get("peripherals", ())),
         pin_signals=tuple(
             _parse_pin_signal_catalog_entry(item) for item in payload.get("pin_signals", ())
+        ),
+        dma_controllers=tuple(
+            _parse_dma_controller_patch(item) for item in payload.get("dma_controllers", ())
         ),
         dma_requests=tuple(
             _parse_dma_request_catalog_entry(item) for item in payload.get("dma_requests", ())
@@ -459,6 +491,36 @@ def _resolve_dma_request(
     return _parse_dma_request_patch(item)
 
 
+def _resolve_dma_controller(
+    *,
+    item: object,
+    catalog: dict[str, DmaControllerPatch],
+) -> DmaControllerPatch:
+    if isinstance(item, str):
+        controller = catalog.get(item)
+        if controller is None:
+            raise StageExecutionError(f"Unknown DMA controller reference in patch overlay: {item}")
+        return controller
+
+    if not isinstance(item, dict):
+        raise StageExecutionError(f"Invalid DMA controller patch entry: {item!r}")
+
+    controller_name = str(item["controller"])
+    base = catalog.get(controller_name)
+    if base is None:
+        return _parse_dma_controller_patch(item)
+
+    return DmaControllerPatch(
+        controller=controller_name,
+        channel_count=(
+            int(item["channel_count"])
+            if item.get("channel_count") is not None
+            else base.channel_count
+        ),
+        version=str(item["version"]) if item.get("version") is not None else base.version,
+    )
+
+
 def _parse_pin_patch(payload: dict[str, object]) -> PinPatch:
     port = str(payload["port"]) if payload.get("port") is not None else None
     number = int(payload["number"])
@@ -490,6 +552,9 @@ def load_device_patch(
     package_catalog_by_name = {package.name: package for package in family_catalog.packages}
     pin_catalog_by_name = {pin.name: pin for pin in family_catalog.pins}
     signal_catalog_by_id = {signal.signal_id: signal for signal in family_catalog.pin_signals}
+    dma_controller_catalog_by_name = {
+        controller.controller: controller for controller in family_catalog.dma_controllers
+    }
     dma_catalog_by_id = {request.request_id: request for request in family_catalog.dma_requests}
     catalog_by_name = {peripheral.name: peripheral for peripheral in family_catalog.peripherals}
     payload = json.loads(patch_path.read_text())
@@ -543,6 +608,24 @@ def load_device_patch(
                 else _parse_pin_patch(item)
             )
             for item in payload.get("pins", ())
+        ),
+        dma_controllers=tuple(
+            {
+                controller.controller: controller
+                for controller in (
+                    *family_catalog.dma_controllers,
+                    *(
+                        _resolve_dma_controller(
+                            item=item,
+                            catalog=dma_controller_catalog_by_name,
+                        )
+                        for item in payload.get(
+                            "dma_controllers",
+                            payload.get("dma_controller_refs", ()),
+                        )
+                    ),
+                )
+            }.values()
         ),
         dma_requests=tuple(
             _resolve_dma_request(

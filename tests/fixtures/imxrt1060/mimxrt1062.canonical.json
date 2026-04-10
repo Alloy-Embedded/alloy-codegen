@@ -279,7 +279,7 @@
   ],
   "clock_nodes": [
     {
-      "kind": "gate-domain",
+      "kind": "ccm-domain",
       "node_id": "clock-node:ccm-ccgr0",
       "parent": "clock-root",
       "provenance": {
@@ -293,7 +293,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "ccm-domain",
       "node_id": "clock-node:ccm-ccgr1",
       "parent": "clock-root",
       "provenance": {
@@ -307,7 +307,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "ccm-domain",
       "node_id": "clock-node:ccm-ccgr2",
       "parent": "clock-root",
       "provenance": {
@@ -321,7 +321,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "ccm-domain",
       "node_id": "clock-node:ccm-ccgr3",
       "parent": "clock-root",
       "provenance": {
@@ -335,7 +335,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "ccm-domain",
       "node_id": "clock-node:ccm-ccgr5",
       "parent": "clock-root",
       "provenance": {

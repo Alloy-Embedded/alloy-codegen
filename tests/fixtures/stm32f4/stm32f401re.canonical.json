@@ -203,7 +203,7 @@
   ],
   "clock_nodes": [
     {
-      "kind": "gate-domain",
+      "kind": "ahb-domain",
       "node_id": "clock-node:rcc-ahb1enr",
       "parent": "clock-root",
       "provenance": {
@@ -217,7 +217,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "apb-domain",
       "node_id": "clock-node:rcc-apb1enr",
       "parent": "clock-root",
       "provenance": {
@@ -231,7 +231,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "apb-domain",
       "node_id": "clock-node:rcc-apb2enr",
       "parent": "clock-root",
       "provenance": {
@@ -439,39 +439,9 @@
       ]
     }
   ],
-  "dma_conflict_groups": [
-    {
-      "conflict_group_id": "dma-conflict:dma1:dma1-stream5",
-      "provenance": {
-        "patch_ids": [
-          "st-stm32f4-family-bootstrap-v1",
-          "st-stm32f4-stm32f401re-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/st/stm32f4/devices/stm32f401re.json"
-      },
-      "route_ids": [
-        "dma-route:dma1:dma1-stream5:usart2:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:dma1:dma1-stream6",
-      "provenance": {
-        "patch_ids": [
-          "st-stm32f4-family-bootstrap-v1",
-          "st-stm32f4-stm32f401re-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/st/stm32f4/devices/stm32f401re.json"
-      },
-      "route_ids": [
-        "dma-route:dma1:dma1-stream6:usart2:tx"
-      ]
-    }
-  ],
   "dma_controllers": [
     {
-      "channel_count": 2,
+      "channel_count": 8,
       "controller": "DMA1",
       "provenance": {
         "patch_ids": [
@@ -481,6 +451,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32f4/devices/stm32f401re.json"
       },
+      "request_count": 2,
       "version": "bdma_f4_v1_0"
     }
   ],
@@ -516,7 +487,7 @@
   ],
   "dma_routes": [
     {
-      "conflict_group": "dma-conflict:dma1:dma1-stream5",
+      "conflict_group": null,
       "controller": "DMA1",
       "peripheral": "USART2",
       "provenance": {
@@ -532,7 +503,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:dma1:dma1-stream6",
+      "conflict_group": null,
       "controller": "DMA1",
       "peripheral": "USART2",
       "provenance": {

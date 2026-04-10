@@ -13,5 +13,12 @@
   "pins": [],
   "peripherals": [],
   "pin_signals": [],
+  "dma_controllers": [
+    {
+      "controller": "XDMAC",
+      "channel_count": 24,
+      "version": null
+    }
+  ],
   "dma_requests": []
 }

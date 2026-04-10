@@ -885,6 +885,63 @@ def test_validation_fails_gate_c_when_dma_controller_channel_count_is_missing(
         controller=controller.controller,
         version=controller.version,
         channel_count=None,
+        request_count=controller.request_count,
+        provenance=controller.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=original_device.connection_candidates,
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=(broken_controller,) + original_device.dma_controllers[1:],
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-dma-controller-descriptors-complete" in failing_rules
+
+
+def test_validation_fails_gate_c_when_dma_controller_request_count_is_missing(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    controller = original_device.dma_controllers[0]
+    broken_controller = type(controller)(
+        controller=controller.controller,
+        version=controller.version,
+        channel_count=controller.channel_count,
+        request_count=None,
         provenance=controller.provenance,
     )
     broken_device = type(original_device)(

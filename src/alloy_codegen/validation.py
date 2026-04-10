@@ -49,6 +49,22 @@ def _evaluate_gate(
     )
 
 
+def _node_reaches_root(
+    node_id: str,
+    parent_map: dict[str, str | None],
+) -> bool:
+    seen: set[str] = set()
+    current = node_id
+    while True:
+        if current in seen:
+            return False
+        seen.add(current)
+        parent = parent_map.get(current)
+        if parent is None:
+            return current == "clock-root"
+        current = parent
+
+
 def _validate_source_manifest(source_manifest: SourceManifest) -> tuple[ValidationRuleResult, ...]:
     revisions = {source.revision for source in source_manifest.sources}
     local_paths = [source.local_path for source in source_manifest.sources]
@@ -628,9 +644,18 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         any(descriptor.kind == required_kind for descriptor in device.startup_descriptors)
         for required_kind in ("vector-table", "initial-stack-pointer")
     )
+    clock_parent_map = {node.node_id: node.parent for node in device.clock_nodes}
     clock_node_parents_known = all(
         node.parent is None or node.parent in clock_node_ids
         for node in device.clock_nodes
+    )
+    clock_graph_root_reachable = all(
+        _node_reaches_root(node.node_id, clock_parent_map)
+        for node in device.clock_nodes
+    )
+    clock_selectors_structured = all(
+        bool(selector.parent_options)
+        for selector in device.clock_selectors
     )
     clock_gates_reference_known_nodes = all(
         gate.parent_node is None or gate.parent_node in clock_node_ids
@@ -647,10 +672,27 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         and (binding.selector_id is None or binding.selector_id in selector_ids)
         for binding in device.peripheral_clock_bindings
     )
+    dma_route_keys = {
+        (route.controller, route.request_line, route.peripheral, route.signal)
+        for route in device.dma_routes
+    }
+    dma_request_keys = {
+        (request.controller, request.request_line, request.peripheral, request.signal)
+        for request in device.dma_requests
+    }
     dma_controller_descriptors_complete = all(
-        controller.channel_count is not None and controller.channel_count > 0
+        controller.channel_count is not None
+        and controller.channel_count > 0
+        and controller.request_count is not None
+        and controller.request_count > 0
         for controller in device.dma_controllers
     )
+    dma_controller_request_counts_match = all(
+        controller.request_count
+        == sum(1 for route in device.dma_routes if route.controller == controller.controller)
+        for controller in device.dma_controllers
+    )
+    dma_routes_cover_requests = dma_route_keys == dma_request_keys
     dma_routes_reference_known_controllers = all(
         route.controller in dma_controller_ids for route in device.dma_routes
     )
@@ -666,6 +708,24 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         route_id in dma_route_ids
         for conflict_group in device.dma_conflict_groups
         for route_id in conflict_group.route_ids
+    )
+    dma_conflict_groups_nontrivial = all(
+        len(conflict_group.route_ids) >= 2 for conflict_group in device.dma_conflict_groups
+    )
+    dma_route_conflict_annotations_consistent = all(
+        (
+            route.conflict_group is None
+            and not any(route.route_id in group.route_ids for group in device.dma_conflict_groups)
+        )
+        or (
+            route.conflict_group is not None
+            and any(
+                group.conflict_group_id == route.conflict_group
+                and route.route_id in group.route_ids
+                for group in device.dma_conflict_groups
+            )
+        )
+        for route in device.dma_routes
     )
 
     return (
@@ -1000,6 +1060,23 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             message=f"{device.identity.device} clock nodes only reference known parents.",
         ),
         _rule(
+            rule_id=f"{device.identity.device}-clock-graph-reaches-root",
+            category="semantic",
+            severity="error",
+            passed=clock_graph_root_reachable,
+            message=f"{device.identity.device} clock graph remains root-reachable and acyclic.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-clock-selectors-structured",
+            category="semantic",
+            severity="error",
+            passed=clock_selectors_structured,
+            message=(
+                f"{device.identity.device} clock selectors expose at least one parent option "
+                "when present."
+            ),
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-clock-gates-reference-known-nodes",
             category="semantic",
             severity="error",
@@ -1021,7 +1098,27 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             category="semantic",
             severity="error",
             passed=dma_controller_descriptors_complete,
-            message=f"{device.identity.device} DMA controllers expose non-empty channel counts.",
+            message=(
+                f"{device.identity.device} DMA controllers expose non-empty channel and "
+                "request counts."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-controller-request-counts-match",
+            category="semantic",
+            severity="error",
+            passed=dma_controller_request_counts_match,
+            message=(
+                f"{device.identity.device} DMA controller request counts match the normalized "
+                "DMA route set."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-routes-cover-requests",
+            category="semantic",
+            severity="error",
+            passed=dma_routes_cover_requests,
+            message=f"{device.identity.device} DMA routes cover the normalized DMA request set.",
         ),
         _rule(
             rule_id=f"{device.identity.device}-dma-routes-reference-known-controllers",
@@ -1050,6 +1147,26 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=dma_conflict_groups_reference_known_routes,
             message=f"{device.identity.device} DMA conflict groups reference known DMA routes.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-conflict-groups-nontrivial",
+            category="semantic",
+            severity="error",
+            passed=dma_conflict_groups_nontrivial,
+            message=(
+                f"{device.identity.device} DMA conflict groups only exist for true "
+                "multi-route conflicts."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-route-conflict-annotations-consistent",
+            category="semantic",
+            severity="error",
+            passed=dma_route_conflict_annotations_consistent,
+            message=(
+                f"{device.identity.device} DMA route conflict annotations match the declared "
+                "conflict groups."
+            ),
         ),
     )
 

@@ -316,6 +316,7 @@ class DmaControllerDescriptor:
     controller: str
     version: str | None
     channel_count: int | None
+    request_count: int | None
     provenance: Provenance
 
 

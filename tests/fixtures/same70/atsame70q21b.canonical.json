@@ -9136,7 +9136,7 @@
   ],
   "clock_nodes": [
     {
-      "kind": "gate-domain",
+      "kind": "pmc-domain",
       "node_id": "clock-node:pmc",
       "parent": "clock-root",
       "provenance": {
@@ -20224,739 +20224,9 @@
       ]
     }
   ],
-  "dma_conflict_groups": [
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-0",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-0:hsmci:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-1",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-1:spi0:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-10",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-10:usart1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-11",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-11:usart2:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-12",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-12:usart2:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-13",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-13:pwm0:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-14",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-14:twihs0:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-15",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-15:twihs0:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-16",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-16:twihs1:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-17",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-17:twihs1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-18",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-18:twihs2:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-19",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-19:twihs2:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-2",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-2:spi0:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-20",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-20:uart0:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-21",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-21:uart0:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-22",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-22:uart1:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-23",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-23:uart1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-24",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-24:uart2:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-25",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-25:uart2:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-26",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-26:uart3:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-27",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-27:uart3:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-28",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-28:uart4:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-29",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-29:uart4:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-3",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-3:spi1:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-30",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-30:dacc:ch0-tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-31",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-31:dacc:ch1-tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-32",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-32:ssc:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-33",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-33:ssc:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-34",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-34:gpioa:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-35",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-35:afec0:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-36",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-36:afec1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-37",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-37:aes:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-38",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-38:aes:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-39",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-39:pwm1:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-4",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-4:spi1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-40",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-40:tc0:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-41",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-41:tc1:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-42",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-42:tc2:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-43",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-43:tc3:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-44",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-44:i2sc0:tx-left"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-45",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-45:i2sc0:rx-left"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-46",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-46:i2sc1:tx-left"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-47",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-47:i2sc1:rx-left"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-48",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-48:i2sc0:tx-right"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-49",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-49:i2sc0:rx-right"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-5",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-5:qspi:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-50",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-50:i2sc1:tx-right"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-51",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-51:i2sc1:rx-right"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-6",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-6:qspi:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-7",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-7:usart0:tx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-8",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-8:usart0:rx"
-      ]
-    },
-    {
-      "conflict_group_id": "dma-conflict:xdmac:perid-9",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70q21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
-      },
-      "route_ids": [
-        "dma-route:xdmac:perid-9:usart1:tx"
-      ]
-    }
-  ],
   "dma_controllers": [
     {
-      "channel_count": 52,
+      "channel_count": 24,
       "controller": "XDMAC",
       "provenance": {
         "patch_ids": [
@@ -20966,6 +20236,7 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70q21b.json"
       },
+      "request_count": 52,
       "version": "xdmac_k"
     }
   ],
@@ -21701,7 +20972,7 @@
   ],
   "dma_routes": [
     {
-      "conflict_group": "dma-conflict:xdmac:perid-0",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "HSMCI",
       "provenance": {
@@ -21717,7 +20988,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-10",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "USART1",
       "provenance": {
@@ -21733,7 +21004,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-11",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "USART2",
       "provenance": {
@@ -21749,7 +21020,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-12",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "USART2",
       "provenance": {
@@ -21765,7 +21036,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-13",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "PWM0",
       "provenance": {
@@ -21781,7 +21052,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-14",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TWIHS0",
       "provenance": {
@@ -21797,7 +21068,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-15",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TWIHS0",
       "provenance": {
@@ -21813,7 +21084,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-16",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TWIHS1",
       "provenance": {
@@ -21829,7 +21100,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-17",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TWIHS1",
       "provenance": {
@@ -21845,7 +21116,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-18",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TWIHS2",
       "provenance": {
@@ -21861,7 +21132,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-19",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TWIHS2",
       "provenance": {
@@ -21877,7 +21148,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-1",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "SPI0",
       "provenance": {
@@ -21893,7 +21164,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-20",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART0",
       "provenance": {
@@ -21909,7 +21180,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-21",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART0",
       "provenance": {
@@ -21925,7 +21196,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-22",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART1",
       "provenance": {
@@ -21941,7 +21212,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-23",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART1",
       "provenance": {
@@ -21957,7 +21228,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-24",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART2",
       "provenance": {
@@ -21973,7 +21244,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-25",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART2",
       "provenance": {
@@ -21989,7 +21260,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-26",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART3",
       "provenance": {
@@ -22005,7 +21276,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-27",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART3",
       "provenance": {
@@ -22021,7 +21292,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-28",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART4",
       "provenance": {
@@ -22037,7 +21308,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-29",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "UART4",
       "provenance": {
@@ -22053,7 +21324,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-2",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "SPI0",
       "provenance": {
@@ -22069,7 +21340,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-30",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "DACC",
       "provenance": {
@@ -22085,7 +21356,7 @@
       "signal": "CH0_TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-31",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "DACC",
       "provenance": {
@@ -22101,7 +21372,7 @@
       "signal": "CH1_TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-32",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "SSC",
       "provenance": {
@@ -22117,7 +21388,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-33",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "SSC",
       "provenance": {
@@ -22133,7 +21404,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-34",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "GPIOA",
       "provenance": {
@@ -22149,7 +21420,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-35",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "AFEC0",
       "provenance": {
@@ -22165,7 +21436,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-36",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "AFEC1",
       "provenance": {
@@ -22181,7 +21452,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-37",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "AES",
       "provenance": {
@@ -22197,7 +21468,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-38",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "AES",
       "provenance": {
@@ -22213,7 +21484,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-39",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "PWM1",
       "provenance": {
@@ -22229,7 +21500,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-3",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "SPI1",
       "provenance": {
@@ -22245,7 +21516,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-40",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TC0",
       "provenance": {
@@ -22261,7 +21532,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-41",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TC1",
       "provenance": {
@@ -22277,7 +21548,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-42",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TC2",
       "provenance": {
@@ -22293,7 +21564,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-43",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "TC3",
       "provenance": {
@@ -22309,7 +21580,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-44",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC0",
       "provenance": {
@@ -22325,7 +21596,7 @@
       "signal": "TX_LEFT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-45",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC0",
       "provenance": {
@@ -22341,7 +21612,7 @@
       "signal": "RX_LEFT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-46",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC1",
       "provenance": {
@@ -22357,7 +21628,7 @@
       "signal": "TX_LEFT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-47",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC1",
       "provenance": {
@@ -22373,7 +21644,7 @@
       "signal": "RX_LEFT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-48",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC0",
       "provenance": {
@@ -22389,7 +21660,7 @@
       "signal": "TX_RIGHT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-49",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC0",
       "provenance": {
@@ -22405,7 +21676,7 @@
       "signal": "RX_RIGHT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-4",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "SPI1",
       "provenance": {
@@ -22421,7 +21692,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-50",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC1",
       "provenance": {
@@ -22437,7 +21708,7 @@
       "signal": "TX_RIGHT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-51",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "I2SC1",
       "provenance": {
@@ -22453,7 +21724,7 @@
       "signal": "RX_RIGHT"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-5",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "QSPI",
       "provenance": {
@@ -22469,7 +21740,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-6",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "QSPI",
       "provenance": {
@@ -22485,7 +21756,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-7",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "USART0",
       "provenance": {
@@ -22501,7 +21772,7 @@
       "signal": "TX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-8",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "USART0",
       "provenance": {
@@ -22517,7 +21788,7 @@
       "signal": "RX"
     },
     {
-      "conflict_group": "dma-conflict:xdmac:perid-9",
+      "conflict_group": null,
       "controller": "XDMAC",
       "peripheral": "USART1",
       "provenance": {

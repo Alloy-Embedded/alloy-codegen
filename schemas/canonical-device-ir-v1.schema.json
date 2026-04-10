@@ -396,11 +396,12 @@
     },
     "dma_controller_descriptor": {
       "type": "object",
-      "required": ["controller", "version", "channel_count", "provenance"],
+      "required": ["controller", "version", "channel_count", "request_count", "provenance"],
       "properties": {
         "controller": { "type": "string" },
         "version": { "type": ["string", "null"] },
         "channel_count": { "type": ["integer", "null"] },
+        "request_count": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false

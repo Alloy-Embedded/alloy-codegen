@@ -75,7 +75,7 @@
       ],
       "clock_nodes": [
         {
-          "kind": "gate-domain",
+          "kind": "ahb-domain",
           "node_id": "clock-node:rcc-ahbenr",
           "parent": "clock-root",
           "provenance": {
@@ -89,7 +89,7 @@
           "selector": null
         },
         {
-          "kind": "gate-domain",
+          "kind": "apb-domain",
           "node_id": "clock-node:rcc-apbenr2",
           "parent": "clock-root",
           "provenance": {
@@ -103,7 +103,7 @@
           "selector": null
         },
         {
-          "kind": "gate-domain",
+          "kind": "gpio-domain",
           "node_id": "clock-node:rcc-iopenr",
           "parent": "clock-root",
           "provenance": {
@@ -133,39 +133,10 @@
       ],
       "clock_selectors": [],
       "device": "stm32g071rb",
-      "dma_conflict_groups": [
-        {
-          "conflict_group_id": "dma-conflict:dma1:dma1-ch1",
-          "provenance": {
-            "patch_ids": [
-              "st-stm32g0-family-bootstrap-v1",
-              "st-stm32g0-stm32g071rb-bootstrap"
-            ],
-            "source_id": "bootstrap-patch",
-            "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
-          },
-          "route_ids": [
-            "dma-route:dma1:dma1-ch1:usart1:rx"
-          ]
-        },
-        {
-          "conflict_group_id": "dma-conflict:dma1:dma1-ch2",
-          "provenance": {
-            "patch_ids": [
-              "st-stm32g0-family-bootstrap-v1",
-              "st-stm32g0-stm32g071rb-bootstrap"
-            ],
-            "source_id": "bootstrap-patch",
-            "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
-          },
-          "route_ids": [
-            "dma-route:dma1:dma1-ch2:usart1:tx"
-          ]
-        }
-      ],
+      "dma_conflict_groups": [],
       "dma_controllers": [
         {
-          "channel_count": 2,
+          "channel_count": 7,
           "controller": "DMA1",
           "provenance": {
             "patch_ids": [
@@ -175,12 +146,13 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
           },
+          "request_count": 2,
           "version": "bdma_v1_0"
         }
       ],
       "dma_routes": [
         {
-          "conflict_group": "dma-conflict:dma1:dma1-ch1",
+          "conflict_group": null,
           "controller": "DMA1",
           "peripheral": "USART1",
           "provenance": {
@@ -196,7 +168,7 @@
           "signal": "RX"
         },
         {
-          "conflict_group": "dma-conflict:dma1:dma1-ch2",
+          "conflict_group": null,
           "controller": "DMA1",
           "peripheral": "USART1",
           "provenance": {

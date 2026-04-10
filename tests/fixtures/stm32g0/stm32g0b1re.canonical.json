@@ -137,7 +137,7 @@
   ],
   "clock_nodes": [
     {
-      "kind": "gate-domain",
+      "kind": "ahb-domain",
       "node_id": "clock-node:rcc-ahbenr",
       "parent": "clock-root",
       "provenance": {
@@ -151,7 +151,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "apb-domain",
       "node_id": "clock-node:rcc-apbenr1",
       "parent": "clock-root",
       "provenance": {
@@ -165,7 +165,7 @@
       "selector": null
     },
     {
-      "kind": "gate-domain",
+      "kind": "gpio-domain",
       "node_id": "clock-node:rcc-iopenr",
       "parent": "clock-root",
       "provenance": {

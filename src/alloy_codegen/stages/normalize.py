@@ -11,6 +11,7 @@ from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     DeviceIdentity,
+    DmaControllerDescriptor,
     DmaRequestDefinition,
     InterruptDefinition,
     MemoryRegion,
@@ -24,6 +25,7 @@ from alloy_codegen.ir.model import (
 )
 from alloy_codegen.patches import (
     DevicePatch,
+    DmaControllerPatch,
     DmaRequestPatch,
     MemoryPatch,
     PeripheralPatch,
@@ -353,6 +355,19 @@ def _dma_request_to_ir(
     )
 
 
+def _dma_controller_to_ir(
+    controller: DmaControllerPatch,
+    provenance: Provenance,
+) -> DmaControllerDescriptor:
+    return DmaControllerDescriptor(
+        controller=controller.controller,
+        version=controller.version,
+        channel_count=controller.channel_count,
+        request_count=None,
+        provenance=provenance,
+    )
+
+
 def _default_pin_signal(*, port: str, number: int, provenance: Provenance) -> PinSignal:
     return PinSignal(
         function="gpio",
@@ -538,6 +553,10 @@ def build_canonical_ir(
                 provenance=svd_provenance,
             )
             for interrupt in raw.interrupts
+        ),
+        dma_controllers=tuple(
+            _dma_controller_to_ir(controller, patch_provenance)
+            for controller in patch.dma_controllers
         ),
         dma_requests=tuple(
             _dma_request_to_ir(request, patch_provenance) for request in patch.dma_requests
@@ -797,6 +816,10 @@ def build_nxp_canonical_ir(
                 provenance=svd_provenance,
             )
             for i in raw.interrupts
+        ),
+        dma_controllers=tuple(
+            _dma_controller_to_ir(controller, patch_provenance)
+            for controller in patch.dma_controllers
         ),
         dma_requests=tuple(_dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests),
         provenance=sdk_provenance,

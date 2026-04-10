@@ -5,7 +5,7 @@
     "pipeline_name": "alloy-codegen",
     "target_repository": "alloy-devices"
   },
-  "canonical_ir_sha256": "10f5dde6e1ba09394742abdeabd4c7d1f84367b2906623167eee6e07f4713e1d",
+  "canonical_ir_sha256": "1fa596427b339e5403546ba32830f5ab197634db52f7e823d165074f075b44de",
   "generator_version": "0.1.0",
   "ir_schema_version": "1.1.0",
   "manifest_kind": "artifact-manifest-v1",
@@ -76,5 +76,5 @@
     ]
   },
   "validation_report_id": "bootstrap-validation-v1",
-  "validation_report_sha256": "089d70981b1015384765a83284c9f690378f8e4a4ec2284f97fb50820c1f41f7"
+  "validation_report_sha256": "54e6c2e3331b40dd12aa49b5f15f8a8ad7c9426dbc41af7c18fd3728c8d2fe56"
 }

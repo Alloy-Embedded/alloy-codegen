@@ -67,7 +67,9 @@ def test_enrich_connector_descriptors_builds_st_route_model(execution_context) -
         if controller.controller == "DMA1"
     )
     assert dma1.channel_count is not None and dma1.channel_count > 0
+    assert dma1.request_count is not None and dma1.request_count > 0
     assert dma1.version == "bdma_v1_0"
+    assert all(group.route_ids for group in device.dma_conflict_groups)
 
 
 def test_enrich_connector_descriptors_builds_microchip_route_model(
@@ -122,6 +124,11 @@ def test_enrich_connector_descriptors_builds_microchip_route_model(
         for candidate in microchip_candidates
     )
     assert any(interrupt.shared_group for interrupt in device.interrupts)
+    xdmac = next(
+        controller for controller in device.dma_controllers if controller.controller == "XDMAC"
+    )
+    assert xdmac.channel_count == 24
+    assert xdmac.request_count is not None and xdmac.request_count > xdmac.channel_count
 
 
 def test_enrich_connector_descriptors_builds_nxp_route_model(
@@ -166,4 +173,5 @@ def test_enrich_connector_descriptors_builds_nxp_route_model(
     if device.dma_requests:
         assert device.dma_controllers
         assert device.dma_routes
+        assert all(controller.request_count for controller in device.dma_controllers)
     assert any(vector_slot.slot == 1 for vector_slot in device.vector_slots)
