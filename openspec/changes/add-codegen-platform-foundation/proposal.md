@@ -21,6 +21,8 @@ into templates, fragile examples, and no trustworthy path to scale across famili
   generated C++ output
 - **NEW** CLI model for operating the pipeline stage by stage and end to end
 - **NEW** publication contract that releases artifacts only from validated pipeline states
+- **NEW** remote publication workflow that can commit validated outputs into the real
+  `alloy-devices` repository without pushing drift when the published tree is unchanged
 - **NON-GOAL** reusing modm, stm32-data, chiptool, or svdtools directly as product
   dependencies; they inform the design but Alloy owns the implementation
 
@@ -39,3 +41,4 @@ into templates, fragile examples, and no trustworthy path to scale across famili
   - future pipeline CLI and schemas
   - future emitters for `alloy-devices`
   - future CI publication workflow
+  - remote release automation into `alloy-devices`

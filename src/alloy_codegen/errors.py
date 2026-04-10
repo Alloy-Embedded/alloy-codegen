@@ -12,3 +12,6 @@ class UnsupportedScopeError(AlloyCodegenError):
 class StageExecutionError(AlloyCodegenError):
     """Raised when a pipeline stage cannot complete successfully."""
 
+
+class ReleaseMetadataError(AlloyCodegenError):
+    """Raised when release metadata cannot be derived from a publish report."""

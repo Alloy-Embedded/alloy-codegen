@@ -74,13 +74,16 @@
 - [x] 4.3 Implement artifact manifests and publication summaries
 - [x] 4.4 Implement `alloy-devices` publication flow
 - [x] 4.5 Add golden tests for emitted metadata and generated code
+- [x] 4.6 Implement CI automation that can commit and push changed published artifacts into
+      the real `alloy-devices` repository
+- [x] 4.7 Document remote publication credentials, no-op behavior, and release workflow
 
 ### Gate E: Family Expansion
 - [x] E.1 Gate D passes in CI for the bootstrap family
 - [ ] E.2 Regression fixtures protect already-supported families
 - [ ] E.3 Family-specific logic is isolated to adapters and normalizers
-- [ ] E.4 Repeated publication runs are deterministic
-- [ ] E.5 The bootstrap family completes at least two successful publication cycles without
+- [x] E.4 Repeated publication runs are deterministic
+- [x] E.5 The bootstrap family completes at least two successful publication cycles without
       artifact contract changes
 - [ ] E.6 Only after E.1-E.5 pass may a second major family enter active implementation
 

@@ -1,0 +1,206 @@
+name: Publish alloy-devices
+
+on:
+  workflow_run:
+    workflows: ["Bootstrap Family CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "alloy-codegen ref to publish"
+        required: false
+        default: "main"
+        type: string
+      family:
+        description: "Bootstrap family scope to publish"
+        required: false
+        default: "stm32g0"
+        type: string
+      push_changes:
+        description: "Push changed published artifacts to alloy-devices/main"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  publish:
+    name: Publish bootstrap family to alloy-devices
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ALLOY_DEVICES_REPOSITORY: ${{ github.repository_owner }}/alloy-devices
+
+    steps:
+      - name: Checkout alloy-codegen (workflow run)
+        if: github.event_name == 'workflow_run'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Checkout alloy-codegen (manual)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Resolve publication settings
+        id: settings
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_FAMILY: ${{ inputs.family }}
+          INPUT_PUSH_CHANGES: ${{ inputs.push_changes }}
+          HAS_PUSH_TOKEN: ${{ secrets.ALLOY_DEVICES_PUSH_TOKEN != '' }}
+        run: |
+          set -eu
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            family="${INPUT_FAMILY:-stm32g0}"
+            requested_push="${INPUT_PUSH_CHANGES:-false}"
+          else
+            family="stm32g0"
+            requested_push="true"
+          fi
+
+          effective_push="$requested_push"
+          if [ "$requested_push" = "true" ] && [ "$HAS_PUSH_TOKEN" != "true" ]; then
+            effective_push="false"
+          fi
+
+          source_revision="$(git rev-parse HEAD)"
+          {
+            echo "family=$family"
+            echo "requested_push=$requested_push"
+            echo "effective_push=$effective_push"
+            echo "has_push_token=$HAS_PUSH_TOKEN"
+            echo "source_revision=$source_revision"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout Alloy consumer
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/alloy
+          path: alloy
+
+      - name: Checkout alloy-devices
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ALLOY_DEVICES_REPOSITORY }}
+          path: alloy-devices
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
+      - name: Install Python tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Publish validated artifacts into alloy-devices checkout
+        run: |
+          set -o pipefail
+          mkdir -p out/release
+          artifact_root="$RUNNER_TEMP/alloy-devices-release-artifacts"
+          publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          git -C "$publication_root" reset --hard HEAD
+          git -C "$publication_root" clean -fdx
+          rm -rf "$artifact_root"
+          python -m alloy_codegen.cli publish \
+            --family "${{ steps.settings.outputs.family }}" \
+            --source-root tests/fixtures/cmsis-svd-data \
+            --artifact-root "$artifact_root" \
+            --publication-root "$publication_root" \
+            --alloy-root "$GITHUB_WORKSPACE/alloy" \
+            --json | tee out/release/publish.json
+
+      - name: Derive release commit metadata
+        id: release
+        run: |
+          python -m alloy_codegen.release \
+            --publish-report out/release/publish.json \
+            --source-revision "${{ steps.settings.outputs.source_revision }}" \
+            --github-output "$GITHUB_OUTPUT" \
+            --json > out/release/release-metadata.json
+
+      - name: Detect publication diff
+        id: diff
+        run: |
+          set -eu
+          publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          status="$(git -C "$publication_root" status --porcelain --untracked-files=all)"
+          printf '%s\n' "$status" > out/release/git-status.txt
+          if [ -n "$status" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            git -C "$publication_root" diff --stat > out/release/git-diff-stat.txt
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            : > out/release/git-diff-stat.txt
+          fi
+
+      - name: Commit published artifacts
+        if: steps.diff.outputs.has_changes == 'true' && steps.settings.outputs.effective_push == 'true'
+        run: |
+          set -eu
+          publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          git -C "$publication_root" config user.name "alloy-codegen[bot]"
+          git -C "$publication_root" config user.email "alloy-codegen[bot]@users.noreply.github.com"
+          git -C "$publication_root" add .
+          git -C "$publication_root" commit \
+            -m "${{ steps.release.outputs.commit_subject }}" \
+            -m "${{ steps.release.outputs.commit_body }}"
+
+      - name: Push published artifacts
+        if: steps.diff.outputs.has_changes == 'true' && steps.settings.outputs.effective_push == 'true'
+        env:
+          ALLOY_DEVICES_PUSH_TOKEN: ${{ secrets.ALLOY_DEVICES_PUSH_TOKEN }}
+        run: |
+          set -eu
+          publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          git -C "$publication_root" remote set-url origin \
+            "https://x-access-token:${ALLOY_DEVICES_PUSH_TOKEN}@github.com/${ALLOY_DEVICES_REPOSITORY}.git"
+          git -C "$publication_root" push origin HEAD:main
+
+      - name: Summarize remote publication outcome
+        if: always()
+        run: |
+          {
+            echo "family=${{ steps.settings.outputs.family }}"
+            echo "source_revision=${{ steps.settings.outputs.source_revision }}"
+            echo "requested_push=${{ steps.settings.outputs.requested_push }}"
+            echo "effective_push=${{ steps.settings.outputs.effective_push }}"
+            echo "has_push_token=${{ steps.settings.outputs.has_push_token }}"
+            echo "has_changes=${{ steps.diff.outputs.has_changes }}"
+            echo "commit_subject=${{ steps.release.outputs.commit_subject }}"
+          } > out/release/publication-env.txt
+          {
+            echo "## alloy-devices publication"
+            echo ""
+            echo "- Family: \`${{ steps.settings.outputs.family }}\`"
+            echo "- Source revision: \`${{ steps.settings.outputs.source_revision }}\`"
+            echo "- Requested push: \`${{ steps.settings.outputs.requested_push }}\`"
+            echo "- Effective push: \`${{ steps.settings.outputs.effective_push }}\`"
+            echo "- Has push token: \`${{ steps.settings.outputs.has_push_token }}\`"
+            echo "- Working tree changed: \`${{ steps.diff.outputs.has_changes }}\`"
+            echo "- Commit subject: \`${{ steps.release.outputs.commit_subject }}\`"
+            if [ "${{ steps.settings.outputs.requested_push }}" = "true" ] && [ "${{ steps.settings.outputs.has_push_token }}" != "true" ]; then
+              echo ""
+              echo "Automatic push is configured but skipped because \`ALLOY_DEVICES_PUSH_TOKEN\` is not set."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload publication artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-alloy-devices-${{ steps.settings.outputs.family }}
+          path: out/release/

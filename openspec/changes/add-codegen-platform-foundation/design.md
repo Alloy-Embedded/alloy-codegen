@@ -60,6 +60,8 @@ The pipeline is explicitly stage-separated:
 6. `publish`
    - Publish only gated outputs to `alloy-devices`
    - Record manifests tying artifacts back to sources, patches, and generator revision
+   - Support CI orchestration that can commit the published tree into the real
+     `alloy-devices` repository when credentials are available
 
 ### 2. Canonical IR
 
@@ -86,6 +88,26 @@ Emitters must consume IR, not raw vendor formats. The IR must model:
 
 This ensures debugging, comparisons, docs, and future tooling can reuse the same pipeline
 product instead of scraping emitted code.
+
+### 5. Remote publication orchestration
+
+The Python publish stage remains responsible for materializing a validated artifact tree into
+an `alloy-devices` checkout. Git history mutations stay outside the stage itself and are
+owned by CI orchestration.
+
+This split is intentional:
+- the CLI and publish stage stay deterministic and locally testable
+- CI can decide whether to run in validation-only mode or commit-and-push mode
+- the real `alloy-devices` checkout can be preserved as a Git repository while replacing only
+  managed published paths
+
+The release workflow must:
+- start from a clean `alloy-devices` checkout
+- run the same validated publication command used locally
+- detect whether the materialized tree actually changed
+- create no commit when there is no diff
+- create a deterministic commit message when there is a diff
+- push only when dedicated credentials are configured
 
 ### 4. Single-family-first strategy
 
@@ -222,6 +244,10 @@ It is better to learn those lessons deeply in one family than shallowly in many.
 
 - **Risk: publication pressure encourages skipping validation**
   Mitigation: make publication depend on gate results, not just command success
+
+- **Risk: remote publication mutates the wrong repository state**
+  Mitigation: keep Git mutations in CI orchestration, reset/clean before publish, and no-op
+  when the materialized tree is unchanged
 
 - **Risk: vendor breadth is added before semantics are understood**
   Mitigation: enforce Gate E before admitting new major families

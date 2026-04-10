@@ -57,3 +57,22 @@ For the bootstrap family, successful publication writes:
   published artifact set.
 - `artifact-manifest.json` is the traceability entrypoint for generator version, schema
   version, source manifest, patch manifest, and validation hashes.
+
+## Remote Release Workflow
+
+The GitHub Actions workflow
+`/Users/lgili/Documents/01 - Codes/01 - Github/alloy-codegen/.github/workflows/publish-alloy-devices.yml`
+turns a validated `publish` result into an optional git commit against the real
+`alloy-devices` repository.
+
+Remote release rules:
+
+- The workflow always starts from a clean `alloy-devices` checkout before materializing
+  artifacts.
+- It reuses the same `alloy-codegen publish` command already validated in CI.
+- It creates a commit only when the `alloy-devices` working tree actually changes.
+- It skips commit and push when the published tree already matches the target branch.
+- Automatic push requires the repository secret `ALLOY_DEVICES_PUSH_TOKEN` with write access
+  to `Alloy-Embedded/alloy-devices`.
+- Without that secret, the workflow still performs a validation-only publication and records
+  that push was skipped.
