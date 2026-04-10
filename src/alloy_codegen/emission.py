@@ -84,6 +84,144 @@ def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, o
     return [packages[name] for name in sorted(packages)]
 
 
+def _package_pad_sort_key(pad: dict[str, object]) -> tuple[int, str, str]:
+    physical_index = pad["physical_index"]
+    return (
+        -1 if physical_index is None else int(physical_index),
+        str(pad["position_label"]),
+        str(pad["pad_id"]),
+    )
+
+
+def _constraint_sort_key(constraint: dict[str, object]) -> tuple[str, str, str]:
+    value = "" if constraint["value"] is None else str(constraint["value"])
+    return (str(constraint["pin"]), str(constraint["kind"]), value)
+
+
+def _build_package_metadata(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
+    packages: dict[str, dict[str, object]] = {}
+    for device in devices:
+        constraints_by_pin: dict[str, list[dict[str, object]]] = {}
+        for constraint in device.pin_constraints:
+            constraint_payload = to_primitive(constraint)
+            constraints_by_pin.setdefault(constraint.pin, []).append(constraint_payload)
+
+        device_pinout: list[dict[str, object]] = []
+        pin_index: dict[str, dict[str, object]] = {}
+        for package_pad in sorted(
+            (to_primitive(pad) for pad in device.package_pads),
+            key=_package_pad_sort_key,
+        ):
+            package_entry = packages.setdefault(
+                str(package_pad["package"]),
+                {
+                    "name": str(package_pad["package"]),
+                    "pin_count": 0,
+                    "provenance": None,
+                    "pads": {},
+                    "devices": set(),
+                },
+            )
+            package_entry["devices"].add(device.identity.device)
+            package_entry["pads"].setdefault(
+                str(package_pad["pad_id"]),
+                {
+                    "pad_id": package_pad["pad_id"],
+                    "position_label": package_pad["position_label"],
+                    "physical_index": package_pad["physical_index"],
+                    "pad_kind": package_pad["pad_kind"],
+                },
+            )
+
+            bonded_pin = (
+                None
+                if package_pad["bonded_pin"] is None
+                else str(package_pad["bonded_pin"])
+            )
+            constraint_ids = [
+                str(constraint["constraint_id"])
+                for constraint in sorted(
+                    constraints_by_pin.get(bonded_pin, []),
+                    key=_constraint_sort_key,
+                )
+            ]
+            device_pinout.append(
+                {
+                    "pad_id": package_pad["pad_id"],
+                    "position_label": package_pad["position_label"],
+                    "physical_index": package_pad["physical_index"],
+                    "pad_kind": package_pad["pad_kind"],
+                    "bonded_pin": package_pad["bonded_pin"],
+                    "bonding_state": package_pad["bonding_state"],
+                    "constraint_ids": constraint_ids,
+                }
+            )
+
+            if bonded_pin is not None:
+                pin_entry = pin_index.setdefault(
+                    bonded_pin,
+                    {
+                        "pin": bonded_pin,
+                        "pad_ids": [],
+                        "constraint_ids": constraint_ids,
+                    },
+                )
+                pin_entry["pad_ids"].append(str(package_pad["pad_id"]))
+
+        for package in device.packages:
+            package_entry = packages.setdefault(
+                package.name,
+                {
+                    "name": package.name,
+                    "pin_count": package.pin_count,
+                    "provenance": to_primitive(package.provenance),
+                    "pads": {},
+                    "devices": set(),
+                },
+            )
+            package_entry["pin_count"] = package.pin_count
+            package_entry["provenance"] = to_primitive(package.provenance)
+            package_entry["devices"].add(device.identity.device)
+
+        selected_package = packages[device.identity.package]
+        selected_package.setdefault("pinouts", []).append(
+            {
+                "device": device.identity.device,
+                "package": device.identity.package,
+                "pinout": device_pinout,
+                "pin_index": [
+                    pin_index[pin_name]
+                    for pin_name in sorted(pin_index)
+                ],
+                "pin_constraints": [
+                    to_primitive(constraint)
+                    for constraint in sorted(
+                        device.pin_constraints,
+                        key=lambda item: item.constraint_id,
+                    )
+                ],
+            }
+        )
+
+    return [
+        {
+            "name": package["name"],
+            "pin_count": package["pin_count"],
+            "provenance": package["provenance"],
+            "pads": [
+                package["pads"][pad_id]
+                for pad_id in sorted(
+                    package["pads"],
+                    key=lambda item: _package_pad_sort_key(package["pads"][item]),
+                )
+            ],
+            "devices": sorted(package["devices"]),
+            "pinouts": sorted(package.get("pinouts", []), key=lambda item: str(item["device"])),
+        }
+        for package in [packages[name] for name in sorted(packages)]
+    ]
+
+
 def _unique_peripherals(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
     peripherals: dict[str, dict[str, object]] = {}
     for device in devices:
@@ -475,16 +613,7 @@ def emit_packages_metadata(
         "schema_version": first_device.schema_version,
         "vendor": first_device.identity.vendor,
         "family": first_device.identity.family,
-        "packages": _unique_packages(devices),
-        "devices": [
-            {
-                "device": device.identity.device,
-                "package": device.identity.package,
-                "package_pads": to_primitive(device.package_pads),
-                "pin_constraints": to_primitive(device.pin_constraints),
-            }
-            for device in sorted(devices, key=lambda item: item.identity.device)
-        ],
+        "packages": _build_package_metadata(devices),
     }
     return _text_artifact(
         path=f"{family_dir}/metadata/packages.json",
@@ -953,7 +1082,18 @@ def emit_interrupt_map_header(
     family_dir: str,
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> EmittedArtifact:
-    rows: list[tuple[str, str, int, str | None, int | None, str | None]] = []
+    rows: list[
+        tuple[
+            str,
+            str,
+            int,
+            str | None,
+            str | None,
+            tuple[str, ...],
+            int | None,
+            str | None,
+        ]
+    ] = []
     for device in devices:
         vector_map = {
             vector_slot.interrupt: vector_slot for vector_slot in device.vector_slots
@@ -967,6 +1107,8 @@ def emit_interrupt_map_header(
                     interrupt.name,
                     interrupt.line,
                     interrupt.peripheral,
+                    interrupt.shared_group,
+                    interrupt.alias_names,
                     None if vector_slot is None else vector_slot.slot,
                     None if vector_slot is None else vector_slot.symbol_name,
                 )
@@ -979,6 +1121,8 @@ def emit_interrupt_map_header(
         "  const char* interrupt_name;",
         "  int line;",
         "  const char* peripheral;",
+        "  const char* shared_group;",
+        "  const char* alias_names;",
         "  int vector_slot;",
         "  const char* symbol_name;",
         "};",
@@ -989,10 +1133,21 @@ def emit_interrupt_map_header(
             f"{json.dumps(interrupt_name)}, "
             f"{line}, "
             f"{_quoted(peripheral)}, "
+            f"{_quoted(shared_group)}, "
+            f"{json.dumps(','.join(alias_names))}, "
             f"{-1 if vector_slot is None else vector_slot}, "
             f"{_quoted(symbol_name)}"
             "},"
-            for device_name, interrupt_name, line, peripheral, vector_slot, symbol_name in rows
+            for (
+                device_name,
+                interrupt_name,
+                line,
+                peripheral,
+                shared_group,
+                alias_names,
+                vector_slot,
+                symbol_name,
+            ) in rows
         ],
         "};",
     ]
@@ -1024,6 +1179,7 @@ def emit_memory_map_header(
             memory.base_address,
             memory.size_bytes,
             memory.access,
+            memory.startup_roles,
         )
         for device in devices
         for memory in sorted(device.memories, key=lambda item: item.base_address)
@@ -1037,6 +1193,7 @@ def emit_memory_map_header(
         "  std::uintptr_t base_address;",
         "  std::size_t size_bytes;",
         "  const char* access;",
+        "  const char* startup_roles;",
         "};",
         "inline constexpr MemoryDescriptor kMemoryMap[] = {",
         *[
@@ -1046,9 +1203,18 @@ def emit_memory_map_header(
             f"{json.dumps(kind)}, "
             f"0x{base_address:08X}u, "
             f"{size_bytes}u, "
-            f"{json.dumps(access)}"
+            f"{json.dumps(access)}, "
+            f"{json.dumps(','.join(startup_roles))}"
             "},"
-            for device_name, name, kind, base_address, size_bytes, access in rows
+            for (
+                device_name,
+                name,
+                kind,
+                base_address,
+                size_bytes,
+                access,
+                startup_roles,
+            ) in rows
         ],
         "};",
     ]

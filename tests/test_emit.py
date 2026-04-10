@@ -125,7 +125,10 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert ip_blocks_payload["ip_blocks"]
     assert capabilities_payload["capabilities"]
     assert packages_payload["packages"]
-    assert packages_payload["devices"][0]["package_pads"]
+    assert packages_payload["packages"][0]["pads"]
+    assert packages_payload["packages"][0]["pinouts"]
+    assert packages_payload["packages"][0]["pinouts"][0]["pinout"]
+    assert packages_payload["packages"][0]["pinouts"][0]["pin_index"]
     assert connectors_payload["signal_endpoints"]
     assert connectors_payload["devices"][0]["device"] == "stm32g071rb"
     assert any(
@@ -137,8 +140,29 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert system_descriptors_payload["devices"][0]["startup_descriptors"]
     assert system_descriptors_payload["devices"][0]["clock_gates"]
     assert system_descriptors_payload["devices"][0]["dma_routes"]
+    assert any(
+        memory.get("startup_roles")
+        for memory in system_descriptors_payload["devices"][0]["memories"]
+    )
     assert any(pin["name"] == "PA0" for pin in connectivity_payload["pins"])
     assert device_payload["identity"]["device"] == "stm32g071rb"
+    assert system_descriptors_payload["devices"][0]["vector_slots"][0]["slot"] == 0
+    assert (
+        system_descriptors_payload["devices"][0]["startup_descriptors"][0]["kind"]
+        == "initial-stack-pointer"
+        or system_descriptors_payload["devices"][0]["startup_descriptors"][0]["kind"]
+        == "vector-table"
+    )
+    assert [
+        pad["pad_id"] for pad in packages_payload["packages"][0]["pinouts"][0]["pinout"]
+    ] == sorted(
+        [pad["pad_id"] for pad in packages_payload["packages"][0]["pinouts"][0]["pinout"]],
+        key=int,
+    )
+    assert any(
+        pin_entry["pin"] == "PA0" and "17" in pin_entry["pad_ids"]
+        for pin_entry in packages_payload["packages"][0]["pinouts"][0]["pin_index"]
+    )
 
     for artifact in (register_map_artifact, pin_functions_artifact, startup_artifact):
         assert artifact.artifact_kind == "generated-cpp"
@@ -188,10 +212,13 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert interrupt_map_artifact.artifact_kind == "generated-cpp"
     assert "kInterruptMap" in interrupt_map_artifact.content
     assert "InterruptDescriptor" in interrupt_map_artifact.content
+    assert "shared_group" in interrupt_map_artifact.content
+    assert "alias_names" in interrupt_map_artifact.content
 
     assert memory_map_artifact.artifact_kind == "generated-cpp"
     assert "kMemoryMap" in memory_map_artifact.content
     assert "MemoryDescriptor" in memory_map_artifact.content
+    assert "startup_roles" in memory_map_artifact.content
 
     assert package_map_artifact.artifact_kind == "generated-cpp"
     assert "kPackageMap" in package_map_artifact.content
@@ -321,7 +348,9 @@ def test_emit_connector_metadata_supports_microchip_family(
     assert connectors_payload["family"] == "same70"
     assert connectors_payload["signal_endpoints"]
     assert connectors_payload["devices"][0]["device"] == "atsame70q21b"
-    assert packages_payload["devices"][0]["package_pads"]
+    assert packages_payload["packages"][0]["pads"]
+    assert packages_payload["packages"][0]["pinouts"]
+    assert packages_payload["packages"][0]["pinouts"][0]["pinout"]
     assert any(
         candidate["route_kind"] == "peripheral-mux"
         for candidate in connectors_payload["devices"][0]["connection_candidates"]
@@ -331,6 +360,7 @@ def test_emit_connector_metadata_supports_microchip_family(
     assert system_payload["devices"][0]["startup_descriptors"]
     assert system_payload["devices"][0]["clock_gates"]
     assert system_payload["devices"][0]["dma_routes"]
+    assert any(memory.get("startup_roles") for memory in system_payload["devices"][0]["memories"])
     assert artifacts["microchip/same70/generated/connector_tables.hpp"].content is not None
     assert artifacts["microchip/same70/generated/interrupt_map.hpp"].content is not None
     assert artifacts["microchip/same70/generated/memory_map.hpp"].content is not None
@@ -348,6 +378,38 @@ def test_emit_connector_metadata_supports_microchip_family(
         path for path in artifacts if path.startswith("microchip/same70/generated/ip/")
     ]
     assert microchip_ip_headers
+
+
+def test_emit_packages_metadata_can_reconstruct_physical_pinout(
+    execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
+
+    packages_payload = json.loads(artifacts["st/stm32g0/metadata/packages.json"].content)
+    package_entry = next(
+        package for package in packages_payload["packages"] if package["name"] == "lqfp64"
+    )
+    device_pinout = next(
+        pinout for pinout in package_entry["pinouts"] if pinout["device"] == "stm32g071rb"
+    )
+
+    topology_by_pad = {pad["pad_id"]: pad for pad in package_entry["pads"]}
+    reconstructed_pinout = [
+        {
+            **topology_by_pad[pad["pad_id"]],
+            "bonded_pin": pad["bonded_pin"],
+            "bonding_state": pad["bonding_state"],
+            "constraint_ids": pad["constraint_ids"],
+        }
+        for pad in device_pinout["pinout"]
+    ]
+
+    assert [pad["pad_id"] for pad in reconstructed_pinout] == ["17", "18", "19", "20", "29", "30"]
+    assert reconstructed_pinout[0]["position_label"] == "17"
+    assert reconstructed_pinout[0]["bonded_pin"] == "PA0"
+    assert reconstructed_pinout[0]["pad_kind"] == "io"
+    assert any(pin_entry["pin"] == "PB6" for pin_entry in device_pinout["pin_index"])
 
 
 def test_emit_stage_is_byte_stable(execution_context: ExecutionContext) -> None:

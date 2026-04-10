@@ -572,6 +572,9 @@
   },
   "interrupts": [
     {
+      "alias_names": [
+        "DMA1_Stream0_IRQHandler"
+      ],
       "line": 11,
       "name": "DMA1_Stream0",
       "peripheral": "DMA1",
@@ -582,9 +585,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "DMA2_Stream0_IRQHandler"
+      ],
       "line": 56,
       "name": "DMA2_Stream0",
       "peripheral": "DMA2",
@@ -595,9 +602,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USART1_IRQHandler"
+      ],
       "line": 37,
       "name": "USART1",
       "peripheral": "USART1",
@@ -608,9 +619,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USART2_IRQHandler"
+      ],
       "line": 38,
       "name": "USART2",
       "peripheral": "USART2",
@@ -621,9 +636,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "OTG_FS_IRQHandler"
+      ],
       "line": 67,
       "name": "OTG_FS",
       "peripheral": "OTG_FS",
@@ -634,7 +653,8 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "shared_group": null
     }
   ],
   "ip_blocks": [
@@ -739,7 +759,12 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
       },
-      "size_bytes": 1048576
+      "size_bytes": 1048576,
+      "startup_roles": [
+        "nonvolatile",
+        "copy-source",
+        "vector-source"
+      ]
     },
     {
       "access": "rwx",
@@ -754,7 +779,13 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
       },
-      "size_bytes": 196608
+      "size_bytes": 196608,
+      "startup_roles": [
+        "volatile-target",
+        "copy-target",
+        "zero-target",
+        "stack-target"
+      ]
     }
   ],
   "package_pads": [
@@ -2043,8 +2074,23 @@
       "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:flash",
-      "kind": "memory-region",
+      "descriptor_id": "startup:stack-top",
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "source_region": null,
+      "symbol": "__stack_top",
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:vector-source:flash",
+      "kind": "vector-source-region",
       "provenance": {
         "patch_ids": [
           "st-stm32f4-family-bootstrap-v1",
@@ -2055,11 +2101,11 @@
       },
       "source_region": "flash",
       "symbol": null,
-      "target_region": "flash"
+      "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:sram",
-      "kind": "memory-region",
+      "descriptor_id": "startup:copy-source:flash",
+      "kind": "copy-source-region",
       "provenance": {
         "patch_ids": [
           "st-stm32f4-family-bootstrap-v1",
@@ -2068,12 +2114,266 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
       },
-      "source_region": "sram",
+      "source_region": "flash",
+      "symbol": null,
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:copy-target:sram",
+      "kind": "copy-target-region",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "source_region": null,
+      "symbol": null,
+      "target_region": "sram"
+    },
+    {
+      "descriptor_id": "startup:zero-target:sram",
+      "kind": "zero-target-region",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "source_region": null,
       "symbol": null,
       "target_region": "sram"
     }
   ],
   "vector_slots": [
+    {
+      "interrupt": null,
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 0,
+      "symbol_name": "__stack_top"
+    },
+    {
+      "interrupt": null,
+      "kind": "reset-handler",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 1,
+      "symbol_name": "Reset_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 2,
+      "symbol_name": "NMI_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 3,
+      "symbol_name": "HardFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 4,
+      "symbol_name": "MemManage_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 5,
+      "symbol_name": "BusFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 6,
+      "symbol_name": "UsageFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 7,
+      "symbol_name": "Reserved_Handler_7"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 8,
+      "symbol_name": "Reserved_Handler_8"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 9,
+      "symbol_name": "Reserved_Handler_9"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 10,
+      "symbol_name": "Reserved_Handler_10"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 11,
+      "symbol_name": "SVCall_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 12,
+      "symbol_name": "DebugMon_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 13,
+      "symbol_name": "Reserved_Handler_13"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 14,
+      "symbol_name": "PendSV_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F405RGTx.xml"
+      },
+      "slot": 15,
+      "symbol_name": "SysTick_Handler"
+    },
     {
       "interrupt": "DMA1_Stream0",
       "kind": "external-interrupt",

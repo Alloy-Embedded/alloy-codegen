@@ -28,7 +28,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 46 rule(s).",
+      "message": "gate-c passed with 50 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -71,8 +71,12 @@
         "stm32g071rb-multi-signal-connection-groups-present",
         "stm32g071rb-ip-blocks-cover-versioned-instances",
         "stm32g071rb-vector-slots-reference-known-interrupts",
+        "stm32g071rb-vector-slots-include-system-baseline",
+        "stm32g071rb-memory-regions-carry-startup-roles",
         "stm32g071rb-startup-descriptors-present",
         "stm32g071rb-startup-descriptors-reference-known-memories",
+        "stm32g071rb-startup-descriptors-cover-memory-roles",
+        "stm32g071rb-startup-descriptors-include-runtime-baseline",
         "stm32g071rb-clock-bindings-reference-known-descriptors",
         "stm32g071rb-dma-routes-reference-known-controllers",
         "stm32g071rb-dma-routes-reference-known-conflicts",
@@ -428,6 +432,20 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb vector slots include the system baseline slots.",
+      "passed": true,
+      "rule_id": "stm32g071rb-vector-slots-include-system-baseline",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb exposes startup-relevant memory classifications for at least one memory region.",
+      "passed": true,
+      "rule_id": "stm32g071rb-memory-regions-carry-startup-roles",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb exposes startup descriptors separately from logic.",
       "passed": true,
       "rule_id": "stm32g071rb-startup-descriptors-present",
@@ -438,6 +456,20 @@
       "message": "stm32g071rb startup descriptors only reference declared memories.",
       "passed": true,
       "rule_id": "stm32g071rb-startup-descriptors-reference-known-memories",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb startup descriptors cover every startup-classified memory region.",
+      "passed": true,
+      "rule_id": "stm32g071rb-startup-descriptors-cover-memory-roles",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb startup descriptors include vector-table and initial-stack-pointer facts.",
+      "passed": true,
+      "rule_id": "stm32g071rb-startup-descriptors-include-runtime-baseline",
       "severity": "error"
     },
     {

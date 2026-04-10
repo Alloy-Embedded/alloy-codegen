@@ -51,13 +51,13 @@
 
 ### Gate C4: Package-aware connectivity
 - [x] C4.1 Connector validation can reject routes that are invalid in a selected package
-- [ ] C4.2 Published package metadata is sufficient to reconstruct the physical pinout
+- [x] C4.2 Published package metadata is sufficient to reconstruct the physical pinout
 
 ## Phase E: System descriptor completion
 
 - [ ] E.1 Add interrupt ownership, aliases, and vector-slot descriptors
-- [ ] E.2 Add memory-region descriptors with startup-relevant classification
-- [ ] E.3 Add startup copy/zero/vector descriptors separated from startup logic
+- [x] E.2 Add memory-region descriptors with startup-relevant classification
+- [x] E.3 Add startup copy/zero/vector descriptors separated from startup logic
 - [ ] E.4 Add `ClockGraphLite` descriptors for enable, reset, parent selection, and source choice
 - [ ] E.5 Add complete DMA controller/request/route/conflict descriptors
 - [ ] E.6 Add validators for all system descriptor families

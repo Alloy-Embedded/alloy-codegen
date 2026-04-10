@@ -18290,6 +18290,9 @@
   },
   "interrupts": [
     {
+      "alias_names": [
+        "ACC_IRQHandler"
+      ],
       "line": 33,
       "name": "ACC",
       "peripheral": "ACC",
@@ -18300,9 +18303,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "AES_IRQHandler"
+      ],
       "line": 56,
       "name": "AES",
       "peripheral": "AES",
@@ -18313,9 +18320,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "AFEC0_IRQHandler"
+      ],
       "line": 29,
       "name": "AFEC0",
       "peripheral": "AFEC0",
@@ -18326,9 +18337,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "AFEC1_IRQHandler"
+      ],
       "line": 40,
       "name": "AFEC1",
       "peripheral": "AFEC1",
@@ -18339,9 +18354,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "DACC_IRQHandler"
+      ],
       "line": 30,
       "name": "DACC",
       "peripheral": "DACC",
@@ -18352,9 +18371,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "EFC_IRQHandler"
+      ],
       "line": 6,
       "name": "EFC",
       "peripheral": "EFC",
@@ -18365,9 +18388,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "GMAC_IRQHandler"
+      ],
       "line": 39,
       "name": "GMAC",
       "peripheral": "GMAC",
@@ -18378,9 +18405,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:gmac"
     },
     {
+      "alias_names": [
+        "GMAC_Q1_IRQHandler"
+      ],
       "line": 66,
       "name": "GMAC_Q1",
       "peripheral": "GMAC",
@@ -18391,9 +18422,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:gmac"
     },
     {
+      "alias_names": [
+        "GMAC_Q2_IRQHandler"
+      ],
       "line": 67,
       "name": "GMAC_Q2",
       "peripheral": "GMAC",
@@ -18404,9 +18439,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:gmac"
     },
     {
+      "alias_names": [
+        "GMAC_Q3_IRQHandler"
+      ],
       "line": 71,
       "name": "GMAC_Q3",
       "peripheral": "GMAC",
@@ -18417,9 +18456,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:gmac"
     },
     {
+      "alias_names": [
+        "GMAC_Q4_IRQHandler"
+      ],
       "line": 72,
       "name": "GMAC_Q4",
       "peripheral": "GMAC",
@@ -18430,9 +18473,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:gmac"
     },
     {
+      "alias_names": [
+        "GMAC_Q5_IRQHandler"
+      ],
       "line": 73,
       "name": "GMAC_Q5",
       "peripheral": "GMAC",
@@ -18443,9 +18490,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:gmac"
     },
     {
+      "alias_names": [
+        "HSMCI_IRQHandler"
+      ],
       "line": 18,
       "name": "HSMCI",
       "peripheral": "HSMCI",
@@ -18456,9 +18507,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "I2SC0_IRQHandler"
+      ],
       "line": 69,
       "name": "I2SC0",
       "peripheral": "I2SC0",
@@ -18469,9 +18524,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "ICM_IRQHandler"
+      ],
       "line": 32,
       "name": "ICM",
       "peripheral": "ICM",
@@ -18482,9 +18541,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "ISI_IRQHandler"
+      ],
       "line": 59,
       "name": "ISI",
       "peripheral": "ISI",
@@ -18495,9 +18558,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "MCAN0_INT0_IRQHandler"
+      ],
       "line": 35,
       "name": "MCAN0_INT0",
       "peripheral": "MCAN0",
@@ -18508,9 +18575,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:mcan0"
     },
     {
+      "alias_names": [
+        "MCAN0_INT1_IRQHandler"
+      ],
       "line": 36,
       "name": "MCAN0_INT1",
       "peripheral": "MCAN0",
@@ -18521,9 +18592,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:mcan0"
     },
     {
+      "alias_names": [
+        "MCAN1_INT0_IRQHandler"
+      ],
       "line": 37,
       "name": "MCAN1_INT0",
       "peripheral": "MCAN1",
@@ -18534,9 +18609,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:mcan1"
     },
     {
+      "alias_names": [
+        "MCAN1_INT1_IRQHandler"
+      ],
       "line": 38,
       "name": "MCAN1_INT1",
       "peripheral": "MCAN1",
@@ -18547,9 +18626,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:mcan1"
     },
     {
+      "alias_names": [
+        "GPIOA",
+        "PIOA_IRQHandler"
+      ],
       "line": 10,
       "name": "PIOA",
       "peripheral": "GPIOA",
@@ -18560,9 +18644,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "GPIOB",
+        "PIOB_IRQHandler"
+      ],
       "line": 11,
       "name": "PIOB",
       "peripheral": "GPIOB",
@@ -18573,9 +18662,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "GPIOD",
+        "PIOD_IRQHandler"
+      ],
       "line": 16,
       "name": "PIOD",
       "peripheral": "GPIOD",
@@ -18586,9 +18680,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "PMC_IRQHandler"
+      ],
       "line": 5,
       "name": "PMC",
       "peripheral": "PMC",
@@ -18599,9 +18697,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "PWM0_IRQHandler"
+      ],
       "line": 31,
       "name": "PWM0",
       "peripheral": "PWM0",
@@ -18612,9 +18714,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "PWM1_IRQHandler"
+      ],
       "line": 60,
       "name": "PWM1",
       "peripheral": "PWM1",
@@ -18625,9 +18731,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "QSPI_IRQHandler"
+      ],
       "line": 43,
       "name": "QSPI",
       "peripheral": "QSPI",
@@ -18638,9 +18748,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "RSTC_IRQHandler"
+      ],
       "line": 1,
       "name": "RSTC",
       "peripheral": "RSTC",
@@ -18651,9 +18765,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "RSWDT_IRQHandler"
+      ],
       "line": 63,
       "name": "RSWDT",
       "peripheral": "RSWDT",
@@ -18664,9 +18782,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "RTC_IRQHandler"
+      ],
       "line": 2,
       "name": "RTC",
       "peripheral": "RTC",
@@ -18677,9 +18799,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "RTT_IRQHandler"
+      ],
       "line": 3,
       "name": "RTT",
       "peripheral": "RTT",
@@ -18690,9 +18816,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "SPI0_IRQHandler"
+      ],
       "line": 21,
       "name": "SPI0",
       "peripheral": "SPI0",
@@ -18703,9 +18833,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "SSC_IRQHandler"
+      ],
       "line": 22,
       "name": "SSC",
       "peripheral": "SSC",
@@ -18716,9 +18850,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "SUPC_IRQHandler"
+      ],
       "line": 0,
       "name": "SUPC",
       "peripheral": "SUPC",
@@ -18729,9 +18867,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "TC0_IRQHandler"
+      ],
       "line": 23,
       "name": "TC0",
       "peripheral": "TC0",
@@ -18742,9 +18884,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc0"
     },
     {
+      "alias_names": [
+        "TC0",
+        "TC1_IRQHandler"
+      ],
       "line": 24,
       "name": "TC1",
       "peripheral": "TC0",
@@ -18755,9 +18902,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc0"
     },
     {
+      "alias_names": [
+        "TC0",
+        "TC2_IRQHandler"
+      ],
       "line": 25,
       "name": "TC2",
       "peripheral": "TC0",
@@ -18768,9 +18920,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc0"
     },
     {
+      "alias_names": [
+        "TC1",
+        "TC3_IRQHandler"
+      ],
       "line": 26,
       "name": "TC3",
       "peripheral": "TC1",
@@ -18781,9 +18938,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc1"
     },
     {
+      "alias_names": [
+        "TC1",
+        "TC4_IRQHandler"
+      ],
       "line": 27,
       "name": "TC4",
       "peripheral": "TC1",
@@ -18794,9 +18956,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc1"
     },
     {
+      "alias_names": [
+        "TC1",
+        "TC5_IRQHandler"
+      ],
       "line": 28,
       "name": "TC5",
       "peripheral": "TC1",
@@ -18807,9 +18974,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc1"
     },
     {
+      "alias_names": [
+        "TC2",
+        "TC6_IRQHandler"
+      ],
       "line": 47,
       "name": "TC6",
       "peripheral": "TC2",
@@ -18820,9 +18992,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc2"
     },
     {
+      "alias_names": [
+        "TC2",
+        "TC7_IRQHandler"
+      ],
       "line": 48,
       "name": "TC7",
       "peripheral": "TC2",
@@ -18833,9 +19010,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc2"
     },
     {
+      "alias_names": [
+        "TC2",
+        "TC8_IRQHandler"
+      ],
       "line": 49,
       "name": "TC8",
       "peripheral": "TC2",
@@ -18846,9 +19028,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc2"
     },
     {
+      "alias_names": [
+        "TC3",
+        "TC9_IRQHandler"
+      ],
       "line": 50,
       "name": "TC9",
       "peripheral": "TC3",
@@ -18859,9 +19046,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc3"
     },
     {
+      "alias_names": [
+        "TC3",
+        "TC10_IRQHandler"
+      ],
       "line": 51,
       "name": "TC10",
       "peripheral": "TC3",
@@ -18872,9 +19064,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc3"
     },
     {
+      "alias_names": [
+        "TC3",
+        "TC11_IRQHandler"
+      ],
       "line": 52,
       "name": "TC11",
       "peripheral": "TC3",
@@ -18885,9 +19082,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:tc3"
     },
     {
+      "alias_names": [
+        "TRNG_IRQHandler"
+      ],
       "line": 57,
       "name": "TRNG",
       "peripheral": "TRNG",
@@ -18898,9 +19099,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "TWIHS0_IRQHandler"
+      ],
       "line": 19,
       "name": "TWIHS0",
       "peripheral": "TWIHS0",
@@ -18911,9 +19116,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "TWIHS1_IRQHandler"
+      ],
       "line": 20,
       "name": "TWIHS1",
       "peripheral": "TWIHS1",
@@ -18924,9 +19133,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "TWIHS2_IRQHandler"
+      ],
       "line": 41,
       "name": "TWIHS2",
       "peripheral": "TWIHS2",
@@ -18937,9 +19150,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "UART0_IRQHandler"
+      ],
       "line": 7,
       "name": "UART0",
       "peripheral": "UART0",
@@ -18950,9 +19167,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "UART1_IRQHandler"
+      ],
       "line": 8,
       "name": "UART1",
       "peripheral": "UART1",
@@ -18963,9 +19184,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "UART2_IRQHandler"
+      ],
       "line": 44,
       "name": "UART2",
       "peripheral": "UART2",
@@ -18976,9 +19201,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "UART3_IRQHandler"
+      ],
       "line": 45,
       "name": "UART3",
       "peripheral": "UART3",
@@ -18989,9 +19218,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "UART4_IRQHandler"
+      ],
       "line": 46,
       "name": "UART4",
       "peripheral": "UART4",
@@ -19002,9 +19235,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USART0_IRQHandler"
+      ],
       "line": 13,
       "name": "USART0",
       "peripheral": "USART0",
@@ -19015,9 +19252,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USART1_IRQHandler"
+      ],
       "line": 14,
       "name": "USART1",
       "peripheral": "USART1",
@@ -19028,9 +19269,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USART2_IRQHandler"
+      ],
       "line": 15,
       "name": "USART2",
       "peripheral": "USART2",
@@ -19041,9 +19286,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USBHS_IRQHandler"
+      ],
       "line": 34,
       "name": "USBHS",
       "peripheral": "USBHS",
@@ -19054,9 +19303,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "WDT_IRQHandler"
+      ],
       "line": 4,
       "name": "WDT",
       "peripheral": "WDT",
@@ -19067,9 +19320,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "XDMAC_IRQHandler"
+      ],
       "line": 58,
       "name": "XDMAC",
       "peripheral": "XDMAC",
@@ -19080,9 +19337,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "SCB",
+        "CCW_IRQHandler"
+      ],
       "line": 64,
       "name": "CCW",
       "peripheral": "SCB",
@@ -19093,9 +19355,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:scb"
     },
     {
+      "alias_names": [
+        "SCB",
+        "CCF_IRQHandler"
+      ],
       "line": 65,
       "name": "CCF",
       "peripheral": "SCB",
@@ -19106,9 +19373,13 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:scb"
     },
     {
+      "alias_names": [
+        "FPU_IRQHandler"
+      ],
       "line": 61,
       "name": "FPU",
       "peripheral": "FPU",
@@ -19119,9 +19390,14 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:fpu"
     },
     {
+      "alias_names": [
+        "FPU",
+        "IXC_IRQHandler"
+      ],
       "line": 68,
       "name": "IXC",
       "peripheral": "FPU",
@@ -19132,7 +19408,8 @@
         ],
         "source_id": "microchip-dfp-extract",
         "source_path": "same70b/svd/ATSAME70N21B.svd"
-      }
+      },
+      "shared_group": "interrupt-group:fpu"
     }
   ],
   "ip_blocks": [
@@ -20287,7 +20564,13 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "size_bytes": 131072
+      "size_bytes": 131072,
+      "startup_roles": [
+        "volatile-target",
+        "copy-target",
+        "zero-target",
+        "stack-target"
+      ]
     },
     {
       "access": "rwx",
@@ -20302,7 +20585,12 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "size_bytes": 2097152
+      "size_bytes": 2097152,
+      "startup_roles": [
+        "nonvolatile",
+        "copy-source",
+        "vector-source"
+      ]
     },
     {
       "access": "x",
@@ -20317,7 +20605,12 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "size_bytes": 16384
+      "size_bytes": 16384,
+      "startup_roles": [
+        "nonvolatile",
+        "copy-source",
+        "vector-source"
+      ]
     },
     {
       "access": "rwx",
@@ -20332,7 +20625,13 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "size_bytes": 131072
+      "size_bytes": 131072,
+      "startup_roles": [
+        "volatile-target",
+        "copy-target",
+        "zero-target",
+        "stack-target"
+      ]
     },
     {
       "access": "rwx",
@@ -20347,7 +20646,13 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "size_bytes": 393216
+      "size_bytes": 393216,
+      "startup_roles": [
+        "volatile-target",
+        "copy-target",
+        "zero-target",
+        "stack-target"
+      ]
     }
   ],
   "package_pads": [
@@ -41869,23 +42174,23 @@
       "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:peripherals",
-      "kind": "memory-region",
+      "descriptor_id": "startup:stack-top",
+      "kind": "initial-stack-pointer",
       "provenance": {
         "patch_ids": [
           "microchip-same70-family-bootstrap-v1",
           "microchip-same70-atsame70n21b-bootstrap"
         ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
       },
-      "source_region": "peripherals",
-      "symbol": null,
-      "target_region": "peripherals"
+      "source_region": null,
+      "symbol": "__stack_top",
+      "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:system",
-      "kind": "memory-region",
+      "descriptor_id": "startup:copy-target:itcm",
+      "kind": "copy-target-region",
       "provenance": {
         "patch_ids": [
           "microchip-same70-family-bootstrap-v1",
@@ -41894,58 +42199,28 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "source_region": "system",
-      "symbol": null,
-      "target_region": "system"
-    },
-    {
-      "descriptor_id": "startup:memory:qspimem",
-      "kind": "memory-region",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70n21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
-      },
-      "source_region": "qspimem",
-      "symbol": null,
-      "target_region": "qspimem"
-    },
-    {
-      "descriptor_id": "startup:memory:aximx",
-      "kind": "memory-region",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70n21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
-      },
-      "source_region": "aximx",
-      "symbol": null,
-      "target_region": "aximx"
-    },
-    {
-      "descriptor_id": "startup:memory:itcm",
-      "kind": "memory-region",
-      "provenance": {
-        "patch_ids": [
-          "microchip-same70-family-bootstrap-v1",
-          "microchip-same70-atsame70n21b-bootstrap"
-        ],
-        "source_id": "bootstrap-patch",
-        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
-      },
-      "source_region": "itcm",
+      "source_region": null,
       "symbol": null,
       "target_region": "itcm"
     },
     {
-      "descriptor_id": "startup:memory:iflash",
-      "kind": "memory-region",
+      "descriptor_id": "startup:zero-target:itcm",
+      "kind": "zero-target-region",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
+      },
+      "source_region": null,
+      "symbol": null,
+      "target_region": "itcm"
+    },
+    {
+      "descriptor_id": "startup:vector-source:iflash",
+      "kind": "vector-source-region",
       "provenance": {
         "patch_ids": [
           "microchip-same70-family-bootstrap-v1",
@@ -41956,11 +42231,26 @@
       },
       "source_region": "iflash",
       "symbol": null,
-      "target_region": "iflash"
+      "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:irom",
-      "kind": "memory-region",
+      "descriptor_id": "startup:copy-source:iflash",
+      "kind": "copy-source-region",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
+      },
+      "source_region": "iflash",
+      "symbol": null,
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:vector-source:irom",
+      "kind": "vector-source-region",
       "provenance": {
         "patch_ids": [
           "microchip-same70-family-bootstrap-v1",
@@ -41971,11 +42261,11 @@
       },
       "source_region": "irom",
       "symbol": null,
-      "target_region": "irom"
+      "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:dtcm",
-      "kind": "memory-region",
+      "descriptor_id": "startup:copy-source:irom",
+      "kind": "copy-source-region",
       "provenance": {
         "patch_ids": [
           "microchip-same70-family-bootstrap-v1",
@@ -41984,13 +42274,28 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "source_region": "dtcm",
+      "source_region": "irom",
+      "symbol": null,
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:copy-target:dtcm",
+      "kind": "copy-target-region",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
+      },
+      "source_region": null,
       "symbol": null,
       "target_region": "dtcm"
     },
     {
-      "descriptor_id": "startup:memory:iram",
-      "kind": "memory-region",
+      "descriptor_id": "startup:zero-target:dtcm",
+      "kind": "zero-target-region",
       "provenance": {
         "patch_ids": [
           "microchip-same70-family-bootstrap-v1",
@@ -41999,12 +42304,266 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
       },
-      "source_region": "iram",
+      "source_region": null,
+      "symbol": null,
+      "target_region": "dtcm"
+    },
+    {
+      "descriptor_id": "startup:copy-target:iram",
+      "kind": "copy-target-region",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
+      },
+      "source_region": null,
+      "symbol": null,
+      "target_region": "iram"
+    },
+    {
+      "descriptor_id": "startup:zero-target:iram",
+      "kind": "zero-target-region",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/microchip/same70/devices/atsame70n21b.json"
+      },
+      "source_region": null,
       "symbol": null,
       "target_region": "iram"
     }
   ],
   "vector_slots": [
+    {
+      "interrupt": null,
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 0,
+      "symbol_name": "__stack_top"
+    },
+    {
+      "interrupt": null,
+      "kind": "reset-handler",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 1,
+      "symbol_name": "Reset_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 2,
+      "symbol_name": "NMI_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 3,
+      "symbol_name": "HardFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 4,
+      "symbol_name": "MemManage_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 5,
+      "symbol_name": "BusFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 6,
+      "symbol_name": "UsageFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 7,
+      "symbol_name": "Reserved_Handler_7"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 8,
+      "symbol_name": "Reserved_Handler_8"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 9,
+      "symbol_name": "Reserved_Handler_9"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 10,
+      "symbol_name": "Reserved_Handler_10"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 11,
+      "symbol_name": "SVCall_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 12,
+      "symbol_name": "DebugMon_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 13,
+      "symbol_name": "Reserved_Handler_13"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 14,
+      "symbol_name": "PendSV_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "microchip-same70-family-bootstrap-v1",
+          "microchip-same70-atsame70n21b-bootstrap"
+        ],
+        "source_id": "microchip-dfp-extract",
+        "source_path": "same70b/atdf/ATSAME70N21B.atdf"
+      },
+      "slot": 15,
+      "symbol_name": "SysTick_Handler"
+    },
     {
       "interrupt": "SUPC",
       "kind": "external-interrupt",

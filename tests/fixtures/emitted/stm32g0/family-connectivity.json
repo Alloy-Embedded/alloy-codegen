@@ -32,6 +32,9 @@
   "family": "stm32g0",
   "interrupts": [
     {
+      "alias_names": [
+        "DMA1_Channel1_IRQHandler"
+      ],
       "line": 9,
       "name": "DMA1_Channel1",
       "peripheral": "DMA1",
@@ -42,9 +45,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G071.svd"
-      }
+      },
+      "shared_group": "interrupt-group:dma1"
     },
     {
+      "alias_names": [
+        "DMA1_Channel2_3_IRQHandler"
+      ],
       "line": 10,
       "name": "DMA1_Channel2_3",
       "peripheral": "DMA1",
@@ -55,9 +62,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G071.svd"
-      }
+      },
+      "shared_group": "interrupt-group:dma1"
     },
     {
+      "alias_names": [
+        "RCC_CRS_IRQHandler"
+      ],
       "line": 4,
       "name": "RCC_CRS",
       "peripheral": "RCC",
@@ -68,9 +79,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G071.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "USART1_IRQHandler"
+      ],
       "line": 27,
       "name": "USART1",
       "peripheral": "USART1",
@@ -81,7 +96,8 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G071.svd"
-      }
+      },
+      "shared_group": null
     }
   ],
   "packages": [

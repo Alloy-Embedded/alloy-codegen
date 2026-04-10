@@ -282,6 +282,9 @@
   },
   "interrupts": [
     {
+      "alias_names": [
+        "RCC_CRS_IRQHandler"
+      ],
       "line": 4,
       "name": "RCC_CRS",
       "peripheral": "RCC",
@@ -292,9 +295,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G0B1.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "DMA1_Channel1_IRQHandler"
+      ],
       "line": 9,
       "name": "DMA1_Channel1",
       "peripheral": "DMA1",
@@ -305,9 +312,13 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G0B1.svd"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "FDCAN1_IT0_IRQHandler"
+      ],
       "line": 19,
       "name": "FDCAN1_IT0",
       "peripheral": "FDCAN1",
@@ -318,7 +329,8 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G0B1.svd"
-      }
+      },
+      "shared_group": null
     }
   ],
   "ip_blocks": [
@@ -407,7 +419,12 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32g0/devices/stm32g0b1re.json"
       },
-      "size_bytes": 524288
+      "size_bytes": 524288,
+      "startup_roles": [
+        "nonvolatile",
+        "copy-source",
+        "vector-source"
+      ]
     },
     {
       "access": "rwx",
@@ -422,7 +439,13 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32g0/devices/stm32g0b1re.json"
       },
-      "size_bytes": 147456
+      "size_bytes": 147456,
+      "startup_roles": [
+        "volatile-target",
+        "copy-target",
+        "zero-target",
+        "stack-target"
+      ]
     }
   ],
   "package_pads": [
@@ -1402,8 +1425,23 @@
       "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:flash",
-      "kind": "memory-region",
+      "descriptor_id": "startup:stack-top",
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "source_region": null,
+      "symbol": "__stack_top",
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:vector-source:flash",
+      "kind": "vector-source-region",
       "provenance": {
         "patch_ids": [
           "st-stm32g0-family-bootstrap-v1",
@@ -1414,11 +1452,11 @@
       },
       "source_region": "flash",
       "symbol": null,
-      "target_region": "flash"
+      "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:sram",
-      "kind": "memory-region",
+      "descriptor_id": "startup:copy-source:flash",
+      "kind": "copy-source-region",
       "provenance": {
         "patch_ids": [
           "st-stm32g0-family-bootstrap-v1",
@@ -1427,12 +1465,266 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/st/stm32g0/devices/stm32g0b1re.json"
       },
-      "source_region": "sram",
+      "source_region": "flash",
+      "symbol": null,
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:copy-target:sram",
+      "kind": "copy-target-region",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g0b1re.json"
+      },
+      "source_region": null,
+      "symbol": null,
+      "target_region": "sram"
+    },
+    {
+      "descriptor_id": "startup:zero-target:sram",
+      "kind": "zero-target-region",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g0b1re.json"
+      },
+      "source_region": null,
       "symbol": null,
       "target_region": "sram"
     }
   ],
   "vector_slots": [
+    {
+      "interrupt": null,
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 0,
+      "symbol_name": "__stack_top"
+    },
+    {
+      "interrupt": null,
+      "kind": "reset-handler",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 1,
+      "symbol_name": "Reset_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 2,
+      "symbol_name": "NMI_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 3,
+      "symbol_name": "HardFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 4,
+      "symbol_name": "Reserved_Handler_4"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 5,
+      "symbol_name": "Reserved_Handler_5"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 6,
+      "symbol_name": "Reserved_Handler_6"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 7,
+      "symbol_name": "Reserved_Handler_7"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 8,
+      "symbol_name": "Reserved_Handler_8"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 9,
+      "symbol_name": "Reserved_Handler_9"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 10,
+      "symbol_name": "Reserved_Handler_10"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 11,
+      "symbol_name": "SVCall_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 12,
+      "symbol_name": "Reserved_Handler_12"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 13,
+      "symbol_name": "Reserved_Handler_13"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 14,
+      "symbol_name": "PendSV_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "slot": 15,
+      "symbol_name": "SysTick_Handler"
+    },
     {
       "interrupt": "RCC_CRS",
       "kind": "external-interrupt",

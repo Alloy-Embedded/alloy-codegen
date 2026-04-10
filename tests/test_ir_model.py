@@ -60,6 +60,7 @@ def _base_device() -> CanonicalDeviceIR:
                 size_bytes=131072,
                 access="rx",
                 provenance=provenance,
+                startup_roles=("nonvolatile", "copy-source", "vector-source"),
             ),
         ),
         packages=(
@@ -104,6 +105,8 @@ def _base_device() -> CanonicalDeviceIR:
                 line=27,
                 peripheral="USART1",
                 provenance=provenance,
+                shared_group=None,
+                alias_names=("USART1_IRQHandler",),
             ),
         ),
         dma_requests=(
@@ -338,6 +341,12 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
     assert payload["connection_candidates"][0]["candidate_id"] == "cand-usart1-tx-pa9"
     assert payload["connection_groups"][0]["group_id"] == "grp-usart1-default"
     assert payload["vector_slots"][0]["symbol_name"] == "USART1_IRQHandler"
+    assert payload["interrupts"][0]["alias_names"] == ["USART1_IRQHandler"]
+    assert payload["memories"][0]["startup_roles"] == [
+        "nonvolatile",
+        "copy-source",
+        "vector-source",
+    ]
     assert payload["startup_descriptors"][0]["descriptor_id"] == "startup-copy-data"
     assert payload["clock_nodes"][0]["node_id"] == "pclk2"
     assert payload["clock_gates"][0]["gate_id"] == "gate-usart1"

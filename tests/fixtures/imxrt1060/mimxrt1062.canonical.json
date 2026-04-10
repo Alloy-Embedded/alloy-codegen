@@ -774,6 +774,9 @@
   },
   "interrupts": [
     {
+      "alias_names": [
+        "LPUART1_IRQHandler"
+      ],
       "line": 20,
       "name": "LPUART1",
       "peripheral": "LPUART1",
@@ -784,9 +787,13 @@
         ],
         "source_id": "nxp-mcux-soc-svd",
         "source_path": "MIMXRT1062/MIMXRT1062.xml"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "LPUART3_IRQHandler"
+      ],
       "line": 22,
       "name": "LPUART3",
       "peripheral": "LPUART3",
@@ -797,9 +804,13 @@
         ],
         "source_id": "nxp-mcux-soc-svd",
         "source_path": "MIMXRT1062/MIMXRT1062.xml"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "LPI2C1_IRQHandler"
+      ],
       "line": 28,
       "name": "LPI2C1",
       "peripheral": "LPI2C1",
@@ -810,9 +821,13 @@
         ],
         "source_id": "nxp-mcux-soc-svd",
         "source_path": "MIMXRT1062/MIMXRT1062.xml"
-      }
+      },
+      "shared_group": null
     },
     {
+      "alias_names": [
+        "LPSPI1_IRQHandler"
+      ],
       "line": 32,
       "name": "LPSPI1",
       "peripheral": "LPSPI1",
@@ -823,7 +838,8 @@
         ],
         "source_id": "nxp-mcux-soc-svd",
         "source_path": "MIMXRT1062/MIMXRT1062.xml"
-      }
+      },
+      "shared_group": null
     }
   ],
   "memories": [
@@ -840,7 +856,13 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
       },
-      "size_bytes": 1048576
+      "size_bytes": 1048576,
+      "startup_roles": [
+        "volatile-target",
+        "copy-target",
+        "zero-target",
+        "stack-target"
+      ]
     }
   ],
   "package_pads": [
@@ -1981,8 +2003,23 @@
       "target_region": null
     },
     {
-      "descriptor_id": "startup:memory:ocram",
-      "kind": "memory-region",
+      "descriptor_id": "startup:stack-top",
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "source_region": null,
+      "symbol": "__stack_top",
+      "target_region": null
+    },
+    {
+      "descriptor_id": "startup:copy-target:ocram",
+      "kind": "copy-target-region",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -1991,12 +2028,251 @@
         "source_id": "bootstrap-patch",
         "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
       },
-      "source_region": "OCRAM",
+      "source_region": null,
+      "symbol": null,
+      "target_region": "OCRAM"
+    },
+    {
+      "descriptor_id": "startup:zero-target:ocram",
+      "kind": "zero-target-region",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
+      },
+      "source_region": null,
       "symbol": null,
       "target_region": "OCRAM"
     }
   ],
   "vector_slots": [
+    {
+      "interrupt": null,
+      "kind": "initial-stack-pointer",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 0,
+      "symbol_name": "__stack_top"
+    },
+    {
+      "interrupt": null,
+      "kind": "reset-handler",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 1,
+      "symbol_name": "Reset_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 2,
+      "symbol_name": "NMI_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 3,
+      "symbol_name": "HardFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 4,
+      "symbol_name": "MemManage_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 5,
+      "symbol_name": "BusFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 6,
+      "symbol_name": "UsageFault_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 7,
+      "symbol_name": "Reserved_Handler_7"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 8,
+      "symbol_name": "Reserved_Handler_8"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 9,
+      "symbol_name": "Reserved_Handler_9"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 10,
+      "symbol_name": "Reserved_Handler_10"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 11,
+      "symbol_name": "SVCall_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 12,
+      "symbol_name": "DebugMon_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "reserved",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 13,
+      "symbol_name": "Reserved_Handler_13"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 14,
+      "symbol_name": "PendSV_Handler"
+    },
+    {
+      "interrupt": null,
+      "kind": "system-exception",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "slot": 15,
+      "symbol_name": "SysTick_Handler"
+    },
     {
       "interrupt": "LPUART1",
       "kind": "external-interrupt",

@@ -38,6 +38,10 @@ class MemoryRegion:
     size_bytes: int
     access: str
     provenance: Provenance
+    startup_roles: tuple[str, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -93,6 +97,11 @@ class InterruptDefinition:
     line: int
     peripheral: str | None
     provenance: Provenance
+    shared_group: str | None = None
+    alias_names: tuple[str, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
 
 
 @dataclass(frozen=True, slots=True)

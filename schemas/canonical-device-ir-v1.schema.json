@@ -84,6 +84,11 @@
         "name": { "type": "string" },
         "line": { "type": "integer" },
         "peripheral": { "type": ["string", "null"] },
+        "shared_group": { "type": ["string", "null"] },
+        "alias_names": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -490,6 +495,10 @@
           "base_address": { "type": "integer" },
           "size_bytes": { "type": "integer" },
           "access": { "type": "string" },
+          "startup_roles": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
           "provenance": { "$ref": "#/$defs/provenance" }
         },
         "additionalProperties": false

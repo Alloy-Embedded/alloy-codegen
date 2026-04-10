@@ -55,6 +55,83 @@ GROUP_SIGNAL_BUNDLES: dict[str, tuple[tuple[str, ...], ...]] = {
     "spi": (("sck", "mosi", "miso"), ("sck", "cs")),
     "can": (("tx", "rx"),),
 }
+VOLATILE_MEMORY_KINDS = {"sram", "ram", "itcm", "dtcm"}
+NONVOLATILE_MEMORY_KINDS = {"flash", "rom", "qspi-flash", "xip-flash"}
+RETAINED_MEMORY_KINDS = {"backup", "retention"}
+SYSTEM_VECTOR_BASELINES = {
+    "cortex-m0": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "Reserved_Handler_4", None, "reserved"),
+        (5, "Reserved_Handler_5", None, "reserved"),
+        (6, "Reserved_Handler_6", None, "reserved"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "Reserved_Handler_12", None, "reserved"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
+    "cortex-m0plus": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "Reserved_Handler_4", None, "reserved"),
+        (5, "Reserved_Handler_5", None, "reserved"),
+        (6, "Reserved_Handler_6", None, "reserved"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "Reserved_Handler_12", None, "reserved"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
+    "cortex-m4": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "MemManage_Handler", None, "system-exception"),
+        (5, "BusFault_Handler", None, "system-exception"),
+        (6, "UsageFault_Handler", None, "system-exception"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "DebugMon_Handler", None, "system-exception"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
+    "cortex-m7": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "MemManage_Handler", None, "system-exception"),
+        (5, "BusFault_Handler", None, "system-exception"),
+        (6, "UsageFault_Handler", None, "system-exception"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "DebugMon_Handler", None, "system-exception"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
+}
 
 
 def _sanitize(value: str) -> str:
@@ -87,6 +164,36 @@ def _symbol_name(interrupt_name: str) -> str:
     if interrupt_name.endswith("_IRQHandler"):
         return interrupt_name
     return f"{interrupt_name}_IRQHandler"
+
+
+def _interrupt_aliases(interrupt_name: str, peripheral_name: str | None) -> tuple[str, ...]:
+    aliases: list[str] = []
+    if peripheral_name is not None and peripheral_name.upper() not in interrupt_name.upper():
+        aliases.append(peripheral_name)
+    symbol_name = _symbol_name(interrupt_name)
+    if symbol_name != interrupt_name:
+        aliases.append(symbol_name)
+    return tuple(dict.fromkeys(aliases))
+
+
+def _system_vector_baseline(core_name: str) -> tuple[tuple[int, str, str | None, str], ...]:
+    normalized = core_name.lower()
+    return SYSTEM_VECTOR_BASELINES.get(normalized, SYSTEM_VECTOR_BASELINES["cortex-m4"])
+
+
+def _memory_startup_roles(kind: str, access: str) -> tuple[str, ...]:
+    normalized_kind = kind.lower()
+    normalized_access = access.lower()
+    roles: list[str] = []
+    if normalized_kind in NONVOLATILE_MEMORY_KINDS:
+        roles.extend(["nonvolatile", "copy-source"])
+        if "x" in normalized_access:
+            roles.append("vector-source")
+    if normalized_kind in VOLATILE_MEMORY_KINDS:
+        roles.extend(["volatile-target", "copy-target", "zero-target", "stack-target"])
+    if normalized_kind in RETAINED_MEMORY_KINDS:
+        roles.extend(["retained-target", "volatile-target"])
+    return tuple(dict.fromkeys(roles))
 
 
 def canonical_signal_role(peripheral_class: str, signal_name: str) -> str | None:
@@ -505,7 +612,49 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         )
     )
 
+    memory_regions = tuple(
+        type(memory)(
+            name=memory.name,
+            kind=memory.kind,
+            base_address=memory.base_address,
+            size_bytes=memory.size_bytes,
+            access=memory.access,
+            provenance=memory.provenance,
+            startup_roles=_memory_startup_roles(memory.kind, memory.access),
+        )
+        for memory in device.memories
+    )
+    peripheral_interrupt_counts: dict[str, int] = defaultdict(int)
+    for interrupt in device.interrupts:
+        if interrupt.peripheral is not None:
+            peripheral_interrupt_counts[interrupt.peripheral] += 1
+    interrupts = tuple(
+        type(interrupt)(
+            name=interrupt.name,
+            line=interrupt.line,
+            peripheral=interrupt.peripheral,
+            provenance=interrupt.provenance,
+            shared_group=(
+                None
+                if interrupt.peripheral is None
+                or peripheral_interrupt_counts[interrupt.peripheral] < 2
+                else f"interrupt-group:{_sanitize(interrupt.peripheral)}"
+            ),
+            alias_names=_interrupt_aliases(interrupt.name, interrupt.peripheral),
+        )
+        for interrupt in device.interrupts
+    )
+
     vector_slots = tuple(
+        VectorSlotDescriptor(
+            slot=slot,
+            symbol_name=symbol_name,
+            interrupt=interrupt_name,
+            kind=kind,
+            provenance=device.provenance,
+        )
+        for slot, symbol_name, interrupt_name, kind in _system_vector_baseline(device.identity.core)
+    ) + tuple(
         VectorSlotDescriptor(
             slot=16 + interrupt.line,
             symbol_name=_symbol_name(interrupt.name),
@@ -513,7 +662,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             kind="external-interrupt",
             provenance=interrupt.provenance,
         )
-        for interrupt in sorted(device.interrupts, key=lambda item: item.line)
+        for interrupt in sorted(interrupts, key=lambda item: item.line)
     )
 
     startup_descriptors = (
@@ -525,16 +674,70 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             symbol="_vectors",
             provenance=device.provenance,
         ),
-    ) + tuple(
         StartupDescriptor(
-            descriptor_id=f"startup:memory:{_sanitize(memory.name)}",
-            kind="memory-region",
-            source_region=memory.name,
-            target_region=memory.name,
-            symbol=None,
-            provenance=memory.provenance,
+            descriptor_id="startup:stack-top",
+            kind="initial-stack-pointer",
+            source_region=None,
+            target_region=None,
+            symbol="__stack_top",
+            provenance=device.provenance,
+        ),
+    ) + tuple(
+        descriptor
+        for memory in memory_regions
+        for descriptor in (
+            StartupDescriptor(
+                descriptor_id=f"startup:vector-source:{_sanitize(memory.name)}",
+                kind="vector-source-region",
+                source_region=memory.name,
+                target_region=None,
+                symbol=None,
+                provenance=memory.provenance,
+            )
+            if "vector-source" in memory.startup_roles
+            else None,
+            StartupDescriptor(
+                descriptor_id=f"startup:copy-source:{_sanitize(memory.name)}",
+                kind="copy-source-region",
+                source_region=memory.name,
+                target_region=None,
+                symbol=None,
+                provenance=memory.provenance,
+            )
+            if "copy-source" in memory.startup_roles
+            else None,
+            StartupDescriptor(
+                descriptor_id=f"startup:copy-target:{_sanitize(memory.name)}",
+                kind="copy-target-region",
+                source_region=None,
+                target_region=memory.name,
+                symbol=None,
+                provenance=memory.provenance,
+            )
+            if "copy-target" in memory.startup_roles
+            else None,
+            StartupDescriptor(
+                descriptor_id=f"startup:zero-target:{_sanitize(memory.name)}",
+                kind="zero-target-region",
+                source_region=None,
+                target_region=memory.name,
+                symbol=None,
+                provenance=memory.provenance,
+            )
+            if "zero-target" in memory.startup_roles
+            else None,
+            StartupDescriptor(
+                descriptor_id=f"startup:retained:{_sanitize(memory.name)}",
+                kind="retained-region",
+                source_region=None,
+                target_region=memory.name,
+                symbol=None,
+                provenance=memory.provenance,
+            )
+            if "retained-target" in memory.startup_roles
+            else None,
         )
-        for memory in device.memories
+        if descriptor is not None
     )
 
     clock_node_map: dict[str, ClockNodeLite] = {}
@@ -632,11 +835,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     return CanonicalDeviceIR(
         schema_version=device.schema_version,
         identity=device.identity,
-        memories=device.memories,
+        memories=memory_regions,
         packages=device.packages,
         pins=device.pins,
         peripherals=device.peripherals,
-        interrupts=device.interrupts,
+        interrupts=interrupts,
         dma_requests=device.dma_requests,
         provenance=device.provenance,
         ip_blocks=ip_blocks,

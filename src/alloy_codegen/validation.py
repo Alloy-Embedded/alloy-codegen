@@ -547,6 +547,9 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         vector_slot.interrupt is None or vector_slot.interrupt in interrupt_names
         for vector_slot in device.vector_slots
     )
+    vector_slot_numbers = {vector_slot.slot for vector_slot in device.vector_slots}
+    system_vector_baseline_present = {0, 1, 2, 3, 11, 14, 15} <= vector_slot_numbers
+    memory_regions_carry_startup_roles = any(memory.startup_roles for memory in device.memories)
     startup_descriptors_are_present = bool(device.startup_descriptors)
     startup_descriptors_reference_known_memories = all(
         descriptor.source_region is None or descriptor.source_region in memory_names
@@ -554,6 +557,53 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     ) and all(
         descriptor.target_region is None or descriptor.target_region in memory_names
         for descriptor in device.startup_descriptors
+    )
+    startup_descriptors_cover_memory_roles = all(
+        (
+            "vector-source" not in memory.startup_roles
+            or any(
+                descriptor.kind == "vector-source-region"
+                and descriptor.source_region == memory.name
+                for descriptor in device.startup_descriptors
+            )
+        )
+        and (
+            "copy-source" not in memory.startup_roles
+            or any(
+                descriptor.kind == "copy-source-region"
+                and descriptor.source_region == memory.name
+                for descriptor in device.startup_descriptors
+            )
+        )
+        and (
+            "copy-target" not in memory.startup_roles
+            or any(
+                descriptor.kind == "copy-target-region"
+                and descriptor.target_region == memory.name
+                for descriptor in device.startup_descriptors
+            )
+        )
+        and (
+            "zero-target" not in memory.startup_roles
+            or any(
+                descriptor.kind == "zero-target-region"
+                and descriptor.target_region == memory.name
+                for descriptor in device.startup_descriptors
+            )
+        )
+        and (
+            "retained-target" not in memory.startup_roles
+            or any(
+                descriptor.kind == "retained-region"
+                and descriptor.target_region == memory.name
+                for descriptor in device.startup_descriptors
+            )
+        )
+        for memory in device.memories
+    )
+    startup_descriptors_include_runtime_baseline = all(
+        any(descriptor.kind == required_kind for descriptor in device.startup_descriptors)
+        for required_kind in ("vector-table", "initial-stack-pointer")
     )
     clock_bindings_reference_known_descriptors = all(
         (binding.clock_gate_id is None or binding.clock_gate_id in clock_gate_ids)
@@ -797,6 +847,23 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             message=f"{device.identity.device} vector slots only reference declared interrupts.",
         ),
         _rule(
+            rule_id=f"{device.identity.device}-vector-slots-include-system-baseline",
+            category="semantic",
+            severity="error",
+            passed=system_vector_baseline_present,
+            message=f"{device.identity.device} vector slots include the system baseline slots.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-memory-regions-carry-startup-roles",
+            category="semantic",
+            severity="error",
+            passed=memory_regions_carry_startup_roles,
+            message=(
+                f"{device.identity.device} exposes startup-relevant memory classifications "
+                "for at least one memory region."
+            ),
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-startup-descriptors-present",
             category="semantic",
             severity="error",
@@ -811,6 +878,26 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             message=(
                 f"{device.identity.device} startup descriptors only reference "
                 "declared memories."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-startup-descriptors-cover-memory-roles",
+            category="semantic",
+            severity="error",
+            passed=startup_descriptors_cover_memory_roles,
+            message=(
+                f"{device.identity.device} startup descriptors cover every "
+                "startup-classified memory region."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-startup-descriptors-include-runtime-baseline",
+            category="semantic",
+            severity="error",
+            passed=startup_descriptors_include_runtime_baseline,
+            message=(
+                f"{device.identity.device} startup descriptors include vector-table "
+                "and initial-stack-pointer facts."
             ),
         ),
         _rule(
