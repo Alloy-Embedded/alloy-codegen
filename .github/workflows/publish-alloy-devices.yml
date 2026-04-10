@@ -12,8 +12,13 @@ on:
         required: false
         default: "main"
         type: string
+      vendor:
+        description: "Vendor scope to publish"
+        required: false
+        default: "st"
+        type: string
       family:
-        description: "Bootstrap family scope to publish"
+        description: "Family scope to publish"
         required: false
         default: "stm32g0"
         type: string
@@ -52,15 +57,18 @@ jobs:
         id: settings
         env:
           EVENT_NAME: ${{ github.event_name }}
+          INPUT_VENDOR: ${{ inputs.vendor }}
           INPUT_FAMILY: ${{ inputs.family }}
           INPUT_PUSH_CHANGES: ${{ inputs.push_changes }}
           HAS_PUSH_TOKEN: ${{ secrets.ALLOY_DEVICES_PUSH_TOKEN != '' }}
         run: |
           set -eu
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            vendor="${INPUT_VENDOR:-st}"
             family="${INPUT_FAMILY:-stm32g0}"
             requested_push="${INPUT_PUSH_CHANGES:-false}"
           else
+            vendor="st"
             family="stm32g0"
             requested_push="true"
           fi
@@ -72,6 +80,7 @@ jobs:
 
           source_revision="$(git rev-parse HEAD)"
           {
+            echo "vendor=$vendor"
             echo "family=$family"
             echo "requested_push=$requested_push"
             echo "effective_push=$effective_push"
@@ -117,6 +126,7 @@ jobs:
           git -C "$publication_root" clean -fdx
           rm -rf "$artifact_root"
           python -m alloy_codegen.cli publish \
+            --vendor "${{ steps.settings.outputs.vendor }}" \
             --family "${{ steps.settings.outputs.family }}" \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
@@ -175,6 +185,7 @@ jobs:
         if: always()
         run: |
           {
+            echo "vendor=${{ steps.settings.outputs.vendor }}"
             echo "family=${{ steps.settings.outputs.family }}"
             echo "source_revision=${{ steps.settings.outputs.source_revision }}"
             echo "requested_push=${{ steps.settings.outputs.requested_push }}"
@@ -186,6 +197,7 @@ jobs:
           {
             echo "## alloy-devices publication"
             echo ""
+            echo "- Vendor: \`${{ steps.settings.outputs.vendor }}\`"
             echo "- Family: \`${{ steps.settings.outputs.family }}\`"
             echo "- Source revision: \`${{ steps.settings.outputs.source_revision }}\`"
             echo "- Requested push: \`${{ steps.settings.outputs.requested_push }}\`"
@@ -203,5 +215,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: publish-alloy-devices-${{ steps.settings.outputs.family }}
+          name: publish-alloy-devices-${{ steps.settings.outputs.vendor }}-${{ steps.settings.outputs.family }}
           path: out/release/

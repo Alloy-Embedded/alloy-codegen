@@ -6,17 +6,27 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.reporting import ConsumerVerification
 from alloy_codegen.scope import PipelineScope
 
 
-def _smoke_device(scope: PipelineScope) -> str:
-    return scope.device or "stm32g071rb"
-
-
 def _family_root(publication_root: Path, scope: PipelineScope) -> Path:
     return publication_root / scope.resolved_vendor() / scope.resolved_family()
+
+
+def _published_device(scope: PipelineScope, family_root: Path) -> str:
+    if scope.device is not None:
+        return scope.device
+
+    startup_sources = sorted(family_root.glob("*/startup.cpp"))
+    if startup_sources:
+        return startup_sources[0].parent.name
+
+    vendor = scope.resolved_vendor()
+    family = scope.resolved_family()
+    return registered_device_names(vendor, family)[0]
 
 
 def _first_generated_gpio_header(family_root: Path) -> Path:
@@ -59,8 +69,8 @@ def verify_alloy_smoke_consumer(
     if not smoke_source.exists():
         raise StageExecutionError(f"Smoke consumer source not found: {smoke_source}")
 
-    device = _smoke_device(scope)
     family_root = _family_root(publication_root, scope)
+    device = _published_device(scope, family_root)
     startup_source = family_root / device / "startup.cpp"
     if not startup_source.exists():
         raise StageExecutionError(f"Published startup source not found: {startup_source}")

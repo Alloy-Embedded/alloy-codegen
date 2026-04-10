@@ -96,6 +96,32 @@ def test_publish_is_deterministic_for_same_inputs(execution_context: ExecutionCo
     assert publication_revision_a == publication_revision_b
 
 
+def test_publish_microchip_family_scope(
+    microchip_execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(vendor="microchip", family="same70"), microchip_execution_context)
+
+    assert result.stage == "publish"
+    assert result.status == "completed"
+    assert result.payload.publication_mode == "published"
+    assert result.payload.consumer_verification is not None
+    assert result.payload.consumer_verification.succeeded is True
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "atsame70n21b"
+        / "register_map.hpp"
+    ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "atsame70q21b"
+        / "register_map.hpp"
+    ).exists()
+
+
 def test_publish_does_not_modify_publication_root_when_validation_fails(
     execution_context: ExecutionContext,
     monkeypatch,
