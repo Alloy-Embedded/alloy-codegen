@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from alloy_codegen.serialization import to_primitive
 
@@ -107,6 +107,226 @@ class DmaRequestDefinition:
 
 
 @dataclass(frozen=True, slots=True)
+class IpBlockDefinition:
+    """Reusable IP block definition keyed by name and version."""
+
+    ip_name: str
+    ip_version: str
+    peripheral_class: str
+    register_profile: str | None
+    signal_roles: tuple[str, ...]
+    capability_ids: tuple[str, ...]
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class CapabilityDescriptor:
+    """One versioned capability fact exposed to emitters and Alloy."""
+
+    capability_id: str
+    peripheral_class: str
+    name: str
+    value: str
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class PackagePad:
+    """One physical package pad entry."""
+
+    pad_id: str
+    package: str
+    position_label: str
+    physical_index: int | None
+    pad_kind: str
+    bonded_pin: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class PinConstraint:
+    """One pin-level constraint."""
+
+    constraint_id: str
+    pin: str
+    kind: str
+    value: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class SignalEndpoint:
+    """One canonical peripheral-side signal identity."""
+
+    endpoint_id: str
+    peripheral_class: str
+    signal: str
+    direction: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class RouteRequirement:
+    """One prerequisite for a candidate or connection group."""
+
+    requirement_id: str
+    kind: str
+    target: str | None
+    value: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class RouteOperation:
+    """One concrete hardware operation required to realize a route."""
+
+    operation_id: str
+    kind: str
+    target: str
+    value: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class ConnectionCandidate:
+    """One valid concrete route from a pin to a peripheral signal."""
+
+    candidate_id: str
+    pin: str
+    peripheral: str
+    signal: str
+    route_kind: str
+    route_selector: str | None
+    route_group_id: str | None
+    requirement_ids: tuple[str, ...]
+    operation_ids: tuple[str, ...]
+    capability_ids: tuple[str, ...]
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class ConnectionGroup:
+    """One valid group of candidates that may coexist."""
+
+    group_id: str
+    peripheral: str
+    signals: tuple[str, ...]
+    candidate_ids: tuple[str, ...]
+    package: str | None
+    conflict_group: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class VectorSlotDescriptor:
+    """One vector-table slot descriptor."""
+
+    slot: int
+    symbol_name: str
+    interrupt: str | None
+    kind: str
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class StartupDescriptor:
+    """One startup-related descriptor entry."""
+
+    descriptor_id: str
+    kind: str
+    source_region: str | None
+    target_region: str | None
+    symbol: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class ClockNodeLite:
+    """One simplified clock-tree node."""
+
+    node_id: str
+    kind: str
+    parent: str | None
+    selector: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class ClockSelectorLite:
+    """One simplified parent/source selector."""
+
+    selector_id: str
+    parent_options: tuple[str, ...]
+    register_target: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class ClockGateDescriptor:
+    """One clock gate descriptor."""
+
+    gate_id: str
+    peripheral: str | None
+    enable_signal: str
+    parent_node: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class ResetDescriptor:
+    """One reset descriptor."""
+
+    reset_id: str
+    peripheral: str | None
+    reset_signal: str
+    active_level: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class PeripheralClockBinding:
+    """How one peripheral instance binds into the simplified clock/reset graph."""
+
+    peripheral: str
+    clock_gate_id: str | None
+    reset_id: str | None
+    selector_id: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class DmaControllerDescriptor:
+    """One DMA controller descriptor."""
+
+    controller: str
+    version: str | None
+    channel_count: int | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class DmaRouteDescriptor:
+    """One normalized DMA route descriptor."""
+
+    route_id: str
+    controller: str
+    request_line: str
+    peripheral: str | None
+    signal: str | None
+    conflict_group: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class DmaConflictGroup:
+    """One explicit DMA route conflict group."""
+
+    conflict_group_id: str
+    route_ids: tuple[str, ...]
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
 class CanonicalDeviceIR:
     """Canonical device description used by validation and emitters."""
 
@@ -119,6 +339,82 @@ class CanonicalDeviceIR:
     interrupts: tuple[InterruptDefinition, ...]
     dma_requests: tuple[DmaRequestDefinition, ...]
     provenance: Provenance
+    ip_blocks: tuple[IpBlockDefinition, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    capabilities: tuple[CapabilityDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    package_pads: tuple[PackagePad, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    pin_constraints: tuple[PinConstraint, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    signal_endpoints: tuple[SignalEndpoint, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    route_requirements: tuple[RouteRequirement, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    route_operations: tuple[RouteOperation, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    connection_candidates: tuple[ConnectionCandidate, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    connection_groups: tuple[ConnectionGroup, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    vector_slots: tuple[VectorSlotDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    startup_descriptors: tuple[StartupDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    clock_nodes: tuple[ClockNodeLite, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    clock_selectors: tuple[ClockSelectorLite, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    clock_gates: tuple[ClockGateDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    resets: tuple[ResetDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    peripheral_clock_bindings: tuple[PeripheralClockBinding, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    dma_controllers: tuple[DmaControllerDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    dma_routes: tuple[DmaRouteDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    dma_conflict_groups: tuple[DmaConflictGroup, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
 
     def to_dict(self) -> dict[str, object]:
         return to_primitive(self)

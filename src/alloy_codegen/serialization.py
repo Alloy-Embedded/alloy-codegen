@@ -8,10 +8,24 @@ from dataclasses import fields, is_dataclass
 from typing import Any
 
 
+def _is_empty_optional(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, (tuple, list, dict, set, frozenset)):
+        return len(value) == 0
+    return False
+
+
 def to_primitive(value: Any) -> Any:
     """Convert dataclasses and tuples into JSON-friendly primitives."""
     if is_dataclass(value):
-        return {field.name: to_primitive(getattr(value, field.name)) for field in fields(value)}
+        payload: dict[str, Any] = {}
+        for field in fields(value):
+            item = getattr(value, field.name)
+            if field.metadata.get("omit_if_empty") and _is_empty_optional(item):
+                continue
+            payload[field.name] = to_primitive(item)
+        return payload
     if isinstance(value, tuple):
         return [to_primitive(item) for item in value]
     if isinstance(value, list):

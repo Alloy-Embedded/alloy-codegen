@@ -17,7 +17,13 @@ def test_canonical_ir_schema_is_present_and_named() -> None:
 
     assert schema["title"] == "CanonicalDeviceIR"
     assert "identity" in schema["properties"]
-    assert schema["properties"]["pins"]["items"]["required"] == [
+    assert "ip_blocks" in schema["properties"]
+    assert "connection_candidates" in schema["properties"]
+    assert "connection_groups" in schema["properties"]
+    assert "vector_slots" in schema["properties"]
+    assert "startup_descriptors" in schema["properties"]
+    assert "clock_nodes" in schema["properties"]
+    assert schema["$defs"]["pin_definition"]["required"] == [
         "name",
         "port",
         "number",

@@ -15,6 +15,407 @@
         }
       },
       "additionalProperties": false
+    },
+    "package_definition": {
+      "type": "object",
+      "required": ["name", "pin_count", "provenance"],
+      "properties": {
+        "name": { "type": "string" },
+        "pin_count": { "type": "integer" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "pin_signal": {
+      "type": "object",
+      "required": ["function", "peripheral", "signal", "af_number", "provenance"],
+      "properties": {
+        "function": { "type": "string" },
+        "peripheral": { "type": ["string", "null"] },
+        "signal": { "type": ["string", "null"] },
+        "af_number": { "type": ["integer", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "pin_definition": {
+      "type": "object",
+      "required": ["name", "port", "number", "signals", "provenance"],
+      "properties": {
+        "name": { "type": "string" },
+        "port": { "type": ["string", "null"] },
+        "number": { "type": "integer" },
+        "signals": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/pin_signal" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "peripheral_instance": {
+      "type": "object",
+      "required": [
+        "name",
+        "ip_name",
+        "ip_version",
+        "instance",
+        "base_address",
+        "rcc_enable_signal",
+        "rcc_reset_signal",
+        "provenance"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "ip_name": { "type": "string" },
+        "ip_version": { "type": ["string", "null"] },
+        "instance": { "type": "integer" },
+        "base_address": { "type": "integer" },
+        "rcc_enable_signal": { "type": ["string", "null"] },
+        "rcc_reset_signal": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "interrupt_definition": {
+      "type": "object",
+      "required": ["name", "line", "peripheral", "provenance"],
+      "properties": {
+        "name": { "type": "string" },
+        "line": { "type": "integer" },
+        "peripheral": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "dma_request_definition": {
+      "type": "object",
+      "required": ["controller", "request_line", "peripheral", "signal", "provenance"],
+      "properties": {
+        "controller": { "type": "string" },
+        "request_line": { "type": "string" },
+        "peripheral": { "type": ["string", "null"] },
+        "signal": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "ip_block_definition": {
+      "type": "object",
+      "required": [
+        "ip_name",
+        "ip_version",
+        "peripheral_class",
+        "register_profile",
+        "signal_roles",
+        "capability_ids",
+        "provenance"
+      ],
+      "properties": {
+        "ip_name": { "type": "string" },
+        "ip_version": { "type": "string" },
+        "peripheral_class": { "type": "string" },
+        "register_profile": { "type": ["string", "null"] },
+        "signal_roles": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "capability_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "capability_descriptor": {
+      "type": "object",
+      "required": ["capability_id", "peripheral_class", "name", "value", "provenance"],
+      "properties": {
+        "capability_id": { "type": "string" },
+        "peripheral_class": { "type": "string" },
+        "name": { "type": "string" },
+        "value": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "package_pad": {
+      "type": "object",
+      "required": [
+        "pad_id",
+        "package",
+        "position_label",
+        "physical_index",
+        "pad_kind",
+        "bonded_pin",
+        "provenance"
+      ],
+      "properties": {
+        "pad_id": { "type": "string" },
+        "package": { "type": "string" },
+        "position_label": { "type": "string" },
+        "physical_index": { "type": ["integer", "null"] },
+        "pad_kind": { "type": "string" },
+        "bonded_pin": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "pin_constraint": {
+      "type": "object",
+      "required": ["constraint_id", "pin", "kind", "value", "provenance"],
+      "properties": {
+        "constraint_id": { "type": "string" },
+        "pin": { "type": "string" },
+        "kind": { "type": "string" },
+        "value": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "signal_endpoint": {
+      "type": "object",
+      "required": ["endpoint_id", "peripheral_class", "signal", "direction", "provenance"],
+      "properties": {
+        "endpoint_id": { "type": "string" },
+        "peripheral_class": { "type": "string" },
+        "signal": { "type": "string" },
+        "direction": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "route_requirement": {
+      "type": "object",
+      "required": ["requirement_id", "kind", "target", "value", "provenance"],
+      "properties": {
+        "requirement_id": { "type": "string" },
+        "kind": { "type": "string" },
+        "target": { "type": ["string", "null"] },
+        "value": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "route_operation": {
+      "type": "object",
+      "required": ["operation_id", "kind", "target", "value", "provenance"],
+      "properties": {
+        "operation_id": { "type": "string" },
+        "kind": { "type": "string" },
+        "target": { "type": "string" },
+        "value": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "connection_candidate": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "pin",
+        "peripheral",
+        "signal",
+        "route_kind",
+        "route_selector",
+        "route_group_id",
+        "requirement_ids",
+        "operation_ids",
+        "capability_ids",
+        "provenance"
+      ],
+      "properties": {
+        "candidate_id": { "type": "string" },
+        "pin": { "type": "string" },
+        "peripheral": { "type": "string" },
+        "signal": { "type": "string" },
+        "route_kind": { "type": "string" },
+        "route_selector": { "type": ["string", "null"] },
+        "route_group_id": { "type": ["string", "null"] },
+        "requirement_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "operation_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "capability_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "connection_group": {
+      "type": "object",
+      "required": [
+        "group_id",
+        "peripheral",
+        "signals",
+        "candidate_ids",
+        "package",
+        "conflict_group",
+        "provenance"
+      ],
+      "properties": {
+        "group_id": { "type": "string" },
+        "peripheral": { "type": "string" },
+        "signals": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "candidate_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "package": { "type": ["string", "null"] },
+        "conflict_group": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "vector_slot_descriptor": {
+      "type": "object",
+      "required": ["slot", "symbol_name", "interrupt", "kind", "provenance"],
+      "properties": {
+        "slot": { "type": "integer" },
+        "symbol_name": { "type": "string" },
+        "interrupt": { "type": ["string", "null"] },
+        "kind": { "type": "string" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "startup_descriptor": {
+      "type": "object",
+      "required": [
+        "descriptor_id",
+        "kind",
+        "source_region",
+        "target_region",
+        "symbol",
+        "provenance"
+      ],
+      "properties": {
+        "descriptor_id": { "type": "string" },
+        "kind": { "type": "string" },
+        "source_region": { "type": ["string", "null"] },
+        "target_region": { "type": ["string", "null"] },
+        "symbol": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "clock_node_lite": {
+      "type": "object",
+      "required": ["node_id", "kind", "parent", "selector", "provenance"],
+      "properties": {
+        "node_id": { "type": "string" },
+        "kind": { "type": "string" },
+        "parent": { "type": ["string", "null"] },
+        "selector": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "clock_selector_lite": {
+      "type": "object",
+      "required": ["selector_id", "parent_options", "register_target", "provenance"],
+      "properties": {
+        "selector_id": { "type": "string" },
+        "parent_options": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "register_target": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "clock_gate_descriptor": {
+      "type": "object",
+      "required": ["gate_id", "peripheral", "enable_signal", "parent_node", "provenance"],
+      "properties": {
+        "gate_id": { "type": "string" },
+        "peripheral": { "type": ["string", "null"] },
+        "enable_signal": { "type": "string" },
+        "parent_node": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "reset_descriptor": {
+      "type": "object",
+      "required": ["reset_id", "peripheral", "reset_signal", "active_level", "provenance"],
+      "properties": {
+        "reset_id": { "type": "string" },
+        "peripheral": { "type": ["string", "null"] },
+        "reset_signal": { "type": "string" },
+        "active_level": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "peripheral_clock_binding": {
+      "type": "object",
+      "required": ["peripheral", "clock_gate_id", "reset_id", "selector_id", "provenance"],
+      "properties": {
+        "peripheral": { "type": "string" },
+        "clock_gate_id": { "type": ["string", "null"] },
+        "reset_id": { "type": ["string", "null"] },
+        "selector_id": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "dma_controller_descriptor": {
+      "type": "object",
+      "required": ["controller", "version", "channel_count", "provenance"],
+      "properties": {
+        "controller": { "type": "string" },
+        "version": { "type": ["string", "null"] },
+        "channel_count": { "type": ["integer", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "dma_route_descriptor": {
+      "type": "object",
+      "required": [
+        "route_id",
+        "controller",
+        "request_line",
+        "peripheral",
+        "signal",
+        "conflict_group",
+        "provenance"
+      ],
+      "properties": {
+        "route_id": { "type": "string" },
+        "controller": { "type": "string" },
+        "request_line": { "type": "string" },
+        "peripheral": { "type": ["string", "null"] },
+        "signal": { "type": ["string", "null"] },
+        "conflict_group": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "dma_conflict_group": {
+      "type": "object",
+      "required": ["conflict_group_id", "route_ids", "provenance"],
+      "properties": {
+        "conflict_group_id": { "type": "string" },
+        "route_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
     }
   },
   "type": "object",
@@ -78,113 +479,99 @@
     },
     "packages": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["name", "pin_count", "provenance"],
-        "properties": {
-          "name": { "type": "string" },
-          "pin_count": { "type": "integer" },
-          "provenance": { "$ref": "#/$defs/provenance" }
-        },
-        "additionalProperties": false
-      }
+      "items": { "$ref": "#/$defs/package_definition" }
     },
     "pins": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["name", "port", "number", "signals", "provenance"],
-        "properties": {
-          "name": { "type": "string" },
-          "port": { "type": ["string", "null"] },
-          "number": { "type": "integer" },
-          "signals": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "function",
-                "peripheral",
-                "signal",
-                "af_number",
-                "provenance"
-              ],
-              "properties": {
-                "function": { "type": "string" },
-                "peripheral": { "type": ["string", "null"] },
-                "signal": { "type": ["string", "null"] },
-                "af_number": { "type": ["integer", "null"] },
-                "provenance": { "$ref": "#/$defs/provenance" }
-              },
-              "additionalProperties": false
-            }
-          },
-          "provenance": { "$ref": "#/$defs/provenance" }
-        },
-        "additionalProperties": false
-      }
+      "items": { "$ref": "#/$defs/pin_definition" }
     },
     "peripherals": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "name",
-          "ip_name",
-          "ip_version",
-          "instance",
-          "base_address",
-          "rcc_enable_signal",
-          "rcc_reset_signal",
-          "provenance"
-        ],
-        "properties": {
-          "name": { "type": "string" },
-          "ip_name": { "type": "string" },
-          "ip_version": { "type": ["string", "null"] },
-          "instance": { "type": "integer" },
-          "base_address": { "type": "integer" },
-          "rcc_enable_signal": { "type": ["string", "null"] },
-          "rcc_reset_signal": { "type": ["string", "null"] },
-          "provenance": { "$ref": "#/$defs/provenance" }
-        },
-        "additionalProperties": false
-      }
+      "items": { "$ref": "#/$defs/peripheral_instance" }
     },
     "interrupts": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["name", "line", "peripheral", "provenance"],
-        "properties": {
-          "name": { "type": "string" },
-          "line": { "type": "integer" },
-          "peripheral": { "type": ["string", "null"] },
-          "provenance": { "$ref": "#/$defs/provenance" }
-        },
-        "additionalProperties": false
-      }
+      "items": { "$ref": "#/$defs/interrupt_definition" }
     },
     "dma_requests": {
       "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "controller",
-          "request_line",
-          "peripheral",
-          "signal",
-          "provenance"
-        ],
-        "properties": {
-          "controller": { "type": "string" },
-          "request_line": { "type": "string" },
-          "peripheral": { "type": ["string", "null"] },
-          "signal": { "type": ["string", "null"] },
-          "provenance": { "$ref": "#/$defs/provenance" }
-        },
-        "additionalProperties": false
-      }
+      "items": { "$ref": "#/$defs/dma_request_definition" }
+    },
+    "ip_blocks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ip_block_definition" }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/capability_descriptor" }
+    },
+    "package_pads": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/package_pad" }
+    },
+    "pin_constraints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pin_constraint" }
+    },
+    "signal_endpoints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/signal_endpoint" }
+    },
+    "route_requirements": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/route_requirement" }
+    },
+    "route_operations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/route_operation" }
+    },
+    "connection_candidates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/connection_candidate" }
+    },
+    "connection_groups": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/connection_group" }
+    },
+    "vector_slots": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/vector_slot_descriptor" }
+    },
+    "startup_descriptors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/startup_descriptor" }
+    },
+    "clock_nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/clock_node_lite" }
+    },
+    "clock_selectors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/clock_selector_lite" }
+    },
+    "clock_gates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/clock_gate_descriptor" }
+    },
+    "resets": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/reset_descriptor" }
+    },
+    "peripheral_clock_bindings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/peripheral_clock_binding" }
+    },
+    "dma_controllers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dma_controller_descriptor" }
+    },
+    "dma_routes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dma_route_descriptor" }
+    },
+    "dma_conflict_groups": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dma_conflict_group" }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"
