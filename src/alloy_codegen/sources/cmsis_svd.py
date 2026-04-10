@@ -58,12 +58,19 @@ def ensure_source_root(context: ExecutionContext) -> Path:
 def source_revision(source_root: Path) -> str:
     """Read the current source revision if the root is a git checkout."""
     completed = subprocess.run(
-        ["git", "-C", str(source_root), "rev-parse", "HEAD"],
+        ["git", "-C", str(source_root), "rev-parse", "--show-toplevel"],
         capture_output=True,
         text=True,
     )
-    if completed.returncode == 0:
-        return completed.stdout.strip()
+    top_level = Path(completed.stdout.strip()).resolve() if completed.returncode == 0 else None
+    if top_level == source_root.resolve():
+        head = subprocess.run(
+            ["git", "-C", str(source_root), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+        )
+        if head.returncode == 0:
+            return head.stdout.strip()
 
     digest = hashlib.sha256()
     subtree = source_root / STMICRO_SUBTREE

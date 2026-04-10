@@ -15,6 +15,16 @@ def _smoke_device(scope: PipelineScope) -> str:
     return scope.device or "stm32g071rb"
 
 
+def _smoke_source_path() -> Path:
+    """Return the repository-local smoke consumer source."""
+    return (
+        Path(__file__).resolve().parents[2]
+        / "tests"
+        / "codegen"
+        / "published_artifact_contract_smoke.cpp"
+    )
+
+
 def verify_alloy_smoke_consumer(
     *,
     scope: PipelineScope,
@@ -33,7 +43,7 @@ def verify_alloy_smoke_consumer(
         )
 
     consumer_id = "alloy-published-artifact-smoke"
-    smoke_source = alloy_root / "tests" / "codegen" / "published_artifact_contract_smoke.cpp"
+    smoke_source = _smoke_source_path()
     if not smoke_source.exists():
         raise StageExecutionError(f"Smoke consumer source not found: {smoke_source}")
 

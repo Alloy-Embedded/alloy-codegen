@@ -45,6 +45,10 @@ For the bootstrap family, successful publication writes:
 - Published artifacts are written only when validation passes for the requested scope.
 - Published artifacts are staged and verified against an Alloy smoke consumer before
   promotion to the final publication root.
+- The smoke consumer source lives in
+  `tests/codegen/published_artifact_contract_smoke.cpp` inside `alloy-codegen`, but it is
+  compiled against the checked-out Alloy headers and the staged/published generated
+  artifacts.
 - `publication-record.json` contains the deterministic `target_artifact_revision` for the
   published artifact set.
 - `artifact-manifest.json` is the traceability entrypoint for generator version, schema

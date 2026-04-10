@@ -58,6 +58,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e . pytest ruff
 
+      - name: Install build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+
       - name: Install OpenSpec CLI
         run: npm install --global @fission-ai/openspec
 
@@ -118,7 +123,7 @@ jobs:
             --source-root tests/fixtures/cmsis-svd-data \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
-            --alloy-root "$GITHUB_WORKSPACE/alloy" \
+            --alloy-root "$GITHUB_WORKSPACE/alloy-devices" \
             --json | tee "$report_path"
           validate_status=${PIPESTATUS[0]}
           set -e

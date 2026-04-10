@@ -13,6 +13,7 @@ def test_fetch_uses_fixture_source_root(execution_context: ExecutionContext) -> 
     assert result.stage == "fetch"
     assert source.local_path.endswith("STM32G071.svd")
     assert source.upstream_path == "data/STMicro/STM32G071.svd"
+    assert source.revision.startswith("content-sha256:")
 
 
 def test_fetch_and_patch_are_byte_stable(execution_context: ExecutionContext) -> None:
