@@ -236,3 +236,22 @@ def test_publish_preserves_git_checkout_metadata_and_unrelated_files(
     assert (publication_checkout / "st" / "stm32g0" / "stm32g030f6" / "register_map.hpp").exists()
     assert "README.md" not in status.stdout
     assert "?? st/" in status.stdout or "A  st/" in status.stdout
+
+
+def test_compute_materialized_tree_revision_ignores_git_metadata(tmp_path: Path) -> None:
+    tree_root = tmp_path / "alloy-devices"
+    tracked_dir = tree_root / "st" / "stm32g0"
+    git_dir = tree_root / ".git"
+
+    tracked_dir.mkdir(parents=True, exist_ok=True)
+    git_dir.mkdir(parents=True, exist_ok=True)
+
+    (tracked_dir / "family-index.json").write_text('{"family":"stm32g0"}\n', encoding="utf-8")
+    (git_dir / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+
+    revision_a = compute_materialized_tree_revision(tree_root)
+
+    (git_dir / "index").write_text("changed between runs\n", encoding="utf-8")
+    revision_b = compute_materialized_tree_revision(tree_root)
+
+    assert revision_a == revision_b

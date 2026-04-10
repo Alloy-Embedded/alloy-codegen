@@ -279,6 +279,9 @@ jobs:
           artifact_root="$RUNNER_TEMP/alloy-devices-artifacts"
           publication_root="$GITHUB_WORKSPACE/alloy-devices"
           publish_path="out/alloy-devices/stm32g0-cycle1.json"
+          git -C "$publication_root" reset --hard HEAD
+          git -C "$publication_root" clean -fdx
+          rm -rf "$artifact_root"
           python -m alloy_codegen.cli publish \
             --family stm32g0 \
             --source-root tests/fixtures/cmsis-svd-data \
@@ -326,6 +329,7 @@ jobs:
           tree_revision_a=$(cat out/alloy-devices/tree-cycle1.txt)
           git -C "$publication_root" reset --hard HEAD
           git -C "$publication_root" clean -fdx
+          rm -rf "$artifact_root"
           python -m alloy_codegen.cli publish \
             --family stm32g0 \
             --source-root tests/fixtures/cmsis-svd-data \
@@ -359,13 +363,37 @@ jobs:
           assert payload_b["status"] == "completed", payload_b
           assert plan_b["publication_mode"] == "published", payload_b
           assert plan_b["consumer_verification"]["succeeded"] is True, payload_b
-          assert plan_a["target_artifact_revision"] == plan_b["target_artifact_revision"]
-          assert plan_a["publication_record"]["content_sha256"] == plan_b["publication_record"]["content_sha256"]
-          assert plan_a["publication_summary"]["content_sha256"] == plan_b["publication_summary"]["content_sha256"]
-          assert [artifact["content_sha256"] for artifact in plan_a["published_artifacts"]] == [
-              artifact["content_sha256"] for artifact in plan_b["published_artifacts"]
-          ]
-          assert tree_revision_a == tree_revision_b
+          published_sha_a = [artifact["content_sha256"] for artifact in plan_a["published_artifacts"]]
+          published_sha_b = [artifact["content_sha256"] for artifact in plan_b["published_artifacts"]]
+          mismatch_report = {
+              "target_artifact_revision": [
+                  plan_a["target_artifact_revision"],
+                  plan_b["target_artifact_revision"],
+              ],
+              "publication_record": [
+                  plan_a["publication_record"]["content_sha256"],
+                  plan_b["publication_record"]["content_sha256"],
+              ],
+              "publication_summary": [
+                  plan_a["publication_summary"]["content_sha256"],
+                  plan_b["publication_summary"]["content_sha256"],
+              ],
+              "published_artifacts": [published_sha_a, published_sha_b],
+              "tree_revision": [tree_revision_a, tree_revision_b],
+          }
+          assert (
+              plan_a["target_artifact_revision"] == plan_b["target_artifact_revision"]
+          ), mismatch_report
+          assert (
+              plan_a["publication_record"]["content_sha256"]
+              == plan_b["publication_record"]["content_sha256"]
+          ), mismatch_report
+          assert (
+              plan_a["publication_summary"]["content_sha256"]
+              == plan_b["publication_summary"]["content_sha256"]
+          ), mismatch_report
+          assert published_sha_a == published_sha_b, mismatch_report
+          assert tree_revision_a == tree_revision_b, mismatch_report
           PY
 
       - name: Upload alloy-devices integration artifacts

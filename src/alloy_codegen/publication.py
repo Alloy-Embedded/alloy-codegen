@@ -44,7 +44,11 @@ def compute_materialized_tree_revision(root: Path) -> str:
         raise StageExecutionError(f"Materialized artifact root does not exist: {root}")
 
     digest = hashlib.sha256()
-    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+    for path in sorted(
+        item
+        for item in root.rglob("*")
+        if item.is_file() and ".git" not in item.relative_to(root).parts
+    ):
         relative_path = path.relative_to(root).as_posix()
         payload = path.read_bytes()
         digest.update(relative_path.encode("utf-8"))
