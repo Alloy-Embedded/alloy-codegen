@@ -114,8 +114,8 @@ class DevicePatch:
     patch_id: str
     family_patch_id: str | None
     device: str
-    svd_file: str
-    pin_data_file: str
+    svd_file: str | None
+    pin_data_file: str | None
     package: str
     pin_count: int
     core: str
@@ -501,8 +501,10 @@ def load_device_patch(
         patch_id=payload["patch_id"],
         family_patch_id=family_catalog.patch_id,
         device=payload["device"],
-        svd_file=payload["svd_file"],
-        pin_data_file=payload["pin_data_file"],
+        svd_file=str(payload["svd_file"]) if payload.get("svd_file") is not None else None,
+        pin_data_file=(
+            str(payload["pin_data_file"]) if payload.get("pin_data_file") is not None else None
+        ),
         package=package.name,
         pin_count=_resolve_pin_count(payload=payload, package=package),
         core=payload["core"],
@@ -515,7 +517,7 @@ def load_device_patch(
                 size_bytes=item["size_bytes"],
                 access=item["access"],
             )
-            for item in payload["memories"]
+            for item in payload.get("memories", ())
         ),
         peripherals=tuple(
             {

@@ -14,6 +14,19 @@ from alloy_codegen.stages import STAGE_RUNNERS
 from alloy_codegen.stages.common import StageResult
 
 
+def parse_source_overrides(items: Sequence[str]) -> dict[str, str]:
+    """Parse repeated ``SOURCE_ID=PATH`` CLI arguments into a stable mapping."""
+    overrides: dict[str, str] = {}
+    for item in items:
+        source_id, separator, source_path = item.partition("=")
+        if separator != "=" or not source_id or not source_path:
+            raise argparse.ArgumentTypeError(
+                f"Invalid --source value {item!r}. Expected SOURCE_ID=PATH."
+            )
+        overrides[source_id.strip().lower()] = source_path.strip()
+    return overrides
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Create the top-level CLI parser."""
     parser = argparse.ArgumentParser(prog="alloy-codegen", description="Alloy codegen pipeline.")
@@ -33,14 +46,14 @@ def build_parser() -> argparse.ArgumentParser:
         )
         stage_parser.add_argument("--device", default=None, help="Optional device scope.")
         stage_parser.add_argument(
-            "--source-root",
-            default=None,
-            help="Optional local cmsis-svd-data checkout to use instead of the cache clone.",
-        )
-        stage_parser.add_argument(
-            "--pin-source-root",
-            default=None,
-            help=("Optional local STM32_open_pin_data checkout to use instead of the cache clone."),
+            "--source",
+            action="append",
+            default=[],
+            metavar="SOURCE_ID=PATH",
+            help=(
+                "Optional logical source override. May be passed multiple times, "
+                "for example --source cmsis-svd-data=/path/to/checkout."
+            ),
         )
         stage_parser.add_argument(
             "--patch-root",
@@ -81,9 +94,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
     scope = PipelineScope(vendor=args.vendor, family=args.family, device=args.device)
+    source_overrides = parse_source_overrides(args.source)
     context = ExecutionContext.default().with_overrides(
-        source_root=args.source_root,
-        pin_source_root=args.pin_source_root,
+        source_overrides=source_overrides,
         patch_root=args.patch_root,
         cache_dir=args.cache_dir,
         artifact_root=args.artifact_root,

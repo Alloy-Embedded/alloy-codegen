@@ -59,7 +59,7 @@
     },
     {
       "category": "schema",
-      "message": "Every target carries cmsis-svd-data and stm32-open-pin-data records.",
+      "message": "Every target carries records drawn from the declared family source bundle.",
       "passed": true,
       "rule_id": "source-records-provide-required-upstreams",
       "severity": "error"

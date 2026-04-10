@@ -45,3 +45,27 @@ def test_fetch_and_patch_are_byte_stable(execution_context: ExecutionContext) ->
 
     assert fetch_a == fetch_b
     assert patch_a == patch_b
+
+
+def test_fetch_microchip_uses_fixture_extract_root(
+    microchip_execution_context: ExecutionContext,
+) -> None:
+    result = run_fetch(PipelineScope(device="atsame70q21b"), microchip_execution_context)
+    sources = result.payload.source_manifest.sources
+
+    assert result.stage == "fetch"
+    assert {source.source_id for source in sources} == {"microchip-dfp-extract"}
+    assert any(
+        source.source_id == "microchip-dfp-extract"
+        and source.local_path.endswith("ATSAME70Q21B.atdf")
+        and source.upstream_path == "same70b/atdf/ATSAME70Q21B.atdf"
+        and source.revision.startswith("content-sha256:")
+        for source in sources
+    )
+    assert any(
+        source.source_id == "microchip-dfp-extract"
+        and source.local_path.endswith("ATSAME70Q21B.svd")
+        and source.upstream_path == "same70b/svd/ATSAME70Q21B.svd"
+        and source.revision.startswith("content-sha256:")
+        for source in sources
+    )

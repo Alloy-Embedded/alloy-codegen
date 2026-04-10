@@ -1,0 +1,17 @@
+{
+  "patch_id": "microchip-same70-family-bootstrap-v1",
+  "packages": [
+    {
+      "name": "lqfp100",
+      "pin_count": 100
+    },
+    {
+      "name": "lqfp144",
+      "pin_count": 144
+    }
+  ],
+  "pins": [],
+  "peripherals": [],
+  "pin_signals": [],
+  "dma_requests": []
+}

@@ -28,13 +28,14 @@ GPIO_AF_PATTERN = re.compile(r"GPIO_AF(?P<af>\d+)_")
 
 def ensure_source_root(context: ExecutionContext) -> Path:
     """Resolve a usable STM32_open_pin_data root, cloning if needed."""
-    if context.pin_source_root is not None:
-        if not (context.pin_source_root / MCU_SUBTREE).exists():
+    configured_root = context.source_root_for("stm32-open-pin-data")
+    if configured_root is not None:
+        if not (configured_root / MCU_SUBTREE).exists():
             raise StageExecutionError(
                 "Configured pin source root does not contain "
-                f"'{MCU_SUBTREE}': {context.pin_source_root}"
+                f"'{MCU_SUBTREE}': {configured_root}"
             )
-        return context.pin_source_root
+        return configured_root
 
     source_root = context.source_cache_dir / "STM32_open_pin_data"
     if (source_root / MCU_SUBTREE).exists():

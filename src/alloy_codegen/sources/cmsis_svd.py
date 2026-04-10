@@ -19,13 +19,14 @@ STMICRO_SUBTREE = "data/STMicro"
 
 def ensure_source_root(context: ExecutionContext) -> Path:
     """Resolve a usable cmsis-svd-data root, cloning if needed."""
-    if context.source_root is not None:
-        if not (context.source_root / STMICRO_SUBTREE).exists():
+    configured_root = context.source_root_for("cmsis-svd-data")
+    if configured_root is not None:
+        if not (configured_root / STMICRO_SUBTREE).exists():
             raise StageExecutionError(
                 "Configured source root does not contain "
-                f"'{STMICRO_SUBTREE}': {context.source_root}"
+                f"'{STMICRO_SUBTREE}': {configured_root}"
             )
-        return context.source_root
+        return configured_root
 
     source_root = context.source_cache_dir / "cmsis-svd-data"
     if (source_root / STMICRO_SUBTREE).exists():

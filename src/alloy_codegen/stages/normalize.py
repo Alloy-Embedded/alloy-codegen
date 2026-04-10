@@ -31,6 +31,29 @@ from alloy_codegen.patches import (
 from alloy_codegen.reporting import NormalizationBundle
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.cmsis_svd import parse_raw_device_document, resolve_svd_path
+from alloy_codegen.sources.microchip_dfp import (
+    merge_source_patch,
+    resolve_atdf_path,
+    select_device_files,
+)
+from alloy_codegen.sources.microchip_dfp import (
+    parse_dma_request_patches as parse_microchip_dma_request_patches,
+)
+from alloy_codegen.sources.microchip_dfp import (
+    parse_ip_version_table as parse_microchip_ip_version_table,
+)
+from alloy_codegen.sources.microchip_dfp import (
+    parse_memory_patches as parse_microchip_memory_patches,
+)
+from alloy_codegen.sources.microchip_dfp import (
+    parse_peripheral_patches as parse_microchip_peripheral_patches,
+)
+from alloy_codegen.sources.microchip_dfp import (
+    parse_raw_pin_data_document as parse_microchip_pin_data_document,
+)
+from alloy_codegen.sources.microchip_dfp import (
+    resolve_svd_path as resolve_microchip_svd_path,
+)
 from alloy_codegen.sources.raw import RawDeviceDocument, RawPinDataDocument
 from alloy_codegen.sources.stm32_open_pin_data import (
     parse_ip_version_table,
@@ -47,6 +70,11 @@ RAW_PERIPHERAL_ALIASES = {
     "DMA": "DMA1",
     "DMAMUX": "DMAMUX1",
     "LPUART": "LPUART1",
+    "PIOA": "GPIOA",
+    "PIOB": "GPIOB",
+    "PIOC": "GPIOC",
+    "PIOD": "GPIOD",
+    "PIOE": "GPIOE",
 }
 
 
@@ -217,6 +245,9 @@ def build_canonical_ir(
     *,
     vendor: str = BOOTSTRAP_VENDOR,
     family: str = BOOTSTRAP_FAMILY,
+    svd_source_id: str = "cmsis-svd-data",
+    pin_source_id: str = "stm32-open-pin-data",
+    patch_source_id: str = "bootstrap-patch",
 ) -> CanonicalDeviceIR:
     """Build canonical IR from raw SVD plus STM32 open pin data and patch metadata."""
     patch_ids = (
@@ -236,17 +267,17 @@ def build_canonical_ir(
         )
 
     svd_provenance = Provenance(
-        source_id="cmsis-svd-data",
+        source_id=svd_source_id,
         source_path=patch.svd_file,
         patch_ids=patch_ids,
     )
     pin_provenance = Provenance(
-        source_id="stm32-open-pin-data",
+        source_id=pin_source_id,
         source_path=patch.pin_data_file,
         patch_ids=patch_ids,
     )
     patch_provenance = Provenance(
-        source_id="bootstrap-patch",
+        source_id=patch_source_id,
         source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
@@ -315,6 +346,70 @@ def build_canonical_ir(
     )
 
 
+def _build_st_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    mcu_path = resolve_mcu_path(execution_context, device_name, vendor=vendor, family=family)
+    raw = parse_raw_device_document(
+        resolve_svd_path(execution_context, device_name, vendor=vendor, family=family)
+    )
+    pin_data = parse_raw_pin_data_document(
+        mcu_path=mcu_path,
+        gpio_modes_path=resolve_gpio_modes_path(
+            execution_context, device_name, vendor=vendor, family=family
+        ),
+    )
+    ip_version_table = parse_ip_version_table(mcu_path)
+    return build_canonical_ir(
+        raw,
+        patch,
+        pin_data,
+        ip_version_table,
+        vendor=vendor,
+        family=family,
+    )
+
+
+def _build_microchip_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    selected = select_device_files(execution_context, device_name, vendor=vendor, family=family)
+    atdf_path = resolve_atdf_path(execution_context, device_name, vendor=vendor, family=family)
+    raw = parse_raw_device_document(
+        resolve_microchip_svd_path(execution_context, device_name, vendor=vendor, family=family)
+    )
+    pin_data = parse_microchip_pin_data_document(atdf_path=atdf_path, package_name=patch.package)
+    effective_patch = merge_source_patch(
+        patch,
+        selected=selected,
+        source_memories=parse_microchip_memory_patches(atdf_path),
+        source_peripherals=parse_microchip_peripheral_patches(atdf_path),
+        source_dma_requests=parse_microchip_dma_request_patches(atdf_path),
+        pin_count=pin_data.package_pin_count or patch.pin_count,
+    )
+    ip_version_table = parse_microchip_ip_version_table(atdf_path)
+    return build_canonical_ir(
+        raw,
+        effective_patch,
+        pin_data,
+        ip_version_table,
+        vendor=vendor,
+        family=family,
+        svd_source_id="microchip-dfp-extract",
+        pin_source_id="microchip-dfp-extract",
+    )
+
+
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:
     """Run the bootstrap normalize stage."""
     execution_context = context or ExecutionContext.default()
@@ -323,21 +418,27 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     vendor = patch_result.scope.resolved_vendor()
     family = patch_result.scope.resolved_family()
     for device_name in patch_result.scope.resolved_device_names():
-        patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
-        mcu_path = resolve_mcu_path(execution_context, device_name, vendor=vendor, family=family)
-        raw = parse_raw_device_document(
-            resolve_svd_path(execution_context, device_name, vendor=vendor, family=family)
-        )
-        pin_data = parse_raw_pin_data_document(
-            mcu_path=mcu_path,
-            gpio_modes_path=resolve_gpio_modes_path(
-                execution_context, device_name, vendor=vendor, family=family
-            ),
-        )
-        ip_version_table = parse_ip_version_table(mcu_path)
-        devices.append(
-            build_canonical_ir(raw, patch, pin_data, ip_version_table, vendor=vendor, family=family)
-        )
+        if vendor == "st":
+            devices.append(
+                _build_st_device_ir(
+                    execution_context=execution_context,
+                    device_name=device_name,
+                    vendor=vendor,
+                    family=family,
+                )
+            )
+            continue
+        if vendor == "microchip" and family == "same70":
+            devices.append(
+                _build_microchip_device_ir(
+                    execution_context=execution_context,
+                    device_name=device_name,
+                    vendor=vendor,
+                    family=family,
+                )
+            )
+            continue
+        raise StageExecutionError(f"Unsupported normalize path for {vendor}/{family}.")
     return StageResult(
         stage="normalize",
         scope=patch_result.scope,

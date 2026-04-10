@@ -16,6 +16,13 @@ CPP_CONTRACT_VERSION = "alloy-cpp-bootstrap-v1"
 DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = {
     ("st", "stm32g0"): ("stm32g030f6", "stm32g071rb", "stm32g0b1re"),
     ("st", "stm32f4"): ("stm32f401re", "stm32f405rg"),
+    ("microchip", "same70"): ("atsame70n21b", "atsame70q21b"),
+}
+
+SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
+    ("st", "stm32g0"): ("cmsis-svd-data", "stm32-open-pin-data"),
+    ("st", "stm32f4"): ("cmsis-svd-data", "stm32-open-pin-data"),
+    ("microchip", "same70"): ("microchip-dfp-pack", "microchip-dfp-extract"),
 }
 
 # Flat reverse map for auto-resolving family from device name.
@@ -49,3 +56,14 @@ def resolve_device_family(device_name: str) -> tuple[str, str]:
 def bootstrap_device_names() -> tuple[str, ...]:
     """Return bootstrap family device names (compatibility shim)."""
     return registered_device_names(BOOTSTRAP_VENDOR, BOOTSTRAP_FAMILY)
+
+
+def source_bundle_for(vendor: str, family: str) -> tuple[str, ...]:
+    """Return the logical source bundle declared for a supported family."""
+    key = (vendor.lower(), family.lower())
+    if key not in SOURCE_BUNDLES:
+        raise UnsupportedScopeError(
+            f"Unsupported vendor/family '{vendor}/{family}'. "
+            f"Supported: {', '.join(f'{v}/{f}' for v, f in sorted(SOURCE_BUNDLES))}."
+        )
+    return SOURCE_BUNDLES[key]

@@ -1,0 +1,7 @@
+{
+  "patch_id": "microchip-same70-atsame70n21b-bootstrap",
+  "device": "atsame70n21b",
+  "package": "lqfp100",
+  "core": "cortex-m7f",
+  "summary": "Second SAME70 package variant used to validate package-sensitive normalization."
+}

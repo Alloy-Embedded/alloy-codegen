@@ -18,10 +18,10 @@ def test_cli_fetch_json_output(
             "fetch",
             "--device",
             "stm32g071rb",
-            "--source-root",
-            str(fixture_source_root),
-            "--pin-source-root",
-            str(fixture_pin_source_root),
+            "--source",
+            f"cmsis-svd-data={fixture_source_root}",
+            "--source",
+            f"stm32-open-pin-data={fixture_pin_source_root}",
             "--json",
         ]
     )
@@ -47,10 +47,10 @@ def test_cli_validate_json_output_includes_report_summary(
             "validate",
             "--device",
             "stm32g071rb",
-            "--source-root",
-            str(fixture_source_root),
-            "--pin-source-root",
-            str(fixture_pin_source_root),
+            "--source",
+            f"cmsis-svd-data={fixture_source_root}",
+            "--source",
+            f"stm32-open-pin-data={fixture_pin_source_root}",
             "--json",
         ]
     )

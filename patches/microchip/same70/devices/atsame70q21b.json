@@ -1,0 +1,7 @@
+{
+  "patch_id": "microchip-same70-atsame70q21b-bootstrap",
+  "device": "atsame70q21b",
+  "package": "lqfp144",
+  "core": "cortex-m7f",
+  "summary": "Board-target SAME70 Xplained Ultra device."
+}

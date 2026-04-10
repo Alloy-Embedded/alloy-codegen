@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import Counter
 
+from alloy_codegen.bootstrap import source_bundle_for
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.manifests import PatchManifest, SourceManifest
 from alloy_codegen.reporting import ValidationGateStatus, ValidationReport, ValidationRuleResult
@@ -53,7 +54,17 @@ def _validate_source_manifest(source_manifest: SourceManifest) -> tuple[Validati
         }
         for target in source_manifest.targets
     }
-    expected_source_ids = {"cmsis-svd-data", "stm32-open-pin-data"}
+    scope = next((source.scope for source in source_manifest.sources), None)
+    expected_source_ids = (
+        set(
+            source_bundle_for(
+                str(scope["vendor"]),
+                str(scope["family"]),
+            )
+        )
+        if scope is not None
+        else set()
+    )
     return (
         _rule(
             rule_id="source-records-cover-targets",
@@ -67,9 +78,10 @@ def _validate_source_manifest(source_manifest: SourceManifest) -> tuple[Validati
             category="schema",
             severity="error",
             passed=all(
-                target_coverage[target] >= expected_source_ids for target in source_manifest.targets
+                bool(target_coverage[target]) and target_coverage[target] <= expected_source_ids
+                for target in source_manifest.targets
             ),
-            message="Every target carries cmsis-svd-data and stm32-open-pin-data records.",
+            message="Every target carries records drawn from the declared family source bundle.",
         ),
         _rule(
             rule_id="source-records-have-revisions",
