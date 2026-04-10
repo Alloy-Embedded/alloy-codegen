@@ -2,6 +2,8 @@
 
 namespace st {
 namespace stm32g0 {
+namespace generated {
+namespace devices {
 namespace stm32g071rb {
 struct PinFunctionDescriptor {
   const char* pin_name;
@@ -20,6 +22,8 @@ inline constexpr PinFunctionDescriptor kPinFunctions[] = {
   {"PB7", "gpio", "GPIOB", "IN7", -1},
   {"PB7", "usart1_rx", "USART1", "RX", 0},
 };
+}
+}
 }
 }
 }

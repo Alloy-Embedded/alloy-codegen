@@ -1,10 +1,10 @@
 #pragma once
 
-namespace st {
-namespace stm32g0 {
+namespace nxp {
+namespace imxrt1060 {
 namespace generated {
 namespace devices {
-namespace stm32g071rb {
+namespace mimxrt1062 {
 struct VectorSlotDescriptor {
   int slot;
   const char* symbol_name;
@@ -16,22 +16,22 @@ inline constexpr VectorSlotDescriptor kVectorSlots[] = {
   {1, "Reset_Handler", nullptr, "reset-handler"},
   {2, "NMI_Handler", nullptr, "system-exception"},
   {3, "HardFault_Handler", nullptr, "system-exception"},
-  {4, "Reserved_Handler_4", nullptr, "reserved"},
-  {5, "Reserved_Handler_5", nullptr, "reserved"},
-  {6, "Reserved_Handler_6", nullptr, "reserved"},
+  {4, "MemManage_Handler", nullptr, "system-exception"},
+  {5, "BusFault_Handler", nullptr, "system-exception"},
+  {6, "UsageFault_Handler", nullptr, "system-exception"},
   {7, "Reserved_Handler_7", nullptr, "reserved"},
   {8, "Reserved_Handler_8", nullptr, "reserved"},
   {9, "Reserved_Handler_9", nullptr, "reserved"},
   {10, "Reserved_Handler_10", nullptr, "reserved"},
   {11, "SVCall_Handler", nullptr, "system-exception"},
-  {12, "Reserved_Handler_12", nullptr, "reserved"},
+  {12, "DebugMon_Handler", nullptr, "system-exception"},
   {13, "Reserved_Handler_13", nullptr, "reserved"},
   {14, "PendSV_Handler", nullptr, "system-exception"},
   {15, "SysTick_Handler", nullptr, "system-exception"},
-  {20, "RCC_CRS_IRQHandler", "RCC_CRS", "external-interrupt"},
-  {25, "DMA1_Channel1_IRQHandler", "DMA1_Channel1", "external-interrupt"},
-  {26, "DMA1_Channel2_3_IRQHandler", "DMA1_Channel2_3", "external-interrupt"},
-  {43, "USART1_IRQHandler", "USART1", "external-interrupt"},
+  {36, "LPUART1_IRQHandler", "LPUART1", "external-interrupt"},
+  {38, "LPUART3_IRQHandler", "LPUART3", "external-interrupt"},
+  {44, "LPI2C1_IRQHandler", "LPI2C1", "external-interrupt"},
+  {48, "LPSPI1_IRQHandler", "LPSPI1", "external-interrupt"},
 };
 
 struct StartupDescriptor {
@@ -42,12 +42,10 @@ struct StartupDescriptor {
   const char* symbol;
 };
 inline constexpr StartupDescriptor kStartupDescriptors[] = {
-  {"startup:copy-source:flash", "copy-source-region", "flash", nullptr, nullptr},
-  {"startup:copy-target:sram", "copy-target-region", nullptr, "sram", nullptr},
+  {"startup:copy-target:ocram", "copy-target-region", nullptr, "OCRAM", nullptr},
   {"startup:stack-top", "initial-stack-pointer", nullptr, nullptr, "__stack_top"},
-  {"startup:vector-source:flash", "vector-source-region", "flash", nullptr, nullptr},
   {"startup:vectors", "vector-table", nullptr, nullptr, "_vectors"},
-  {"startup:zero-target:sram", "zero-target-region", nullptr, "sram", nullptr},
+  {"startup:zero-target:ocram", "zero-target-region", nullptr, "OCRAM", nullptr},
 };
 }
 }

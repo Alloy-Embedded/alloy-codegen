@@ -326,12 +326,12 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     family_dir = "nxp/imxrt1060"
 
     assert f"{family_dir}/artifact-manifest.json" in artifacts
-    assert f"{family_dir}/validation-report.json" in artifacts
-    assert f"{family_dir}/family-index.json" in artifacts
-    assert f"{family_dir}/family-connectivity.json" in artifacts
-    assert f"{family_dir}/mimxrt1062/register_map.hpp" in artifacts
-    assert f"{family_dir}/mimxrt1062/pin_functions.hpp" in artifacts
-    assert f"{family_dir}/mimxrt1062/startup.cpp" in artifacts
+    assert f"{family_dir}/reports/validation-report.json" in artifacts
+    assert f"{family_dir}/metadata/family-index.json" in artifacts
+    assert f"{family_dir}/metadata/family-connectivity.json" in artifacts
+    assert f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp" in artifacts
+    assert f"{family_dir}/generated/devices/mimxrt1062/pin_functions.hpp" in artifacts
+    assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
     assert f"{family_dir}/generated/rcc_map.hpp" in artifacts
     assert f"{family_dir}/generated/signal_map.hpp" in artifacts
     assert f"{family_dir}/generated/dma_map.hpp" in artifacts
@@ -359,17 +359,17 @@ def test_emit_nxp_imxrt1060_artifact_content(
     artifacts = {a.path: a for a in result.payload.artifacts}
     family_dir = "nxp/imxrt1060"
 
-    register_map = artifacts[f"{family_dir}/mimxrt1062/register_map.hpp"]
+    register_map = artifacts[f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp"]
     assert "kPeripheralBases" in register_map.content
     assert "nxp" in register_map.content
     assert "imxrt1060" in register_map.content
     assert "mimxrt1062" in register_map.content
 
-    pin_functions = artifacts[f"{family_dir}/mimxrt1062/pin_functions.hpp"]
+    pin_functions = artifacts[f"{family_dir}/generated/devices/mimxrt1062/pin_functions.hpp"]
     assert "kPinFunctions" in pin_functions.content
     assert "GPIO_AD_B0_00" in pin_functions.content  # from fixture header
 
-    startup = artifacts[f"{family_dir}/mimxrt1062/startup.cpp"]
+    startup = artifacts[f"{family_dir}/generated/devices/mimxrt1062/startup.cpp"]
     assert "kInterruptTable" in startup.content
 
     connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
@@ -413,8 +413,8 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     fixture_root = IMXRT1060_EMITTED_DIR
 
     for name in ("register_map.hpp", "pin_functions.hpp", "startup.cpp"):
-        assert artifacts[f"{family_dir}/mimxrt1062/{name}"].content == (
-            fixture_root / "mimxrt1062" / name
+        assert artifacts[f"{family_dir}/generated/devices/mimxrt1062/{name}"].content == (
+            fixture_root / "generated" / "devices" / "mimxrt1062" / name
         ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"
 
     for gpio_fixture in sorted((fixture_root / "generated" / "peripherals").iterdir()):
@@ -453,11 +453,23 @@ def test_publish_nxp_imxrt1060_completes_successfully(
     assert result.payload.publication_mode == "published"
 
     pub_root = nxp_execution_context.publication_root
-    assert (pub_root / "nxp" / "imxrt1060" / "mimxrt1062" / "register_map.hpp").exists()
-    assert (pub_root / "nxp" / "imxrt1060" / "mimxrt1062" / "pin_functions.hpp").exists()
-    assert (pub_root / "nxp" / "imxrt1060" / "mimxrt1062" / "startup.cpp").exists()
+    assert (
+        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "register_map.hpp"
+    ).exists()
+    assert (
+        pub_root
+        / "nxp"
+        / "imxrt1060"
+        / "generated"
+        / "devices"
+        / "mimxrt1062"
+        / "pin_functions.hpp"
+    ).exists()
+    assert (
+        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "startup.cpp"
+    ).exists()
     assert (pub_root / "nxp" / "imxrt1060" / "artifact-manifest.json").exists()
-    assert (pub_root / "nxp" / "imxrt1060" / "validation-report.json").exists()
+    assert (pub_root / "nxp" / "imxrt1060" / "reports" / "validation-report.json").exists()
 
 
 def test_publish_nxp_imxrt1060_consumer_smoke_passes(

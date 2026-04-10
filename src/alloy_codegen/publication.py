@@ -100,7 +100,7 @@ def emit_publication_record(
         ],
     }
     return _text_artifact(
-        path=f"{family_dir}/publication-record.json",
+        path=f"{family_dir}/reports/publication-record.json",
         artifact_kind="publication-record",
         payload=payload,
     )

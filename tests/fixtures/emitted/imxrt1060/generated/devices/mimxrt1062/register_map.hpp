@@ -4,6 +4,8 @@
 
 namespace nxp {
 namespace imxrt1060 {
+namespace generated {
+namespace devices {
 namespace mimxrt1062 {
 inline constexpr const char* kDevice = "mimxrt1062";
 struct PeripheralBase {
@@ -18,6 +20,8 @@ inline constexpr PeripheralBase kPeripheralBases[] = {
   {"LPUART1", 0x40184000u},
   {"LPUART3", 0x4018C000u},
 };
+}
+}
 }
 }
 }

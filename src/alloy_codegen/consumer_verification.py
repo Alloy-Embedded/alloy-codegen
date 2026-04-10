@@ -20,7 +20,7 @@ def _published_device(scope: PipelineScope, family_root: Path) -> str:
     if scope.device is not None:
         return scope.device
 
-    startup_sources = sorted(family_root.glob("*/startup.cpp"))
+    startup_sources = sorted(family_root.glob("generated/devices/*/startup.cpp"))
     if startup_sources:
         return startup_sources[0].parent.name
 
@@ -82,7 +82,7 @@ def verify_alloy_smoke_consumer(
 
     family_root = _family_root(publication_root, scope)
     device = _published_device(scope, family_root)
-    startup_source = family_root / device / "startup.cpp"
+    startup_source = family_root / "generated" / "devices" / device / "startup.cpp"
     if not startup_source.exists():
         raise StageExecutionError(f"Published startup source not found: {startup_source}")
     gpio_header = _first_generated_gpio_header(family_root)
@@ -103,8 +103,14 @@ def verify_alloy_smoke_consumer(
         "-pedantic",
         f"-I{alloy_root / 'src'}",
         f"-I{publication_root}",
-        f'-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER="{vendor}/{family}/{device}/register_map.hpp"',
-        f'-DALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER="{vendor}/{family}/{device}/pin_functions.hpp"',
+        (
+            f'-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER='
+            f'"{vendor}/{family}/generated/devices/{device}/register_map.hpp"'
+        ),
+        (
+            f'-DALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER='
+            f'"{vendor}/{family}/generated/devices/{device}/pin_functions.hpp"'
+        ),
         f'-DALLOY_CODEGEN_SMOKE_GPIO_HEADER="{gpio_header_include}"',
         f'-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER="{vendor}/{family}/generated/connector_tables.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_INTERRUPT_MAP_HEADER="{vendor}/{family}/generated/interrupt_map.hpp"',
@@ -115,7 +121,7 @@ def verify_alloy_smoke_consumer(
             f'-DALLOY_CODEGEN_SMOKE_STARTUP_DESCRIPTORS_HEADER='
             f'"{vendor}/{family}/generated/devices/{device}/startup_descriptors.hpp"'
         ),
-        f"-DALLOY_CODEGEN_SMOKE_DEVICE_NAMESPACE={vendor}::{family}::{device}",
+        f"-DALLOY_CODEGEN_SMOKE_DEVICE_NAMESPACE={vendor}::{family}::generated::devices::{device}",
         f"-DALLOY_CODEGEN_SMOKE_GENERATED_NAMESPACE={vendor}::{family}::generated",
         f"-DALLOY_CODEGEN_SMOKE_GPIO_NAMESPACE={vendor}::{family}::generated::peripherals",
     )

@@ -39,18 +39,18 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert result.payload.artifact_manifest.manifest_kind == "artifact-manifest-v1"
 
     manifest_artifact = artifacts["st/stm32g0/artifact-manifest.json"]
-    validation_artifact = artifacts["st/stm32g0/validation-report.json"]
-    family_index_artifact = artifacts["st/stm32g0/family-index.json"]
-    connectivity_artifact = artifacts["st/stm32g0/family-connectivity.json"]
+    validation_artifact = artifacts["st/stm32g0/reports/validation-report.json"]
+    family_index_artifact = artifacts["st/stm32g0/metadata/family-index.json"]
+    connectivity_artifact = artifacts["st/stm32g0/metadata/family-connectivity.json"]
     ip_blocks_artifact = artifacts["st/stm32g0/metadata/ip-blocks.json"]
     capabilities_artifact = artifacts["st/stm32g0/metadata/capabilities.json"]
     packages_artifact = artifacts["st/stm32g0/metadata/packages.json"]
     connectors_artifact = artifacts["st/stm32g0/metadata/connectors.json"]
     system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
-    device_artifact = artifacts["st/stm32g0/stm32g071rb/device.json"]
-    register_map_artifact = artifacts["st/stm32g0/stm32g071rb/register_map.hpp"]
-    pin_functions_artifact = artifacts["st/stm32g0/stm32g071rb/pin_functions.hpp"]
-    startup_artifact = artifacts["st/stm32g0/stm32g071rb/startup.cpp"]
+    device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
+    register_map_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"]
+    pin_functions_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/pin_functions.hpp"]
+    startup_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
     dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
     connector_tables_artifact = artifacts["st/stm32g0/generated/connector_tables.hpp"]
@@ -124,7 +124,8 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (
-        family_index_payload["devices"][0]["metadata_path"] == "st/stm32g0/stm32g071rb/device.json"
+        family_index_payload["devices"][0]["metadata_path"]
+        == "st/stm32g0/metadata/devices/stm32g071rb.json"
     )
     assert ip_blocks_payload["family"] == "stm32g0"
     assert ip_blocks_payload["ip_blocks"]
@@ -252,22 +253,22 @@ def test_emit_matches_golden_artifacts(
     fixture_root = Path(__file__).parent / "fixtures" / "emitted" / "stm32g0"
 
     manifest_payload = json.loads(artifacts["st/stm32g0/artifact-manifest.json"].content)
-    validation_payload = json.loads(artifacts["st/stm32g0/validation-report.json"].content)
+    validation_payload = json.loads(artifacts["st/stm32g0/reports/validation-report.json"].content)
 
     assert _normalize_manifest_payload(
         manifest_payload,
         fixture_source_root=fixture_source_root,
         fixture_pin_source_root=fixture_pin_source_root,
-    ) == _load_json_fixture(fixture_root / "stm32g071rb" / "artifact-manifest.json")
+    ) == _load_json_fixture(fixture_root / "artifact-manifest.json")
     assert validation_payload == _load_json_fixture(
-        fixture_root / "stm32g071rb" / "validation-report.json"
-    )
-    assert json.loads(artifacts["st/stm32g0/family-index.json"].content) == _load_json_fixture(
-        fixture_root / "family-index.json"
+        fixture_root / "reports" / "validation-report.json"
     )
     assert json.loads(
-        artifacts["st/stm32g0/family-connectivity.json"].content
-    ) == _load_json_fixture(fixture_root / "family-connectivity.json")
+        artifacts["st/stm32g0/metadata/family-index.json"].content
+    ) == _load_json_fixture(fixture_root / "metadata" / "family-index.json")
+    assert json.loads(
+        artifacts["st/stm32g0/metadata/family-connectivity.json"].content
+    ) == _load_json_fixture(fixture_root / "metadata" / "family-connectivity.json")
     assert json.loads(
         artifacts["st/stm32g0/metadata/ip-blocks.json"].content
     ) == _load_json_fixture(fixture_root / "metadata" / "ip-blocks.json")
@@ -284,16 +285,16 @@ def test_emit_matches_golden_artifacts(
         artifacts["st/stm32g0/metadata/system-descriptors.json"].content
     ) == _load_json_fixture(fixture_root / "metadata" / "system-descriptors.json")
     assert json.loads(
-        artifacts["st/stm32g0/stm32g071rb/device.json"].content
-    ) == _load_json_fixture(fixture_root / "stm32g071rb" / "device.json")
-    assert artifacts["st/stm32g0/stm32g071rb/register_map.hpp"].content == (
-        fixture_root / "stm32g071rb" / "register_map.hpp"
+        artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"].content
+    ) == _load_json_fixture(fixture_root / "metadata" / "devices" / "stm32g071rb.json")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "register_map.hpp"
     ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/stm32g071rb/pin_functions.hpp"].content == (
-        fixture_root / "stm32g071rb" / "pin_functions.hpp"
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/pin_functions.hpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "pin_functions.hpp"
     ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/stm32g071rb/startup.cpp"].content == (
-        fixture_root / "stm32g071rb" / "startup.cpp"
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"
     ).read_text(encoding="utf-8")
     for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
         artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"

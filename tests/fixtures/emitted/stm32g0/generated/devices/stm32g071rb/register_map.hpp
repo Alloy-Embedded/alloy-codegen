@@ -4,6 +4,8 @@
 
 namespace st {
 namespace stm32g0 {
+namespace generated {
+namespace devices {
 namespace stm32g071rb {
 inline constexpr const char* kDevice = "stm32g071rb";
 struct PeripheralBase {
@@ -18,6 +20,8 @@ inline constexpr PeripheralBase kPeripheralBases[] = {
   {"RCC", 0x40021000u},
   {"USART1", 0x40013800u},
 };
+}
+}
 }
 }
 }

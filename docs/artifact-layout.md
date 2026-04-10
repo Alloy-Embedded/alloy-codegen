@@ -9,15 +9,22 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 `--artifact-root`. It contains:
 
 - `st/<family>/artifact-manifest.json`
-- `st/<family>/validation-report.json`
-- `st/<family>/family-index.json`
-- `st/<family>/family-connectivity.json`
-- `st/<family>/<device>/device.json`
-- `st/<family>/<device>/register_map.hpp`
-- `st/<family>/<device>/pin_functions.hpp`
-- `st/<family>/<device>/startup.cpp`
+- `st/<family>/metadata/family-index.json`
+- `st/<family>/metadata/family-connectivity.json`
+- `st/<family>/metadata/ip-blocks.json`
+- `st/<family>/metadata/capabilities.json`
+- `st/<family>/metadata/packages.json`
+- `st/<family>/metadata/connectors.json`
+- `st/<family>/metadata/system-descriptors.json`
+- `st/<family>/metadata/devices/<device>.json`
 - `st/<family>/generated/peripherals/<peripheral>.hpp`
-- `st/<family>/publication-summary.json`
+- `st/<family>/generated/devices/<device>/register_map.hpp`
+- `st/<family>/generated/devices/<device>/pin_functions.hpp`
+- `st/<family>/generated/devices/<device>/startup.cpp`
+- `st/<family>/generated/devices/<device>/startup_descriptors.hpp`
+- `st/<family>/generated/devices/<device>/startup_vectors.cpp`
+- `st/<family>/reports/validation-report.json`
+- `st/<family>/reports/publication-summary.json`
 
 `publication-summary.json` is a local run artifact. It may contain absolute filesystem paths
 for the local machine that executed the pipeline.
@@ -32,15 +39,22 @@ checked-out `alloy-devices` repository.
 For the bootstrap family, successful publication writes:
 
 - `st/<family>/artifact-manifest.json`
-- `st/<family>/validation-report.json`
-- `st/<family>/family-index.json`
-- `st/<family>/family-connectivity.json`
-- `st/<family>/<device>/device.json`
-- `st/<family>/<device>/register_map.hpp`
-- `st/<family>/<device>/pin_functions.hpp`
-- `st/<family>/<device>/startup.cpp`
+- `st/<family>/metadata/family-index.json`
+- `st/<family>/metadata/family-connectivity.json`
+- `st/<family>/metadata/ip-blocks.json`
+- `st/<family>/metadata/capabilities.json`
+- `st/<family>/metadata/packages.json`
+- `st/<family>/metadata/connectors.json`
+- `st/<family>/metadata/system-descriptors.json`
+- `st/<family>/metadata/devices/<device>.json`
 - `st/<family>/generated/peripherals/<peripheral>.hpp`
-- `st/<family>/publication-record.json`
+- `st/<family>/generated/devices/<device>/register_map.hpp`
+- `st/<family>/generated/devices/<device>/pin_functions.hpp`
+- `st/<family>/generated/devices/<device>/startup.cpp`
+- `st/<family>/generated/devices/<device>/startup_descriptors.hpp`
+- `st/<family>/generated/devices/<device>/startup_vectors.cpp`
+- `st/<family>/reports/validation-report.json`
+- `st/<family>/reports/publication-record.json`
 
 ## Contract Notes
 
@@ -53,7 +67,7 @@ For the bootstrap family, successful publication writes:
   `tests/codegen/published_artifact_contract_smoke.cpp` inside `alloy-codegen`, but it is
   compiled against the checked-out Alloy headers and the staged/published generated
   artifacts.
-- `publication-record.json` contains the deterministic `target_artifact_revision` for the
+- `reports/publication-record.json` contains the deterministic `target_artifact_revision` for the
   published artifact set.
 - `artifact-manifest.json` is the traceability entrypoint for generator version, schema
   version, source manifest, patch manifest, and validation hashes.

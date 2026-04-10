@@ -1,0 +1,49 @@
+{
+  "device_usage": [
+    {
+      "device": "mimxrt1062",
+      "peripherals": [
+        {
+          "base_address": 1075544064,
+          "ip_name": "gpio",
+          "ip_version": null,
+          "name": "GPIO1"
+        },
+        {
+          "base_address": 1075593216,
+          "ip_name": "gpio",
+          "ip_version": null,
+          "name": "GPIO4"
+        },
+        {
+          "base_address": 1077870592,
+          "ip_name": "lpi2c1",
+          "ip_version": null,
+          "name": "LPI2C1"
+        },
+        {
+          "base_address": 1077493760,
+          "ip_name": "lpspi",
+          "ip_version": null,
+          "name": "LPSPI1"
+        },
+        {
+          "base_address": 1075331072,
+          "ip_name": "lpuart",
+          "ip_version": null,
+          "name": "LPUART1"
+        },
+        {
+          "base_address": 1075363840,
+          "ip_name": "lpuart",
+          "ip_version": null,
+          "name": "LPUART3"
+        }
+      ]
+    }
+  ],
+  "family": "imxrt1060",
+  "ip_blocks": [],
+  "schema_version": "1.1.0",
+  "vendor": "nxp"
+}

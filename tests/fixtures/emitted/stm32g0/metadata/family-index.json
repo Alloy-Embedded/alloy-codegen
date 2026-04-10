@@ -4,7 +4,7 @@
     {
       "core": "cortex-m0plus",
       "device": "stm32g071rb",
-      "metadata_path": "st/stm32g0/stm32g071rb/device.json",
+      "metadata_path": "st/stm32g0/metadata/devices/stm32g071rb.json",
       "package": "lqfp64",
       "summary": "Representative mid-range bootstrap device."
     }

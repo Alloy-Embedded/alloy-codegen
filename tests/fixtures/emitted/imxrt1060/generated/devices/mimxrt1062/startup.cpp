@@ -1,20 +1,24 @@
 // Generated startup metadata bootstrap unit.
 #include <cstdint>
 
-namespace st {
-namespace stm32g0 {
-namespace stm32g071rb {
+namespace nxp {
+namespace imxrt1060 {
+namespace generated {
+namespace devices {
+namespace mimxrt1062 {
 struct InterruptDescriptor {
   const char* name;
   int line;
   const char* peripheral;
 };
 inline constexpr InterruptDescriptor kInterruptTable[] = {
-  {"RCC_CRS", 4, "RCC"},
-  {"DMA1_Channel1", 9, "DMA1"},
-  {"DMA1_Channel2_3", 10, "DMA1"},
-  {"USART1", 27, "USART1"},
+  {"LPUART1", 20, "LPUART1"},
+  {"LPUART3", 22, "LPUART3"},
+  {"LPI2C1", 28, "LPI2C1"},
+  {"LPSPI1", 32, "LPSPI1"},
 };
+}
+}
 }
 }
 }

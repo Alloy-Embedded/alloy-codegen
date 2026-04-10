@@ -2,6 +2,8 @@
 
 namespace nxp {
 namespace imxrt1060 {
+namespace generated {
+namespace devices {
 namespace mimxrt1062 {
 struct PinFunctionDescriptor {
   const char* pin_name;
@@ -22,6 +24,8 @@ inline constexpr PinFunctionDescriptor kPinFunctions[] = {
   {"GPIO_EMC_01", "lpspi1_pcs0", "LPSPI1", "PCS0", 2},
   {"GPIO_EMC_01", "gpio4_io01", "GPIO4", "IO01", 5},
 };
+}
+}
 }
 }
 }

@@ -53,10 +53,12 @@ def _identifier(value: str) -> str:
     return sanitized
 
 
-def _namespace_components(device: CanonicalDeviceIR) -> tuple[str, str, str]:
+def _namespace_components(device: CanonicalDeviceIR) -> tuple[str, str, str, str, str]:
     return (
         _identifier(device.identity.vendor),
         _identifier(device.identity.family),
+        "generated",
+        "devices",
         _identifier(device.identity.device),
     )
 
@@ -74,6 +76,26 @@ def _quoted(value: str | None) -> str:
 
 def _file_component(value: str) -> str:
     return _identifier(value).strip("_").lower()
+
+
+def _family_manifest_path(family_dir: str) -> str:
+    return f"{family_dir}/artifact-manifest.json"
+
+
+def _family_metadata_path(family_dir: str, name: str) -> str:
+    return f"{family_dir}/metadata/{name}"
+
+
+def _family_report_path(family_dir: str, name: str) -> str:
+    return f"{family_dir}/reports/{name}"
+
+
+def _device_metadata_path(family_dir: str, device_name: str) -> str:
+    return f"{family_dir}/metadata/devices/{device_name}.json"
+
+
+def _device_generated_path(family_dir: str, device_name: str, name: str) -> str:
+    return f"{family_dir}/generated/devices/{device_name}/{name}"
 
 
 def _std_array_lines(
@@ -399,7 +421,7 @@ def emit_artifact_manifest(
     artifact_manifest: ArtifactManifest,
 ) -> EmittedArtifact:
     return _text_artifact(
-        path=f"{family_dir}/artifact-manifest.json",
+        path=_family_manifest_path(family_dir),
         artifact_kind="canonical-metadata",
         payload=artifact_manifest.to_dict(),
     )
@@ -407,7 +429,7 @@ def emit_artifact_manifest(
 
 def emit_device_metadata(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
     return _text_artifact(
-        path=f"{family_dir}/{device.identity.device}/device.json",
+        path=_device_metadata_path(family_dir, device.identity.device),
         artifact_kind="canonical-metadata",
         payload=device.to_dict(),
     )
@@ -415,7 +437,7 @@ def emit_device_metadata(*, family_dir: str, device: CanonicalDeviceIR) -> Emitt
 
 def emit_validation_report(*, family_dir: str, report: ValidationReport) -> EmittedArtifact:
     return _text_artifact(
-        path=f"{family_dir}/validation-report.json",
+        path=_family_report_path(family_dir, "validation-report.json"),
         artifact_kind="validation-report",
         payload=report.to_dict(),
     )
@@ -440,13 +462,13 @@ def emit_family_index(
                 "package": device.identity.package,
                 "core": device.identity.core,
                 "summary": device.identity.summary,
-                "metadata_path": f"{family_dir}/{device.identity.device}/device.json",
+                "metadata_path": _device_metadata_path(family_dir, device.identity.device),
             }
             for device in sorted(devices, key=lambda item: item.identity.device)
         ],
     }
     return _text_artifact(
-        path=f"{family_dir}/family-index.json",
+        path=_family_metadata_path(family_dir, "family-index.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -471,7 +493,7 @@ def emit_family_connectivity(
         "dma_requests": _unique_dma_requests(devices),
     }
     return _text_artifact(
-        path=f"{family_dir}/family-connectivity.json",
+        path=_family_metadata_path(family_dir, "family-connectivity.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -593,7 +615,7 @@ def emit_ip_blocks_metadata(
         ],
     }
     return _text_artifact(
-        path=f"{family_dir}/metadata/ip-blocks.json",
+        path=_family_metadata_path(family_dir, "ip-blocks.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -614,7 +636,7 @@ def emit_capabilities_metadata(
         "capabilities": _unique_capabilities(devices),
     }
     return _text_artifact(
-        path=f"{family_dir}/metadata/capabilities.json",
+        path=_family_metadata_path(family_dir, "capabilities.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -635,7 +657,7 @@ def emit_packages_metadata(
         "packages": _build_package_metadata(devices),
     }
     return _text_artifact(
-        path=f"{family_dir}/metadata/packages.json",
+        path=_family_metadata_path(family_dir, "packages.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -660,7 +682,7 @@ def emit_connectors_metadata(
         ],
     }
     return _text_artifact(
-        path=f"{family_dir}/metadata/connectors.json",
+        path=_family_metadata_path(family_dir, "connectors.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -684,7 +706,7 @@ def emit_system_descriptors_metadata(
         ],
     }
     return _text_artifact(
-        path=f"{family_dir}/metadata/system-descriptors.json",
+        path=_family_metadata_path(family_dir, "system-descriptors.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -720,7 +742,7 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
         ]
     )
     return _cpp_artifact(
-        path=f"{family_dir}/{device.identity.device}/register_map.hpp",
+        path=_device_generated_path(family_dir, device.identity.device, "register_map.hpp"),
         content=content,
     )
 
@@ -758,7 +780,7 @@ def emit_pin_functions_header(*, family_dir: str, device: CanonicalDeviceIR) -> 
         ]
     )
     return _cpp_artifact(
-        path=f"{family_dir}/{device.identity.device}/pin_functions.hpp",
+        path=_device_generated_path(family_dir, device.identity.device, "pin_functions.hpp"),
         content=content,
     )
 
@@ -799,7 +821,7 @@ def emit_startup_source(*, family_dir: str, device: CanonicalDeviceIR) -> Emitte
         ]
     )
     return _cpp_artifact(
-        path=f"{family_dir}/{device.identity.device}/startup.cpp",
+        path=_device_generated_path(family_dir, device.identity.device, "startup.cpp"),
         content=content,
     )
 
@@ -1600,7 +1622,7 @@ def emit_startup_descriptors_header(
         ]
     )
     return _cpp_artifact(
-        path=f"{family_dir}/generated/devices/{device.identity.device}/startup_descriptors.hpp",
+        path=_device_generated_path(family_dir, device.identity.device, "startup_descriptors.hpp"),
         content=content,
     )
 
@@ -1639,7 +1661,7 @@ def emit_startup_vectors_source(
         ]
     )
     return _cpp_artifact(
-        path=f"{family_dir}/generated/devices/{device.identity.device}/startup_vectors.cpp",
+        path=_device_generated_path(family_dir, device.identity.device, "startup_vectors.cpp"),
         content=content,
     )
 
@@ -1796,7 +1818,7 @@ def emit_publication_summary(
         "materialized_artifacts": materialized_artifacts,
     }
     return _text_artifact(
-        path=f"{family_dir}/publication-summary.json",
+        path=_family_report_path(family_dir, "publication-summary.json"),
         artifact_kind="publication-metadata",
         payload=payload,
     )

@@ -69,7 +69,7 @@
 
 ## Phase F: Artifact contract upgrade
 
-- [ ] F.1 Migrate emission to the final `metadata/`, `generated/`, and `reports/` family layout
+- [x] F.1 Migrate emission to the final `metadata/`, `generated/`, and `reports/` family layout
 - [x] F.2 Emit `metadata/ip-blocks.json`, `metadata/capabilities.json`, and `metadata/connectors.json`
 - [x] F.3 Emit `generated/ip/<ip-version>.hpp`
 - [x] F.4 Emit `generated/connector_tables.hpp`
@@ -80,15 +80,15 @@
 - [x] F.9 Add artifact golden tests for every new descriptor family
 
 ### Gate C6: Descriptor-first artifact set
-- [ ] C6.1 Every generated artifact category is descriptor-oriented and contains no runtime policy
-- [ ] C6.2 The published family tree is self-describing without access to raw vendor sources
-- [ ] C6.3 Repeated emission and publication are byte-stable
+- [x] C6.1 Every generated artifact category is descriptor-oriented and contains no runtime policy
+- [x] C6.2 The published family tree is self-describing without access to raw vendor sources
+- [x] C6.3 Repeated emission and publication are byte-stable
 
 ## Phase G: Alloy boundary and `connect()` contract
 
-- [ ] G.1 Freeze the codegen-owned connector descriptor contract
-- [ ] G.2 Explicitly document the Alloy-owned `connect()` responsibilities
-- [ ] G.3 Add regression checks preventing runtime `connect()` behavior from entering generated code
+- [x] G.1 Freeze the codegen-owned connector descriptor contract
+- [x] G.2 Explicitly document the Alloy-owned `connect()` responsibilities
+- [x] G.3 Add regression checks preventing runtime `connect()` behavior from entering generated code
 - [x] G.4 Add smoke-consumer coverage for the new generated descriptor families
 
 ### Gate C7: Clean codegen/runtime boundary

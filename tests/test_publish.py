@@ -53,7 +53,10 @@ def test_publish_includes_materialized_summary(
     assert record_path.exists()
     assert any(
         artifact.materialized_path
-        == str(execution_context.publication_root / "st/stm32g0/stm32g071rb/register_map.hpp")
+        == str(
+            execution_context.publication_root
+            / "st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"
+        )
         for artifact in result.payload.published_artifacts
     )
 
@@ -67,15 +70,15 @@ def test_publish_includes_materialized_summary(
     assert payload["consumer_verification"]["succeeded"] is True
     assert payload["materialized_artifact_count"] >= 10
     assert any(
-        artifact["path"] == "st/stm32g0/publication-record.json"
+        artifact["path"] == "st/stm32g0/reports/publication-record.json"
         for artifact in payload["materialized_artifacts"]
     )
     assert any(
-        artifact["path"] == "st/stm32g0/validation-report.json"
+        artifact["path"] == "st/stm32g0/reports/validation-report.json"
         for artifact in payload["materialized_artifacts"]
     )
     assert any(
-        artifact["path"] == "st/stm32g0/stm32g071rb/register_map.hpp"
+        artifact["path"] == "st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"
         for artifact in payload["materialized_artifacts"]
     )
 
@@ -123,6 +126,8 @@ def test_publish_microchip_family_scope(
         microchip_execution_context.publication_root
         / "microchip"
         / "same70"
+        / "generated"
+        / "devices"
         / "atsame70n21b"
         / "register_map.hpp"
     ).exists()
@@ -130,6 +135,8 @@ def test_publish_microchip_family_scope(
         microchip_execution_context.publication_root
         / "microchip"
         / "same70"
+        / "generated"
+        / "devices"
         / "atsame70q21b"
         / "register_map.hpp"
     ).exists()
@@ -330,19 +337,28 @@ def test_publish_preserves_git_checkout_metadata_and_unrelated_files(
     assert (publication_checkout / ".git").exists()
     assert readme_path.read_text(encoding="utf-8") == "# alloy-devices\n"
     assert (publication_checkout / "st" / "stm32g0" / "artifact-manifest.json").exists()
-    assert (publication_checkout / "st" / "stm32g0" / "stm32g030f6" / "register_map.hpp").exists()
+    assert (
+        publication_checkout
+        / "st"
+        / "stm32g0"
+        / "generated"
+        / "devices"
+        / "stm32g030f6"
+        / "register_map.hpp"
+    ).exists()
     assert "README.md" not in status.stdout
     assert "?? st/" in status.stdout or "A  st/" in status.stdout
 
 
 def test_compute_materialized_tree_revision_ignores_git_metadata(tmp_path: Path) -> None:
     tree_root = tmp_path / "alloy-devices"
-    tracked_dir = tree_root / "st" / "stm32g0"
+    tracked_dir = tree_root / "st" / "stm32g0" / "metadata"
     git_dir = tree_root / ".git"
 
     tracked_dir.mkdir(parents=True, exist_ok=True)
     git_dir.mkdir(parents=True, exist_ok=True)
 
+    tracked_dir.mkdir(parents=True, exist_ok=True)
     (tracked_dir / "family-index.json").write_text('{"family":"stm32g0"}\n', encoding="utf-8")
     (git_dir / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
 
