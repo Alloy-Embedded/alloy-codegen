@@ -117,8 +117,8 @@ jobs:
           set +e
           python -m alloy_codegen.cli validate \
             --device "${{ matrix.device }}" \
-            --source-root tests/fixtures/cmsis-svd-data \
-            --pin-source-root tests/fixtures/stm32-open-pin-data \
+            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
+            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -149,8 +149,8 @@ jobs:
           publish_path="out/publish/${{ matrix.device }}-cycle1.json"
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
-            --source-root tests/fixtures/cmsis-svd-data \
-            --pin-source-root tests/fixtures/stm32-open-pin-data \
+            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
+            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
             --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -188,8 +188,8 @@ jobs:
           rm -rf "$artifact_root" "$publication_root"
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
-            --source-root tests/fixtures/cmsis-svd-data \
-            --pin-source-root tests/fixtures/stm32-open-pin-data \
+            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
+            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -284,8 +284,8 @@ jobs:
           rm -rf "$artifact_root"
           python -m alloy_codegen.cli publish \
             --family stm32g0 \
-            --source-root tests/fixtures/cmsis-svd-data \
-            --pin-source-root tests/fixtures/stm32-open-pin-data \
+            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
+            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
@@ -333,8 +333,8 @@ jobs:
           rm -rf "$artifact_root"
           python -m alloy_codegen.cli publish \
             --family stm32g0 \
-            --source-root tests/fixtures/cmsis-svd-data \
-            --pin-source-root tests/fixtures/stm32-open-pin-data \
+            --source cmsis-svd-data=tests/fixtures/cmsis-svd-data \
+            --source stm32-open-pin-data=tests/fixtures/stm32-open-pin-data \
             --artifact-root "$artifact_root" \
             --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \

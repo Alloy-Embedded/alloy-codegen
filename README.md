@@ -37,5 +37,5 @@ The repository now has:
 You can point the fetch stage at an existing local `cmsis-svd-data` checkout:
 
 ```bash
-alloy-codegen fetch --family stm32g0 --source-root /path/to/cmsis-svd-data --json
+alloy-codegen fetch --family stm32g0 --source cmsis-svd-data=/path/to/cmsis-svd-data --json
 ```
