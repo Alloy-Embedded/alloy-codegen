@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     DmaRequestDefinition,
@@ -388,7 +389,7 @@ def emit_gpio_header(
     if peripheral is None:
         raise ValueError(f"Family GPIO emission requires peripheral {peripheral_name}.")
     namespace_block = _cpp_namespace_block(
-        ("st", "stm32g0", "generated", "peripherals"),
+        (BOOTSTRAP_VENDOR, BOOTSTRAP_FAMILY, "generated", "peripherals"),
         "\n".join(
             [
                 "struct PeripheralDescriptor {",

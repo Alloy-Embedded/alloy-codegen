@@ -46,7 +46,12 @@ def test_emit_includes_metadata_artifacts_with_content(
     register_map_artifact = artifacts["st/stm32g0/stm32g071rb/register_map.hpp"]
     pin_functions_artifact = artifacts["st/stm32g0/stm32g071rb/pin_functions.hpp"]
     startup_artifact = artifacts["st/stm32g0/stm32g071rb/startup.cpp"]
-    gpioa_artifact = artifacts["st/stm32g0/generated/peripherals/gpioa.hpp"]
+    gpio_artifacts = [
+        artifact
+        for path, artifact in artifacts.items()
+        if path.startswith("st/stm32g0/generated/peripherals/")
+    ]
+    assert gpio_artifacts, "Expected at least one GPIO peripheral header"
 
     for artifact in (
         manifest_artifact,
@@ -86,22 +91,22 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert any(pin["name"] == "PA0" for pin in connectivity_payload["pins"])
     assert device_payload["identity"]["device"] == "stm32g071rb"
 
-    for artifact in (
-        register_map_artifact,
-        pin_functions_artifact,
-        startup_artifact,
-        gpioa_artifact,
-    ):
+    for artifact in (register_map_artifact, pin_functions_artifact, startup_artifact):
         assert artifact.artifact_kind == "generated-cpp"
         assert artifact.content is not None
         assert artifact.content_sha256 is not None
         assert artifact.materialized_path is not None
         assert Path(artifact.materialized_path).exists()
 
+    for gpio_artifact in gpio_artifacts:
+        assert gpio_artifact.artifact_kind == "generated-cpp"
+        assert gpio_artifact.content is not None
+        assert Path(gpio_artifact.materialized_path).exists()
+        assert "kPeripheral" in gpio_artifact.content
+
     assert "kPeripheralBases" in register_map_artifact.content
     assert "kPinFunctions" in pin_functions_artifact.content
     assert "kInterruptTable" in startup_artifact.content
-    assert "kPeripheral" in gpioa_artifact.content
 
 
 def test_emit_matches_golden_artifacts(
@@ -133,9 +138,9 @@ def test_emit_matches_golden_artifacts(
     assert artifacts["st/stm32g0/stm32g071rb/startup.cpp"].content == (
         fixture_root / "stm32g071rb" / "startup.cpp"
     ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/peripherals/gpioa.hpp"].content == (
-        fixture_root / "generated" / "peripherals" / "gpioa.hpp"
-    ).read_text(encoding="utf-8")
+    for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
+        artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"
+        assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8")
 
 
 def test_emit_stage_is_byte_stable(execution_context: ExecutionContext) -> None:

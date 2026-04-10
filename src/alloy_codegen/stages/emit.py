@@ -71,13 +71,22 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 emit_startup_source(family_dir=family_dir, device=device),
             )
         )
-    artifacts.append(
-        emit_gpio_header(
-            family_dir=family_dir,
-            devices=devices,
-            peripheral_name="GPIOA",
-        )
+    gpio_names = sorted(
+        {
+            peripheral.name
+            for device in devices
+            for peripheral in device.peripherals
+            if peripheral.ip_name == "gpio"
+        }
     )
+    for gpio_name in gpio_names:
+        artifacts.append(
+            emit_gpio_header(
+                family_dir=family_dir,
+                devices=devices,
+                peripheral_name=gpio_name,
+            )
+        )
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
         artifacts=tuple(artifacts),
