@@ -108,6 +108,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "kPinFunctions" in pin_functions_artifact.content
     assert "kInterruptTable" in startup_artifact.content
 
+    signal_map_artifact = artifacts["st/stm32g0/generated/signal_map.hpp"]
+    assert signal_map_artifact.artifact_kind == "generated-cpp"
+    assert "kSignalMap" in signal_map_artifact.content
+    assert "SignalDescriptor" in signal_map_artifact.content
+
 
 def test_emit_matches_golden_artifacts(
     execution_context: ExecutionContext,
@@ -141,6 +146,9 @@ def test_emit_matches_golden_artifacts(
     for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
         artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"
         assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/signal_map.hpp"].content == (
+        fixture_root / "generated" / "signal_map.hpp"
+    ).read_text(encoding="utf-8")
 
 
 def test_emit_stage_is_byte_stable(execution_context: ExecutionContext) -> None:

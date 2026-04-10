@@ -423,6 +423,60 @@ def emit_gpio_header(
     )
 
 
+def emit_signal_map_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    """Emit a family-level C++ header mapping (peripheral, signal) → (pin, af_number)."""
+    # Collect all alternate-function signals across every device, deduplicated.
+    seen: set[tuple[str, str, str, int]] = set()
+    rows: list[tuple[str, str, str, int]] = []
+    for device in devices:
+        for pin in device.pins:
+            for signal in pin.signals:
+                if signal.peripheral is None or signal.af_number is None:
+                    continue
+                key = (signal.peripheral, signal.signal or "", pin.name, signal.af_number)
+                if key not in seen:
+                    seen.add(key)
+                    rows.append(key)
+    rows.sort()
+
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct SignalDescriptor {",
+        "  const char* peripheral;",
+        "  const char* signal;",
+        "  const char* pin_name;",
+        "  int af_number;",
+        "};",
+        "inline constexpr SignalDescriptor kSignalMap[] = {",
+        *[
+            f"  {{{json.dumps(peripheral)}, {json.dumps(signal)}, "
+            f"{json.dumps(pin_name)}, {af_number}}},"
+            for peripheral, signal, pin_name, af_number in rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block(
+        (_vendor, _family, "generated"),
+        "\n".join(body_lines),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/signal_map.hpp",
+        content=content,
+    )
+
+
 def emit_publication_summary(
     *,
     family_dir: str,

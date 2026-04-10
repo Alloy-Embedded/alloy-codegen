@@ -18,6 +18,7 @@ from alloy_codegen.emission import (
     emit_gpio_header,
     emit_pin_functions_header,
     emit_register_map_header,
+    emit_signal_map_header,
     emit_startup_source,
     emit_validation_report,
     materialize_artifacts,
@@ -87,6 +88,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 peripheral_name=gpio_name,
             )
         )
+    artifacts.append(emit_signal_map_header(family_dir=family_dir, devices=devices))
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
         artifacts=tuple(artifacts),
