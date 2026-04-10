@@ -90,6 +90,7 @@ jobs:
         with:
           repository: ${{ env.ALLOY_DEVICES_REPOSITORY }}
           path: alloy-devices
+          persist-credentials: false
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
@@ -166,6 +167,7 @@ jobs:
         run: |
           set -eu
           publication_root="$GITHUB_WORKSPACE/alloy-devices"
+          git -C "$publication_root" config --local --unset-all http.https://github.com/.extraheader || true
           git -C "$publication_root" remote set-url origin \
             "https://x-access-token:${ALLOY_DEVICES_PUSH_TOKEN}@github.com/${ALLOY_DEVICES_REPOSITORY}.git"
           git -C "$publication_root" push origin HEAD:main
