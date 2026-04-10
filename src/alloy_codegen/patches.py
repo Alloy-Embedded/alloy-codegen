@@ -6,7 +6,6 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 
@@ -184,20 +183,16 @@ class DevicePatch:
         }
 
 
-def family_patch_file_path(context: ExecutionContext) -> Path:
+def family_patch_file_path(context: ExecutionContext, *, vendor: str, family: str) -> Path:
     """Resolve the family-level patch catalog path."""
-    return context.patch_root / BOOTSTRAP_VENDOR / BOOTSTRAP_FAMILY / "family.json"
+    return context.patch_root / vendor / family / "family.json"
 
 
-def patch_file_path(context: ExecutionContext, device_name: str) -> Path:
-    """Resolve the bootstrap patch path for one device."""
-    return (
-        context.patch_root
-        / BOOTSTRAP_VENDOR
-        / BOOTSTRAP_FAMILY
-        / "devices"
-        / f"{device_name}.json"
-    )
+def patch_file_path(
+    context: ExecutionContext, device_name: str, *, vendor: str, family: str
+) -> Path:
+    """Resolve the patch path for one device."""
+    return context.patch_root / vendor / family / "devices" / f"{device_name}.json"
 
 
 def _parse_pin_signal(payload: dict[str, object]) -> PinSignalPatch:
@@ -276,11 +271,13 @@ def _parse_dma_request_catalog_entry(payload: dict[str, object]) -> DmaRequestCa
     )
 
 
-def load_family_patch_catalog(context: ExecutionContext) -> FamilyPatchCatalog:
-    """Load the bootstrap family patch catalog."""
-    patch_path = family_patch_file_path(context)
+def load_family_patch_catalog(
+    context: ExecutionContext, *, vendor: str, family: str
+) -> FamilyPatchCatalog:
+    """Load the family patch catalog for the given vendor/family."""
+    patch_path = family_patch_file_path(context, vendor=vendor, family=family)
     if not patch_path.exists():
-        raise StageExecutionError(f"Missing bootstrap family patch catalog: {patch_path}")
+        raise StageExecutionError(f"Missing family patch catalog: {patch_path}")
 
     payload = json.loads(patch_path.read_text())
     return FamilyPatchCatalog(
@@ -483,13 +480,15 @@ def _parse_pin_patch(payload: dict[str, object]) -> PinPatch:
     )
 
 
-def load_device_patch(context: ExecutionContext, device_name: str) -> DevicePatch:
-    """Load one bootstrap patch document."""
-    patch_path = patch_file_path(context, device_name)
+def load_device_patch(
+    context: ExecutionContext, device_name: str, *, vendor: str, family: str
+) -> DevicePatch:
+    """Load one device patch document."""
+    patch_path = patch_file_path(context, device_name, vendor=vendor, family=family)
     if not patch_path.exists():
-        raise StageExecutionError(f"Missing bootstrap patch document: {patch_path}")
+        raise StageExecutionError(f"Missing patch document: {patch_path}")
 
-    family_catalog = load_family_patch_catalog(context)
+    family_catalog = load_family_patch_catalog(context, vendor=vendor, family=family)
     package_catalog_by_name = {package.name: package for package in family_catalog.packages}
     pin_catalog_by_name = {pin.name: pin for pin in family_catalog.pins}
     signal_catalog_by_id = {signal.signal_id: signal for signal in family_catalog.pin_signals}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Mcu Package="LQFP64" RefName="STM32F405RGTx" xmlns="http://dummy.com">
+    <Core>ARM Cortex-M4</Core>
+    <IP InstanceName="DMA1"   Name="DMA"   Version="bdma_f4_v1_0"/>
+    <IP InstanceName="DMA2"   Name="DMA"   Version="bdma_f4_v1_0"/>
+    <IP InstanceName="GPIOA"  Name="GPIO"  Version="STM32F4x_gpio_v1_0"/>
+    <IP InstanceName="GPIOB"  Name="GPIO"  Version="STM32F4x_gpio_v1_0"/>
+    <IP InstanceName="OTG_FS" Name="USB"   Version="otgfs_f4_v1_0"/>
+    <IP InstanceName="RCC"    Name="RCC"   Version="rcc_f4_v1_0"/>
+    <IP InstanceName="USART1" Name="USART" Version="usart_f4_v1_0"/>
+    <IP InstanceName="USART2" Name="USART" Version="usart_f4_v1_0"/>
+    <Pin Name="PA2" Position="26" Type="I/O">
+        <Signal Name="USART2_TX"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA3" Position="27" Type="I/O">
+        <Signal Name="USART2_RX"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA9" Position="42" Type="I/O">
+        <Signal Name="USART1_TX"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+    <Pin Name="PA10" Position="43" Type="I/O">
+        <Signal Name="USART1_RX"/>
+        <Signal IOModes="Input,Output,Analog,EXTI" Name="GPIO"/>
+    </Pin>
+</Mcu>

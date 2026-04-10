@@ -1,0 +1,27 @@
+{
+  "patch_id": "st-stm32f4-stm32f401re-bootstrap",
+  "device": "stm32f401re",
+  "svd_file": "STM32F401.svd",
+  "pin_data_file": "STM32F401R(B-C-D-E)Tx.xml",
+  "package": "lqfp64",
+  "core": "cortex-m4f",
+  "summary": "Representative low-cost entry-level F4 device.",
+  "memories": [
+    {
+      "name": "flash",
+      "kind": "flash",
+      "base_address": 134217728,
+      "size_bytes": 524288,
+      "access": "rx"
+    },
+    {
+      "name": "sram",
+      "kind": "sram",
+      "base_address": 536870912,
+      "size_bytes": 98304,
+      "access": "rwx"
+    }
+  ],
+  "peripherals": ["GPIOA", "GPIOB", "USART1", "USART2", "DMA1", "DMA2"],
+  "dma_request_refs": ["dma1-usart2-rx", "dma1-usart2-tx"]
+}

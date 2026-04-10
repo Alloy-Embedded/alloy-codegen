@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.manifests import PatchManifest, PatchRecord
 from alloy_codegen.patches import load_device_patch
@@ -17,13 +16,15 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     execution_context = context or ExecutionContext.default()
     fetch_result = run_fetch(scope, execution_context)
     source_manifest = fetch_result.payload.source_manifest
+    vendor = fetch_result.scope.resolved_vendor()
+    family = fetch_result.scope.resolved_family()
     device_patches = tuple(
-        load_device_patch(execution_context, device_name)
+        load_device_patch(execution_context, device_name, vendor=vendor, family=family)
         for device_name in fetch_result.scope.resolved_device_names()
     )
     patch_manifest = PatchManifest(
         manifest_kind="patch-manifest-v1",
-        bootstrap_family=BOOTSTRAP_FAMILY,
+        bootstrap_family=family,
         targets=source_manifest.targets,
         applied_patches=tuple(
             PatchRecord(

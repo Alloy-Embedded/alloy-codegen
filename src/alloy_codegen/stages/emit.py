@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from alloy_codegen.bootstrap import (
     ARTIFACT_LAYOUT_VERSION,
-    BOOTSTRAP_FAMILY,
     CPP_CONTRACT_VERSION,
     IR_SCHEMA_VERSION,
     PIPELINE_NAME,
@@ -55,7 +54,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         target_repository=PUBLICATION_TARGET_REPOSITORY,
     )
 
-    family_dir = f"st/{BOOTSTRAP_FAMILY}"
+    resolved_scope = validate_result.scope
+    family_dir = f"{resolved_scope.resolved_vendor()}/{resolved_scope.resolved_family()}"
     artifacts: list[EmittedArtifact] = [
         emit_artifact_manifest(family_dir=family_dir, artifact_manifest=artifact_manifest),
         emit_validation_report(family_dir=family_dir, report=validation_report),

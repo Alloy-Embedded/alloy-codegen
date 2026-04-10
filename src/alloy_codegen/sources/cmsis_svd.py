@@ -82,9 +82,11 @@ def source_revision(source_root: Path) -> str:
     return f"content-sha256:{digest.hexdigest()}"
 
 
-def resolve_svd_path(context: ExecutionContext, device_name: str) -> Path:
-    """Resolve the SVD path for one bootstrap device."""
-    patch = load_device_patch(context, device_name)
+def resolve_svd_path(
+    context: ExecutionContext, device_name: str, *, vendor: str, family: str
+) -> Path:
+    """Resolve the SVD path for one device."""
+    patch = load_device_patch(context, device_name, vendor=vendor, family=family)
     source_root = ensure_source_root(context)
     svd_path = source_root / STMICRO_SUBTREE / patch.svd_file
     if not svd_path.exists():
@@ -100,9 +102,11 @@ def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict
     root = ensure_source_root(context)
     revision = source_revision(root)
     records: list[dict[str, str]] = []
+    _vendor = validated_scope.resolved_vendor()
+    _family = validated_scope.resolved_family()
     for device_name in validated_scope.resolved_device_names():
-        patch = load_device_patch(context, device_name)
-        local_path = resolve_svd_path(context, device_name)
+        patch = load_device_patch(context, device_name, vendor=_vendor, family=_family)
+        local_path = resolve_svd_path(context, device_name, vendor=_vendor, family=_family)
         records.append(
             {
                 "source_id": "cmsis-svd-data",

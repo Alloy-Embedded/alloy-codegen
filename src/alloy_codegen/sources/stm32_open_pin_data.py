@@ -91,9 +91,11 @@ def source_revision(source_root: Path) -> str:
     return f"content-sha256:{digest.hexdigest()}"
 
 
-def resolve_mcu_path(context: ExecutionContext, device_name: str) -> Path:
-    """Resolve the MCU XML path for one bootstrap device."""
-    patch = load_device_patch(context, device_name)
+def resolve_mcu_path(
+    context: ExecutionContext, device_name: str, *, vendor: str, family: str
+) -> Path:
+    """Resolve the MCU XML path for one device."""
+    patch = load_device_patch(context, device_name, vendor=vendor, family=family)
     source_root = ensure_source_root(context)
     mcu_path = source_root / MCU_SUBTREE / patch.pin_data_file
     if not mcu_path.exists():
@@ -131,10 +133,12 @@ def _parse_gpio_modes_file_name(mcu_root: ET.Element) -> str:
     raise StageExecutionError("MCU XML does not declare a GPIO IP version.")
 
 
-def resolve_gpio_modes_path(context: ExecutionContext, device_name: str) -> Path:
-    """Resolve the GPIO modes XML path for one bootstrap device."""
+def resolve_gpio_modes_path(
+    context: ExecutionContext, device_name: str, *, vendor: str, family: str
+) -> Path:
+    """Resolve the GPIO modes XML path for one device."""
     source_root = ensure_source_root(context)
-    mcu_path = resolve_mcu_path(context, device_name)
+    mcu_path = resolve_mcu_path(context, device_name, vendor=vendor, family=family)
     mcu_root = ET.parse(mcu_path).getroot()
     modes_file = _parse_gpio_modes_file_name(mcu_root)
     modes_path = source_root / MCU_SUBTREE / "IP" / modes_file
@@ -151,9 +155,11 @@ def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict
     root = ensure_source_root(context)
     revision = source_revision(root)
     records: list[dict[str, str]] = []
+    _vendor = validated_scope.resolved_vendor()
+    _family = validated_scope.resolved_family()
     for device_name in validated_scope.resolved_device_names():
-        mcu_path = resolve_mcu_path(context, device_name)
-        modes_path = resolve_gpio_modes_path(context, device_name)
+        mcu_path = resolve_mcu_path(context, device_name, vendor=_vendor, family=_family)
+        modes_path = resolve_gpio_modes_path(context, device_name, vendor=_vendor, family=_family)
         for local_path in (mcu_path, modes_path):
             records.append(
                 {

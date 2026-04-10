@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, PUBLICATION_TARGET_REPOSITORY
+from alloy_codegen.bootstrap import PUBLICATION_TARGET_REPOSITORY
 from alloy_codegen.consumer_verification import verify_alloy_smoke_consumer
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import emit_publication_summary, materialize_artifacts
@@ -70,7 +70,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
 
     target_artifact_revision = compute_target_artifact_revision(staged_artifacts)
     publication_record = emit_publication_record(
-        family_dir=f"st/{BOOTSTRAP_FAMILY}",
+        family_dir=f"{emit_result.scope.resolved_vendor()}/{emit_result.scope.resolved_family()}",
         scope=emit_result.scope,
         target_repository=PUBLICATION_TARGET_REPOSITORY,
         publication_mode="published",
@@ -98,7 +98,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     )[0]
     published_bundle = (*published_artifacts, published_record)
     publication_summary = emit_publication_summary(
-        family_dir=f"st/{BOOTSTRAP_FAMILY}",
+        family_dir=f"{emit_result.scope.resolved_vendor()}/{emit_result.scope.resolved_family()}",
         target_repository=PUBLICATION_TARGET_REPOSITORY,
         publication_mode="published",
         artifact_manifest=emit_result.payload.artifact_manifest,

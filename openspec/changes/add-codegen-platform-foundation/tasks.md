@@ -85,11 +85,11 @@
 - [x] E.4 Repeated publication runs are deterministic
 - [x] E.5 The bootstrap family completes at least two successful publication cycles without
       artifact contract changes
-- [ ] E.6 Only after E.1-E.5 pass may a second major family enter active implementation
+- [x] E.6 Only after E.1-E.5 pass may a second major family enter active implementation
 
 ## Phase 5: Multi-family expansion
 
-- [ ] 5.1 Add the second major family using the same pipeline architecture
-- [ ] 5.2 Add cross-family regression tests
-- [ ] 5.3 Verify schema reuse rather than family-specific schema forks
-- [ ] 5.4 Keep publication and artifact contracts unchanged unless a new approved proposal exists
+- [x] 5.1 Add the second major family using the same pipeline architecture
+- [x] 5.2 Add cross-family regression tests
+- [x] 5.3 Verify schema reuse rather than family-specific schema forks
+- [x] 5.4 Keep publication and artifact contracts unchanged unless a new approved proposal exists

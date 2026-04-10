@@ -214,6 +214,9 @@ def build_canonical_ir(
     patch: DevicePatch,
     pin_data: RawPinDataDocument,
     ip_version_table: dict[str, str] | None = None,
+    *,
+    vendor: str = BOOTSTRAP_VENDOR,
+    family: str = BOOTSTRAP_FAMILY,
 ) -> CanonicalDeviceIR:
     """Build canonical IR from raw SVD plus STM32 open pin data and patch metadata."""
     patch_ids = (
@@ -244,7 +247,7 @@ def build_canonical_ir(
     )
     patch_provenance = Provenance(
         source_id="bootstrap-patch",
-        source_path=f"patches/{BOOTSTRAP_VENDOR}/{BOOTSTRAP_FAMILY}/devices/{patch.device}.json",
+        source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
     peripheral_patches = _peripheral_patch_map(patch)
@@ -259,8 +262,8 @@ def build_canonical_ir(
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
-            vendor=BOOTSTRAP_VENDOR,
-            family=BOOTSTRAP_FAMILY,
+            vendor=vendor,
+            family=family,
             device=patch.device,
             package=patch.package,
             core=patch.core,
@@ -321,16 +324,24 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     execution_context = context or ExecutionContext.default()
     patch_result = run_patch(scope, execution_context)
     devices: list[CanonicalDeviceIR] = []
+    vendor = patch_result.scope.resolved_vendor()
+    family = patch_result.scope.resolved_family()
     for device_name in patch_result.scope.resolved_device_names():
-        patch = load_device_patch(execution_context, device_name)
-        mcu_path = resolve_mcu_path(execution_context, device_name)
-        raw = parse_raw_device_document(resolve_svd_path(execution_context, device_name))
+        patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+        mcu_path = resolve_mcu_path(execution_context, device_name, vendor=vendor, family=family)
+        raw = parse_raw_device_document(
+            resolve_svd_path(execution_context, device_name, vendor=vendor, family=family)
+        )
         pin_data = parse_raw_pin_data_document(
             mcu_path=mcu_path,
-            gpio_modes_path=resolve_gpio_modes_path(execution_context, device_name),
+            gpio_modes_path=resolve_gpio_modes_path(
+                execution_context, device_name, vendor=vendor, family=family
+            ),
         )
         ip_version_table = parse_ip_version_table(mcu_path)
-        devices.append(build_canonical_ir(raw, patch, pin_data, ip_version_table))
+        devices.append(
+            build_canonical_ir(raw, patch, pin_data, ip_version_table, vendor=vendor, family=family)
+        )
     return StageResult(
         stage="normalize",
         scope=patch_result.scope,

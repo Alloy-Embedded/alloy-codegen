@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.manifests import SourceManifest, SourceRecord
 from alloy_codegen.reporting import FetchBundle
@@ -22,7 +21,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     )
     source_manifest = SourceManifest(
         manifest_kind="source-manifest-v1",
-        bootstrap_family=BOOTSTRAP_FAMILY,
+        bootstrap_family=validated_scope.resolved_family(),
         targets=validated_scope.resolved_device_names(),
         sources=tuple(
             SourceRecord(

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<device>
+  <name>STM32F401</name>
+  <version>1.0</version>
+  <description>STM32F401 bootstrap fixture</description>
+  <peripherals>
+    <peripheral>
+      <name>GPIOA</name>
+      <baseAddress>0x40020000</baseAddress>
+    </peripheral>
+    <peripheral>
+      <name>GPIOB</name>
+      <baseAddress>0x40020400</baseAddress>
+    </peripheral>
+    <peripheral>
+      <name>RCC</name>
+      <baseAddress>0x40023800</baseAddress>
+    </peripheral>
+    <peripheral>
+      <name>DMA1</name>
+      <baseAddress>0x40026000</baseAddress>
+      <interrupt>
+        <name>DMA1_Stream0</name>
+        <value>11</value>
+      </interrupt>
+    </peripheral>
+    <peripheral>
+      <name>DMA2</name>
+      <baseAddress>0x40026400</baseAddress>
+      <interrupt>
+        <name>DMA2_Stream0</name>
+        <value>56</value>
+      </interrupt>
+    </peripheral>
+    <peripheral>
+      <name>USART1</name>
+      <baseAddress>0x40011000</baseAddress>
+      <interrupt>
+        <name>USART1</name>
+        <value>37</value>
+      </interrupt>
+    </peripheral>
+    <peripheral>
+      <name>USART2</name>
+      <baseAddress>0x40004400</baseAddress>
+      <interrupt>
+        <name>USART2</name>
+        <value>38</value>
+      </interrupt>
+    </peripheral>
+  </peripherals>
+</device>

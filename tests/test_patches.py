@@ -1,9 +1,11 @@
-from alloy_codegen.bootstrap import bootstrap_device_names
+from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, bootstrap_device_names
 from alloy_codegen.patches import load_device_patch, load_family_patch_catalog
 
 
 def test_all_bootstrap_devices_have_patch_documents(execution_context) -> None:
-    family_catalog = load_family_patch_catalog(execution_context)
+    family_catalog = load_family_patch_catalog(
+        execution_context, vendor=BOOTSTRAP_VENDOR, family=BOOTSTRAP_FAMILY
+    )
 
     assert family_catalog.patch_id == "st-stm32g0-family-bootstrap-v1"
     assert {package.name for package in family_catalog.packages} == {"tssop20", "lqfp64"}
@@ -20,7 +22,9 @@ def test_all_bootstrap_devices_have_patch_documents(execution_context) -> None:
     assert family_catalog.peripherals
 
     for device_name in bootstrap_device_names():
-        patch = load_device_patch(execution_context, device_name)
+        patch = load_device_patch(
+            execution_context, device_name, vendor=BOOTSTRAP_VENDOR, family=BOOTSTRAP_FAMILY
+        )
         assert patch.device == device_name
         assert patch.family_patch_id == family_catalog.patch_id
         assert patch.svd_file.endswith(".svd")
@@ -30,7 +34,9 @@ def test_all_bootstrap_devices_have_patch_documents(execution_context) -> None:
 
 
 def test_device_patch_declares_open_pin_data_source(execution_context) -> None:
-    patch = load_device_patch(execution_context, "stm32g071rb")
+    patch = load_device_patch(
+        execution_context, "stm32g071rb", vendor=BOOTSTRAP_VENDOR, family=BOOTSTRAP_FAMILY
+    )
 
     assert patch.pin_count == 64
     assert patch.package == "lqfp64"
@@ -38,7 +44,9 @@ def test_device_patch_declares_open_pin_data_source(execution_context) -> None:
 
 
 def test_device_patch_derives_package_metadata_from_family_catalog(execution_context) -> None:
-    patch = load_device_patch(execution_context, "stm32g030f6")
+    patch = load_device_patch(
+        execution_context, "stm32g030f6", vendor=BOOTSTRAP_VENDOR, family=BOOTSTRAP_FAMILY
+    )
 
     assert patch.package == "tssop20"
     assert patch.pin_count == 20
@@ -46,7 +54,9 @@ def test_device_patch_derives_package_metadata_from_family_catalog(execution_con
 
 
 def test_device_patch_resolves_dma_requests_from_family_catalog(execution_context) -> None:
-    patch = load_device_patch(execution_context, "stm32g071rb")
+    patch = load_device_patch(
+        execution_context, "stm32g071rb", vendor=BOOTSTRAP_VENDOR, family=BOOTSTRAP_FAMILY
+    )
 
     assert [request.request_line for request in patch.dma_requests] == ["DMA1_CH1", "DMA1_CH2"]
     assert [request.signal for request in patch.dma_requests] == ["RX", "TX"]
