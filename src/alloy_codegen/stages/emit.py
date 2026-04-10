@@ -31,7 +31,6 @@ from alloy_codegen.emission import (
     emit_rcc_map_header,
     emit_register_map_header,
     emit_startup_descriptors_header,
-    emit_startup_source,
     emit_startup_vectors_source,
     emit_system_descriptors_metadata,
     emit_validation_report,
@@ -98,7 +97,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
                 emit_register_map_header(family_dir=family_dir, device=device),
-                emit_startup_source(family_dir=family_dir, device=device),
                 emit_startup_descriptors_header(family_dir=family_dir, device=device),
                 emit_startup_vectors_source(family_dir=family_dir, device=device),
             )

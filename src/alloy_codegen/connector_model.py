@@ -250,9 +250,7 @@ def _bundle_candidates(
     candidate_map: dict[str, ConnectionCandidate],
 ) -> tuple[tuple[ConnectionGroup, ...], dict[str, str]]:
     candidates = [
-        candidate
-        for candidate in candidate_map.values()
-        if candidate.peripheral == peripheral_name
+        candidate for candidate in candidate_map.values() if candidate.peripheral == peripheral_name
     ]
     by_role: dict[str, list[str]] = defaultdict(list)
     for candidate in candidates:
@@ -267,13 +265,7 @@ def _bundle_candidates(
         if not all(by_role.get(role) for role in bundle):
             continue
         candidate_ids = tuple(
-            sorted(
-                {
-                    candidate_id
-                    for role in bundle
-                    for candidate_id in by_role[role]
-                }
-            )
+            sorted({candidate_id for role in bundle for candidate_id in by_role[role]})
         )
         groups.append(
             ConnectionGroup(
@@ -303,16 +295,16 @@ def _bundle_candidates(
         return (), {}
     candidate_ids = tuple(sorted(candidate.candidate_id for candidate in candidates))
     group = ConnectionGroup(
-            group_id=f"group:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:all-signals",
-            peripheral=peripheral_name,
-            signals=tuple(distinct_signals),
-            candidate_ids=candidate_ids,
-            package=package_name,
-            conflict_group=(
-                f"conflict:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:all-signals"
-            ),
-            provenance=candidate_map[candidate_ids[0]].provenance,
-        )
+        group_id=f"group:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:all-signals",
+        peripheral=peripheral_name,
+        signals=tuple(distinct_signals),
+        candidate_ids=candidate_ids,
+        package=package_name,
+        conflict_group=(
+            f"conflict:{_sanitize(peripheral_name)}:{_sanitize(package_name)}:all-signals"
+        ),
+        provenance=candidate_map[candidate_ids[0]].provenance,
+    )
     return (group,), {candidate_id: group.group_id for candidate_id in candidate_ids}
 
 
@@ -422,9 +414,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 "microchip": "peripheral-mux",
                 "nxp": "iomuxc-mux",
             }.get(device.identity.vendor, "mux")
-            route_selector = (
-                None if signal.af_number is None else f"selector:{signal.af_number}"
-            )
+            route_selector = None if signal.af_number is None else f"selector:{signal.af_number}"
             requirement_ids = [package_requirement_id]
             operation_ids = []
 
@@ -508,10 +498,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 f"candidate:{_sanitize(pin.name)}:{_sanitize(peripheral.name)}:"
                 f"{_sanitize(signal.signal)}"
             )
-            capability_value = canonical_signal_role(
-                peripheral_class,
-                signal.signal,
-            ) or signal.signal.lower()
+            capability_value = (
+                canonical_signal_role(
+                    peripheral_class,
+                    signal.signal,
+                )
+                or signal.signal.lower()
+            )
             capability_ids_list: list[str] = []
             if peripheral.ip_version is not None:
                 capability_id = (
@@ -755,9 +748,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         if descriptor is not None
     )
 
-    clock_node_map: dict[str, ClockNodeLite] = {
-        node.node_id: node for node in device.clock_nodes
-    }
+    clock_node_map: dict[str, ClockNodeLite] = {node.node_id: node for node in device.clock_nodes}
     clock_node_map.setdefault(
         "clock-root",
         ClockNodeLite(
@@ -771,9 +762,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     clock_gate_map: dict[str, ClockGateDescriptor] = {
         gate.gate_id: gate for gate in device.clock_gates
     }
-    reset_map: dict[str, ResetDescriptor] = {
-        reset.reset_id: reset for reset in device.resets
-    }
+    reset_map: dict[str, ResetDescriptor] = {reset.reset_id: reset for reset in device.resets}
     binding_map: dict[str, PeripheralClockBinding] = {
         binding.peripheral: binding for binding in device.peripheral_clock_bindings
     }
@@ -794,11 +783,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 ),
             )
             explicit_gate = next(
-                (
-                    gate
-                    for gate in device.clock_gates
-                    if gate.peripheral == peripheral.name
-                ),
+                (gate for gate in device.clock_gates if gate.peripheral == peripheral.name),
                 None,
             )
             gate_id = (
@@ -833,11 +818,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
 
         if peripheral.rcc_reset_signal is not None:
             explicit_reset = next(
-                (
-                    reset
-                    for reset in device.resets
-                    if reset.peripheral == peripheral.name
-                ),
+                (reset for reset in device.resets if reset.peripheral == peripheral.name),
                 None,
             )
             reset_id = (
@@ -874,9 +855,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 ),
                 selector_id=None if binding_overlay is None else binding_overlay.selector_id,
                 provenance=(
-                    peripheral.provenance
-                    if binding_overlay is None
-                    else binding_overlay.provenance
+                    peripheral.provenance if binding_overlay is None else binding_overlay.provenance
                 ),
             )
 
@@ -916,13 +895,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             version=(
                 controller_hint.version
                 if controller_hint is not None and controller_hint.version is not None
-                else None if controller_peripheral is None else controller_peripheral.ip_version
+                else None
+                if controller_peripheral is None
+                else controller_peripheral.ip_version
             ),
-            channel_count=(
-                None
-                if controller_hint is None
-                else controller_hint.channel_count
-            ),
+            channel_count=(None if controller_hint is None else controller_hint.channel_count),
             request_count=len(dma_request_lines_by_controller[controller]),
             provenance=dma_controller_provenance[controller],
         )

@@ -51,7 +51,6 @@ def test_emit_includes_metadata_artifacts_with_content(
     system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
     device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
     register_map_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"]
-    startup_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
     dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
     connector_tables_artifact = artifacts["st/stm32g0/generated/connector_tables.hpp"]
@@ -185,12 +184,11 @@ def test_emit_includes_metadata_artifacts_with_content(
         for pin_entry in packages_payload["packages"][0]["pinouts"][0]["pin_index"]
     )
 
-    for artifact in (register_map_artifact, startup_artifact):
-        assert artifact.artifact_kind == "generated-cpp"
-        assert artifact.content is not None
-        assert artifact.content_sha256 is not None
-        assert artifact.materialized_path is not None
-        assert Path(artifact.materialized_path).exists()
+    assert register_map_artifact.artifact_kind == "generated-cpp"
+    assert register_map_artifact.content is not None
+    assert register_map_artifact.content_sha256 is not None
+    assert register_map_artifact.materialized_path is not None
+    assert Path(register_map_artifact.materialized_path).exists()
 
     for gpio_artifact in gpio_artifacts:
         assert gpio_artifact.artifact_kind == "generated-cpp"
@@ -204,7 +202,6 @@ def test_emit_includes_metadata_artifacts_with_content(
         assert "kCapabilities" in ip_block_artifact.content
 
     assert "kPeripheralBases" in register_map_artifact.content
-    assert "kInterruptTable" in startup_artifact.content
 
     assert connector_tables_artifact.artifact_kind == "generated-cpp"
     assert "kConnectionCandidates" in connector_tables_artifact.content
@@ -298,9 +295,6 @@ def test_emit_matches_golden_artifacts(
     ) == _load_json_fixture(fixture_root / "metadata" / "devices" / "stm32g071rb.json")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "register_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"
     ).read_text(encoding="utf-8")
     for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
         artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"

@@ -421,9 +421,7 @@ def _filter_clock_patch_descriptors(
         if selector_id is not None
     }
     clock_selectors = tuple(
-        selector
-        for selector in patch.clock_selectors
-        if selector.selector_id in selector_ids
+        selector for selector in patch.clock_selectors if selector.selector_id in selector_ids
     )
     referenced_nodes = {"clock-root"}
     referenced_nodes.update(
@@ -706,16 +704,11 @@ def build_canonical_ir(
             pins=pins,
             provenance=pin_provenance,
         ),
-        clock_nodes=tuple(
-            _clock_node_to_ir(node, patch_provenance) for node in clock_nodes
-        ),
+        clock_nodes=tuple(_clock_node_to_ir(node, patch_provenance) for node in clock_nodes),
         clock_selectors=tuple(
-            _clock_selector_to_ir(selector, patch_provenance)
-            for selector in clock_selectors
+            _clock_selector_to_ir(selector, patch_provenance) for selector in clock_selectors
         ),
-        clock_gates=tuple(
-            _clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates
-        ),
+        clock_gates=tuple(_clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates),
         resets=tuple(_reset_to_ir(reset, patch_provenance) for reset in resets),
         peripheral_clock_bindings=tuple(
             _peripheral_clock_binding_to_ir(binding, patch_provenance)
@@ -992,16 +985,11 @@ def build_nxp_canonical_ir(
             pins=pins,
             provenance=sdk_provenance,
         ),
-        clock_nodes=tuple(
-            _clock_node_to_ir(node, patch_provenance) for node in clock_nodes
-        ),
+        clock_nodes=tuple(_clock_node_to_ir(node, patch_provenance) for node in clock_nodes),
         clock_selectors=tuple(
-            _clock_selector_to_ir(selector, patch_provenance)
-            for selector in clock_selectors
+            _clock_selector_to_ir(selector, patch_provenance) for selector in clock_selectors
         ),
-        clock_gates=tuple(
-            _clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates
-        ),
+        clock_gates=tuple(_clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates),
         resets=tuple(_reset_to_ir(reset, patch_provenance) for reset in resets),
         peripheral_clock_bindings=tuple(
             _peripheral_clock_binding_to_ir(binding, patch_provenance)

@@ -62,17 +62,14 @@ def test_enrich_connector_descriptors_builds_st_route_model(execution_context) -
     assert any(vector_slot.slot == 1 for vector_slot in device.vector_slots)
     assert any(memory.startup_roles for memory in device.memories)
     assert any(
-        selector.selector_id == "selector:usart1-kernel"
-        for selector in device.clock_selectors
+        selector.selector_id == "selector:usart1-kernel" for selector in device.clock_selectors
     )
     assert any(
         binding.peripheral == "USART1" and binding.selector_id == "selector:usart1-kernel"
         for binding in device.peripheral_clock_bindings
     )
     dma1 = next(
-        controller
-        for controller in device.dma_controllers
-        if controller.controller == "DMA1"
+        controller for controller in device.dma_controllers if controller.controller == "DMA1"
     )
     assert dma1.channel_count is not None and dma1.channel_count > 0
     assert dma1.request_count is not None and dma1.request_count > 0
@@ -100,9 +97,7 @@ def test_enrich_connector_descriptors_builds_microchip_route_model(
     assert device.dma_routes
 
     microchip_candidates = [
-        candidate
-        for candidate in device.connection_candidates
-        if candidate.pin == "PA0"
+        candidate for candidate in device.connection_candidates if candidate.pin == "PA0"
     ]
     can_groups = [
         group
@@ -162,9 +157,7 @@ def test_enrich_connector_descriptors_builds_nxp_route_model(
         if candidate.peripheral in {"LPUART1", "LPUART3", "SPI1", "I2C1"}
     ]
     bundle_groups = [
-        group
-        for group in device.connection_groups
-        if group.peripheral in {"LPUART1", "LPI2C1"}
+        group for group in device.connection_groups if group.peripheral in {"LPUART1", "LPI2C1"}
     ]
     assert nxp_candidates
     assert any(group.signals == ("tx", "rx") for group in bundle_groups) or any(
@@ -183,8 +176,7 @@ def test_enrich_connector_descriptors_builds_nxp_route_model(
         assert device.dma_routes
         assert all(controller.request_count for controller in device.dma_controllers)
     assert any(
-        selector.selector_id == "selector:lpuart-root"
-        for selector in device.clock_selectors
+        selector.selector_id == "selector:lpuart-root" for selector in device.clock_selectors
     )
     assert any(
         gate.gate_id == "gate:lpuart1" and gate.parent_node == "clock-node:lpuart-root"

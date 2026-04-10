@@ -89,9 +89,7 @@ class ValidationReport:
 
     @property
     def draft_system_descriptor_domains(self) -> tuple[str, ...]:
-        return tuple(
-            domain.domain_id for domain in self.system_descriptor_domains if domain.draft
-        )
+        return tuple(domain.domain_id for domain in self.system_descriptor_domains if domain.draft)
 
     def gate_status(self, gate_id: str) -> ValidationGateStatus:
         for gate in self.gates:

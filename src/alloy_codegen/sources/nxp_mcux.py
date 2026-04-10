@@ -40,9 +40,7 @@ IOMUXC_DEFINE_PATTERN = re.compile(
     + rf"({_VALUE_TOKEN}),\s*"
     + rf"({_VALUE_TOKEN})"
 )
-IOMUXC_PAD_COMMENT_PATTERN = re.compile(
-    r"/\*\s*(GPIO_[A-Z0-9_]+)\s*,\s*pad number\s*(\d+)\s*\*/"
-)
+IOMUXC_PAD_COMMENT_PATTERN = re.compile(r"/\*\s*(GPIO_[A-Z0-9_]+)\s*,\s*pad number\s*(\d+)\s*\*/")
 
 # Known pad group prefixes for i.MX RT 1060 series.
 # Format: IOMUXC_<PAD_NAME>_<SIGNAL_NAME>

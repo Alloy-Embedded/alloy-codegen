@@ -178,16 +178,16 @@ C++ descriptor artifacts for Alloy consumption:
 
 - `generated/peripherals/<peripheral>.hpp`
 - `generated/ip/<ip-version>.hpp`
-- `generated/signal_map.hpp`
+- `generated/connector_tables.hpp`
 - `generated/rcc_map.hpp`
 - `generated/dma_map.hpp`
 - `generated/interrupt_map.hpp`
 - `generated/memory_map.hpp`
 - `generated/package_map.hpp`
+- `generated/clock_tree_lite.hpp`
 - `generated/devices/<device>/register_map.hpp`
-- `generated/devices/<device>/pin_functions.hpp`
 - `generated/devices/<device>/startup_descriptors.hpp`
-- `generated/devices/<device>/startup_vectors.cpp` or equivalent descriptor-only translation unit
+- `generated/devices/<device>/startup_vectors.cpp`
 
 ### 3. `reports/`
 

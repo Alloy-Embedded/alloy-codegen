@@ -330,7 +330,6 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/metadata/family-index.json" in artifacts
     assert f"{family_dir}/metadata/family-connectivity.json" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp" in artifacts
-    assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
     assert f"{family_dir}/generated/rcc_map.hpp" in artifacts
     assert f"{family_dir}/generated/dma_map.hpp" in artifacts
     assert f"{family_dir}/generated/connector_tables.hpp" in artifacts
@@ -362,9 +361,6 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "nxp" in register_map.content
     assert "imxrt1060" in register_map.content
     assert "mimxrt1062" in register_map.content
-
-    startup = artifacts[f"{family_dir}/generated/devices/mimxrt1062/startup.cpp"]
-    assert "kInterruptTable" in startup.content
 
     connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
     assert "kConnectionCandidates" in connector_tables.content
@@ -419,7 +415,7 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     family_dir = "nxp/imxrt1060"
     fixture_root = IMXRT1060_EMITTED_DIR
 
-    for name in ("register_map.hpp", "startup.cpp"):
+    for name in ("register_map.hpp",):
         assert artifacts[f"{family_dir}/generated/devices/mimxrt1062/{name}"].content == (
             fixture_root / "generated" / "devices" / "mimxrt1062" / name
         ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"
@@ -464,7 +460,13 @@ def test_publish_nxp_imxrt1060_completes_successfully(
         pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "register_map.hpp"
     ).exists()
     assert (
-        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "startup.cpp"
+        pub_root
+        / "nxp"
+        / "imxrt1060"
+        / "generated"
+        / "devices"
+        / "mimxrt1062"
+        / "startup_vectors.cpp"
     ).exists()
     assert (pub_root / "nxp" / "imxrt1060" / "artifact-manifest.json").exists()
     assert (pub_root / "nxp" / "imxrt1060" / "reports" / "validation-report.json").exists()

@@ -865,47 +865,6 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
     )
 
 
-def emit_startup_source(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
-    namespace_block = _cpp_namespace_block(
-        _namespace_components(device),
-        "\n".join(
-            [
-                "struct InterruptDescriptor {",
-                "  const char* name;",
-                "  int line;",
-                "  const char* peripheral;",
-                "};",
-                "inline constexpr InterruptDescriptor kInterruptTable[] = {",
-                *[
-                    "  {"
-                    f"{json.dumps(interrupt.name)}, "
-                    f"{interrupt.line}, "
-                    f"{_quoted(interrupt.peripheral)}"
-                    "},"
-                    for interrupt in sorted(
-                        device.interrupts,
-                        key=lambda item: (item.line, item.name),
-                    )
-                ],
-                "};",
-            ]
-        ),
-    )
-    content = "\n".join(
-        [
-            "// Generated startup metadata bootstrap unit.",
-            "#include <cstdint>",
-            "",
-            namespace_block,
-            "",
-        ]
-    )
-    return _cpp_artifact(
-        path=_device_generated_path(family_dir, device.identity.device, "startup.cpp"),
-        content=content,
-    )
-
-
 def emit_gpio_header(
     *,
     family_dir: str,

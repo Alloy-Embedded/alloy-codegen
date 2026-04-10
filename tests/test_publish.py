@@ -35,11 +35,11 @@ def test_publish_includes_materialized_summary(
     assert result.payload.consumer_verification is not None
     assert result.payload.consumer_verification.succeeded is True
     assert any(
-        argument.startswith('-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER=')
+        argument.startswith("-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER=")
         for argument in result.payload.consumer_verification.command
     )
     assert any(
-        argument.startswith('-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER=')
+        argument.startswith("-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER=")
         for argument in result.payload.consumer_verification.command
     )
     assert summary is not None
@@ -262,7 +262,7 @@ def test_publish_does_not_modify_publication_root_when_consumer_verification_fai
             consumer_id="alloy-published-artifact-smoke",
             compiler="c++",
             source_file="/tmp/source.cpp",
-            startup_source="/tmp/startup.cpp",
+            startup_source="/tmp/startup_vectors.cpp",
             build_dir="/tmp/build",
             executable_path="/tmp/build/smoke-consumer",
             command=("c++",),

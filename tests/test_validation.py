@@ -227,9 +227,7 @@ def test_validation_fails_gate_c_when_bonded_pin_has_no_package_pad(
 ) -> None:
     validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
     original_device = validated.payload.devices[0]
-    filtered_pads = tuple(
-        pad for pad in original_device.package_pads if pad.bonded_pin != "PA0"
-    )
+    filtered_pads = tuple(pad for pad in original_device.package_pads if pad.bonded_pin != "PA0")
     broken_device = CanonicalDeviceIR(
         schema_version=original_device.schema_version,
         identity=original_device.identity,
@@ -381,7 +379,8 @@ def test_validation_fails_gate_c_when_candidate_has_no_source_requirement(
         signal_endpoints=original_device.signal_endpoints,
         route_requirements=original_device.route_requirements,
         route_operations=original_device.route_operations,
-        connection_candidates=(broken_candidate,) + tuple(
+        connection_candidates=(broken_candidate,)
+        + tuple(
             item
             for item in original_device.connection_candidates
             if item.candidate_id != candidate.candidate_id
@@ -458,7 +457,8 @@ def test_validation_fails_gate_c_when_candidate_capabilities_lack_instance_overl
         signal_endpoints=original_device.signal_endpoints,
         route_requirements=original_device.route_requirements,
         route_operations=original_device.route_operations,
-        connection_candidates=(broken_candidate,) + tuple(
+        connection_candidates=(broken_candidate,)
+        + tuple(
             item
             for item in original_device.connection_candidates
             if item.candidate_id != candidate.candidate_id

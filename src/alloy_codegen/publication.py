@@ -83,9 +83,7 @@ def emit_publication_record(
                 validation_report.draft_system_descriptor_domains
             ),
             "gates": to_primitive(validation_report.gates),
-            "system_descriptor_domains": to_primitive(
-                validation_report.system_descriptor_domains
-            ),
+            "system_descriptor_domains": to_primitive(validation_report.system_descriptor_domains),
         },
         "consumer_verification": to_primitive(consumer_verification),
         "published_artifact_count": len(published_artifacts),

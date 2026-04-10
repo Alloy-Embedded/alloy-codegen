@@ -351,9 +351,7 @@ def _parse_peripheral_patch(payload: dict[str, object]) -> PeripheralPatch:
             if payload.get("rcc_reset_signal") is not None
             else None
         ),
-        ip_version=(
-            str(payload["ip_version"]) if payload.get("ip_version") is not None else None
-        ),
+        ip_version=(str(payload["ip_version"]) if payload.get("ip_version") is not None else None),
     )
 
 
@@ -421,9 +419,7 @@ def _parse_clock_selector_patch(payload: dict[str, object]) -> ClockSelectorPatc
         selector_id=str(payload["selector_id"]),
         parent_options=tuple(str(option) for option in payload.get("parent_options", ())),
         register_target=(
-            str(payload["register_target"])
-            if payload.get("register_target") is not None
-            else None
+            str(payload["register_target"]) if payload.get("register_target") is not None else None
         ),
     )
 
@@ -818,9 +814,7 @@ def _resolve_reset(
             str(item["peripheral"]) if item.get("peripheral") is not None else base.peripheral
         ),
         reset_signal=(
-            str(item["reset_signal"])
-            if item.get("reset_signal") is not None
-            else base.reset_signal
+            str(item["reset_signal"]) if item.get("reset_signal") is not None else base.reset_signal
         ),
         active_level=(
             str(item["active_level"]) if item.get("active_level") is not None else base.active_level
@@ -842,9 +836,7 @@ def _resolve_peripheral_clock_binding(
         return binding
 
     if not isinstance(item, dict):
-        raise StageExecutionError(
-            f"Invalid peripheral clock binding patch entry: {item!r}"
-        )
+        raise StageExecutionError(f"Invalid peripheral clock binding patch entry: {item!r}")
 
     peripheral = str(item["peripheral"])
     base = catalog.get(peripheral)
@@ -860,9 +852,7 @@ def _resolve_peripheral_clock_binding(
         ),
         reset_id=str(item["reset_id"]) if item.get("reset_id") is not None else base.reset_id,
         selector_id=(
-            str(item["selector_id"])
-            if item.get("selector_id") is not None
-            else base.selector_id
+            str(item["selector_id"]) if item.get("selector_id") is not None else base.selector_id
         ),
     )
 

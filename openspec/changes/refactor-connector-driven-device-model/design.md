@@ -329,16 +329,14 @@ The change fills in the missing descriptor families needed by the target-state c
 
 - `generated/peripherals/<peripheral>.hpp`
 - `generated/ip/<ip-version>.hpp`
-- `generated/capabilities/<peripheral-class>/<ip-version>.hpp`
 - `generated/connector_tables.hpp`
 - `generated/interrupt_map.hpp`
 - `generated/memory_map.hpp`
 - `generated/package_map.hpp`
 - `generated/clock_tree_lite.hpp`
-- `generated/rcc_map.hpp` or generalized `clock_reset_map.hpp`
+- `generated/rcc_map.hpp`
 - `generated/dma_map.hpp`
 - `generated/devices/<device>/register_map.hpp`
-- `generated/devices/<device>/pin_functions.hpp`
 - `generated/devices/<device>/startup_descriptors.hpp`
 - `generated/devices/<device>/startup_vectors.cpp`
 
@@ -423,11 +421,13 @@ No vendor may bypass the route model or publishability gates through emitter exc
 - **Risk: NXP implementation starts before the model is stable**
   - Mitigation: block final `add-nxp-mcux-family` completion until this change lands
 
-## Open Questions
+## Resolved Design Decisions
 
-- Whether the final generated device layout should keep `pin_functions.hpp` as a convenience
-  header or collapse its contents into `connector_tables.hpp`
-- Whether `clock_tree_lite.hpp` should replace `rcc_map.hpp` immediately or coexist during the
-  transition
-- Whether device-local startup vectors should be emitted as one `startup_vectors.cpp` or split
-  into descriptor data and a tiny vector translation unit
+- `pin_functions.hpp` and `signal_map.hpp` are retired; `connector_tables.hpp` is the only
+  pin-level connectivity artifact (C1.1 / I.1 closed)
+- `startup.cpp` (`kInterruptTable`) is retired; `startup_descriptors.hpp` + `startup_vectors.cpp`
+  are the final startup artifacts (I.2 closed)
+- `clock_tree_lite.hpp` coexists with `rcc_map.hpp` during the transition; `rcc_map.hpp` remains
+  as the flat peripheral clock/reset convenience table
+- Device-local startup is split: `startup_descriptors.hpp` (rich descriptor data) and
+  `startup_vectors.cpp` (descriptor-only vector translation unit)

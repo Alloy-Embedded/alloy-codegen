@@ -113,9 +113,9 @@
 ## Phase I: Legacy cleanup
 
 - [x] I.1 Remove transitional emitter dependence on legacy AF-centric connectivity fields
-- [ ] I.2 Remove obsolete bootstrap-only artifact names once Alloy migration is ready
-- [ ] I.3 Update docs, fixtures, and workflows to reference the final descriptor contract only
+- [x] I.2 Remove obsolete bootstrap-only artifact names once Alloy migration is ready
+- [x] I.3 Update docs, fixtures, and workflows to reference the final descriptor contract only
 
 ### Gate C9: Legacy retirement
-- [ ] C9.1 No publishable family depends on legacy bootstrap connectivity assumptions
-- [ ] C9.2 The connector-driven descriptor model becomes the only supported contract
+- [x] C9.1 No publishable family depends on legacy bootstrap connectivity assumptions
+- [x] C9.2 The connector-driven descriptor model becomes the only supported contract

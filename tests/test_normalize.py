@@ -204,8 +204,7 @@ def test_normalize_populates_package_pads_for_foundational_vendors(
 
     assert st_device.package_pads
     assert any(
-        pad.bonded_pin == "PA0" and pad.position_label == "17"
-        for pad in st_device.package_pads
+        pad.bonded_pin == "PA0" and pad.position_label == "17" for pad in st_device.package_pads
     )
     assert all(pad.package == "lqfp64" for pad in st_device.package_pads)
 
@@ -220,8 +219,7 @@ def test_normalize_populates_package_pads_for_foundational_vendors(
 
     assert nxp_device.package_pads
     assert any(
-        pad.pad_id == "GPIO_AD_B0_00" and pad.pad_kind == "io"
-        for pad in nxp_device.package_pads
+        pad.pad_id == "GPIO_AD_B0_00" and pad.pad_kind == "io" for pad in nxp_device.package_pads
     )
     assert all(pad.bonding_state == "bonded" for pad in nxp_device.package_pads)
 

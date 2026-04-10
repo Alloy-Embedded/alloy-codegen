@@ -20,9 +20,9 @@ def _published_device(scope: PipelineScope, family_root: Path) -> str:
     if scope.device is not None:
         return scope.device
 
-    startup_sources = sorted(family_root.glob("generated/devices/*/startup.cpp"))
-    if startup_sources:
-        return startup_sources[0].parent.name
+    vector_sources = sorted(family_root.glob("generated/devices/*/startup_vectors.cpp"))
+    if vector_sources:
+        return vector_sources[0].parent.name
 
     vendor = scope.resolved_vendor()
     family = scope.resolved_family()
@@ -82,7 +82,7 @@ def verify_alloy_smoke_consumer(
 
     family_root = _family_root(publication_root, scope)
     device = _published_device(scope, family_root)
-    startup_source = family_root / "generated" / "devices" / device / "startup.cpp"
+    startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
     if not startup_source.exists():
         raise StageExecutionError(f"Published startup source not found: {startup_source}")
     gpio_header = _first_generated_gpio_header(family_root)

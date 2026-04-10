@@ -116,17 +116,13 @@ def _evaluate_system_descriptor_domains(
 ) -> tuple[SystemDescriptorDomainStatus, ...]:
     statuses: list[SystemDescriptorDomainStatus] = []
     for domain_id, suffixes in SYSTEM_DESCRIPTOR_RULE_SUFFIXES.items():
-        domain_results = tuple(
-            result for result in results if result.rule_id.endswith(suffixes)
-        )
+        domain_results = tuple(result for result in results if result.rule_id.endswith(suffixes))
         passed = bool(domain_results) and all(
             result.passed for result in domain_results if result.severity == "error"
         )
         draft = not passed
         if not domain_results:
-            message = (
-                f"{domain_id} domain is draft because no validation rules are registered."
-            )
+            message = f"{domain_id} domain is draft because no validation rules are registered."
         elif passed:
             message = f"{domain_id} domain is publishable with {len(domain_results)} rule(s)."
         else:
@@ -465,9 +461,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     }
     operation_ids = {operation.operation_id for operation in device.route_operations}
     capability_ids = {capability.capability_id for capability in device.capabilities}
-    capability_lookup = {
-        capability.capability_id: capability for capability in device.capabilities
-    }
+    capability_lookup = {capability.capability_id: capability for capability in device.capabilities}
     candidate_ids = {candidate.candidate_id for candidate in device.connection_candidates}
     candidate_lookup = {
         candidate.candidate_id: candidate for candidate in device.connection_candidates
@@ -509,14 +503,8 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     )
     package_pad_positions_unique = len(package_position_keys) == len(set(package_position_keys))
     package_pad_bonding_consistent = all(
-        (
-            pad.bonding_state == "bonded"
-            and pad.bonded_pin is not None
-        )
-        or (
-            pad.bonding_state in {"dedicated", "unbonded"}
-            and pad.bonded_pin is None
-        )
+        (pad.bonding_state == "bonded" and pad.bonded_pin is not None)
+        or (pad.bonding_state in {"dedicated", "unbonded"} and pad.bonded_pin is None)
         for pad in device.package_pads
     )
     package_pads_reference_known_pins = all(
@@ -552,8 +540,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     candidate_source_requirements_known = all(
         candidate.route_selector is None
         or any(
-            requirement.kind == "source-select"
-            and requirement.value == candidate.route_selector
+            requirement.kind == "source-select" and requirement.value == candidate.route_selector
             for requirement in _candidate_requirements(candidate.candidate_id)
         )
         for candidate in device.connection_candidates
@@ -637,8 +624,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         for group in device.connection_groups
     )
     group_packages_match_selected_package = all(
-        group.package in {None, device.identity.package}
-        for group in device.connection_groups
+        group.package in {None, device.identity.package} for group in device.connection_groups
     )
     group_candidates_match_selected_package = all(
         all(
@@ -711,32 +697,28 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         and (
             "copy-source" not in memory.startup_roles
             or any(
-                descriptor.kind == "copy-source-region"
-                and descriptor.source_region == memory.name
+                descriptor.kind == "copy-source-region" and descriptor.source_region == memory.name
                 for descriptor in device.startup_descriptors
             )
         )
         and (
             "copy-target" not in memory.startup_roles
             or any(
-                descriptor.kind == "copy-target-region"
-                and descriptor.target_region == memory.name
+                descriptor.kind == "copy-target-region" and descriptor.target_region == memory.name
                 for descriptor in device.startup_descriptors
             )
         )
         and (
             "zero-target" not in memory.startup_roles
             or any(
-                descriptor.kind == "zero-target-region"
-                and descriptor.target_region == memory.name
+                descriptor.kind == "zero-target-region" and descriptor.target_region == memory.name
                 for descriptor in device.startup_descriptors
             )
         )
         and (
             "retained-target" not in memory.startup_roles
             or any(
-                descriptor.kind == "retained-region"
-                and descriptor.target_region == memory.name
+                descriptor.kind == "retained-region" and descriptor.target_region == memory.name
                 for descriptor in device.startup_descriptors
             )
         )
@@ -759,12 +741,10 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     )
     clock_parent_map = {node.node_id: node.parent for node in device.clock_nodes}
     clock_node_parents_known = all(
-        node.parent is None or node.parent in clock_node_ids
-        for node in device.clock_nodes
+        node.parent is None or node.parent in clock_node_ids for node in device.clock_nodes
     )
     clock_graph_root_reachable = all(
-        _node_reaches_root(node.node_id, clock_parent_map)
-        for node in device.clock_nodes
+        _node_reaches_root(node.node_id, clock_parent_map) for node in device.clock_nodes
     )
     clock_selectors_structured = all(
         bool(selector.parent_options)
@@ -900,8 +880,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=bonded_pins_have_package_pad,
             message=(
-                f"{device.identity.device} every declared GPIO pin is covered "
-                "by a package pad."
+                f"{device.identity.device} every declared GPIO pin is covered by a package pad."
             ),
         ),
         _rule(
@@ -945,8 +924,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=candidate_requirements_known,
             message=(
-                f"{device.identity.device} route candidates only reference "
-                "declared requirements."
+                f"{device.identity.device} route candidates only reference declared requirements."
             ),
         ),
         _rule(
@@ -955,8 +933,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=candidate_package_requirements_known,
             message=(
-                f"{device.identity.device} route candidates carry an explicit "
-                "package requirement."
+                f"{device.identity.device} route candidates carry an explicit package requirement."
             ),
         ),
         _rule(
@@ -975,8 +952,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=candidate_operations_known,
             message=(
-                f"{device.identity.device} route candidates only reference "
-                "declared operations."
+                f"{device.identity.device} route candidates only reference declared operations."
             ),
         ),
         _rule(
@@ -985,8 +961,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=candidate_capabilities_known,
             message=(
-                f"{device.identity.device} route candidates only reference "
-                "declared capabilities."
+                f"{device.identity.device} route candidates only reference declared capabilities."
             ),
         ),
         _rule(
@@ -1021,8 +996,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             category="semantic",
             severity="error",
             passed=(
-                group_packages_match_selected_package
-                and group_candidates_match_selected_package
+                group_packages_match_selected_package and group_candidates_match_selected_package
             ),
             message=(
                 f"{device.identity.device} route groups only admit candidates "
@@ -1132,8 +1106,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=startup_descriptors_reference_known_memories,
             message=(
-                f"{device.identity.device} startup descriptors only reference "
-                "declared memories."
+                f"{device.identity.device} startup descriptors only reference declared memories."
             ),
         ),
         _rule(
@@ -1305,8 +1278,7 @@ def _validate_scope_semantics(
         return ()
 
     family_has_multi_signal_groups = all(
-        any(len(group.signals) >= 2 for group in device.connection_groups)
-        for device in devices
+        any(len(group.signals) >= 2 for group in device.connection_groups) for device in devices
     )
     ip_block_usage: dict[tuple[str, str], set[str]] = {}
     for device in devices:
@@ -1315,14 +1287,11 @@ def _validate_scope_semantics(
                 device.identity.device
             )
     families_with_versioned_ip = bool(ip_block_usage)
-    family_reuses_ip_blocks = (
-        not families_with_versioned_ip
-        or any(len(device_names) >= 2 for device_names in ip_block_usage.values())
+    family_reuses_ip_blocks = not families_with_versioned_ip or any(
+        len(device_names) >= 2 for device_names in ip_block_usage.values()
     )
     scope_label = (
-        f"{scope.vendor}-{scope.family}"
-        if scope.vendor is not None
-        else str(scope.family)
+        f"{scope.vendor}-{scope.family}" if scope.vendor is not None else str(scope.family)
     )
     return (
         _rule(
