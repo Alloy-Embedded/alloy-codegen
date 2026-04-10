@@ -13,10 +13,12 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     emit_artifact_manifest,
     emit_device_metadata,
+    emit_dma_map_header,
     emit_family_connectivity,
     emit_family_index,
     emit_gpio_header,
     emit_pin_functions_header,
+    emit_rcc_map_header,
     emit_register_map_header,
     emit_signal_map_header,
     emit_startup_source,
@@ -89,6 +91,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             )
         )
     artifacts.append(emit_signal_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_rcc_map_header(family_dir=family_dir, devices=devices))
+    artifacts.append(emit_dma_map_header(family_dir=family_dir, devices=devices))
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
         artifacts=tuple(artifacts),

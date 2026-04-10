@@ -46,6 +46,8 @@ def test_emit_includes_metadata_artifacts_with_content(
     register_map_artifact = artifacts["st/stm32g0/stm32g071rb/register_map.hpp"]
     pin_functions_artifact = artifacts["st/stm32g0/stm32g071rb/pin_functions.hpp"]
     startup_artifact = artifacts["st/stm32g0/stm32g071rb/startup.cpp"]
+    rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
+    dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
     gpio_artifacts = [
         artifact
         for path, artifact in artifacts.items()
@@ -113,6 +115,20 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "kSignalMap" in signal_map_artifact.content
     assert "SignalDescriptor" in signal_map_artifact.content
 
+    assert rcc_map_artifact.artifact_kind == "generated-cpp"
+    assert rcc_map_artifact.content is not None
+    assert rcc_map_artifact.content_sha256 is not None
+    assert Path(rcc_map_artifact.materialized_path).exists()
+    assert "kRccMap" in rcc_map_artifact.content
+    assert "RccDescriptor" in rcc_map_artifact.content
+
+    assert dma_map_artifact.artifact_kind == "generated-cpp"
+    assert dma_map_artifact.content is not None
+    assert dma_map_artifact.content_sha256 is not None
+    assert Path(dma_map_artifact.materialized_path).exists()
+    assert "kDmaMap" in dma_map_artifact.content
+    assert "DmaDescriptor" in dma_map_artifact.content
+
 
 def test_emit_matches_golden_artifacts(
     execution_context: ExecutionContext,
@@ -148,6 +164,12 @@ def test_emit_matches_golden_artifacts(
         assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/signal_map.hpp"].content == (
         fixture_root / "generated" / "signal_map.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/rcc_map.hpp"].content == (
+        fixture_root / "generated" / "rcc_map.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/dma_map.hpp"].content == (
+        fixture_root / "generated" / "dma_map.hpp"
     ).read_text(encoding="utf-8")
 
 

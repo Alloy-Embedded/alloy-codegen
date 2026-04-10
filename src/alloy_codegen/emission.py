@@ -477,6 +477,118 @@ def emit_signal_map_header(
     )
 
 
+def emit_rcc_map_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    """Emit a family-level C++ header mapping peripheral → (rcc_enable_signal, rcc_reset_signal)."""
+    # Collect unique (peripheral, enable_signal, reset_signal) triples across every device.
+    seen: set[str] = set()
+    rows: list[tuple[str, str, str]] = []
+    for device in devices:
+        for peripheral in device.peripherals:
+            if peripheral.rcc_enable_signal is None and peripheral.rcc_reset_signal is None:
+                continue
+            if peripheral.name in seen:
+                continue
+            seen.add(peripheral.name)
+            rows.append(
+                (
+                    peripheral.name,
+                    peripheral.rcc_enable_signal or "",
+                    peripheral.rcc_reset_signal or "",
+                )
+            )
+    rows.sort(key=lambda r: r[0])
+
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct RccDescriptor {",
+        "  const char* peripheral;",
+        "  const char* enable_signal;",
+        "  const char* reset_signal;",
+        "};",
+        "inline constexpr RccDescriptor kRccMap[] = {",
+        *[
+            f"  {{{json.dumps(peripheral)}, {json.dumps(enable)}, {json.dumps(reset)}}},"
+            for peripheral, enable, reset in rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block(
+        (_vendor, _family, "generated"),
+        "\n".join(body_lines),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/rcc_map.hpp",
+        content=content,
+    )
+
+
+def emit_dma_map_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    """Emit a family-level C++ header mapping (peripheral, signal) → (controller, request_line)."""
+    seen: set[tuple[str, str, str, str]] = set()
+    rows: list[tuple[str, str, str, str]] = []
+    for device in devices:
+        for req in device.dma_requests:
+            key = (
+                req.peripheral or "",
+                req.signal or "",
+                req.controller,
+                req.request_line,
+            )
+            if key not in seen:
+                seen.add(key)
+                rows.append(key)
+    rows.sort()
+
+    _vendor, _family = family_dir.split("/", 1)
+    body_lines = [
+        "struct DmaDescriptor {",
+        "  const char* peripheral;",
+        "  const char* signal;",
+        "  const char* controller;",
+        "  const char* request_line;",
+        "};",
+        "inline constexpr DmaDescriptor kDmaMap[] = {",
+        *[
+            f"  {{{json.dumps(peripheral)}, {json.dumps(signal)}, "
+            f"{json.dumps(controller)}, {json.dumps(request_line)}}},"
+            for peripheral, signal, controller, request_line in rows
+        ],
+        "};",
+    ]
+    namespace_block = _cpp_namespace_block(
+        (_vendor, _family, "generated"),
+        "\n".join(body_lines),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=f"{family_dir}/generated/dma_map.hpp",
+        content=content,
+    )
+
+
 def emit_publication_summary(
     *,
     family_dir: str,
