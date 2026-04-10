@@ -72,8 +72,11 @@ jobs:
       - name: Pytest
         run: python -m pytest tests
 
+      - name: Ruff format
+        run: python -m ruff format --check src tests
+
       - name: Validate OpenSpec
-        run: openspec validate add-codegen-platform-foundation --strict
+        run: openspec validate --strict
 
   bootstrap-family:
     name: Bootstrap Family (${{ matrix.device }})
