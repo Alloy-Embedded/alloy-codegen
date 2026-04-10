@@ -29,6 +29,14 @@ def test_publish_includes_materialized_summary(
     assert result.payload.target_artifact_revision is not None
     assert result.payload.consumer_verification is not None
     assert result.payload.consumer_verification.succeeded is True
+    assert any(
+        argument.startswith('-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER=')
+        for argument in result.payload.consumer_verification.command
+    )
+    assert any(
+        argument.startswith('-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER=')
+        for argument in result.payload.consumer_verification.command
+    )
     assert summary is not None
     assert record is not None
     assert summary.materialized_path is not None

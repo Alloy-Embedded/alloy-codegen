@@ -61,6 +61,14 @@ def test_enrich_connector_descriptors_builds_st_route_model(execution_context) -
     assert any(interrupt.alias_names for interrupt in device.interrupts)
     assert any(vector_slot.slot == 1 for vector_slot in device.vector_slots)
     assert any(memory.startup_roles for memory in device.memories)
+    assert any(
+        selector.selector_id == "selector:usart1-kernel"
+        for selector in device.clock_selectors
+    )
+    assert any(
+        binding.peripheral == "USART1" and binding.selector_id == "selector:usart1-kernel"
+        for binding in device.peripheral_clock_bindings
+    )
     dma1 = next(
         controller
         for controller in device.dma_controllers
@@ -174,4 +182,12 @@ def test_enrich_connector_descriptors_builds_nxp_route_model(
         assert device.dma_controllers
         assert device.dma_routes
         assert all(controller.request_count for controller in device.dma_controllers)
+    assert any(
+        selector.selector_id == "selector:lpuart-root"
+        for selector in device.clock_selectors
+    )
+    assert any(
+        gate.gate_id == "gate:lpuart1" and gate.parent_node == "clock-node:lpuart-root"
+        for gate in device.clock_gates
+    )
     assert any(vector_slot.slot == 1 for vector_slot in device.vector_slots)

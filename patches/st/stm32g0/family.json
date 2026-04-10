@@ -252,6 +252,62 @@
       "rcc_reset_signal": "RCC_APBRSTR1.UCPD2RST"
     }
   ],
+  "clock_nodes": [
+    {
+      "node_id": "clock-node:sysclk",
+      "kind": "system-source",
+      "parent": "clock-root",
+      "selector": null
+    },
+    {
+      "node_id": "clock-node:hsi16",
+      "kind": "internal-oscillator",
+      "parent": "clock-root",
+      "selector": null
+    },
+    {
+      "node_id": "clock-node:lse",
+      "kind": "low-speed-source",
+      "parent": "clock-root",
+      "selector": null
+    }
+  ],
+  "clock_selectors": [
+    {
+      "selector_id": "selector:usart1-kernel",
+      "parent_options": [
+        "clock-node:rcc-apbenr2",
+        "clock-node:sysclk",
+        "clock-node:hsi16",
+        "clock-node:lse"
+      ],
+      "register_target": "RCC_CCIPR.USART1SEL"
+    },
+    {
+      "selector_id": "selector:lpuart1-kernel",
+      "parent_options": [
+        "clock-node:rcc-apbenr1",
+        "clock-node:sysclk",
+        "clock-node:hsi16",
+        "clock-node:lse"
+      ],
+      "register_target": "RCC_CCIPR.LPUART1SEL"
+    }
+  ],
+  "peripheral_clock_bindings": [
+    {
+      "peripheral": "USART1",
+      "clock_gate_id": "gate:usart1",
+      "reset_id": "reset:usart1",
+      "selector_id": "selector:usart1-kernel"
+    },
+    {
+      "peripheral": "LPUART1",
+      "clock_gate_id": "gate:lpuart1",
+      "reset_id": "reset:lpuart1",
+      "selector_id": "selector:lpuart1-kernel"
+    }
+  ],
   "pin_signals": [
     {
       "signal_id": "pa2-usart2-tx",

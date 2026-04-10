@@ -655,6 +655,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     )
     clock_selectors_structured = all(
         bool(selector.parent_options)
+        and all(parent_option in clock_node_ids for parent_option in selector.parent_options)
         for selector in device.clock_selectors
     )
     clock_gates_reference_known_nodes = all(

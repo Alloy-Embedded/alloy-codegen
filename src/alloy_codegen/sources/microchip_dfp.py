@@ -705,6 +705,11 @@ def merge_source_patch(
             sorted(merged_peripherals.values(), key=lambda peripheral: peripheral.name)
         ),
         pins=patch.pins,
+        clock_nodes=patch.clock_nodes,
+        clock_selectors=patch.clock_selectors,
+        clock_gates=patch.clock_gates,
+        resets=patch.resets,
+        peripheral_clock_bindings=patch.peripheral_clock_bindings,
         dma_controllers=patch.dma_controllers,
         dma_requests=tuple(
             sorted(

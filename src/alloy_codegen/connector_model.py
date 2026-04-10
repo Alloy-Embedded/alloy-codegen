@@ -756,67 +756,128 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     )
 
     clock_node_map: dict[str, ClockNodeLite] = {
-        "clock-root": ClockNodeLite(
+        node.node_id: node for node in device.clock_nodes
+    }
+    clock_node_map.setdefault(
+        "clock-root",
+        ClockNodeLite(
             node_id="clock-root",
             kind="root",
             parent=None,
             selector=None,
             provenance=device.provenance,
-        )
+        ),
+    )
+    clock_gate_map: dict[str, ClockGateDescriptor] = {
+        gate.gate_id: gate for gate in device.clock_gates
     }
-    clock_gate_map: dict[str, ClockGateDescriptor] = {}
-    reset_map: dict[str, ResetDescriptor] = {}
-    binding_map: dict[str, PeripheralClockBinding] = {}
-    binding_overlays = {
+    reset_map: dict[str, ResetDescriptor] = {
+        reset.reset_id: reset for reset in device.resets
+    }
+    binding_map: dict[str, PeripheralClockBinding] = {
         binding.peripheral: binding for binding in device.peripheral_clock_bindings
     }
 
     for peripheral in device.peripherals:
         parent_node = None
         if peripheral.rcc_enable_signal is not None:
-            parent_node = _domain_node_id(peripheral.rcc_enable_signal)
+            inferred_parent_node = _domain_node_id(peripheral.rcc_enable_signal)
             parent_parent, node_kind = _domain_node_shape(peripheral.rcc_enable_signal)
             clock_node_map.setdefault(
-                parent_node,
+                inferred_parent_node,
                 ClockNodeLite(
-                    node_id=parent_node,
+                    node_id=inferred_parent_node,
                     kind=node_kind,
                     parent=parent_parent,
                     selector=None,
                     provenance=peripheral.provenance,
                 ),
             )
-            gate_id = f"gate:{_sanitize(peripheral.name)}"
-            clock_gate_map[gate_id] = ClockGateDescriptor(
-                gate_id=gate_id,
-                peripheral=peripheral.name,
-                enable_signal=peripheral.rcc_enable_signal,
-                parent_node=parent_node,
-                provenance=peripheral.provenance,
+            explicit_gate = next(
+                (
+                    gate
+                    for gate in device.clock_gates
+                    if gate.peripheral == peripheral.name
+                ),
+                None,
             )
+            gate_id = (
+                f"gate:{_sanitize(peripheral.name)}"
+                if explicit_gate is None
+                else explicit_gate.gate_id
+            )
+            if explicit_gate is None:
+                clock_gate_map[gate_id] = ClockGateDescriptor(
+                    gate_id=gate_id,
+                    peripheral=peripheral.name,
+                    enable_signal=peripheral.rcc_enable_signal,
+                    parent_node=inferred_parent_node,
+                    provenance=peripheral.provenance,
+                )
+                parent_node = inferred_parent_node
+            else:
+                parent_node = (
+                    explicit_gate.parent_node
+                    if explicit_gate.parent_node is not None
+                    else inferred_parent_node
+                )
+                clock_gate_map[gate_id] = ClockGateDescriptor(
+                    gate_id=explicit_gate.gate_id,
+                    peripheral=explicit_gate.peripheral,
+                    enable_signal=explicit_gate.enable_signal,
+                    parent_node=parent_node,
+                    provenance=explicit_gate.provenance,
+                )
         else:
             gate_id = None
 
         if peripheral.rcc_reset_signal is not None:
-            reset_id = f"reset:{_sanitize(peripheral.name)}"
-            reset_map[reset_id] = ResetDescriptor(
-                reset_id=reset_id,
-                peripheral=peripheral.name,
-                reset_signal=peripheral.rcc_reset_signal,
-                active_level="high",
-                provenance=peripheral.provenance,
+            explicit_reset = next(
+                (
+                    reset
+                    for reset in device.resets
+                    if reset.peripheral == peripheral.name
+                ),
+                None,
             )
+            reset_id = (
+                f"reset:{_sanitize(peripheral.name)}"
+                if explicit_reset is None
+                else explicit_reset.reset_id
+            )
+            if explicit_reset is None:
+                reset_map[reset_id] = ResetDescriptor(
+                    reset_id=reset_id,
+                    peripheral=peripheral.name,
+                    reset_signal=peripheral.rcc_reset_signal,
+                    active_level="high",
+                    provenance=peripheral.provenance,
+                )
+            else:
+                reset_map[reset_id] = explicit_reset
         else:
             reset_id = None
 
         if gate_id is not None or reset_id is not None:
-            binding_overlay = binding_overlays.get(peripheral.name)
+            binding_overlay = binding_map.get(peripheral.name)
             binding_map[peripheral.name] = PeripheralClockBinding(
                 peripheral=peripheral.name,
-                clock_gate_id=gate_id,
-                reset_id=reset_id,
+                clock_gate_id=(
+                    gate_id
+                    if binding_overlay is None or binding_overlay.clock_gate_id is None
+                    else binding_overlay.clock_gate_id
+                ),
+                reset_id=(
+                    reset_id
+                    if binding_overlay is None or binding_overlay.reset_id is None
+                    else binding_overlay.reset_id
+                ),
                 selector_id=None if binding_overlay is None else binding_overlay.selector_id,
-                provenance=peripheral.provenance,
+                provenance=(
+                    peripheral.provenance
+                    if binding_overlay is None
+                    else binding_overlay.provenance
+                ),
             )
 
     dma_request_lines_by_controller: dict[str, set[str]] = defaultdict(set)

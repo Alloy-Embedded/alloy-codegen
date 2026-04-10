@@ -87,6 +87,55 @@ class DmaControllerPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class ClockNodePatch:
+    """Curated clock-tree node metadata supplied by a patch document."""
+
+    node_id: str
+    kind: str
+    parent: str | None
+    selector: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ClockSelectorPatch:
+    """Curated clock source-selector metadata supplied by a patch document."""
+
+    selector_id: str
+    parent_options: tuple[str, ...]
+    register_target: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ClockGatePatch:
+    """Curated clock-gate metadata supplied by a patch document."""
+
+    gate_id: str
+    peripheral: str | None
+    enable_signal: str
+    parent_node: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ResetPatch:
+    """Curated reset descriptor metadata supplied by a patch document."""
+
+    reset_id: str
+    peripheral: str | None
+    reset_signal: str
+    active_level: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class PeripheralClockBindingPatch:
+    """Curated peripheral-to-clock/reset binding metadata."""
+
+    peripheral: str
+    clock_gate_id: str | None
+    reset_id: str | None
+    selector_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class FamilyPatchCatalog:
     """Family-level curated catalog used by device overlays."""
 
@@ -95,6 +144,11 @@ class FamilyPatchCatalog:
     pins: tuple[PinCatalogEntry, ...]
     peripherals: tuple[PeripheralPatch, ...]
     pin_signals: tuple[PinSignalCatalogEntry, ...]
+    clock_nodes: tuple[ClockNodePatch, ...]
+    clock_selectors: tuple[ClockSelectorPatch, ...]
+    clock_gates: tuple[ClockGatePatch, ...]
+    resets: tuple[ResetPatch, ...]
+    peripheral_clock_bindings: tuple[PeripheralClockBindingPatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestCatalogEntry, ...]
 
@@ -133,6 +187,11 @@ class DevicePatch:
     memories: tuple[MemoryPatch, ...]
     peripherals: tuple[PeripheralPatch, ...]
     pins: tuple[PinPatch, ...]
+    clock_nodes: tuple[ClockNodePatch, ...]
+    clock_selectors: tuple[ClockSelectorPatch, ...]
+    clock_gates: tuple[ClockGatePatch, ...]
+    resets: tuple[ResetPatch, ...]
+    peripheral_clock_bindings: tuple[PeripheralClockBindingPatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestPatch, ...]
 
@@ -181,6 +240,50 @@ class DevicePatch:
                     ],
                 }
                 for pin in self.pins
+            ],
+            "clock_nodes": [
+                {
+                    "node_id": node.node_id,
+                    "kind": node.kind,
+                    "parent": node.parent,
+                    "selector": node.selector,
+                }
+                for node in self.clock_nodes
+            ],
+            "clock_selectors": [
+                {
+                    "selector_id": selector.selector_id,
+                    "parent_options": list(selector.parent_options),
+                    "register_target": selector.register_target,
+                }
+                for selector in self.clock_selectors
+            ],
+            "clock_gates": [
+                {
+                    "gate_id": gate.gate_id,
+                    "peripheral": gate.peripheral,
+                    "enable_signal": gate.enable_signal,
+                    "parent_node": gate.parent_node,
+                }
+                for gate in self.clock_gates
+            ],
+            "resets": [
+                {
+                    "reset_id": reset.reset_id,
+                    "peripheral": reset.peripheral,
+                    "reset_signal": reset.reset_signal,
+                    "active_level": reset.active_level,
+                }
+                for reset in self.resets
+            ],
+            "peripheral_clock_bindings": [
+                {
+                    "peripheral": binding.peripheral,
+                    "clock_gate_id": binding.clock_gate_id,
+                    "reset_id": binding.reset_id,
+                    "selector_id": binding.selector_id,
+                }
+                for binding in self.peripheral_clock_bindings
             ],
             "dma_controllers": [
                 {
@@ -300,6 +403,62 @@ def _parse_dma_controller_patch(payload: dict[str, object]) -> DmaControllerPatc
     )
 
 
+def _parse_clock_node_patch(payload: dict[str, object]) -> ClockNodePatch:
+    return ClockNodePatch(
+        node_id=str(payload["node_id"]),
+        kind=str(payload["kind"]),
+        parent=str(payload["parent"]) if payload.get("parent") is not None else None,
+        selector=str(payload["selector"]) if payload.get("selector") is not None else None,
+    )
+
+
+def _parse_clock_selector_patch(payload: dict[str, object]) -> ClockSelectorPatch:
+    return ClockSelectorPatch(
+        selector_id=str(payload["selector_id"]),
+        parent_options=tuple(str(option) for option in payload.get("parent_options", ())),
+        register_target=(
+            str(payload["register_target"])
+            if payload.get("register_target") is not None
+            else None
+        ),
+    )
+
+
+def _parse_clock_gate_patch(payload: dict[str, object]) -> ClockGatePatch:
+    return ClockGatePatch(
+        gate_id=str(payload["gate_id"]),
+        peripheral=str(payload["peripheral"]) if payload.get("peripheral") is not None else None,
+        enable_signal=str(payload["enable_signal"]),
+        parent_node=str(payload["parent_node"]) if payload.get("parent_node") is not None else None,
+    )
+
+
+def _parse_reset_patch(payload: dict[str, object]) -> ResetPatch:
+    return ResetPatch(
+        reset_id=str(payload["reset_id"]),
+        peripheral=str(payload["peripheral"]) if payload.get("peripheral") is not None else None,
+        reset_signal=str(payload["reset_signal"]),
+        active_level=(
+            str(payload["active_level"]) if payload.get("active_level") is not None else None
+        ),
+    )
+
+
+def _parse_peripheral_clock_binding_patch(
+    payload: dict[str, object],
+) -> PeripheralClockBindingPatch:
+    return PeripheralClockBindingPatch(
+        peripheral=str(payload["peripheral"]),
+        clock_gate_id=(
+            str(payload["clock_gate_id"]) if payload.get("clock_gate_id") is not None else None
+        ),
+        reset_id=str(payload["reset_id"]) if payload.get("reset_id") is not None else None,
+        selector_id=(
+            str(payload["selector_id"]) if payload.get("selector_id") is not None else None
+        ),
+    )
+
+
 def load_family_patch_catalog(
     context: ExecutionContext, *, vendor: str, family: str
 ) -> FamilyPatchCatalog:
@@ -316,6 +475,16 @@ def load_family_patch_catalog(
         peripherals=tuple(_parse_peripheral_patch(item) for item in payload.get("peripherals", ())),
         pin_signals=tuple(
             _parse_pin_signal_catalog_entry(item) for item in payload.get("pin_signals", ())
+        ),
+        clock_nodes=tuple(_parse_clock_node_patch(item) for item in payload.get("clock_nodes", ())),
+        clock_selectors=tuple(
+            _parse_clock_selector_patch(item) for item in payload.get("clock_selectors", ())
+        ),
+        clock_gates=tuple(_parse_clock_gate_patch(item) for item in payload.get("clock_gates", ())),
+        resets=tuple(_parse_reset_patch(item) for item in payload.get("resets", ())),
+        peripheral_clock_bindings=tuple(
+            _parse_peripheral_clock_binding_patch(item)
+            for item in payload.get("peripheral_clock_bindings", ())
         ),
         dma_controllers=tuple(
             _parse_dma_controller_patch(item) for item in payload.get("dma_controllers", ())
@@ -521,6 +690,176 @@ def _resolve_dma_controller(
     )
 
 
+def _resolve_clock_node(
+    *,
+    item: object,
+    catalog: dict[str, ClockNodePatch],
+) -> ClockNodePatch:
+    if isinstance(item, str):
+        node = catalog.get(item)
+        if node is None:
+            raise StageExecutionError(f"Unknown clock node reference in patch overlay: {item}")
+        return node
+
+    if not isinstance(item, dict):
+        raise StageExecutionError(f"Invalid clock node patch entry: {item!r}")
+
+    node_id = str(item["node_id"])
+    base = catalog.get(node_id)
+    if base is None:
+        return _parse_clock_node_patch(item)
+
+    return ClockNodePatch(
+        node_id=node_id,
+        kind=str(item["kind"]) if item.get("kind") is not None else base.kind,
+        parent=str(item["parent"]) if item.get("parent") is not None else base.parent,
+        selector=str(item["selector"]) if item.get("selector") is not None else base.selector,
+    )
+
+
+def _resolve_clock_selector(
+    *,
+    item: object,
+    catalog: dict[str, ClockSelectorPatch],
+) -> ClockSelectorPatch:
+    if isinstance(item, str):
+        selector = catalog.get(item)
+        if selector is None:
+            raise StageExecutionError(f"Unknown clock selector reference in patch overlay: {item}")
+        return selector
+
+    if not isinstance(item, dict):
+        raise StageExecutionError(f"Invalid clock selector patch entry: {item!r}")
+
+    selector_id = str(item["selector_id"])
+    base = catalog.get(selector_id)
+    if base is None:
+        return _parse_clock_selector_patch(item)
+
+    return ClockSelectorPatch(
+        selector_id=selector_id,
+        parent_options=(
+            tuple(str(option) for option in item["parent_options"])
+            if item.get("parent_options") is not None
+            else base.parent_options
+        ),
+        register_target=(
+            str(item["register_target"])
+            if item.get("register_target") is not None
+            else base.register_target
+        ),
+    )
+
+
+def _resolve_clock_gate(
+    *,
+    item: object,
+    catalog: dict[str, ClockGatePatch],
+) -> ClockGatePatch:
+    if isinstance(item, str):
+        gate = catalog.get(item)
+        if gate is None:
+            raise StageExecutionError(f"Unknown clock gate reference in patch overlay: {item}")
+        return gate
+
+    if not isinstance(item, dict):
+        raise StageExecutionError(f"Invalid clock gate patch entry: {item!r}")
+
+    gate_id = str(item["gate_id"])
+    base = catalog.get(gate_id)
+    if base is None:
+        return _parse_clock_gate_patch(item)
+
+    return ClockGatePatch(
+        gate_id=gate_id,
+        peripheral=(
+            str(item["peripheral"]) if item.get("peripheral") is not None else base.peripheral
+        ),
+        enable_signal=(
+            str(item["enable_signal"])
+            if item.get("enable_signal") is not None
+            else base.enable_signal
+        ),
+        parent_node=(
+            str(item["parent_node"]) if item.get("parent_node") is not None else base.parent_node
+        ),
+    )
+
+
+def _resolve_reset(
+    *,
+    item: object,
+    catalog: dict[str, ResetPatch],
+) -> ResetPatch:
+    if isinstance(item, str):
+        reset = catalog.get(item)
+        if reset is None:
+            raise StageExecutionError(f"Unknown reset reference in patch overlay: {item}")
+        return reset
+
+    if not isinstance(item, dict):
+        raise StageExecutionError(f"Invalid reset patch entry: {item!r}")
+
+    reset_id = str(item["reset_id"])
+    base = catalog.get(reset_id)
+    if base is None:
+        return _parse_reset_patch(item)
+
+    return ResetPatch(
+        reset_id=reset_id,
+        peripheral=(
+            str(item["peripheral"]) if item.get("peripheral") is not None else base.peripheral
+        ),
+        reset_signal=(
+            str(item["reset_signal"])
+            if item.get("reset_signal") is not None
+            else base.reset_signal
+        ),
+        active_level=(
+            str(item["active_level"]) if item.get("active_level") is not None else base.active_level
+        ),
+    )
+
+
+def _resolve_peripheral_clock_binding(
+    *,
+    item: object,
+    catalog: dict[str, PeripheralClockBindingPatch],
+) -> PeripheralClockBindingPatch:
+    if isinstance(item, str):
+        binding = catalog.get(item)
+        if binding is None:
+            raise StageExecutionError(
+                f"Unknown peripheral clock binding reference in patch overlay: {item}"
+            )
+        return binding
+
+    if not isinstance(item, dict):
+        raise StageExecutionError(
+            f"Invalid peripheral clock binding patch entry: {item!r}"
+        )
+
+    peripheral = str(item["peripheral"])
+    base = catalog.get(peripheral)
+    if base is None:
+        return _parse_peripheral_clock_binding_patch(item)
+
+    return PeripheralClockBindingPatch(
+        peripheral=peripheral,
+        clock_gate_id=(
+            str(item["clock_gate_id"])
+            if item.get("clock_gate_id") is not None
+            else base.clock_gate_id
+        ),
+        reset_id=str(item["reset_id"]) if item.get("reset_id") is not None else base.reset_id,
+        selector_id=(
+            str(item["selector_id"])
+            if item.get("selector_id") is not None
+            else base.selector_id
+        ),
+    )
+
+
 def _parse_pin_patch(payload: dict[str, object]) -> PinPatch:
     port = str(payload["port"]) if payload.get("port") is not None else None
     number = int(payload["number"])
@@ -552,6 +891,15 @@ def load_device_patch(
     package_catalog_by_name = {package.name: package for package in family_catalog.packages}
     pin_catalog_by_name = {pin.name: pin for pin in family_catalog.pins}
     signal_catalog_by_id = {signal.signal_id: signal for signal in family_catalog.pin_signals}
+    clock_node_catalog_by_id = {node.node_id: node for node in family_catalog.clock_nodes}
+    clock_selector_catalog_by_id = {
+        selector.selector_id: selector for selector in family_catalog.clock_selectors
+    }
+    clock_gate_catalog_by_id = {gate.gate_id: gate for gate in family_catalog.clock_gates}
+    reset_catalog_by_id = {reset.reset_id: reset for reset in family_catalog.resets}
+    peripheral_clock_binding_catalog_by_peripheral = {
+        binding.peripheral: binding for binding in family_catalog.peripheral_clock_bindings
+    }
     dma_controller_catalog_by_name = {
         controller.controller: controller for controller in family_catalog.dma_controllers
     }
@@ -608,6 +956,78 @@ def load_device_patch(
                 else _parse_pin_patch(item)
             )
             for item in payload.get("pins", ())
+        ),
+        clock_nodes=tuple(
+            {
+                node.node_id: node
+                for node in (
+                    *family_catalog.clock_nodes,
+                    *(
+                        _resolve_clock_node(item=item, catalog=clock_node_catalog_by_id)
+                        for item in payload.get("clock_nodes", payload.get("clock_node_refs", ()))
+                    ),
+                )
+            }.values()
+        ),
+        clock_selectors=tuple(
+            {
+                selector.selector_id: selector
+                for selector in (
+                    *family_catalog.clock_selectors,
+                    *(
+                        _resolve_clock_selector(
+                            item=item,
+                            catalog=clock_selector_catalog_by_id,
+                        )
+                        for item in payload.get(
+                            "clock_selectors",
+                            payload.get("clock_selector_refs", ()),
+                        )
+                    ),
+                )
+            }.values()
+        ),
+        clock_gates=tuple(
+            {
+                gate.gate_id: gate
+                for gate in (
+                    *family_catalog.clock_gates,
+                    *(
+                        _resolve_clock_gate(item=item, catalog=clock_gate_catalog_by_id)
+                        for item in payload.get("clock_gates", payload.get("clock_gate_refs", ()))
+                    ),
+                )
+            }.values()
+        ),
+        resets=tuple(
+            {
+                reset.reset_id: reset
+                for reset in (
+                    *family_catalog.resets,
+                    *(
+                        _resolve_reset(item=item, catalog=reset_catalog_by_id)
+                        for item in payload.get("resets", payload.get("reset_refs", ()))
+                    ),
+                )
+            }.values()
+        ),
+        peripheral_clock_bindings=tuple(
+            {
+                binding.peripheral: binding
+                for binding in (
+                    *family_catalog.peripheral_clock_bindings,
+                    *(
+                        _resolve_peripheral_clock_binding(
+                            item=item,
+                            catalog=peripheral_clock_binding_catalog_by_peripheral,
+                        )
+                        for item in payload.get(
+                            "peripheral_clock_bindings",
+                            payload.get("peripheral_clock_binding_refs", ()),
+                        )
+                    ),
+                )
+            }.values()
         ),
         dma_controllers=tuple(
             {

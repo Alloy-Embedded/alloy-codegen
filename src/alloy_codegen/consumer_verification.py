@@ -37,6 +37,17 @@ def _first_generated_gpio_header(family_root: Path) -> Path:
     return candidates[0]
 
 
+def _first_generated_ip_header(family_root: Path) -> Path | None:
+    candidates = sorted((family_root / "generated" / "ip").glob("*.hpp"))
+    if not candidates:
+        return None
+    for candidate in candidates:
+        content = candidate.read_text(encoding="utf-8")
+        if "capability:" in content:
+            return candidate
+    return candidates[0]
+
+
 def _smoke_source_path() -> Path:
     """Return the repository-local smoke consumer source."""
     return (
@@ -75,6 +86,7 @@ def verify_alloy_smoke_consumer(
     if not startup_source.exists():
         raise StageExecutionError(f"Published startup source not found: {startup_source}")
     gpio_header = _first_generated_gpio_header(family_root)
+    ip_header = _first_generated_ip_header(family_root)
     gpio_header_include = str(gpio_header.relative_to(publication_root)).replace("\\", "/")
     vendor = scope.resolved_vendor()
     family = scope.resolved_family()
@@ -94,8 +106,23 @@ def verify_alloy_smoke_consumer(
         f'-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER="{vendor}/{family}/{device}/register_map.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_PIN_FUNCTIONS_HEADER="{vendor}/{family}/{device}/pin_functions.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_GPIO_HEADER="{gpio_header_include}"',
+        f'-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER="{vendor}/{family}/generated/connector_tables.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_INTERRUPT_MAP_HEADER="{vendor}/{family}/generated/interrupt_map.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_MEMORY_MAP_HEADER="{vendor}/{family}/generated/memory_map.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_PACKAGE_MAP_HEADER="{vendor}/{family}/generated/package_map.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER="{vendor}/{family}/generated/clock_tree_lite.hpp"',
+        (
+            f'-DALLOY_CODEGEN_SMOKE_STARTUP_DESCRIPTORS_HEADER='
+            f'"{vendor}/{family}/generated/devices/{device}/startup_descriptors.hpp"'
+        ),
         f"-DALLOY_CODEGEN_SMOKE_DEVICE_NAMESPACE={vendor}::{family}::{device}",
+        f"-DALLOY_CODEGEN_SMOKE_GENERATED_NAMESPACE={vendor}::{family}::generated",
         f"-DALLOY_CODEGEN_SMOKE_GPIO_NAMESPACE={vendor}::{family}::generated::peripherals",
+    )
+    if ip_header is not None:
+        ip_header_include = str(ip_header.relative_to(publication_root)).replace("\\", "/")
+        command += (f'-DALLOY_CODEGEN_SMOKE_IP_HEADER="{ip_header_include}"',)
+    command += (
         str(smoke_source),
         str(startup_source),
         "-o",

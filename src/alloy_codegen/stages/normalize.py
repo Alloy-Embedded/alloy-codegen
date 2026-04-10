@@ -10,6 +10,9 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
+    ClockGateDescriptor,
+    ClockNodeLite,
+    ClockSelectorLite,
     DeviceIdentity,
     DmaControllerDescriptor,
     DmaRequestDefinition,
@@ -17,20 +20,27 @@ from alloy_codegen.ir.model import (
     MemoryRegion,
     PackageDefinition,
     PackagePad,
+    PeripheralClockBinding,
     PeripheralInstance,
     PinConstraint,
     PinDefinition,
     PinSignal,
     Provenance,
+    ResetDescriptor,
 )
 from alloy_codegen.patches import (
+    ClockGatePatch,
+    ClockNodePatch,
+    ClockSelectorPatch,
     DevicePatch,
     DmaControllerPatch,
     DmaRequestPatch,
     MemoryPatch,
+    PeripheralClockBindingPatch,
     PeripheralPatch,
     PinPatch,
     PinSignalPatch,
+    ResetPatch,
     load_device_patch,
 )
 from alloy_codegen.reporting import NormalizationBundle
@@ -128,6 +138,61 @@ def _memory_to_ir(memory: MemoryPatch, provenance: Provenance) -> MemoryRegion:
         base_address=memory.base_address,
         size_bytes=memory.size_bytes,
         access=memory.access,
+        provenance=provenance,
+    )
+
+
+def _clock_node_to_ir(node: ClockNodePatch, provenance: Provenance) -> ClockNodeLite:
+    return ClockNodeLite(
+        node_id=node.node_id,
+        kind=node.kind,
+        parent=node.parent,
+        selector=node.selector,
+        provenance=provenance,
+    )
+
+
+def _clock_selector_to_ir(
+    selector: ClockSelectorPatch,
+    provenance: Provenance,
+) -> ClockSelectorLite:
+    return ClockSelectorLite(
+        selector_id=selector.selector_id,
+        parent_options=selector.parent_options,
+        register_target=selector.register_target,
+        provenance=provenance,
+    )
+
+
+def _clock_gate_to_ir(gate: ClockGatePatch, provenance: Provenance) -> ClockGateDescriptor:
+    return ClockGateDescriptor(
+        gate_id=gate.gate_id,
+        peripheral=gate.peripheral,
+        enable_signal=gate.enable_signal,
+        parent_node=gate.parent_node,
+        provenance=provenance,
+    )
+
+
+def _reset_to_ir(reset: ResetPatch, provenance: Provenance) -> ResetDescriptor:
+    return ResetDescriptor(
+        reset_id=reset.reset_id,
+        peripheral=reset.peripheral,
+        reset_signal=reset.reset_signal,
+        active_level=reset.active_level,
+        provenance=provenance,
+    )
+
+
+def _peripheral_clock_binding_to_ir(
+    binding: PeripheralClockBindingPatch,
+    provenance: Provenance,
+) -> PeripheralClockBinding:
+    return PeripheralClockBinding(
+        peripheral=binding.peripheral,
+        clock_gate_id=binding.clock_gate_id,
+        reset_id=binding.reset_id,
+        selector_id=binding.selector_id,
         provenance=provenance,
     )
 
@@ -321,6 +386,66 @@ def _peripheral_patch_map(
     return {peripheral.name: peripheral for peripheral in patch.peripherals}
 
 
+def _filter_clock_patch_descriptors(
+    *,
+    patch: DevicePatch,
+    peripheral_names: set[str],
+) -> tuple[
+    tuple[ClockNodePatch, ...],
+    tuple[ClockSelectorPatch, ...],
+    tuple[ClockGatePatch, ...],
+    tuple[ResetPatch, ...],
+    tuple[PeripheralClockBindingPatch, ...],
+]:
+    clock_gates = tuple(
+        gate
+        for gate in patch.clock_gates
+        if gate.peripheral is None or gate.peripheral in peripheral_names
+    )
+    resets = tuple(
+        reset
+        for reset in patch.resets
+        if reset.peripheral is None or reset.peripheral in peripheral_names
+    )
+    bindings = tuple(
+        binding
+        for binding in patch.peripheral_clock_bindings
+        if binding.peripheral in peripheral_names
+    )
+    selector_ids = {
+        selector_id
+        for selector_id in (
+            *(node.selector for node in patch.clock_nodes),
+            *(binding.selector_id for binding in bindings),
+        )
+        if selector_id is not None
+    }
+    clock_selectors = tuple(
+        selector
+        for selector in patch.clock_selectors
+        if selector.selector_id in selector_ids
+    )
+    referenced_nodes = {"clock-root"}
+    referenced_nodes.update(
+        node_id
+        for node_id in (
+            *(gate.parent_node for gate in clock_gates),
+            *(
+                parent_option
+                for selector in clock_selectors
+                for parent_option in selector.parent_options
+            ),
+        )
+        if node_id is not None
+    )
+    clock_nodes = tuple(
+        node
+        for node in patch.clock_nodes
+        if node.node_id in referenced_nodes or node.selector in selector_ids
+    )
+    return clock_nodes, clock_selectors, clock_gates, resets, bindings
+
+
 def _peripheral_to_ir(
     *,
     peripheral_name: str,
@@ -491,6 +616,16 @@ def build_canonical_ir(
     discovered_peripherals = {
         _canonical_peripheral_name(peripheral.name) for peripheral in raw.peripherals
     }
+    (
+        clock_nodes,
+        clock_selectors,
+        clock_gates,
+        resets,
+        peripheral_clock_bindings,
+    ) = _filter_clock_patch_descriptors(
+        patch=patch,
+        peripheral_names=discovered_peripherals,
+    )
     allowed_signal_peripherals = {
         peripheral.name
         for peripheral in patch.peripherals
@@ -567,6 +702,21 @@ def build_canonical_ir(
             package_pads=package_pads,
             pins=pins,
             provenance=pin_provenance,
+        ),
+        clock_nodes=tuple(
+            _clock_node_to_ir(node, patch_provenance) for node in clock_nodes
+        ),
+        clock_selectors=tuple(
+            _clock_selector_to_ir(selector, patch_provenance)
+            for selector in clock_selectors
+        ),
+        clock_gates=tuple(
+            _clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates
+        ),
+        resets=tuple(_reset_to_ir(reset, patch_provenance) for reset in resets),
+        peripheral_clock_bindings=tuple(
+            _peripheral_clock_binding_to_ir(binding, patch_provenance)
+            for binding in peripheral_clock_bindings
         ),
     )
 
@@ -767,6 +917,16 @@ def build_nxp_canonical_ir(
     )
     peripheral_patches = _peripheral_patch_map(patch)
     discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw.peripherals}
+    (
+        clock_nodes,
+        clock_selectors,
+        clock_gates,
+        resets,
+        peripheral_clock_bindings,
+    ) = _filter_clock_patch_descriptors(
+        patch=patch,
+        peripheral_names=discovered_peripherals,
+    )
     pins = _build_nxp_pins(
         iomuxc_entries=iomuxc_entries,
         discovered_peripherals=discovered_peripherals,
@@ -828,6 +988,21 @@ def build_nxp_canonical_ir(
             package_pads=package_pads,
             pins=pins,
             provenance=sdk_provenance,
+        ),
+        clock_nodes=tuple(
+            _clock_node_to_ir(node, patch_provenance) for node in clock_nodes
+        ),
+        clock_selectors=tuple(
+            _clock_selector_to_ir(selector, patch_provenance)
+            for selector in clock_selectors
+        ),
+        clock_gates=tuple(
+            _clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates
+        ),
+        resets=tuple(_reset_to_ir(reset, patch_provenance) for reset in resets),
+        peripheral_clock_bindings=tuple(
+            _peripheral_clock_binding_to_ir(binding, patch_provenance)
+            for binding in peripheral_clock_bindings
         ),
     )
 

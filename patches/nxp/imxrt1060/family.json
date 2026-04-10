@@ -124,6 +124,104 @@
       "rcc_reset_signal": null
     }
   ],
+  "clock_nodes": [
+    {
+      "node_id": "clock-node:osc24m",
+      "kind": "clock-source",
+      "parent": "clock-root",
+      "selector": null
+    },
+    {
+      "node_id": "clock-node:pll3-sw-clk",
+      "kind": "pll-source",
+      "parent": "clock-root",
+      "selector": null
+    },
+    {
+      "node_id": "clock-node:lpuart-root",
+      "kind": "peripheral-root",
+      "parent": "clock-root",
+      "selector": "selector:lpuart-root"
+    },
+    {
+      "node_id": "clock-node:lpi2c-root",
+      "kind": "peripheral-root",
+      "parent": "clock-root",
+      "selector": "selector:lpi2c-root"
+    },
+    {
+      "node_id": "clock-node:lpspi-root",
+      "kind": "peripheral-root",
+      "parent": "clock-root",
+      "selector": "selector:lpspi-root"
+    }
+  ],
+  "clock_selectors": [
+    {
+      "selector_id": "selector:lpuart-root",
+      "parent_options": [
+        "clock-node:pll3-sw-clk",
+        "clock-node:osc24m"
+      ],
+      "register_target": "CCM_CSCDR1.UART_CLK_SEL"
+    },
+    {
+      "selector_id": "selector:lpi2c-root",
+      "parent_options": [
+        "clock-node:pll3-sw-clk",
+        "clock-node:osc24m"
+      ],
+      "register_target": "CCM_CSCDR2.LPI2C_CLK_SEL"
+    },
+    {
+      "selector_id": "selector:lpspi-root",
+      "parent_options": [
+        "clock-node:pll3-sw-clk",
+        "clock-node:osc24m"
+      ],
+      "register_target": "CCM_CBCMR.LPSPI_CLK_SEL"
+    }
+  ],
+  "clock_gates": [
+    {
+      "gate_id": "gate:lpuart1",
+      "peripheral": "LPUART1",
+      "enable_signal": "CCM_CCGR5.CG12",
+      "parent_node": "clock-node:lpuart-root"
+    },
+    {
+      "gate_id": "gate:lpi2c1",
+      "peripheral": "LPI2C1",
+      "enable_signal": "CCM_CCGR2.CG2",
+      "parent_node": "clock-node:lpi2c-root"
+    },
+    {
+      "gate_id": "gate:lpspi1",
+      "peripheral": "LPSPI1",
+      "enable_signal": "CCM_CCGR1.CG0",
+      "parent_node": "clock-node:lpspi-root"
+    }
+  ],
+  "peripheral_clock_bindings": [
+    {
+      "peripheral": "LPUART1",
+      "clock_gate_id": "gate:lpuart1",
+      "reset_id": null,
+      "selector_id": "selector:lpuart-root"
+    },
+    {
+      "peripheral": "LPI2C1",
+      "clock_gate_id": "gate:lpi2c1",
+      "reset_id": null,
+      "selector_id": "selector:lpi2c-root"
+    },
+    {
+      "peripheral": "LPSPI1",
+      "clock_gate_id": "gate:lpspi1",
+      "reset_id": null,
+      "selector_id": "selector:lpspi-root"
+    }
+  ],
   "pin_signals": [],
   "dma_requests": []
 }

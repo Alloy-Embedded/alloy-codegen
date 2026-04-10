@@ -129,6 +129,32 @@ def test_normalize_emits_connector_driven_domains_for_foundational_vendors(
         assert device.startup_descriptors
 
 
+def test_normalize_preserves_explicit_clock_selectors_and_bindings(
+    execution_context: ExecutionContext,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    st_device = run(PipelineScope(device="stm32g071rb"), execution_context).payload.devices[0]
+    nxp_device = run(PipelineScope(device="mimxrt1062"), nxp_execution_context).payload.devices[0]
+
+    st_selectors = {selector.selector_id for selector in st_device.clock_selectors}
+    st_bindings = {
+        binding.peripheral: binding.selector_id for binding in st_device.peripheral_clock_bindings
+    }
+    assert "selector:usart1-kernel" in st_selectors
+    assert st_bindings["USART1"] == "selector:usart1-kernel"
+    if "LPUART1" in st_bindings:
+        assert st_bindings["LPUART1"] == "selector:lpuart1-kernel"
+
+    nxp_selectors = {selector.selector_id for selector in nxp_device.clock_selectors}
+    nxp_binding_map = {
+        binding.peripheral: binding for binding in nxp_device.peripheral_clock_bindings
+    }
+    nxp_gate_map = {gate.gate_id: gate.parent_node for gate in nxp_device.clock_gates}
+    assert "selector:lpuart-root" in nxp_selectors
+    assert nxp_binding_map["LPUART1"].selector_id == "selector:lpuart-root"
+    assert nxp_gate_map["gate:lpuart1"] == "clock-node:lpuart-root"
+
+
 def test_normalize_emits_ip_block_and_instance_overlay_capabilities(
     execution_context: ExecutionContext,
     microchip_execution_context: ExecutionContext,

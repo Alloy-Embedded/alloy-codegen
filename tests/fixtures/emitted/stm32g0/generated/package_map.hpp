@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 namespace st {
 namespace stm32g0 {
 namespace generated {
@@ -37,8 +39,7 @@ struct PinConstraintDescriptor {
   const char* kind;
   const char* value;
 };
-inline constexpr PinConstraintDescriptor kPinConstraints[] = {
-};
+inline constexpr std::array<PinConstraintDescriptor, 0> kPinConstraints = {};
 }
 }
 }

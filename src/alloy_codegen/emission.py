@@ -76,6 +76,21 @@ def _file_component(value: str) -> str:
     return _identifier(value).strip("_").lower()
 
 
+def _std_array_lines(
+    *,
+    type_name: str,
+    variable_name: str,
+    row_lines: list[str],
+) -> list[str]:
+    if not row_lines:
+        return [f"inline constexpr std::array<{type_name}, 0> {variable_name} = {{}};"]
+    return [
+        f"inline constexpr std::array<{type_name}, {len(row_lines)}> {variable_name} = {{{{",
+        *row_lines,
+        "}};",
+    ]
+
+
 def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
     packages: dict[str, dict[str, object]] = {}
     for device in devices:
@@ -513,17 +528,19 @@ def emit_ip_block_header(
         "  const char* peripheral;",
         "  const char* package;",
         "};",
-        "inline constexpr CapabilityDescriptor kCapabilities[] = {",
-        *[
-            f"  {{{json.dumps(capability.capability_id)}, "
-            f"{json.dumps(capability.scope)}, "
-            f"{json.dumps(capability.peripheral_class)}, "
-            f"{json.dumps(capability.name)}, {json.dumps(capability.value)}, "
-            f"{_quoted(capability.ip_name)}, {_quoted(capability.ip_version)}, "
-            f"{_quoted(capability.peripheral)}, {_quoted(capability.package)}}},"
-            for capability in sorted(capabilities, key=lambda item: item.capability_id)
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="CapabilityDescriptor",
+            variable_name="kCapabilities",
+            row_lines=[
+                f"  {{{json.dumps(capability.capability_id)}, "
+                f"{json.dumps(capability.scope)}, "
+                f"{json.dumps(capability.peripheral_class)}, "
+                f"{json.dumps(capability.name)}, {json.dumps(capability.value)}, "
+                f"{_quoted(capability.ip_name)}, {_quoted(capability.ip_version)}, "
+                f"{_quoted(capability.peripheral)}, {_quoted(capability.package)}}},"
+                for capability in sorted(capabilities, key=lambda item: item.capability_id)
+            ],
+        ),
     ]
     namespace_block = _cpp_namespace_block(
         (_vendor, _family, "generated", "ip"),
@@ -533,6 +550,8 @@ def emit_ip_block_header(
     content = "\n".join(
         [
             "#pragma once",
+            "",
+            "#include <array>",
             "",
             namespace_block,
             "",
@@ -1325,18 +1344,22 @@ def emit_package_map_header(
         "  const char* kind;",
         "  const char* value;",
         "};",
-        "inline constexpr PinConstraintDescriptor kPinConstraints[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(pin_name)}, "
-            f"{json.dumps(kind)}, {_quoted(value)}}},"
-            for device_name, pin_name, kind, value in constraint_rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="PinConstraintDescriptor",
+            variable_name="kPinConstraints",
+            row_lines=[
+                f"  {{{json.dumps(device_name)}, {json.dumps(pin_name)}, "
+                f"{json.dumps(kind)}, {_quoted(value)}}},"
+                for device_name, pin_name, kind, value in constraint_rows
+            ],
+        ),
     ]
     namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
     content = "\n".join(
         [
             "#pragma once",
+            "",
+            "#include <array>",
             "",
             namespace_block,
             "",
@@ -1417,13 +1440,15 @@ def emit_clock_tree_lite_header(
         "  const char* parent;",
         "  const char* selector;",
         "};",
-        "inline constexpr ClockNodeDescriptor kClockNodes[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(node_id)}, {json.dumps(kind)}, "
-            f"{_quoted(parent)}, {_quoted(selector)}}},"
-            for device_name, node_id, kind, parent, selector in node_rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="ClockNodeDescriptor",
+            variable_name="kClockNodes",
+            row_lines=[
+                f"  {{{json.dumps(device_name)}, {json.dumps(node_id)}, {json.dumps(kind)}, "
+                f"{_quoted(parent)}, {_quoted(selector)}}},"
+                for device_name, node_id, kind, parent, selector in node_rows
+            ],
+        ),
         "",
         "struct ClockSelectorDescriptor {",
         "  const char* device;",
@@ -1431,13 +1456,15 @@ def emit_clock_tree_lite_header(
         "  const char* parent_options;",
         "  const char* register_target;",
         "};",
-        "inline constexpr ClockSelectorDescriptor kClockSelectors[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(selector_id)}, "
-            f"{json.dumps(','.join(parent_options))}, {_quoted(register_target)}}},"
-            for device_name, selector_id, parent_options, register_target in selector_rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="ClockSelectorDescriptor",
+            variable_name="kClockSelectors",
+            row_lines=[
+                f"  {{{json.dumps(device_name)}, {json.dumps(selector_id)}, "
+                f"{json.dumps(','.join(parent_options))}, {_quoted(register_target)}}},"
+                for device_name, selector_id, parent_options, register_target in selector_rows
+            ],
+        ),
         "",
         "struct ClockGateDescriptor {",
         "  const char* device;",
@@ -1446,13 +1473,15 @@ def emit_clock_tree_lite_header(
         "  const char* enable_signal;",
         "  const char* parent_node;",
         "};",
-        "inline constexpr ClockGateDescriptor kClockGates[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(gate_id)}, {_quoted(peripheral)}, "
-            f"{json.dumps(enable_signal)}, {_quoted(parent_node)}}},"
-            for device_name, gate_id, peripheral, enable_signal, parent_node in gate_rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="ClockGateDescriptor",
+            variable_name="kClockGates",
+            row_lines=[
+                f"  {{{json.dumps(device_name)}, {json.dumps(gate_id)}, {_quoted(peripheral)}, "
+                f"{json.dumps(enable_signal)}, {_quoted(parent_node)}}},"
+                for device_name, gate_id, peripheral, enable_signal, parent_node in gate_rows
+            ],
+        ),
         "",
         "struct ResetDescriptor {",
         "  const char* device;",
@@ -1461,13 +1490,15 @@ def emit_clock_tree_lite_header(
         "  const char* reset_signal;",
         "  const char* active_level;",
         "};",
-        "inline constexpr ResetDescriptor kResets[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(reset_id)}, {_quoted(peripheral)}, "
-            f"{json.dumps(reset_signal)}, {json.dumps(active_level)}}},"
-            for device_name, reset_id, peripheral, reset_signal, active_level in reset_rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="ResetDescriptor",
+            variable_name="kResets",
+            row_lines=[
+                f"  {{{json.dumps(device_name)}, {json.dumps(reset_id)}, {_quoted(peripheral)}, "
+                f"{json.dumps(reset_signal)}, {json.dumps(active_level)}}},"
+                for device_name, reset_id, peripheral, reset_signal, active_level in reset_rows
+            ],
+        ),
         "",
         "struct PeripheralClockBindingDescriptor {",
         "  const char* device;",
@@ -1476,18 +1507,27 @@ def emit_clock_tree_lite_header(
         "  const char* reset_id;",
         "  const char* selector_id;",
         "};",
-        "inline constexpr PeripheralClockBindingDescriptor kPeripheralClockBindings[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(peripheral)}, {_quoted(clock_gate_id)}, "
-            f"{_quoted(reset_id)}, {_quoted(selector_id)}}},"
-            for device_name, peripheral, clock_gate_id, reset_id, selector_id in binding_rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="PeripheralClockBindingDescriptor",
+            variable_name="kPeripheralClockBindings",
+            row_lines=[
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"{json.dumps(peripheral)}, "
+                f"{_quoted(clock_gate_id)}, "
+                f"{_quoted(reset_id)}, "
+                f"{_quoted(selector_id)}"
+                "},"
+                for device_name, peripheral, clock_gate_id, reset_id, selector_id in binding_rows
+            ],
+        ),
     ]
     namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
     content = "\n".join(
         [
             "#pragma once",
+            "",
+            "#include <array>",
             "",
             namespace_block,
             "",
@@ -1690,13 +1730,15 @@ def emit_dma_map_header(
         "  const char* controller;",
         "  const char* request_line;",
         "};",
-        "inline constexpr DmaDescriptor kDmaMap[] = {",
-        *[
-            f"  {{{json.dumps(peripheral)}, {json.dumps(signal)}, "
-            f"{json.dumps(controller)}, {json.dumps(request_line)}}},"
-            for peripheral, signal, controller, request_line in rows
-        ],
-        "};",
+        *_std_array_lines(
+            type_name="DmaDescriptor",
+            variable_name="kDmaMap",
+            row_lines=[
+                f"  {{{json.dumps(peripheral)}, {json.dumps(signal)}, "
+                f"{json.dumps(controller)}, {json.dumps(request_line)}}},"
+                for peripheral, signal, controller, request_line in rows
+            ],
+        ),
     ]
     namespace_block = _cpp_namespace_block(
         (_vendor, _family, "generated"),
@@ -1705,6 +1747,8 @@ def emit_dma_map_header(
     content = "\n".join(
         [
             "#pragma once",
+            "",
+            "#include <array>",
             "",
             namespace_block,
             "",

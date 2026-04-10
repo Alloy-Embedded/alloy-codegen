@@ -985,3 +985,67 @@ def test_validation_fails_gate_c_when_dma_controller_request_count_is_missing(
     assert report.gate_status("gate-c").passed is False
     failing_rules = {result.rule_id for result in report.results if not result.passed}
     assert "stm32g071rb-dma-controller-descriptors-complete" in failing_rules
+
+
+def test_validation_fails_gate_c_when_clock_selector_references_unknown_parent(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    selector = next(
+        selector
+        for selector in original_device.clock_selectors
+        if selector.selector_id == "selector:usart1-kernel"
+    )
+    broken_selector = type(selector)(
+        selector_id=selector.selector_id,
+        parent_options=("clock-node:missing-parent",),
+        register_target=selector.register_target,
+        provenance=selector.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=original_device.connection_candidates,
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=(broken_selector,)
+        + tuple(
+            candidate
+            for candidate in original_device.clock_selectors
+            if candidate.selector_id != selector.selector_id
+        ),
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-clock-selectors-structured" in failing_rules

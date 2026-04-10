@@ -151,6 +151,34 @@
   ],
   "clock_nodes": [
     {
+      "kind": "internal-oscillator",
+      "node_id": "clock-node:hsi16",
+      "parent": "clock-root",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
+      },
+      "selector": null
+    },
+    {
+      "kind": "low-speed-source",
+      "node_id": "clock-node:lse",
+      "parent": "clock-root",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
+      },
+      "selector": null
+    },
+    {
       "kind": "ahb-domain",
       "node_id": "clock-node:rcc-ahbenr",
       "parent": "clock-root",
@@ -193,6 +221,20 @@
       "selector": null
     },
     {
+      "kind": "system-source",
+      "node_id": "clock-node:sysclk",
+      "parent": "clock-root",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
+      },
+      "selector": null
+    },
+    {
       "kind": "root",
       "node_id": "clock-root",
       "parent": null,
@@ -205,6 +247,26 @@
         "source_path": "STM32G071R(6-8-B)Tx.xml"
       },
       "selector": null
+    }
+  ],
+  "clock_selectors": [
+    {
+      "parent_options": [
+        "clock-node:rcc-apbenr2",
+        "clock-node:sysclk",
+        "clock-node:hsi16",
+        "clock-node:lse"
+      ],
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
+      },
+      "register_target": "RCC_CCIPR.USART1SEL",
+      "selector_id": "selector:usart1-kernel"
     }
   ],
   "connection_candidates": [
@@ -771,11 +833,11 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ],
-        "source_id": "cmsis-svd-data",
-        "source_path": "STM32G071.svd"
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
       },
       "reset_id": "reset:usart1",
-      "selector_id": null
+      "selector_id": "selector:usart1-kernel"
     }
   ],
   "peripherals": [

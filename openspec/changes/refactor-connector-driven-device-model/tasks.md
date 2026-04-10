@@ -58,7 +58,7 @@
 - [x] E.1 Add interrupt ownership, aliases, and vector-slot descriptors
 - [x] E.2 Add memory-region descriptors with startup-relevant classification
 - [x] E.3 Add startup copy/zero/vector descriptors separated from startup logic
-- [ ] E.4 Add `ClockGraphLite` descriptors for enable, reset, parent selection, and source choice
+- [x] E.4 Add `ClockGraphLite` descriptors for enable, reset, parent selection, and source choice
 - [x] E.5 Add complete DMA controller/request/route/conflict descriptors
 - [x] E.6 Add validators for all system descriptor families
 
@@ -89,7 +89,7 @@
 - [ ] G.1 Freeze the codegen-owned connector descriptor contract
 - [ ] G.2 Explicitly document the Alloy-owned `connect()` responsibilities
 - [ ] G.3 Add regression checks preventing runtime `connect()` behavior from entering generated code
-- [ ] G.4 Add smoke-consumer coverage for the new generated descriptor families
+- [x] G.4 Add smoke-consumer coverage for the new generated descriptor families
 
 ### Gate C7: Clean codegen/runtime boundary
 - [ ] C7.1 `alloy-codegen` emits facts and route data only

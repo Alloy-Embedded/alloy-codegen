@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 namespace st {
 namespace stm32g0 {
 namespace generated {
@@ -30,8 +32,7 @@ struct CapabilityDescriptor {
   const char* peripheral;
   const char* package;
 };
-inline constexpr CapabilityDescriptor kCapabilities[] = {
-};
+inline constexpr std::array<CapabilityDescriptor, 0> kCapabilities = {};
 }
 }
 }
