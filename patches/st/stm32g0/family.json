@@ -1,0 +1,180 @@
+{
+  "patch_id": "st-stm32g0-family-bootstrap-v1",
+  "packages": [
+    {
+      "name": "tssop20",
+      "pin_count": 20
+    },
+    {
+      "name": "lqfp64",
+      "pin_count": 64
+    }
+  ],
+  "pins": [
+    {
+      "name": "PA0",
+      "port": "A",
+      "number": 0,
+      "packages": ["tssop20", "lqfp64"]
+    },
+    {
+      "name": "PA1",
+      "port": "A",
+      "number": 1,
+      "packages": ["lqfp64"]
+    },
+    {
+      "name": "PA2",
+      "port": "A",
+      "number": 2,
+      "packages": ["tssop20"]
+    },
+    {
+      "name": "PA3",
+      "port": "A",
+      "number": 3,
+      "packages": ["tssop20"]
+    },
+    {
+      "name": "PB6",
+      "port": "B",
+      "number": 6,
+      "packages": ["lqfp64"]
+    },
+    {
+      "name": "PA11",
+      "port": "A",
+      "number": 11,
+      "packages": ["lqfp64"]
+    },
+    {
+      "name": "PA12",
+      "port": "A",
+      "number": 12,
+      "packages": ["lqfp64"]
+    },
+    {
+      "name": "PB8",
+      "port": "B",
+      "number": 8,
+      "packages": ["lqfp64"]
+    }
+  ],
+  "peripherals": [
+    {
+      "name": "GPIOA",
+      "rcc_enable_signal": "RCC_IOPENR.GPIOAEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIOARST"
+    },
+    {
+      "name": "GPIOB",
+      "rcc_enable_signal": "RCC_IOPENR.GPIOBEN",
+      "rcc_reset_signal": "RCC_IOPRSTR.GPIOBRST"
+    },
+    {
+      "name": "DMA1",
+      "rcc_enable_signal": "RCC_AHBENR.DMA1EN",
+      "rcc_reset_signal": "RCC_AHBRSTR.DMA1RST"
+    },
+    {
+      "name": "DMAMUX1",
+      "rcc_enable_signal": "RCC_AHBENR.DMAMUX1EN",
+      "rcc_reset_signal": "RCC_AHBRSTR.DMAMUX1RST"
+    },
+    {
+      "name": "USART1",
+      "rcc_enable_signal": "RCC_APBENR2.USART1EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.USART1RST"
+    },
+    {
+      "name": "USART2",
+      "rcc_enable_signal": "RCC_APBENR1.USART2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.USART2RST"
+    },
+    {
+      "name": "FDCAN1",
+      "rcc_enable_signal": "RCC_APBENR1.FDCANEN",
+      "rcc_reset_signal": "RCC_APBRSTR1.FDCANRST"
+    }
+  ],
+  "pin_signals": [
+    {
+      "signal_id": "pa2-usart2-tx",
+      "pin_name": "PA2",
+      "function": "usart2_tx",
+      "peripheral": "USART2",
+      "signal": "TX",
+      "af_number": 1
+    },
+    {
+      "signal_id": "pa3-usart2-rx",
+      "pin_name": "PA3",
+      "function": "usart2_rx",
+      "peripheral": "USART2",
+      "signal": "RX",
+      "af_number": 1
+    },
+    {
+      "signal_id": "pa0-usart1-tx",
+      "pin_name": "PA0",
+      "function": "usart1_tx",
+      "peripheral": "USART1",
+      "signal": "TX",
+      "af_number": 1
+    },
+    {
+      "signal_id": "pa1-usart1-rx",
+      "pin_name": "PA1",
+      "function": "usart1_rx",
+      "peripheral": "USART1",
+      "signal": "RX",
+      "af_number": 1
+    },
+    {
+      "signal_id": "pa11-fdcan1-rx",
+      "pin_name": "PA11",
+      "function": "fdcan1_rx",
+      "peripheral": "FDCAN1",
+      "signal": "RX",
+      "af_number": 3
+    },
+    {
+      "signal_id": "pa12-fdcan1-tx",
+      "pin_name": "PA12",
+      "function": "fdcan1_tx",
+      "peripheral": "FDCAN1",
+      "signal": "TX",
+      "af_number": 3
+    }
+  ],
+  "dma_requests": [
+    {
+      "request_id": "dma1-usart2-tx",
+      "controller": "DMA1",
+      "request_line": "DMA1_CH1",
+      "peripheral": "USART2",
+      "signal": "TX"
+    },
+    {
+      "request_id": "dma1-usart2-rx",
+      "controller": "DMA1",
+      "request_line": "DMA1_CH2",
+      "peripheral": "USART2",
+      "signal": "RX"
+    },
+    {
+      "request_id": "dma1-usart1-rx",
+      "controller": "DMA1",
+      "request_line": "DMA1_CH1",
+      "peripheral": "USART1",
+      "signal": "RX"
+    },
+    {
+      "request_id": "dma1-usart1-tx",
+      "controller": "DMA1",
+      "request_line": "DMA1_CH2",
+      "peripheral": "USART1",
+      "signal": "TX"
+    }
+  ]
+}

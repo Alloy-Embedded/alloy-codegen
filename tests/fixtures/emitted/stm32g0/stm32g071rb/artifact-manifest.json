@@ -1,0 +1,53 @@
+{
+  "build_metadata": {
+    "artifact_layout_version": "alloy-devices-v1",
+    "cpp_contract_version": "alloy-cpp-bootstrap-v1",
+    "pipeline_name": "alloy-codegen",
+    "target_repository": "alloy-devices"
+  },
+  "canonical_ir_sha256": "441e6d1f7a89f9c4f806f3a012363a54e331739a01a5bf0be6c312b32086b352",
+  "generator_version": "0.1.0",
+  "ir_schema_version": "1.0.0",
+  "manifest_kind": "artifact-manifest-v1",
+  "patch_manifest": {
+    "applied_patches": [
+      {
+        "description": "Bootstrap overlay patch for stm32g071rb using family catalog st-stm32g0-family-bootstrap-v1.",
+        "patch_id": "st-stm32g0-stm32g071rb-bootstrap"
+      }
+    ],
+    "bootstrap_family": "stm32g0",
+    "manifest_kind": "patch-manifest-v1",
+    "targets": [
+      "stm32g071rb"
+    ]
+  },
+  "scope": {
+    "device": "stm32g071rb",
+    "family": "stm32g0",
+    "vendor": "st"
+  },
+  "source_manifest": {
+    "bootstrap_family": "stm32g0",
+    "manifest_kind": "source-manifest-v1",
+    "sources": [
+      {
+        "local_path": "data/STMicro/STM32G071.svd",
+        "origin_url": "https://github.com/cmsis-svd/cmsis-svd-data.git",
+        "revision": "content-sha256:7c30b52cd43a93529c916c5a69291bc4cccbdf45981f78265ef9b1dc2791c8d8",
+        "scope": {
+          "device": "stm32g071rb",
+          "family": "stm32g0",
+          "vendor": "st"
+        },
+        "source_id": "cmsis-svd-data",
+        "upstream_path": "data/STMicro/STM32G071.svd"
+      }
+    ],
+    "targets": [
+      "stm32g071rb"
+    ]
+  },
+  "validation_report_id": "bootstrap-validation-v1",
+  "validation_report_sha256": "7eb01be93fcd7ce558847bf97d24b092686936fff8977370183e0f4f3ddb5f1b"
+}

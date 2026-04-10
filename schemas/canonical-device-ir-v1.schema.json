@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alloy-embedded.dev/schemas/canonical-device-ir-v1.schema.json",
+  "title": "CanonicalDeviceIR",
+  "$defs": {
+    "provenance": {
+      "type": "object",
+      "required": ["source_id", "source_path", "patch_ids"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "source_path": { "type": ["string", "null"] },
+        "patch_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "type": "object",
+  "required": [
+    "schema_version",
+    "identity",
+    "memories",
+    "packages",
+    "pins",
+    "peripherals",
+    "interrupts",
+    "dma_requests",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "vendor",
+        "family",
+        "device",
+        "package",
+        "core",
+        "summary"
+      ],
+      "properties": {
+        "vendor": { "type": "string" },
+        "family": { "type": "string" },
+        "device": { "type": "string" },
+        "package": { "type": "string" },
+        "core": { "type": "string" },
+        "summary": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "memories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "base_address",
+          "size_bytes",
+          "access",
+          "provenance"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "kind": { "type": "string" },
+          "base_address": { "type": "integer" },
+          "size_bytes": { "type": "integer" },
+          "access": { "type": "string" },
+          "provenance": { "$ref": "#/$defs/provenance" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "pin_count", "provenance"],
+        "properties": {
+          "name": { "type": "string" },
+          "pin_count": { "type": "integer" },
+          "provenance": { "$ref": "#/$defs/provenance" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "pins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "port", "number", "signals", "provenance"],
+        "properties": {
+          "name": { "type": "string" },
+          "port": { "type": ["string", "null"] },
+          "number": { "type": "integer" },
+          "signals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "function",
+                "peripheral",
+                "signal",
+                "af_number",
+                "provenance"
+              ],
+              "properties": {
+                "function": { "type": "string" },
+                "peripheral": { "type": ["string", "null"] },
+                "signal": { "type": ["string", "null"] },
+                "af_number": { "type": ["integer", "null"] },
+                "provenance": { "$ref": "#/$defs/provenance" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "provenance": { "$ref": "#/$defs/provenance" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "peripherals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "ip_name",
+          "instance",
+          "base_address",
+          "rcc_enable_signal",
+          "rcc_reset_signal",
+          "provenance"
+        ],
+        "properties": {
+          "name": { "type": "string" },
+          "ip_name": { "type": "string" },
+          "instance": { "type": "integer" },
+          "base_address": { "type": "integer" },
+          "rcc_enable_signal": { "type": ["string", "null"] },
+          "rcc_reset_signal": { "type": ["string", "null"] },
+          "provenance": { "$ref": "#/$defs/provenance" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "interrupts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "line", "peripheral", "provenance"],
+        "properties": {
+          "name": { "type": "string" },
+          "line": { "type": "integer" },
+          "peripheral": { "type": ["string", "null"] },
+          "provenance": { "$ref": "#/$defs/provenance" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "dma_requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "controller",
+          "request_line",
+          "peripheral",
+          "signal",
+          "provenance"
+        ],
+        "properties": {
+          "controller": { "type": "string" },
+          "request_line": { "type": "string" },
+          "peripheral": { "type": ["string", "null"] },
+          "signal": { "type": ["string", "null"] },
+          "provenance": { "$ref": "#/$defs/provenance" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "provenance": {
+      "$ref": "#/$defs/provenance"
+    }
+  },
+  "additionalProperties": false
+}

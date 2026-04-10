@@ -1,0 +1,205 @@
+{
+  "gates": [
+    {
+      "blocking": false,
+      "gate_id": "gate-a",
+      "message": "gate-a passed with 5 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "source-target-count-match",
+        "source-records-have-revisions",
+        "source-records-have-local-paths",
+        "patch-target-count-match",
+        "patch-ids-unique"
+      ]
+    },
+    {
+      "blocking": false,
+      "gate_id": "gate-b",
+      "message": "gate-b passed with 3 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-schema-version-present",
+        "stm32g071rb-identity-fields-present",
+        "stm32g071rb-required-sections-present"
+      ]
+    },
+    {
+      "blocking": true,
+      "gate_id": "gate-c",
+      "message": "gate-c passed with 13 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-package-pin-count-covers-known-pins",
+        "stm32g071rb-pin-port-has-gpio-peripheral",
+        "stm32g071rb-pin-signals-present",
+        "stm32g071rb-pin-signals-reference-known-peripherals",
+        "stm32g071rb-alternate-functions-explicit",
+        "stm32g071rb-memory-sizes-positive",
+        "stm32g071rb-peripheral-bases-unique",
+        "stm32g071rb-interrupts-present",
+        "stm32g071rb-interrupts-reference-known-peripherals",
+        "stm32g071rb-referenced-peripherals-have-rcc-enable",
+        "stm32g071rb-dma-controllers-known",
+        "stm32g071rb-dma-request-peripherals-known",
+        "stm32g071rb-dma-routes-unique"
+      ]
+    }
+  ],
+  "is_passing": true,
+  "report_id": "bootstrap-validation-v1",
+  "results": [
+    {
+      "category": "schema",
+      "message": "Found 1 source record(s) for 1 target(s).",
+      "passed": true,
+      "rule_id": "source-target-count-match",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "All source records carry a concrete upstream revision.",
+      "passed": true,
+      "rule_id": "source-records-have-revisions",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "All source records expose a resolved local path.",
+      "passed": true,
+      "rule_id": "source-records-have-local-paths",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "Found 1 patch record(s) for 1 target(s).",
+      "passed": true,
+      "rule_id": "patch-target-count-match",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "Patch identifiers are unique within the requested scope.",
+      "passed": true,
+      "rule_id": "patch-ids-unique",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "stm32g071rb declares an IR schema version.",
+      "passed": true,
+      "rule_id": "stm32g071rb-schema-version-present",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "stm32g071rb exposes the required canonical identity fields.",
+      "passed": true,
+      "rule_id": "stm32g071rb-identity-fields-present",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "stm32g071rb contains non-empty required canonical sections.",
+      "passed": true,
+      "rule_id": "stm32g071rb-required-sections-present",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb package pin count 64 covers 3 known pin definition(s).",
+      "passed": true,
+      "rule_id": "stm32g071rb-package-pin-count-covers-known-pins",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb pin ports map to discovered GPIO peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-pin-port-has-gpio-peripheral",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb curated pins expose explicit signal metadata.",
+      "passed": true,
+      "rule_id": "stm32g071rb-pin-signals-present",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb pin signals only reference discovered peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-pin-signals-reference-known-peripherals",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb non-GPIO alternate functions carry explicit AF numbers.",
+      "passed": true,
+      "rule_id": "stm32g071rb-alternate-functions-explicit",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb memory regions use positive non-placeholder sizes.",
+      "passed": true,
+      "rule_id": "stm32g071rb-memory-sizes-positive",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb peripheral base addresses are unique.",
+      "passed": true,
+      "rule_id": "stm32g071rb-peripheral-bases-unique",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb exposes interrupt metadata from the raw source.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupts-present",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb interrupt entries only reference discovered peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupts-reference-known-peripherals",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb referenced peripherals expose RCC enable ownership.",
+      "passed": true,
+      "rule_id": "stm32g071rb-referenced-peripherals-have-rcc-enable",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA requests reference known controller peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-controllers-known",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA requests reference known target peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-request-peripherals-known",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA controller/request-line pairs are unique.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-routes-unique",
+      "severity": "error"
+    }
+  ],
+  "scope": {
+    "device": "stm32g071rb",
+    "family": "stm32g0",
+    "vendor": "st"
+  }
+}
