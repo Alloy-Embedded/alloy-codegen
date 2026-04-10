@@ -111,7 +111,9 @@ def test_normalize_imxrt1060_schema_version_matches_st(
     nxp_result = run_normalize(PipelineScope(device=device_name), nxp_execution_context)
     st_result = run_normalize(PipelineScope(device="stm32g071rb"), execution_context)
 
-    assert nxp_result.payload.devices[0].schema_version == st_result.payload.devices[0].schema_version
+    nxp_ver = nxp_result.payload.devices[0].schema_version
+    st_ver = st_result.payload.devices[0].schema_version
+    assert nxp_ver == st_ver
 
 
 def test_normalize_nxp_pins_have_no_port(nxp_execution_context: ExecutionContext) -> None:

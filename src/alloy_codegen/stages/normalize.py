@@ -36,17 +36,6 @@ from alloy_codegen.sources.microchip_dfp import (
     resolve_atdf_path,
     select_device_files,
 )
-from alloy_codegen.sources.nxp_mcux import (
-    NxpIomuxcEntry,
-    PAD_NUMBER_PATTERN as NXP_PAD_NUMBER_PATTERN,
-    SDK_SOURCE_ID as NXP_SDK_SOURCE_ID,
-    SVD_SOURCE_ID as NXP_SVD_SOURCE_ID,
-    parse_iomuxc_entries,
-    resolve_iomuxc_header_path,
-)
-from alloy_codegen.sources.nxp_mcux import (
-    resolve_svd_path as resolve_nxp_svd_path,
-)
 from alloy_codegen.sources.microchip_dfp import (
     parse_dma_request_patches as parse_microchip_dma_request_patches,
 )
@@ -64,6 +53,23 @@ from alloy_codegen.sources.microchip_dfp import (
 )
 from alloy_codegen.sources.microchip_dfp import (
     resolve_svd_path as resolve_microchip_svd_path,
+)
+from alloy_codegen.sources.nxp_mcux import (
+    PAD_NUMBER_PATTERN as NXP_PAD_NUMBER_PATTERN,
+)
+from alloy_codegen.sources.nxp_mcux import (
+    SDK_SOURCE_ID as NXP_SDK_SOURCE_ID,
+)
+from alloy_codegen.sources.nxp_mcux import (
+    SVD_SOURCE_ID as NXP_SVD_SOURCE_ID,
+)
+from alloy_codegen.sources.nxp_mcux import (
+    NxpIomuxcEntry,
+    parse_iomuxc_entries,
+    resolve_iomuxc_header_path,
+)
+from alloy_codegen.sources.nxp_mcux import (
+    resolve_svd_path as resolve_nxp_svd_path,
 )
 from alloy_codegen.sources.raw import RawDeviceDocument, RawPinDataDocument
 from alloy_codegen.sources.stm32_open_pin_data import (
@@ -94,7 +100,11 @@ def _canonical_peripheral_name(peripheral_name: str) -> str:
 
 
 def _infer_ip_metadata(peripheral_name: str) -> tuple[str, int]:
-    if peripheral_name.startswith("GPIO") and len(peripheral_name) == 5 and peripheral_name[-1].isalpha():
+    if (
+        peripheral_name.startswith("GPIO")
+        and len(peripheral_name) == 5
+        and peripheral_name[-1].isalpha()
+    ):
         # ST-style: GPIOA, GPIOB, ... → instance 0, 1, ...
         return ("gpio", ord(peripheral_name[-1]) - ord("A"))
     match = INSTANCE_PATTERN.match(peripheral_name)
