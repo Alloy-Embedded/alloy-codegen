@@ -5,7 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, bootstrap_device_names, registered_device_names
+from alloy_codegen.bootstrap import (
+    BOOTSTRAP_FAMILY,
+    bootstrap_device_names,
+    registered_device_names,
+)
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.normalize import run
@@ -57,4 +61,6 @@ def test_normalize_g0_and_f4_use_same_schema_version(
     g0_result = run(PipelineScope(device="stm32g071rb"), execution_context)
     f4_result = run(PipelineScope(device="stm32f401re"), execution_context)
 
-    assert g0_result.payload.devices[0].schema_version == f4_result.payload.devices[0].schema_version
+    g0_version = g0_result.payload.devices[0].schema_version
+    f4_version = f4_result.payload.devices[0].schema_version
+    assert g0_version == f4_version
