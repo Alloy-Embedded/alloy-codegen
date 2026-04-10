@@ -5,7 +5,8 @@
         {
           "candidate_id": "candidate:pb6:usart1:tx",
           "capability_ids": [
-            "capability:usart:usart-v3-1:tx"
+            "capability:usart:usart-v3-1:tx",
+            "capability-instance:usart1:lqfp64:tx"
           ],
           "operation_ids": [
             "operation:clock-enable:usart1",
@@ -37,7 +38,8 @@
         {
           "candidate_id": "candidate:pb7:usart1:rx",
           "capability_ids": [
-            "capability:usart:usart-v3-1:rx"
+            "capability:usart:usart-v3-1:rx",
+            "capability-instance:usart1:lqfp64:rx"
           ],
           "operation_ids": [
             "operation:clock-enable:usart1",

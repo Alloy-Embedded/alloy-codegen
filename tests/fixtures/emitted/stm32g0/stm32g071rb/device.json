@@ -1,8 +1,12 @@
 {
   "capabilities": [
     {
-      "capability_id": "capability:usart:usart-v3-1:rx",
-      "name": "signal-role",
+      "capability_id": "capability-instance:usart1:lqfp64:rx",
+      "ip_name": "usart",
+      "ip_version": "usart_v3_1",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "USART1",
       "peripheral_class": "uart",
       "provenance": {
         "patch_ids": [
@@ -12,11 +16,54 @@
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32G071R(6-8-B)Tx.xml"
       },
+      "scope": "instance-overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:usart1:lqfp64:tx",
+      "ip_name": "usart",
+      "ip_version": "usart_v3_1",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "USART1",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "scope": "instance-overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:rx",
+      "ip_name": "usart",
+      "ip_version": "usart_v3_1",
+      "name": "signal-role",
+      "package": null,
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "scope": "ip-block",
       "value": "rx"
     },
     {
       "capability_id": "capability:usart:usart-v3-1:tx",
+      "ip_name": "usart",
+      "ip_version": "usart_v3_1",
       "name": "signal-role",
+      "package": null,
+      "peripheral": null,
       "peripheral_class": "uart",
       "provenance": {
         "patch_ids": [
@@ -26,6 +73,7 @@
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32G071R(6-8-B)Tx.xml"
       },
+      "scope": "ip-block",
       "value": "tx"
     }
   ],
@@ -149,7 +197,8 @@
     {
       "candidate_id": "candidate:pb6:usart1:tx",
       "capability_ids": [
-        "capability:usart:usart-v3-1:tx"
+        "capability:usart:usart-v3-1:tx",
+        "capability-instance:usart1:lqfp64:tx"
       ],
       "operation_ids": [
         "operation:clock-enable:usart1",
@@ -181,7 +230,8 @@
     {
       "candidate_id": "candidate:pb7:usart1:rx",
       "capability_ids": [
-        "capability:usart:usart-v3-1:rx"
+        "capability:usart:usart-v3-1:rx",
+        "capability-instance:usart1:lqfp64:rx"
       ],
       "operation_ids": [
         "operation:clock-enable:usart1",

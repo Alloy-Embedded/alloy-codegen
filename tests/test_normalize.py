@@ -124,8 +124,26 @@ def test_normalize_emits_connector_driven_domains_for_foundational_vendors(
         assert device.connection_candidates
         assert device.connection_groups
         assert any(len(group.signals) >= 2 for group in device.connection_groups)
+        assert any(capability.scope == "instance-overlay" for capability in device.capabilities)
         assert device.vector_slots
         assert device.startup_descriptors
+
+
+def test_normalize_emits_ip_block_and_instance_overlay_capabilities(
+    execution_context: ExecutionContext,
+    microchip_execution_context: ExecutionContext,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    devices = (
+        run(PipelineScope(device="stm32g071rb"), execution_context).payload.devices[0],
+        run(PipelineScope(device="atsame70q21b"), microchip_execution_context).payload.devices[0],
+        run(PipelineScope(device="mimxrt1062"), nxp_execution_context).payload.devices[0],
+    )
+
+    for device in devices:
+        assert any(capability.scope == "instance-overlay" for capability in device.capabilities)
+        if any(peripheral.ip_version is not None for peripheral in device.peripherals):
+            assert any(capability.scope == "ip-block" for capability in device.capabilities)
 
 
 def test_foundational_devices_expose_multi_signal_groups(

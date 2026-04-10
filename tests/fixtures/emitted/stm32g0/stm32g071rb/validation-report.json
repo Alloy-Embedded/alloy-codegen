@@ -28,7 +28,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 44 rule(s).",
+      "message": "gate-c passed with 46 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -62,6 +62,8 @@
         "stm32g071rb-connection-candidates-carry-source-requirement",
         "stm32g071rb-connection-candidates-reference-known-operations",
         "stm32g071rb-connection-candidates-reference-known-capabilities",
+        "stm32g071rb-capability-descriptors-carry-context",
+        "stm32g071rb-candidate-capabilities-resolve-from-descriptors",
         "stm32g071rb-connection-groups-reference-known-candidates",
         "stm32g071rb-connection-groups-match-selected-package",
         "stm32g071rb-connection-groups-have-satisfiable-signals",
@@ -359,6 +361,20 @@
       "message": "stm32g071rb route candidates only reference declared capabilities.",
       "passed": true,
       "rule_id": "stm32g071rb-connection-candidates-reference-known-capabilities",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb capability descriptors carry explicit ip-block or instance-overlay context.",
+      "passed": true,
+      "rule_id": "stm32g071rb-capability-descriptors-carry-context",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb candidate capabilities resolve through ip-block and instance-overlay descriptors.",
+      "passed": true,
+      "rule_id": "stm32g071rb-candidate-capabilities-resolve-from-descriptors",
       "severity": "error"
     },
     {

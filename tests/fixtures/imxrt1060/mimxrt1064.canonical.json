@@ -1,4 +1,196 @@
 {
+  "capabilities": [
+    {
+      "capability_id": "capability-instance:gpio1:bga196:io00",
+      "ip_name": "gpio",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "GPIO1",
+      "peripheral_class": "gpio",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "io00"
+    },
+    {
+      "capability_id": "capability-instance:gpio1:bga196:io01",
+      "ip_name": "gpio",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "GPIO1",
+      "peripheral_class": "gpio",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "io01"
+    },
+    {
+      "capability_id": "capability-instance:gpio4:bga196:io00",
+      "ip_name": "gpio",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "GPIO4",
+      "peripheral_class": "gpio",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "io00"
+    },
+    {
+      "capability_id": "capability-instance:gpio4:bga196:io01",
+      "ip_name": "gpio",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "GPIO4",
+      "peripheral_class": "gpio",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "io01"
+    },
+    {
+      "capability_id": "capability-instance:lpi2c1:bga196:scl",
+      "ip_name": "lpi2c1",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "LPI2C1",
+      "peripheral_class": "lpi2c1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "scl"
+    },
+    {
+      "capability_id": "capability-instance:lpi2c1:bga196:sda",
+      "ip_name": "lpi2c1",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "LPI2C1",
+      "peripheral_class": "lpi2c1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "sda"
+    },
+    {
+      "capability_id": "capability-instance:lpspi1:bga196:cs",
+      "ip_name": "lpspi",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "LPSPI1",
+      "peripheral_class": "spi",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "cs"
+    },
+    {
+      "capability_id": "capability-instance:lpspi1:bga196:sck",
+      "ip_name": "lpspi",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "LPSPI1",
+      "peripheral_class": "spi",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "sck"
+    },
+    {
+      "capability_id": "capability-instance:lpuart1:bga196:rx",
+      "ip_name": "lpuart",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "LPUART1",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:lpuart1:bga196:tx",
+      "ip_name": "lpuart",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "bga196",
+      "peripheral": "LPUART1",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+      },
+      "scope": "instance-overlay",
+      "value": "tx"
+    }
+  ],
   "clock_gates": [
     {
       "enable_signal": "CCM_CCGR1.CG13",
@@ -160,7 +352,9 @@
   "connection_candidates": [
     {
       "candidate_id": "candidate:gpio-ad-b0-00:gpio1:io00",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:gpio1:bga196:io00"
+      ],
       "operation_ids": [
         "operation:clock-enable:gpio1",
         "operation:route:gpio-ad-b0-00:gpio1:io00"
@@ -188,7 +382,9 @@
     },
     {
       "candidate_id": "candidate:gpio-ad-b0-00:lpi2c1:scl",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:lpi2c1:bga196:scl"
+      ],
       "operation_ids": [
         "operation:clock-enable:lpi2c1",
         "operation:route:gpio-ad-b0-00:lpi2c1:scl"
@@ -216,7 +412,9 @@
     },
     {
       "candidate_id": "candidate:gpio-ad-b0-00:lpuart1:tx",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:lpuart1:bga196:tx"
+      ],
       "operation_ids": [
         "operation:clock-enable:lpuart1",
         "operation:route:gpio-ad-b0-00:lpuart1:tx"
@@ -244,7 +442,9 @@
     },
     {
       "candidate_id": "candidate:gpio-ad-b0-01:gpio1:io01",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:gpio1:bga196:io01"
+      ],
       "operation_ids": [
         "operation:clock-enable:gpio1",
         "operation:route:gpio-ad-b0-01:gpio1:io01"
@@ -272,7 +472,9 @@
     },
     {
       "candidate_id": "candidate:gpio-ad-b0-01:lpi2c1:sda",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:lpi2c1:bga196:sda"
+      ],
       "operation_ids": [
         "operation:clock-enable:lpi2c1",
         "operation:route:gpio-ad-b0-01:lpi2c1:sda"
@@ -300,7 +502,9 @@
     },
     {
       "candidate_id": "candidate:gpio-ad-b0-01:lpuart1:rx",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:lpuart1:bga196:rx"
+      ],
       "operation_ids": [
         "operation:clock-enable:lpuart1",
         "operation:route:gpio-ad-b0-01:lpuart1:rx"
@@ -328,7 +532,9 @@
     },
     {
       "candidate_id": "candidate:gpio-emc-00:gpio4:io00",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:gpio4:bga196:io00"
+      ],
       "operation_ids": [
         "operation:clock-enable:gpio4",
         "operation:route:gpio-emc-00:gpio4:io00"
@@ -356,7 +562,9 @@
     },
     {
       "candidate_id": "candidate:gpio-emc-00:lpspi1:sck",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:lpspi1:bga196:sck"
+      ],
       "operation_ids": [
         "operation:clock-enable:lpspi1",
         "operation:route:gpio-emc-00:lpspi1:sck"
@@ -384,7 +592,9 @@
     },
     {
       "candidate_id": "candidate:gpio-emc-01:gpio4:io01",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:gpio4:bga196:io01"
+      ],
       "operation_ids": [
         "operation:clock-enable:gpio4",
         "operation:route:gpio-emc-01:gpio4:io01"
@@ -412,7 +622,9 @@
     },
     {
       "candidate_id": "candidate:gpio-emc-01:lpspi1:pcs0",
-      "capability_ids": [],
+      "capability_ids": [
+        "capability-instance:lpspi1:bga196:cs"
+      ],
       "operation_ids": [
         "operation:clock-enable:lpspi1",
         "operation:route:gpio-emc-01:lpspi1:pcs0"

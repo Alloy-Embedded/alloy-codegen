@@ -21,9 +21,14 @@ inline constexpr IpBlockDescriptor kIpBlock = {
 
 struct CapabilityDescriptor {
   const char* capability_id;
+  const char* scope;
   const char* peripheral_class;
   const char* name;
   const char* value;
+  const char* ip_name;
+  const char* ip_version;
+  const char* peripheral;
+  const char* package;
 };
 inline constexpr CapabilityDescriptor kCapabilities[] = {
 };

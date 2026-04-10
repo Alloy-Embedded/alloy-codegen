@@ -21,13 +21,18 @@ inline constexpr IpBlockDescriptor kIpBlock = {
 
 struct CapabilityDescriptor {
   const char* capability_id;
+  const char* scope;
   const char* peripheral_class;
   const char* name;
   const char* value;
+  const char* ip_name;
+  const char* ip_version;
+  const char* peripheral;
+  const char* package;
 };
 inline constexpr CapabilityDescriptor kCapabilities[] = {
-  {"capability:usart:usart-v3-1:rx", "uart", "signal-role", "rx"},
-  {"capability:usart:usart-v3-1:tx", "uart", "signal-role", "tx"},
+  {"capability:usart:usart-v3-1:rx", "ip-block", "uart", "signal-role", "rx", "usart", "usart_v3_1", nullptr, nullptr},
+  {"capability:usart:usart-v3-1:tx", "ip-block", "uart", "signal-role", "tx", "usart", "usart_v3_1", nullptr, nullptr},
 };
 }
 }

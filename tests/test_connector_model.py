@@ -50,6 +50,13 @@ def test_enrich_connector_descriptors_builds_st_route_model(execution_context) -
         )
         for candidate in tx_candidates
     )
+    assert all(
+        any(
+            capability_id.startswith("capability-instance:usart1:")
+            for capability_id in candidate.capability_ids
+        )
+        for candidate in tx_candidates
+    )
     assert any(op.kind == "write-selector" for op in device.route_operations)
 
 
@@ -97,6 +104,13 @@ def test_enrich_connector_descriptors_builds_microchip_route_model(
         "requirement:constraint:PA0:wakeup-capable" in candidate.requirement_ids
         for candidate in microchip_candidates
     )
+    assert any(
+        any(
+            capability_id.startswith("capability-instance:")
+            for capability_id in candidate.capability_ids
+        )
+        for candidate in microchip_candidates
+    )
 
 
 def test_enrich_connector_descriptors_builds_nxp_route_model(
@@ -131,6 +145,13 @@ def test_enrich_connector_descriptors_builds_nxp_route_model(
         group.signals == ("scl", "sda") for group in bundle_groups
     )
     assert any(candidate.route_kind == "iomuxc-mux" for candidate in nxp_candidates)
+    assert all(
+        any(
+            capability_id.startswith("capability-instance:")
+            for capability_id in candidate.capability_ids
+        )
+        for candidate in nxp_candidates
+    )
     if device.dma_requests:
         assert device.dma_controllers
         assert device.dma_routes

@@ -386,25 +386,56 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 f"candidate:{_sanitize(pin.name)}:{_sanitize(peripheral.name)}:"
                 f"{_sanitize(signal.signal)}"
             )
-            capability_ids: tuple[str, ...] = ()
+            capability_value = canonical_signal_role(
+                peripheral_class,
+                signal.signal,
+            ) or signal.signal.lower()
+            capability_ids_list: list[str] = []
             if peripheral.ip_version is not None:
                 capability_id = (
                     f"capability:{_sanitize(peripheral.ip_name)}:{_sanitize(peripheral.ip_version)}:"
-                    f"{_sanitize(signal.signal)}"
+                    f"{_sanitize(capability_value)}"
                 )
                 capability_map.setdefault(
                     capability_id,
                     CapabilityDescriptor(
                         capability_id=capability_id,
+                        scope="ip-block",
                         peripheral_class=peripheral_class,
                         name="signal-role",
-                        value=signal.signal.lower(),
+                        value=capability_value,
+                        ip_name=peripheral.ip_name,
+                        ip_version=peripheral.ip_version,
+                        peripheral=None,
+                        package=None,
                         provenance=signal.provenance,
                     ),
                 )
-                capability_ids = (capability_id,)
-                block_roles[(peripheral.ip_name, peripheral.ip_version)].add(signal.signal.lower())
+                capability_ids_list.append(capability_id)
+                block_roles[(peripheral.ip_name, peripheral.ip_version)].add(capability_value)
                 block_capabilities[(peripheral.ip_name, peripheral.ip_version)].add(capability_id)
+
+            overlay_capability_id = (
+                f"capability-instance:{_sanitize(peripheral.name)}:"
+                f"{_sanitize(device.identity.package)}:{_sanitize(capability_value)}"
+            )
+            capability_map.setdefault(
+                overlay_capability_id,
+                CapabilityDescriptor(
+                    capability_id=overlay_capability_id,
+                    scope="instance-overlay",
+                    peripheral_class=peripheral_class,
+                    name="available-signal",
+                    value=capability_value,
+                    ip_name=peripheral.ip_name,
+                    ip_version=peripheral.ip_version,
+                    peripheral=peripheral.name,
+                    package=device.identity.package,
+                    provenance=signal.provenance,
+                ),
+            )
+            capability_ids_list.append(overlay_capability_id)
+            capability_ids = tuple(dict.fromkeys(capability_ids_list))
 
             candidate_map[candidate_id] = ConnectionCandidate(
                 candidate_id=candidate_id,

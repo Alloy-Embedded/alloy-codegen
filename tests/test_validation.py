@@ -408,6 +408,83 @@ def test_validation_fails_gate_c_when_candidate_has_no_source_requirement(
     assert "stm32g071rb-connection-candidates-carry-source-requirement" in failing_rules
 
 
+def test_validation_fails_gate_c_when_candidate_capabilities_lack_instance_overlay(
+    execution_context: ExecutionContext,
+) -> None:
+    validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
+    original_device = validated.payload.devices[0]
+    candidate = next(
+        candidate
+        for candidate in original_device.connection_candidates
+        if any(
+            capability_id.startswith("capability-instance:")
+            for capability_id in candidate.capability_ids
+        )
+    )
+    broken_candidate = type(candidate)(
+        candidate_id=candidate.candidate_id,
+        pin=candidate.pin,
+        peripheral=candidate.peripheral,
+        signal=candidate.signal,
+        route_kind=candidate.route_kind,
+        route_selector=candidate.route_selector,
+        route_group_id=candidate.route_group_id,
+        requirement_ids=candidate.requirement_ids,
+        operation_ids=candidate.operation_ids,
+        capability_ids=tuple(
+            capability_id
+            for capability_id in candidate.capability_ids
+            if not capability_id.startswith("capability-instance:")
+        ),
+        provenance=candidate.provenance,
+    )
+    broken_device = type(original_device)(
+        schema_version=original_device.schema_version,
+        identity=original_device.identity,
+        memories=original_device.memories,
+        packages=original_device.packages,
+        pins=original_device.pins,
+        peripherals=original_device.peripherals,
+        interrupts=original_device.interrupts,
+        dma_requests=original_device.dma_requests,
+        provenance=original_device.provenance,
+        ip_blocks=original_device.ip_blocks,
+        capabilities=original_device.capabilities,
+        package_pads=original_device.package_pads,
+        pin_constraints=original_device.pin_constraints,
+        signal_endpoints=original_device.signal_endpoints,
+        route_requirements=original_device.route_requirements,
+        route_operations=original_device.route_operations,
+        connection_candidates=(broken_candidate,) + tuple(
+            item
+            for item in original_device.connection_candidates
+            if item.candidate_id != candidate.candidate_id
+        ),
+        connection_groups=original_device.connection_groups,
+        vector_slots=original_device.vector_slots,
+        startup_descriptors=original_device.startup_descriptors,
+        clock_nodes=original_device.clock_nodes,
+        clock_selectors=original_device.clock_selectors,
+        clock_gates=original_device.clock_gates,
+        resets=original_device.resets,
+        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+        dma_controllers=original_device.dma_controllers,
+        dma_routes=original_device.dma_routes,
+        dma_conflict_groups=original_device.dma_conflict_groups,
+    )
+
+    report = build_validation_report(
+        scope=validated.scope,
+        source_manifest=validated.payload.source_manifest,
+        patch_manifest=validated.payload.patch_manifest,
+        devices=(broken_device,),
+    )
+
+    assert report.gate_status("gate-c").passed is False
+    failing_rules = {result.rule_id for result in report.results if not result.passed}
+    assert "stm32g071rb-candidate-capabilities-resolve-from-descriptors" in failing_rules
+
+
 def test_validation_fails_gate_c_when_group_signals_are_not_satisfiable(
     execution_context: ExecutionContext,
 ) -> None:
@@ -553,6 +630,21 @@ def test_family_scope_reports_multi_signal_groups_for_all_devices(
         rule
         for rule in report.results
         if rule.rule_id == "st-stm32g0-family-devices-expose-multi-signal-groups"
+    )
+    assert family_rule.passed is True
+
+
+def test_family_scope_reports_ip_version_reuse_when_available(
+    execution_context: ExecutionContext,
+) -> None:
+    result = run_validate(PipelineScope(vendor="st", family="stm32g0"), execution_context)
+    report = result.payload.report
+
+    assert result.status == "completed"
+    family_rule = next(
+        rule
+        for rule in report.results
+        if rule.rule_id == "st-stm32g0-family-reuses-ip-version-descriptors"
     )
     assert family_rule.passed is True
 

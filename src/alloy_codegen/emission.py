@@ -366,15 +366,23 @@ def emit_ip_block_header(
         "",
         "struct CapabilityDescriptor {",
         "  const char* capability_id;",
+        "  const char* scope;",
         "  const char* peripheral_class;",
         "  const char* name;",
         "  const char* value;",
+        "  const char* ip_name;",
+        "  const char* ip_version;",
+        "  const char* peripheral;",
+        "  const char* package;",
         "};",
         "inline constexpr CapabilityDescriptor kCapabilities[] = {",
         *[
             f"  {{{json.dumps(capability.capability_id)}, "
+            f"{json.dumps(capability.scope)}, "
             f"{json.dumps(capability.peripheral_class)}, "
-            f"{json.dumps(capability.name)}, {json.dumps(capability.value)}}},"
+            f"{json.dumps(capability.name)}, {json.dumps(capability.value)}, "
+            f"{_quoted(capability.ip_name)}, {_quoted(capability.ip_version)}, "
+            f"{_quoted(capability.peripheral)}, {_quoted(capability.package)}}},"
             for capability in sorted(capabilities, key=lambda item: item.capability_id)
         ],
         "};",

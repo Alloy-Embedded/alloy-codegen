@@ -124,10 +124,15 @@ class CapabilityDescriptor:
     """One versioned capability fact exposed to emitters and Alloy."""
 
     capability_id: str
+    scope: str
     peripheral_class: str
     name: str
     value: str
     provenance: Provenance
+    ip_name: str | None = None
+    ip_version: str | None = None
+    peripheral: str | None = None
+    package: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

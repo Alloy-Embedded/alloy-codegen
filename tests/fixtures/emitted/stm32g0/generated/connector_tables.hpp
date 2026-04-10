@@ -82,8 +82,8 @@ struct ConnectionCandidateDescriptor {
   const char* capability_ids;
 };
 inline constexpr ConnectionCandidateDescriptor kConnectionCandidates[] = {
-  {"stm32g071rb", "candidate:pb6:usart1:tx", "PB6", "USART1", "tx", "alternate-function", "selector:0", "group:usart1:lqfp64:tx-rx", "requirement:package:lqfp64,requirement:bonded-pin:lqfp64:pb6,requirement:clock-enable:usart1,requirement:reset-release:usart1,requirement:source-select:pb6:usart1:tx", "operation:clock-enable:usart1,operation:reset-release:usart1,operation:route:pb6:usart1:tx", "capability:usart:usart-v3-1:tx"},
-  {"stm32g071rb", "candidate:pb7:usart1:rx", "PB7", "USART1", "rx", "alternate-function", "selector:0", "group:usart1:lqfp64:tx-rx", "requirement:package:lqfp64,requirement:bonded-pin:lqfp64:pb7,requirement:clock-enable:usart1,requirement:reset-release:usart1,requirement:source-select:pb7:usart1:rx", "operation:clock-enable:usart1,operation:reset-release:usart1,operation:route:pb7:usart1:rx", "capability:usart:usart-v3-1:rx"},
+  {"stm32g071rb", "candidate:pb6:usart1:tx", "PB6", "USART1", "tx", "alternate-function", "selector:0", "group:usart1:lqfp64:tx-rx", "requirement:package:lqfp64,requirement:bonded-pin:lqfp64:pb6,requirement:clock-enable:usart1,requirement:reset-release:usart1,requirement:source-select:pb6:usart1:tx", "operation:clock-enable:usart1,operation:reset-release:usart1,operation:route:pb6:usart1:tx", "capability:usart:usart-v3-1:tx,capability-instance:usart1:lqfp64:tx"},
+  {"stm32g071rb", "candidate:pb7:usart1:rx", "PB7", "USART1", "rx", "alternate-function", "selector:0", "group:usart1:lqfp64:tx-rx", "requirement:package:lqfp64,requirement:bonded-pin:lqfp64:pb7,requirement:clock-enable:usart1,requirement:reset-release:usart1,requirement:source-select:pb7:usart1:rx", "operation:clock-enable:usart1,operation:reset-release:usart1,operation:route:pb7:usart1:rx", "capability:usart:usart-v3-1:rx,capability-instance:usart1:lqfp64:rx"},
 };
 
 struct ConnectionGroupDescriptor {

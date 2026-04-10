@@ -156,9 +156,14 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
         capabilities=(
             CapabilityDescriptor(
                 capability_id="uart-fifo",
+                scope="ip-block",
                 peripheral_class="uart",
                 name="fifo_depth",
                 value="8",
+                ip_name="usart",
+                ip_version="usart_v3_1",
+                peripheral=None,
+                package=None,
                 provenance=provenance,
             ),
         ),
@@ -322,6 +327,8 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
 
     assert payload["ip_blocks"][0]["ip_version"] == "usart_v3_1"
     assert payload["capabilities"][0]["capability_id"] == "uart-fifo"
+    assert payload["capabilities"][0]["scope"] == "ip-block"
+    assert payload["capabilities"][0]["ip_name"] == "usart"
     assert payload["package_pads"][0]["position_label"] == "42"
     assert payload["package_pads"][0]["bonding_state"] == "bonded"
     assert payload["pin_constraints"][0]["constraint_id"] == "pa9-debug-conflict"

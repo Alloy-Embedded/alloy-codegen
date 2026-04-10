@@ -1,8 +1,12 @@
 {
   "capabilities": [
     {
-      "capability_id": "capability:fdcan:fdcan-v1-0:rx",
-      "name": "signal-role",
+      "capability_id": "capability-instance:fdcan1:lqfp64:rx",
+      "ip_name": "fdcan",
+      "ip_version": "fdcan_v1_0",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "FDCAN1",
       "peripheral_class": "fdcan",
       "provenance": {
         "patch_ids": [
@@ -12,11 +16,54 @@
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32G0B1R(B-C-E)Tx.xml"
       },
+      "scope": "instance-overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:fdcan1:lqfp64:tx",
+      "ip_name": "fdcan",
+      "ip_version": "fdcan_v1_0",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "FDCAN1",
+      "peripheral_class": "fdcan",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "scope": "instance-overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "capability:fdcan:fdcan-v1-0:rx",
+      "ip_name": "fdcan",
+      "ip_version": "fdcan_v1_0",
+      "name": "signal-role",
+      "package": null,
+      "peripheral": null,
+      "peripheral_class": "fdcan",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      },
+      "scope": "ip-block",
       "value": "rx"
     },
     {
       "capability_id": "capability:fdcan:fdcan-v1-0:tx",
+      "ip_name": "fdcan",
+      "ip_version": "fdcan_v1_0",
       "name": "signal-role",
+      "package": null,
+      "peripheral": null,
       "peripheral_class": "fdcan",
       "provenance": {
         "patch_ids": [
@@ -26,6 +73,7 @@
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32G0B1R(B-C-E)Tx.xml"
       },
+      "scope": "ip-block",
       "value": "tx"
     }
   ],
@@ -135,7 +183,8 @@
     {
       "candidate_id": "candidate:pa11:fdcan1:rx",
       "capability_ids": [
-        "capability:fdcan:fdcan-v1-0:rx"
+        "capability:fdcan:fdcan-v1-0:rx",
+        "capability-instance:fdcan1:lqfp64:rx"
       ],
       "operation_ids": [
         "operation:clock-enable:fdcan1",
@@ -167,7 +216,8 @@
     {
       "candidate_id": "candidate:pa12:fdcan1:tx",
       "capability_ids": [
-        "capability:fdcan:fdcan-v1-0:tx"
+        "capability:fdcan:fdcan-v1-0:tx",
+        "capability-instance:fdcan1:lqfp64:tx"
       ],
       "operation_ids": [
         "operation:clock-enable:fdcan1",

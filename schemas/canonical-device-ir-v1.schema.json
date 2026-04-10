@@ -130,12 +130,28 @@
     },
     "capability_descriptor": {
       "type": "object",
-      "required": ["capability_id", "peripheral_class", "name", "value", "provenance"],
+      "required": [
+        "capability_id",
+        "scope",
+        "peripheral_class",
+        "name",
+        "value",
+        "ip_name",
+        "ip_version",
+        "peripheral",
+        "package",
+        "provenance"
+      ],
       "properties": {
         "capability_id": { "type": "string" },
+        "scope": { "type": "string" },
         "peripheral_class": { "type": "string" },
         "name": { "type": "string" },
         "value": { "type": "string" },
+        "ip_name": { "type": ["string", "null"] },
+        "ip_version": { "type": ["string", "null"] },
+        "peripheral": { "type": ["string", "null"] },
+        "package": { "type": ["string", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false

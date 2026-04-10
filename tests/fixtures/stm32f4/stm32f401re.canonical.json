@@ -1,8 +1,12 @@
 {
   "capabilities": [
     {
-      "capability_id": "capability:usart:usart-f4-v1-0:rx",
-      "name": "signal-role",
+      "capability_id": "capability-instance:usart1:lqfp64:rx",
+      "ip_name": "usart",
+      "ip_version": "usart_f4_v1_0",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "USART1",
       "peripheral_class": "uart",
       "provenance": {
         "patch_ids": [
@@ -12,11 +16,92 @@
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32F401R(B-C-D-E)Tx.xml"
       },
+      "scope": "instance-overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:usart1:lqfp64:tx",
+      "ip_name": "usart",
+      "ip_version": "usart_f4_v1_0",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "USART1",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F401R(B-C-D-E)Tx.xml"
+      },
+      "scope": "instance-overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "capability-instance:usart2:lqfp64:rx",
+      "ip_name": "usart",
+      "ip_version": "usart_f4_v1_0",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F401R(B-C-D-E)Tx.xml"
+      },
+      "scope": "instance-overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:usart2:lqfp64:tx",
+      "ip_name": "usart",
+      "ip_version": "usart_f4_v1_0",
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F401R(B-C-D-E)Tx.xml"
+      },
+      "scope": "instance-overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "capability:usart:usart-f4-v1-0:rx",
+      "ip_name": "usart",
+      "ip_version": "usart_f4_v1_0",
+      "name": "signal-role",
+      "package": null,
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32F401R(B-C-D-E)Tx.xml"
+      },
+      "scope": "ip-block",
       "value": "rx"
     },
     {
       "capability_id": "capability:usart:usart-f4-v1-0:tx",
+      "ip_name": "usart",
+      "ip_version": "usart_f4_v1_0",
       "name": "signal-role",
+      "package": null,
+      "peripheral": null,
       "peripheral_class": "uart",
       "provenance": {
         "patch_ids": [
@@ -26,6 +111,7 @@
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32F401R(B-C-D-E)Tx.xml"
       },
+      "scope": "ip-block",
       "value": "tx"
     }
   ],
@@ -163,7 +249,8 @@
     {
       "candidate_id": "candidate:pa10:usart1:rx",
       "capability_ids": [
-        "capability:usart:usart-f4-v1-0:rx"
+        "capability:usart:usart-f4-v1-0:rx",
+        "capability-instance:usart1:lqfp64:rx"
       ],
       "operation_ids": [
         "operation:clock-enable:usart1",
@@ -195,7 +282,8 @@
     {
       "candidate_id": "candidate:pa2:usart2:tx",
       "capability_ids": [
-        "capability:usart:usart-f4-v1-0:tx"
+        "capability:usart:usart-f4-v1-0:tx",
+        "capability-instance:usart2:lqfp64:tx"
       ],
       "operation_ids": [
         "operation:clock-enable:usart2",
@@ -227,7 +315,8 @@
     {
       "candidate_id": "candidate:pa3:usart2:rx",
       "capability_ids": [
-        "capability:usart:usart-f4-v1-0:rx"
+        "capability:usart:usart-f4-v1-0:rx",
+        "capability-instance:usart2:lqfp64:rx"
       ],
       "operation_ids": [
         "operation:clock-enable:usart2",
@@ -259,7 +348,8 @@
     {
       "candidate_id": "candidate:pa9:usart1:tx",
       "capability_ids": [
-        "capability:usart:usart-f4-v1-0:tx"
+        "capability:usart:usart-f4-v1-0:tx",
+        "capability-instance:usart1:lqfp64:tx"
       ],
       "operation_ids": [
         "operation:clock-enable:usart1",

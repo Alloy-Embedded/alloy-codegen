@@ -347,6 +347,9 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     }
     operation_ids = {operation.operation_id for operation in device.route_operations}
     capability_ids = {capability.capability_id for capability in device.capabilities}
+    capability_lookup = {
+        capability.capability_id: capability for capability in device.capabilities
+    }
     candidate_ids = {candidate.candidate_id for candidate in device.connection_candidates}
     candidate_lookup = {
         candidate.candidate_id: candidate for candidate in device.connection_candidates
@@ -441,6 +444,47 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         capability_id in capability_ids
         for candidate in device.connection_candidates
         for capability_id in candidate.capability_ids
+    )
+    capability_descriptors_structured = all(
+        (
+            capability.scope == "ip-block"
+            and capability.ip_name is not None
+            and capability.ip_version is not None
+            and capability.peripheral is None
+            and capability.package is None
+        )
+        or (
+            capability.scope == "instance-overlay"
+            and capability.peripheral is not None
+            and capability.package is not None
+        )
+        for capability in device.capabilities
+    )
+    candidate_capabilities_descriptor_resolved = all(
+        (
+            not candidate.capability_ids
+            or any(
+                capability_lookup[capability_id].scope == "instance-overlay"
+                and capability_lookup[capability_id].peripheral == candidate.peripheral
+                and capability_lookup[capability_id].package == device.identity.package
+                for capability_id in candidate.capability_ids
+                if capability_id in capability_lookup
+            )
+        )
+        and (
+            peripheral_map[candidate.peripheral].ip_version is None
+            or any(
+                capability_lookup[capability_id].scope == "ip-block"
+                and capability_lookup[capability_id].ip_name
+                == peripheral_map[candidate.peripheral].ip_name
+                and capability_lookup[capability_id].ip_version
+                == peripheral_map[candidate.peripheral].ip_version
+                for capability_id in candidate.capability_ids
+                if capability_id in capability_lookup
+            )
+        )
+        for candidate in device.connection_candidates
+        if candidate.peripheral in peripheral_map
     )
     group_candidates_known = all(
         candidate_id in candidate_ids
@@ -678,6 +722,26 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             ),
         ),
         _rule(
+            rule_id=f"{device.identity.device}-capability-descriptors-carry-context",
+            category="semantic",
+            severity="error",
+            passed=capability_descriptors_structured,
+            message=(
+                f"{device.identity.device} capability descriptors carry explicit "
+                "ip-block or instance-overlay context."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-candidate-capabilities-resolve-from-descriptors",
+            category="semantic",
+            severity="error",
+            passed=candidate_capabilities_descriptor_resolved,
+            message=(
+                f"{device.identity.device} candidate capabilities resolve through "
+                "ip-block and instance-overlay descriptors."
+            ),
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-connection-groups-reference-known-candidates",
             category="semantic",
             severity="error",
@@ -794,6 +858,17 @@ def _validate_scope_semantics(
         any(len(group.signals) >= 2 for group in device.connection_groups)
         for device in devices
     )
+    ip_block_usage: dict[tuple[str, str], set[str]] = {}
+    for device in devices:
+        for ip_block in device.ip_blocks:
+            ip_block_usage.setdefault((ip_block.ip_name, ip_block.ip_version), set()).add(
+                device.identity.device
+            )
+    families_with_versioned_ip = bool(ip_block_usage)
+    family_reuses_ip_blocks = (
+        not families_with_versioned_ip
+        or any(len(device_names) >= 2 for device_names in ip_block_usage.values())
+    )
     scope_label = (
         f"{scope.vendor}-{scope.family}"
         if scope.vendor is not None
@@ -808,6 +883,16 @@ def _validate_scope_semantics(
             message=(
                 f"{scope_label} family scope exposes at least one multi-signal "
                 "connection group for every normalized device."
+            ),
+        ),
+        _rule(
+            rule_id=f"{scope_label}-family-reuses-ip-version-descriptors",
+            category="semantic",
+            severity="error",
+            passed=family_reuses_ip_blocks,
+            message=(
+                f"{scope_label} family scope reuses at least one ip-version "
+                "descriptor across multiple devices when versioned IP data exist."
             ),
         ),
     )

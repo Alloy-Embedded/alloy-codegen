@@ -32,14 +32,14 @@
 
 - [x] C.1 Define `ip_block` normalization keyed by `ip_name + ip_version`
 - [x] C.2 Add capability descriptors shared by peripheral class and version
-- [ ] C.3 Add instance-level capability overlays for package- or instance-specific limits
-- [ ] C.4 Add validators ensuring capabilities can be resolved from descriptors alone
-- [ ] C.5 Add golden fixtures for versioned IP reuse across multiple devices
+- [x] C.3 Add instance-level capability overlays for package- or instance-specific limits
+- [x] C.4 Add validators ensuring capabilities can be resolved from descriptors alone
+- [x] C.5 Add golden fixtures for versioned IP reuse across multiple devices
 
 ### Gate C3: Descriptor reuse by IP version
-- [ ] C3.1 At least one IP-version descriptor is reused across multiple devices in each supported
+- [x] C3.1 At least one IP-version descriptor is reused across multiple devices in each supported
       vendor shape where the upstream data permit it
-- [ ] C3.2 Alloy-facing descriptors no longer infer capability from instance names alone
+- [x] C3.2 Alloy-facing descriptors no longer infer capability from instance names alone
 
 ## Phase D: Package and pinout completion
 
