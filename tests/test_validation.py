@@ -16,6 +16,9 @@ def test_validate_reports_gate_statuses(execution_context: ExecutionContext) -> 
     assert report.gate_status("gate-a").passed is True
     assert report.gate_status("gate-b").passed is True
     assert report.gate_status("gate-c").passed is True
+    assert report.draft_system_descriptor_domains == ()
+    assert report.system_descriptor_status("startup").passed is True
+    assert report.system_descriptor_status("clock-reset").passed is True
     assert device.connection_candidates
     assert device.connection_groups
     assert device.vector_slots
@@ -814,8 +817,11 @@ def test_validation_fails_gate_c_when_system_vector_baseline_is_missing(
     )
 
     assert report.gate_status("gate-c").passed is False
+    assert "startup" in report.draft_system_descriptor_domains
+    assert report.system_descriptor_status("startup").draft is True
     failing_rules = {result.rule_id for result in report.results if not result.passed}
     assert "stm32g071rb-vector-slots-include-system-baseline" in failing_rules
+    assert "stm32g071rb-startup-descriptors-emit-without-handwritten-tables" in failing_rules
 
 
 def test_validation_fails_gate_c_when_interrupt_shared_group_is_not_shared(

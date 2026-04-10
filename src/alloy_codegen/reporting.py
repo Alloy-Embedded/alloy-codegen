@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.manifests import ArtifactManifest, PatchManifest, SourceManifest
@@ -57,6 +57,17 @@ class ValidationGateStatus:
 
 
 @dataclass(frozen=True, slots=True)
+class SystemDescriptorDomainStatus:
+    """Publishability status for one required system-descriptor domain."""
+
+    domain_id: str
+    passed: bool
+    draft: bool
+    message: str
+    rule_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ValidationReport:
     """Validation report emitted by the validate stage."""
 
@@ -64,11 +75,23 @@ class ValidationReport:
     scope: dict[str, str | None]
     results: tuple[ValidationRuleResult, ...]
     gates: tuple[ValidationGateStatus, ...]
+    system_descriptor_domains: tuple[SystemDescriptorDomainStatus, ...] = field(
+        default=(),
+        metadata={"omit_if_empty": True},
+    )
 
     @property
     def is_passing(self) -> bool:
         blocking_gates = [gate for gate in self.gates if gate.blocking]
-        return all(gate.passed for gate in blocking_gates)
+        return all(gate.passed for gate in blocking_gates) and not (
+            self.draft_system_descriptor_domains
+        )
+
+    @property
+    def draft_system_descriptor_domains(self) -> tuple[str, ...]:
+        return tuple(
+            domain.domain_id for domain in self.system_descriptor_domains if domain.draft
+        )
 
     def gate_status(self, gate_id: str) -> ValidationGateStatus:
         for gate in self.gates:
@@ -76,9 +99,16 @@ class ValidationReport:
                 return gate
         raise KeyError(f"Unknown validation gate '{gate_id}'.")
 
+    def system_descriptor_status(self, domain_id: str) -> SystemDescriptorDomainStatus:
+        for domain in self.system_descriptor_domains:
+            if domain.domain_id == domain_id:
+                return domain
+        raise KeyError(f"Unknown system descriptor domain '{domain_id}'.")
+
     def to_dict(self) -> dict[str, object]:
         payload = to_primitive(self)
         payload["is_passing"] = self.is_passing
+        payload["draft_system_descriptor_domains"] = list(self.draft_system_descriptor_domains)
         return payload
 
 
@@ -151,3 +181,4 @@ class PublicationPlan:
     consumer_verification: ConsumerVerification | None = None
     publication_record: EmittedArtifact | None = None
     publication_summary: EmittedArtifact | None = None
+    draft_system_descriptor_domains: tuple[str, ...] = ()

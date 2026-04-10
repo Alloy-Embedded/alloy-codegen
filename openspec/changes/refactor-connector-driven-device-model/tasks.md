@@ -63,9 +63,9 @@
 - [x] E.6 Add validators for all system descriptor families
 
 ### Gate C5: Publishable system descriptors
-- [ ] C5.1 Startup data can be emitted without handwritten device-local tables
+- [x] C5.1 Startup data can be emitted without handwritten device-local tables
 - [x] C5.2 Clock, interrupt, memory, and DMA completeness are all machine-verifiable
-- [ ] C5.3 Publish is blocked automatically when any required system descriptor domain is draft
+- [x] C5.3 Publish is blocked automatically when any required system descriptor domain is draft
 
 ## Phase F: Artifact contract upgrade
 

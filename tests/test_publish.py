@@ -7,7 +7,12 @@ from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.publication import compute_materialized_tree_revision
-from alloy_codegen.reporting import ValidationBundle, ValidationGateStatus, ValidationReport
+from alloy_codegen.reporting import (
+    SystemDescriptorDomainStatus,
+    ValidationBundle,
+    ValidationGateStatus,
+    ValidationReport,
+)
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.common import StageResult
 from alloy_codegen.stages.normalize import run as run_normalize
@@ -177,6 +182,65 @@ def test_publish_does_not_modify_publication_root_when_validation_fails(
     assert result.payload.published_artifacts == ()
     assert result.payload.publication_record is None
     assert result.payload.publication_summary is None
+    assert not execution_context.publication_root.exists()
+
+
+def test_publish_blocks_when_system_descriptor_domain_is_draft(
+    execution_context: ExecutionContext,
+    monkeypatch,
+) -> None:
+    normalize_result = run_normalize(PipelineScope(device="stm32g071rb"), execution_context)
+    draft_report = ValidationReport(
+        report_id="bootstrap-validation-v1",
+        scope=normalize_result.scope.to_dict(),
+        results=(),
+        gates=(
+            ValidationGateStatus(
+                gate_id="gate-c",
+                passed=True,
+                blocking=True,
+                message="gate-c passed with 0 rule(s).",
+                rule_ids=(),
+            ),
+        ),
+        system_descriptor_domains=(
+            SystemDescriptorDomainStatus(
+                domain_id="startup",
+                passed=False,
+                draft=True,
+                message="startup domain is draft because no validation rules are registered.",
+                rule_ids=(),
+            ),
+        ),
+    )
+
+    def fake_validate(scope: PipelineScope, context: ExecutionContext) -> StageResult:
+        return StageResult(
+            stage="validate",
+            scope=scope,
+            status="failed",
+            payload=ValidationBundle(
+                source_manifest=normalize_result.payload.source_manifest,
+                patch_manifest=normalize_result.payload.patch_manifest,
+                devices=normalize_result.payload.devices,
+                report=draft_report,
+            ),
+        )
+
+    def fail_emit(_: PipelineScope, __: ExecutionContext) -> StageResult:
+        raise AssertionError("publish should not emit artifacts when a system domain is draft")
+
+    monkeypatch.setattr("alloy_codegen.stages.publish.run_validate", fake_validate)
+    monkeypatch.setattr("alloy_codegen.stages.publish.run_emit", fail_emit)
+
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+
+    assert result.status == "failed"
+    assert result.payload.publication_mode == "blocked"
+    assert result.payload.draft_system_descriptor_domains == ("startup",)
+    assert result.warnings == (
+        "Publication is blocked by draft system descriptor domains: startup.",
+    )
     assert not execution_context.publication_root.exists()
 
 

@@ -23,7 +23,15 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     """Run the bootstrap publish stage."""
     execution_context = context or ExecutionContext.default()
     validate_result = run_validate(scope, execution_context)
+    draft_system_descriptor_domains = validate_result.payload.report.draft_system_descriptor_domains
     if not validate_result.payload.report.is_passing:
+        blocked_by_draft_domains = bool(draft_system_descriptor_domains)
+        warning = (
+            "Publication is blocked by draft system descriptor domains: "
+            f"{', '.join(draft_system_descriptor_domains)}."
+            if blocked_by_draft_domains
+            else "Validation did not pass; publication is blocked."
+        )
         return StageResult(
             stage="publish",
             scope=validate_result.scope,
@@ -35,8 +43,9 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 publication_root=str(execution_context.publication_root),
                 artifact_manifest=None,
                 artifacts=(),
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
             ),
-            warnings=("Validation did not pass; publication is blocked.",),
+            warnings=(warning,),
         )
 
     emit_result = run_emit(scope, execution_context)
@@ -64,6 +73,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 artifact_manifest=emit_result.payload.artifact_manifest,
                 artifacts=emit_result.payload.artifacts,
                 consumer_verification=consumer_verification,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
             ),
             warnings=("Alloy smoke consumer failed to build from staged artifacts.",),
         )
@@ -127,6 +137,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             consumer_verification=consumer_verification,
             publication_record=published_record,
             publication_summary=materialized_summary,
+            draft_system_descriptor_domains=draft_system_descriptor_domains,
         ),
         warnings=(),
     )

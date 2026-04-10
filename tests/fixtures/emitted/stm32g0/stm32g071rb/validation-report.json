@@ -1,4 +1,5 @@
 {
+  "draft_system_descriptor_domains": [],
   "gates": [
     {
       "blocking": false,
@@ -28,7 +29,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 66 rule(s).",
+      "message": "gate-c passed with 67 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -82,6 +83,7 @@
         "stm32g071rb-startup-descriptors-reference-known-memories",
         "stm32g071rb-startup-descriptors-cover-memory-roles",
         "stm32g071rb-startup-descriptors-include-runtime-baseline",
+        "stm32g071rb-startup-descriptors-emit-without-handwritten-tables",
         "stm32g071rb-clock-bindings-reference-known-descriptors",
         "stm32g071rb-clock-node-parents-known",
         "stm32g071rb-clock-graph-reaches-root",
@@ -525,6 +527,13 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb startup vectors and startup descriptors are sufficient to emit startup artifacts without handwritten device tables.",
+      "passed": true,
+      "rule_id": "stm32g071rb-startup-descriptors-emit-without-handwritten-tables",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb clock bindings reference known gate/reset/selector descriptors.",
       "passed": true,
       "rule_id": "stm32g071rb-clock-bindings-reference-known-descriptors",
@@ -633,5 +642,94 @@
     "device": "stm32g071rb",
     "family": "stm32g0",
     "vendor": "st"
-  }
+  },
+  "system_descriptor_domains": [
+    {
+      "domain_id": "interrupt",
+      "draft": false,
+      "message": "interrupt domain is publishable with 6 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-interrupts-reference-known-peripherals",
+        "stm32g071rb-interrupt-aliases-unique",
+        "stm32g071rb-interrupt-shared-groups-consistent",
+        "stm32g071rb-vector-slots-reference-known-interrupts",
+        "stm32g071rb-vector-slots-unique",
+        "stm32g071rb-interrupts-have-vector-slot"
+      ]
+    },
+    {
+      "domain_id": "memory",
+      "draft": false,
+      "message": "memory domain is publishable with 2 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-memory-sizes-positive",
+        "stm32g071rb-memory-regions-carry-startup-roles"
+      ]
+    },
+    {
+      "domain_id": "startup",
+      "draft": false,
+      "message": "startup domain is publishable with 6 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-vector-slots-include-system-baseline",
+        "stm32g071rb-startup-descriptors-present",
+        "stm32g071rb-startup-descriptors-reference-known-memories",
+        "stm32g071rb-startup-descriptors-cover-memory-roles",
+        "stm32g071rb-startup-descriptors-include-runtime-baseline",
+        "stm32g071rb-startup-descriptors-emit-without-handwritten-tables"
+      ]
+    },
+    {
+      "domain_id": "clock-reset",
+      "draft": false,
+      "message": "clock-reset domain is publishable with 7 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-referenced-peripherals-have-rcc-enable",
+        "stm32g071rb-clock-bindings-reference-known-descriptors",
+        "stm32g071rb-clock-node-parents-known",
+        "stm32g071rb-clock-graph-reaches-root",
+        "stm32g071rb-clock-selectors-structured",
+        "stm32g071rb-clock-gates-reference-known-nodes",
+        "stm32g071rb-clock-bound-peripherals-covered"
+      ]
+    },
+    {
+      "domain_id": "dma",
+      "draft": false,
+      "message": "dma domain is publishable with 11 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-dma-controllers-known",
+        "stm32g071rb-dma-request-peripherals-known",
+        "stm32g071rb-dma-routes-unique",
+        "stm32g071rb-dma-controller-descriptors-complete",
+        "stm32g071rb-dma-routes-cover-requests",
+        "stm32g071rb-dma-routes-reference-known-controllers",
+        "stm32g071rb-dma-routes-reference-known-peripherals",
+        "stm32g071rb-dma-routes-reference-known-conflicts",
+        "stm32g071rb-dma-conflict-groups-reference-known-routes",
+        "stm32g071rb-dma-conflict-groups-nontrivial",
+        "stm32g071rb-dma-route-conflict-annotations-consistent"
+      ]
+    },
+    {
+      "domain_id": "package",
+      "draft": false,
+      "message": "package domain is publishable with 7 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "stm32g071rb-package-pads-present",
+        "stm32g071rb-package-pad-ids-unique",
+        "stm32g071rb-package-pads-reference-known-packages",
+        "stm32g071rb-package-variants-have-pad-coverage",
+        "stm32g071rb-package-pad-positions-unique",
+        "stm32g071rb-package-pads-reference-known-pins",
+        "stm32g071rb-bonded-pins-have-package-pad"
+      ]
+    }
+  ]
 }

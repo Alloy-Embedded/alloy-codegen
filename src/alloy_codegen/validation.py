@@ -12,8 +12,70 @@ from alloy_codegen.connector_model import (
 )
 from alloy_codegen.ir.model import CanonicalDeviceIR, RouteRequirement
 from alloy_codegen.manifests import PatchManifest, SourceManifest
-from alloy_codegen.reporting import ValidationGateStatus, ValidationReport, ValidationRuleResult
+from alloy_codegen.reporting import (
+    SystemDescriptorDomainStatus,
+    ValidationGateStatus,
+    ValidationReport,
+    ValidationRuleResult,
+)
 from alloy_codegen.scope import PipelineScope
+
+SYSTEM_DESCRIPTOR_RULE_SUFFIXES: dict[str, tuple[str, ...]] = {
+    "interrupt": (
+        "interrupts-reference-known-peripherals",
+        "interrupt-aliases-present",
+        "interrupt-aliases-unique",
+        "interrupt-shared-groups-consistent",
+        "vector-slots-reference-known-interrupts",
+        "vector-slots-unique",
+        "interrupts-have-vector-slot",
+    ),
+    "memory": (
+        "memory-sizes-positive",
+        "memory-regions-carry-startup-roles",
+    ),
+    "startup": (
+        "vector-slots-include-system-baseline",
+        "startup-descriptors-present",
+        "startup-descriptors-reference-known-memories",
+        "startup-descriptors-cover-memory-roles",
+        "startup-descriptors-include-runtime-baseline",
+        "startup-descriptors-emit-without-handwritten-tables",
+    ),
+    "clock-reset": (
+        "referenced-peripherals-have-rcc-enable",
+        "clock-bindings-reference-known-descriptors",
+        "clock-node-parents-known",
+        "clock-graph-reaches-root",
+        "clock-selectors-structured",
+        "clock-gates-reference-known-nodes",
+        "clock-bound-peripherals-covered",
+    ),
+    "dma": (
+        "dma-controllers-known",
+        "dma-request-peripherals-known",
+        "dma-routes-unique",
+        "dma-controller-descriptors-complete",
+        "dma-controller-request-counts-match-routes",
+        "dma-routes-cover-requests",
+        "dma-routes-reference-known-controllers",
+        "dma-routes-reference-known-peripherals",
+        "dma-routes-reference-known-conflicts",
+        "dma-conflict-groups-reference-known-routes",
+        "dma-conflict-groups-nontrivial",
+        "dma-route-conflict-annotations-consistent",
+    ),
+    "package": (
+        "package-pads-present",
+        "package-pad-ids-unique",
+        "package-pads-reference-known-packages",
+        "package-variants-have-pad-coverage",
+        "package-pad-positions-unique",
+        "package-pad-bonding-consistent",
+        "package-pads-reference-known-pins",
+        "bonded-pins-have-package-pad",
+    ),
+}
 
 
 def _rule(
@@ -47,6 +109,46 @@ def _evaluate_gate(
         message=f"{gate_id} {'passed' if passed else 'failed'} with {len(results)} rule(s).",
         rule_ids=tuple(result.rule_id for result in results),
     )
+
+
+def _evaluate_system_descriptor_domains(
+    results: tuple[ValidationRuleResult, ...],
+) -> tuple[SystemDescriptorDomainStatus, ...]:
+    statuses: list[SystemDescriptorDomainStatus] = []
+    for domain_id, suffixes in SYSTEM_DESCRIPTOR_RULE_SUFFIXES.items():
+        domain_results = tuple(
+            result for result in results if result.rule_id.endswith(suffixes)
+        )
+        passed = bool(domain_results) and all(
+            result.passed for result in domain_results if result.severity == "error"
+        )
+        draft = not passed
+        if not domain_results:
+            message = (
+                f"{domain_id} domain is draft because no validation rules are registered."
+            )
+        elif passed:
+            message = f"{domain_id} domain is publishable with {len(domain_results)} rule(s)."
+        else:
+            failing_rule_ids = tuple(
+                result.rule_id
+                for result in domain_results
+                if not result.passed and result.severity == "error"
+            )
+            message = (
+                f"{domain_id} domain is draft because {len(failing_rule_ids)} "
+                "blocking rule(s) failed."
+            )
+        statuses.append(
+            SystemDescriptorDomainStatus(
+                domain_id=domain_id,
+                passed=passed,
+                draft=draft,
+                message=message,
+                rule_ids=tuple(result.rule_id for result in domain_results),
+            )
+        )
+    return tuple(statuses)
 
 
 def _node_reaches_root(
@@ -644,6 +746,17 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         any(descriptor.kind == required_kind for descriptor in device.startup_descriptors)
         for required_kind in ("vector-table", "initial-stack-pointer")
     )
+    startup_descriptors_emit_without_handwritten_tables = (
+        vector_slots_reference_known_interrupts
+        and vector_slots_unique
+        and interrupts_have_vector_slot
+        and system_vector_baseline_present
+        and memory_regions_carry_startup_roles
+        and startup_descriptors_are_present
+        and startup_descriptors_reference_known_memories
+        and startup_descriptors_cover_memory_roles
+        and startup_descriptors_include_runtime_baseline
+    )
     clock_parent_map = {node.node_id: node.parent for node in device.clock_nodes}
     clock_node_parents_known = all(
         node.parent is None or node.parent in clock_node_ids
@@ -1044,6 +1157,18 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             ),
         ),
         _rule(
+            rule_id=(
+                f"{device.identity.device}-startup-descriptors-emit-without-handwritten-tables"
+            ),
+            category="semantic",
+            severity="error",
+            passed=startup_descriptors_emit_without_handwritten_tables,
+            message=(
+                f"{device.identity.device} startup vectors and startup descriptors are "
+                "sufficient to emit startup artifacts without handwritten device tables."
+            ),
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-clock-bindings-reference-known-descriptors",
             category="semantic",
             severity="error",
@@ -1247,11 +1372,29 @@ def build_validation_report(
     gate_b_results = schema_results
     gate_c_results = semantic_results
     all_results = gate_a_results + gate_b_results + gate_c_results
+    system_descriptor_domains = _evaluate_system_descriptor_domains(gate_c_results)
+    draft_domain_ids = tuple(
+        domain.domain_id for domain in system_descriptor_domains if domain.draft
+    )
+
+    gate_c = _evaluate_gate(gate_id="gate-c", blocking=True, results=gate_c_results)
+    if draft_domain_ids:
+        gate_c = ValidationGateStatus(
+            gate_id=gate_c.gate_id,
+            passed=gate_c.passed,
+            blocking=gate_c.blocking,
+            message=(
+                f"{gate_c.gate_id} {'passed' if gate_c.passed else 'failed'} with "
+                f"{len(gate_c_results)} rule(s); draft system descriptor domains: "
+                f"{', '.join(draft_domain_ids)}."
+            ),
+            rule_ids=gate_c.rule_ids,
+        )
 
     gates = (
         _evaluate_gate(gate_id="gate-a", blocking=False, results=gate_a_results),
         _evaluate_gate(gate_id="gate-b", blocking=False, results=gate_b_results),
-        _evaluate_gate(gate_id="gate-c", blocking=True, results=gate_c_results),
+        gate_c,
     )
 
     return ValidationReport(
@@ -1259,4 +1402,5 @@ def build_validation_report(
         scope=scope.to_dict(),
         results=all_results,
         gates=gates,
+        system_descriptor_domains=system_descriptor_domains,
     )

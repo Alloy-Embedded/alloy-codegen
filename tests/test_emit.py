@@ -116,6 +116,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert manifest_payload["build_metadata"]["target_repository"] == "alloy-devices"
     assert manifest_payload["build_metadata"]["artifact_layout_version"] == "alloy-devices-v1"
     assert validation_payload["report_id"] == "bootstrap-validation-v1"
+    assert validation_payload["draft_system_descriptor_domains"] == []
+    assert any(
+        domain["domain_id"] == "startup" and domain["passed"] is True
+        for domain in validation_payload["system_descriptor_domains"]
+    )
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (
