@@ -1,0 +1,129 @@
+{
+  "patch_id": "nxp-imxrt1060-family-bootstrap-v1",
+  "packages": [
+    {
+      "name": "bga196",
+      "pin_count": 196
+    }
+  ],
+  "pins": [],
+  "peripherals": [
+    {
+      "name": "GPIO1",
+      "rcc_enable_signal": "CCM_CCGR1.CG13",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "GPIO2",
+      "rcc_enable_signal": "CCM_CCGR0.CG15",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "GPIO3",
+      "rcc_enable_signal": "CCM_CCGR2.CG13",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "GPIO4",
+      "rcc_enable_signal": "CCM_CCGR3.CG13",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "GPIO5",
+      "rcc_enable_signal": "CCM_CCGR1.CG15",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPI2C1",
+      "rcc_enable_signal": "CCM_CCGR2.CG2",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPI2C2",
+      "rcc_enable_signal": "CCM_CCGR2.CG3",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPI2C3",
+      "rcc_enable_signal": "CCM_CCGR2.CG4",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPI2C4",
+      "rcc_enable_signal": "CCM_CCGR6.CG12",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPSPI1",
+      "rcc_enable_signal": "CCM_CCGR1.CG0",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPSPI2",
+      "rcc_enable_signal": "CCM_CCGR1.CG1",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPSPI3",
+      "rcc_enable_signal": "CCM_CCGR1.CG2",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPSPI4",
+      "rcc_enable_signal": "CCM_CCGR1.CG3",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART1",
+      "rcc_enable_signal": "CCM_CCGR5.CG12",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART2",
+      "rcc_enable_signal": "CCM_CCGR0.CG14",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART3",
+      "rcc_enable_signal": "CCM_CCGR0.CG6",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART4",
+      "rcc_enable_signal": "CCM_CCGR1.CG12",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART5",
+      "rcc_enable_signal": "CCM_CCGR3.CG1",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART6",
+      "rcc_enable_signal": "CCM_CCGR3.CG3",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART7",
+      "rcc_enable_signal": "CCM_CCGR5.CG13",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "LPUART8",
+      "rcc_enable_signal": "CCM_CCGR6.CG7",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "FLEXSPI",
+      "rcc_enable_signal": "CCM_CCGR6.CG5",
+      "rcc_reset_signal": null
+    },
+    {
+      "name": "FLEXSPI2",
+      "rcc_enable_signal": "CCM_CCGR7.CG3",
+      "rcc_reset_signal": null
+    }
+  ],
+  "pin_signals": [],
+  "dma_requests": []
+}

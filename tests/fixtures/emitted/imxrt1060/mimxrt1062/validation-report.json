@@ -1,0 +1,213 @@
+{
+  "gates": [
+    {
+      "blocking": false,
+      "gate_id": "gate-a",
+      "message": "gate-a passed with 6 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "source-records-cover-targets",
+        "source-records-provide-required-upstreams",
+        "source-records-have-revisions",
+        "source-records-have-local-paths",
+        "patch-target-count-match",
+        "patch-ids-unique"
+      ]
+    },
+    {
+      "blocking": false,
+      "gate_id": "gate-b",
+      "message": "gate-b passed with 3 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-schema-version-present",
+        "mimxrt1062-identity-fields-present",
+        "mimxrt1062-required-sections-present"
+      ]
+    },
+    {
+      "blocking": true,
+      "gate_id": "gate-c",
+      "message": "gate-c passed with 13 rule(s).",
+      "passed": true,
+      "rule_ids": [
+        "mimxrt1062-package-pin-count-covers-known-pins",
+        "mimxrt1062-pin-port-has-gpio-peripheral",
+        "mimxrt1062-pin-signals-present",
+        "mimxrt1062-pin-signals-reference-known-peripherals",
+        "mimxrt1062-alternate-functions-explicit",
+        "mimxrt1062-memory-sizes-positive",
+        "mimxrt1062-peripheral-bases-unique",
+        "mimxrt1062-interrupts-present",
+        "mimxrt1062-interrupts-reference-known-peripherals",
+        "mimxrt1062-referenced-peripherals-have-rcc-enable",
+        "mimxrt1062-dma-controllers-known",
+        "mimxrt1062-dma-request-peripherals-known",
+        "mimxrt1062-dma-routes-unique"
+      ]
+    }
+  ],
+  "is_passing": true,
+  "report_id": "bootstrap-validation-v1",
+  "results": [
+    {
+      "category": "schema",
+      "message": "Source records cover every requested bootstrap target.",
+      "passed": true,
+      "rule_id": "source-records-cover-targets",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "Every target carries records drawn from the declared family source bundle.",
+      "passed": true,
+      "rule_id": "source-records-provide-required-upstreams",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "All source records carry a concrete upstream revision.",
+      "passed": true,
+      "rule_id": "source-records-have-revisions",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "All source records expose a resolved local path.",
+      "passed": true,
+      "rule_id": "source-records-have-local-paths",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "Found 1 patch record(s) for 1 target(s).",
+      "passed": true,
+      "rule_id": "patch-target-count-match",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "Patch identifiers are unique within the requested scope.",
+      "passed": true,
+      "rule_id": "patch-ids-unique",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "mimxrt1062 declares an IR schema version.",
+      "passed": true,
+      "rule_id": "mimxrt1062-schema-version-present",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "mimxrt1062 exposes the required canonical identity fields.",
+      "passed": true,
+      "rule_id": "mimxrt1062-identity-fields-present",
+      "severity": "error"
+    },
+    {
+      "category": "schema",
+      "message": "mimxrt1062 contains non-empty required canonical sections.",
+      "passed": true,
+      "rule_id": "mimxrt1062-required-sections-present",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 package pin count 196 covers 4 known pin definition(s).",
+      "passed": true,
+      "rule_id": "mimxrt1062-package-pin-count-covers-known-pins",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 pin ports map to discovered GPIO peripherals.",
+      "passed": true,
+      "rule_id": "mimxrt1062-pin-port-has-gpio-peripheral",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 curated pins expose explicit signal metadata.",
+      "passed": true,
+      "rule_id": "mimxrt1062-pin-signals-present",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 pin signals only reference discovered peripherals.",
+      "passed": true,
+      "rule_id": "mimxrt1062-pin-signals-reference-known-peripherals",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 non-GPIO alternate functions carry explicit AF numbers.",
+      "passed": true,
+      "rule_id": "mimxrt1062-alternate-functions-explicit",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 memory regions use positive non-placeholder sizes.",
+      "passed": true,
+      "rule_id": "mimxrt1062-memory-sizes-positive",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 peripheral base addresses are unique.",
+      "passed": true,
+      "rule_id": "mimxrt1062-peripheral-bases-unique",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 exposes interrupt metadata from the raw source.",
+      "passed": true,
+      "rule_id": "mimxrt1062-interrupts-present",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 interrupt entries only reference discovered peripherals.",
+      "passed": true,
+      "rule_id": "mimxrt1062-interrupts-reference-known-peripherals",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 referenced peripherals expose RCC enable ownership.",
+      "passed": true,
+      "rule_id": "mimxrt1062-referenced-peripherals-have-rcc-enable",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 DMA requests reference known controller peripherals.",
+      "passed": true,
+      "rule_id": "mimxrt1062-dma-controllers-known",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 DMA requests reference known target peripherals.",
+      "passed": true,
+      "rule_id": "mimxrt1062-dma-request-peripherals-known",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 DMA controller/request-line pairs are unique.",
+      "passed": true,
+      "rule_id": "mimxrt1062-dma-routes-unique",
+      "severity": "error"
+    }
+  ],
+  "scope": {
+    "device": "mimxrt1062",
+    "family": "imxrt1060",
+    "vendor": "nxp"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "build_metadata": {
+    "artifact_layout_version": "alloy-devices-v1",
+    "cpp_contract_version": "alloy-cpp-bootstrap-v1",
+    "pipeline_name": "alloy-codegen",
+    "target_repository": "alloy-devices"
+  },
+  "canonical_ir_sha256": "90b3206b96266f5a2fd17f540079d9ccf125502aa727c11c7c1d88fa1e721637",
+  "generator_version": "0.1.0",
+  "ir_schema_version": "1.1.0",
+  "manifest_kind": "artifact-manifest-v1",
+  "patch_manifest": {
+    "applied_patches": [
+      {
+        "description": "Bootstrap overlay patch for mimxrt1062 using family catalog nxp-imxrt1060-family-bootstrap-v1.",
+        "patch_id": "nxp-imxrt1060-mimxrt1062-bootstrap"
+      }
+    ],
+    "bootstrap_family": "imxrt1060",
+    "manifest_kind": "patch-manifest-v1",
+    "targets": [
+      "mimxrt1062"
+    ]
+  },
+  "scope": {
+    "device": "mimxrt1062",
+    "family": "imxrt1060",
+    "vendor": "nxp"
+  },
+  "source_manifest": {
+    "bootstrap_family": "imxrt1060",
+    "manifest_kind": "source-manifest-v1",
+    "sources": [
+      {
+        "local_path": "svd/MIMXRT1062/MIMXRT1062.xml",
+        "origin_url": "https://github.com/nxp-mcuxpresso/mcux-soc-svd",
+        "revision": "content-sha256:2374399b71accf8c96c2057afba8b015a4afee2556b55dff43f99f45183b661b",
+        "scope": {
+          "device": "mimxrt1062",
+          "family": "imxrt1060",
+          "vendor": "nxp"
+        },
+        "source_id": "nxp-mcux-soc-svd",
+        "target_device": "mimxrt1062",
+        "upstream_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      {
+        "local_path": "sdk/devices/MIMXRT1062/drivers/fsl_iomuxc.h",
+        "origin_url": "https://github.com/nxp-mcuxpresso/mcux-sdk",
+        "revision": "content-sha256:bcdddfc75ecb776e3c5116959b78917c8a480a873f1e999bbb6007ff61b8e805",
+        "scope": {
+          "device": "mimxrt1062",
+          "family": "imxrt1060",
+          "vendor": "nxp"
+        },
+        "source_id": "nxp-mcux-sdk",
+        "target_device": "mimxrt1062",
+        "upstream_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      }
+    ],
+    "targets": [
+      "mimxrt1062"
+    ]
+  },
+  "validation_report_id": "bootstrap-validation-v1",
+  "validation_report_sha256": "03d5c15a338dff438081efcb881b2f926e30b22d7bf84fd10a21cfa612dcb198"
+}

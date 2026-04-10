@@ -8,6 +8,7 @@ from alloy_codegen.reporting import FetchBundle
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.cmsis_svd import fetch_records as fetch_svd_records
 from alloy_codegen.sources.microchip_dfp import fetch_records as fetch_microchip_dfp_records
+from alloy_codegen.sources.nxp_mcux import fetch_records as fetch_nxp_mcux_records
 from alloy_codegen.sources.stm32_open_pin_data import fetch_records as fetch_pin_records
 from alloy_codegen.stages.common import StageResult
 
@@ -25,6 +26,8 @@ def _fetch_records_for_scope(
         )
     if vendor == "microchip" and family == "same70":
         return fetch_microchip_dfp_records(execution_context, validated_scope)
+    if vendor == "nxp" and family == "imxrt1060":
+        return fetch_nxp_mcux_records(execution_context, validated_scope)
     return ()
 
 

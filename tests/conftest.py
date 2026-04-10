@@ -32,6 +32,11 @@ def fixture_microchip_extract_root() -> Path:
 
 
 @pytest.fixture
+def fixture_nxp_sources_root() -> Path:
+    return ROOT / "tests" / "fixtures" / "nxp-mcux-imxrt1060"
+
+
+@pytest.fixture
 def execution_context(
     fixture_source_root: Path,
     fixture_pin_source_root: Path,
@@ -60,6 +65,24 @@ def microchip_execution_context(
     return default_context.with_overrides(
         source_overrides={
             "microchip-dfp-extract": str(fixture_microchip_extract_root),
+        },
+        artifact_root=str(tmp_path / "artifacts"),
+        publication_root=str(tmp_path / "publication"),
+        alloy_root=str(alloy_root),
+    )
+
+
+@pytest.fixture
+def nxp_execution_context(
+    fixture_nxp_sources_root: Path,
+    tmp_path: Path,
+) -> ExecutionContext:
+    default_context = ExecutionContext.default()
+    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
+    return default_context.with_overrides(
+        source_overrides={
+            "nxp-mcux-soc-svd": str(fixture_nxp_sources_root / "svd"),
+            "nxp-mcux-sdk": str(fixture_nxp_sources_root / "sdk"),
         },
         artifact_root=str(tmp_path / "artifacts"),
         publication_root=str(tmp_path / "publication"),

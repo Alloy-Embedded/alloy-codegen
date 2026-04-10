@@ -36,6 +36,17 @@ from alloy_codegen.sources.microchip_dfp import (
     resolve_atdf_path,
     select_device_files,
 )
+from alloy_codegen.sources.nxp_mcux import (
+    NxpIomuxcEntry,
+    PAD_NUMBER_PATTERN as NXP_PAD_NUMBER_PATTERN,
+    SDK_SOURCE_ID as NXP_SDK_SOURCE_ID,
+    SVD_SOURCE_ID as NXP_SVD_SOURCE_ID,
+    parse_iomuxc_entries,
+    resolve_iomuxc_header_path,
+)
+from alloy_codegen.sources.nxp_mcux import (
+    resolve_svd_path as resolve_nxp_svd_path,
+)
 from alloy_codegen.sources.microchip_dfp import (
     parse_dma_request_patches as parse_microchip_dma_request_patches,
 )
@@ -83,7 +94,8 @@ def _canonical_peripheral_name(peripheral_name: str) -> str:
 
 
 def _infer_ip_metadata(peripheral_name: str) -> tuple[str, int]:
-    if peripheral_name.startswith("GPIO") and len(peripheral_name) == 5:
+    if peripheral_name.startswith("GPIO") and len(peripheral_name) == 5 and peripheral_name[-1].isalpha():
+        # ST-style: GPIOA, GPIOB, ... → instance 0, 1, ...
         return ("gpio", ord(peripheral_name[-1]) - ord("A"))
     match = INSTANCE_PATTERN.match(peripheral_name)
     if match is not None:
@@ -410,6 +422,198 @@ def _build_microchip_device_ir(
     )
 
 
+def _nxp_signal_to_ir(
+    *,
+    signal_name: str,
+    af_number: int,
+    discovered_peripherals: set[str],
+    provenance: Provenance,
+) -> PinSignal | None:
+    """Convert one NXP IOMUXC signal name into a canonical PinSignal."""
+    if "_" not in signal_name:
+        return None
+    peripheral_name, signal = signal_name.split("_", maxsplit=1)
+    if peripheral_name not in discovered_peripherals:
+        return None
+    return PinSignal(
+        function=signal_name.lower(),
+        peripheral=peripheral_name,
+        signal=signal,
+        af_number=af_number,
+        provenance=provenance,
+    )
+
+
+def _build_nxp_pins(
+    *,
+    iomuxc_entries: tuple[NxpIomuxcEntry, ...],
+    discovered_peripherals: set[str],
+    provenance: Provenance,
+) -> tuple[PinDefinition, ...]:
+    """Build canonical PinDefinition tuples from parsed NXP IOMUXC entries."""
+    pad_groups: dict[str, list[NxpIomuxcEntry]] = {}
+    for entry in iomuxc_entries:
+        pad_groups.setdefault(entry.pad_name, []).append(entry)
+
+    pins: list[PinDefinition] = []
+    for pad_name, entries in sorted(pad_groups.items()):
+        number_match = NXP_PAD_NUMBER_PATTERN.search(pad_name)
+        if number_match is None:
+            continue
+        number = int(number_match.group(1))
+
+        signals: list[PinSignal] = []
+        seen_keys: set[tuple[str | None, str | None, str | None, int | None]] = set()
+        for entry in sorted(entries, key=lambda e: e.mux_mode):
+            signal = _nxp_signal_to_ir(
+                signal_name=entry.signal_name,
+                af_number=entry.mux_mode,
+                discovered_peripherals=discovered_peripherals,
+                provenance=provenance,
+            )
+            if signal is None:
+                continue
+            key = (signal.function, signal.peripheral, signal.signal, signal.af_number)
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            signals.append(signal)
+
+        if not signals:
+            continue
+
+        pins.append(
+            PinDefinition(
+                name=pad_name,
+                port=None,
+                number=number,
+                signals=tuple(signals),
+                provenance=provenance,
+            )
+        )
+    return tuple(pins)
+
+
+def build_nxp_canonical_ir(
+    raw: RawDeviceDocument,
+    patch: DevicePatch,
+    iomuxc_entries: tuple[NxpIomuxcEntry, ...],
+    *,
+    vendor: str,
+    family: str,
+    svd_upstream_path: str | None = None,
+    sdk_upstream_path: str | None = None,
+    svd_source_id: str = NXP_SVD_SOURCE_ID,
+    sdk_source_id: str = NXP_SDK_SOURCE_ID,
+) -> CanonicalDeviceIR:
+    """Build canonical IR by merging NXP mcux-soc-svd and mcux-sdk sources."""
+    patch_ids: tuple[str, ...] = (
+        (patch.family_patch_id, patch.patch_id)
+        if patch.family_patch_id is not None
+        else (patch.patch_id,)
+    )
+    svd_provenance = Provenance(
+        source_id=svd_source_id,
+        source_path=svd_upstream_path,
+        patch_ids=patch_ids,
+    )
+    sdk_provenance = Provenance(
+        source_id=sdk_source_id,
+        source_path=sdk_upstream_path,
+        patch_ids=patch_ids,
+    )
+    patch_provenance = Provenance(
+        source_id="bootstrap-patch",
+        source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
+        patch_ids=patch_ids,
+    )
+    peripheral_patches = _peripheral_patch_map(patch)
+    discovered_peripherals = {
+        _canonical_peripheral_name(p.name) for p in raw.peripherals
+    }
+    return CanonicalDeviceIR(
+        schema_version=IR_SCHEMA_VERSION,
+        identity=DeviceIdentity(
+            vendor=vendor,
+            family=family,
+            device=patch.device,
+            package=patch.package,
+            core=patch.core,
+            summary=patch.summary,
+        ),
+        memories=tuple(_memory_to_ir(m, patch_provenance) for m in patch.memories),
+        packages=(
+            PackageDefinition(
+                name=patch.package,
+                pin_count=patch.pin_count,
+                provenance=sdk_provenance,
+            ),
+        ),
+        pins=_build_nxp_pins(
+            iomuxc_entries=iomuxc_entries,
+            discovered_peripherals=discovered_peripherals,
+            provenance=sdk_provenance,
+        ),
+        peripherals=tuple(
+            _peripheral_to_ir(
+                peripheral_name=_canonical_peripheral_name(p.name),
+                base_address=p.base_address,
+                patch_metadata=peripheral_patches.get(_canonical_peripheral_name(p.name)),
+                ip_version=None,
+                provenance=svd_provenance,
+            )
+            for p in raw.peripherals
+        ),
+        interrupts=tuple(
+            InterruptDefinition(
+                name=i.name,
+                line=i.line,
+                peripheral=(
+                    None
+                    if i.peripheral is None
+                    else _canonical_peripheral_name(i.peripheral)
+                ),
+                provenance=svd_provenance,
+            )
+            for i in raw.interrupts
+        ),
+        dma_requests=tuple(
+            _dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests
+        ),
+        provenance=sdk_provenance,
+    )
+
+
+def _build_nxp_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    from alloy_codegen.sources.nxp_mcux import _upstream_name as nxp_upstream_name
+
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    upstream = nxp_upstream_name(device_name)
+    svd_path = resolve_nxp_svd_path(
+        execution_context, device_name, vendor=vendor, family=family
+    )
+    iomuxc_path = resolve_iomuxc_header_path(
+        execution_context, device_name, vendor=vendor, family=family
+    )
+    raw = parse_raw_device_document(svd_path)
+    iomuxc_entries = parse_iomuxc_entries(iomuxc_path)
+    return build_nxp_canonical_ir(
+        raw,
+        patch,
+        iomuxc_entries,
+        vendor=vendor,
+        family=family,
+        svd_upstream_path=f"{upstream}/{upstream}.xml",
+        sdk_upstream_path=f"devices/{upstream}/drivers/fsl_iomuxc.h",
+    )
+
+
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:
     """Run the bootstrap normalize stage."""
     execution_context = context or ExecutionContext.default()
@@ -431,6 +635,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         if vendor == "microchip" and family == "same70":
             devices.append(
                 _build_microchip_device_ir(
+                    execution_context=execution_context,
+                    device_name=device_name,
+                    vendor=vendor,
+                    family=family,
+                )
+            )
+            continue
+        if vendor == "nxp" and family == "imxrt1060":
+            devices.append(
+                _build_nxp_device_ir(
                     execution_context=execution_context,
                     device_name=device_name,
                     vendor=vendor,

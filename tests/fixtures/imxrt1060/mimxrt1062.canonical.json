@@ -1,0 +1,411 @@
+{
+  "dma_requests": [],
+  "identity": {
+    "core": "cortex-m7f",
+    "device": "mimxrt1062",
+    "family": "imxrt1060",
+    "package": "bga196",
+    "summary": "NXP MIMXRT1062DVL6B i.MX RT1060 Crossover MCU with 1 MB OCRAM.",
+    "vendor": "nxp"
+  },
+  "interrupts": [
+    {
+      "line": 20,
+      "name": "LPUART1",
+      "peripheral": "LPUART1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      }
+    },
+    {
+      "line": 22,
+      "name": "LPUART3",
+      "peripheral": "LPUART3",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      }
+    },
+    {
+      "line": 28,
+      "name": "LPI2C1",
+      "peripheral": "LPI2C1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      }
+    },
+    {
+      "line": 32,
+      "name": "LPSPI1",
+      "peripheral": "LPSPI1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      }
+    }
+  ],
+  "memories": [
+    {
+      "access": "read-write",
+      "base_address": 538968064,
+      "kind": "ram",
+      "name": "OCRAM",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
+      },
+      "size_bytes": 1048576
+    }
+  ],
+  "packages": [
+    {
+      "name": "bga196",
+      "pin_count": 196,
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      }
+    }
+  ],
+  "peripherals": [
+    {
+      "base_address": 1075331072,
+      "instance": 1,
+      "ip_name": "lpuart",
+      "ip_version": null,
+      "name": "LPUART1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": "CCM_CCGR5.CG12",
+      "rcc_reset_signal": null
+    },
+    {
+      "base_address": 1075363840,
+      "instance": 3,
+      "ip_name": "lpuart",
+      "ip_version": null,
+      "name": "LPUART3",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": "CCM_CCGR0.CG6",
+      "rcc_reset_signal": null
+    },
+    {
+      "base_address": 1077870592,
+      "instance": 0,
+      "ip_name": "lpi2c1",
+      "ip_version": null,
+      "name": "LPI2C1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": "CCM_CCGR2.CG2",
+      "rcc_reset_signal": null
+    },
+    {
+      "base_address": 1077493760,
+      "instance": 1,
+      "ip_name": "lpspi",
+      "ip_version": null,
+      "name": "LPSPI1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": "CCM_CCGR1.CG0",
+      "rcc_reset_signal": null
+    },
+    {
+      "base_address": 1075593216,
+      "instance": 4,
+      "ip_name": "gpio",
+      "ip_version": null,
+      "name": "GPIO4",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": "CCM_CCGR3.CG13",
+      "rcc_reset_signal": null
+    },
+    {
+      "base_address": 1075544064,
+      "instance": 1,
+      "ip_name": "gpio",
+      "ip_version": null,
+      "name": "GPIO1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": "CCM_CCGR1.CG13",
+      "rcc_reset_signal": null
+    }
+  ],
+  "pins": [
+    {
+      "name": "GPIO_AD_B0_00",
+      "number": 0,
+      "port": null,
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "signals": [
+        {
+          "af_number": 0,
+          "function": "lpi2c1_scl",
+          "peripheral": "LPI2C1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "SCL"
+        },
+        {
+          "af_number": 2,
+          "function": "lpuart1_tx",
+          "peripheral": "LPUART1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "TX"
+        },
+        {
+          "af_number": 5,
+          "function": "gpio1_io00",
+          "peripheral": "GPIO1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "IO00"
+        }
+      ]
+    },
+    {
+      "name": "GPIO_AD_B0_01",
+      "number": 1,
+      "port": null,
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "signals": [
+        {
+          "af_number": 0,
+          "function": "lpi2c1_sda",
+          "peripheral": "LPI2C1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "SDA"
+        },
+        {
+          "af_number": 2,
+          "function": "lpuart1_rx",
+          "peripheral": "LPUART1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "RX"
+        },
+        {
+          "af_number": 5,
+          "function": "gpio1_io01",
+          "peripheral": "GPIO1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "IO01"
+        }
+      ]
+    },
+    {
+      "name": "GPIO_EMC_00",
+      "number": 0,
+      "port": null,
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "signals": [
+        {
+          "af_number": 2,
+          "function": "lpspi1_sck",
+          "peripheral": "LPSPI1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "SCK"
+        },
+        {
+          "af_number": 5,
+          "function": "gpio4_io00",
+          "peripheral": "GPIO4",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "IO00"
+        }
+      ]
+    },
+    {
+      "name": "GPIO_EMC_01",
+      "number": 1,
+      "port": null,
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-sdk",
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+      },
+      "signals": [
+        {
+          "af_number": 2,
+          "function": "lpspi1_pcs0",
+          "peripheral": "LPSPI1",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "PCS0"
+        },
+        {
+          "af_number": 5,
+          "function": "gpio4_io01",
+          "peripheral": "GPIO4",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "nxp-mcux-sdk",
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+          },
+          "signal": "IO01"
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "patch_ids": [
+      "nxp-imxrt1060-family-bootstrap-v1",
+      "nxp-imxrt1060-mimxrt1062-bootstrap"
+    ],
+    "source_id": "nxp-mcux-sdk",
+    "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
+  },
+  "schema_version": "1.1.0"
+}

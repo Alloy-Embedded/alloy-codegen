@@ -1,0 +1,16 @@
+{
+  "patch_id": "nxp-imxrt1060-mimxrt1062-bootstrap",
+  "device": "mimxrt1062",
+  "package": "bga196",
+  "core": "cortex-m7f",
+  "summary": "NXP MIMXRT1062DVL6B i.MX RT1060 Crossover MCU with 1 MB OCRAM.",
+  "memories": [
+    {
+      "name": "OCRAM",
+      "kind": "ram",
+      "base_address": 538968064,
+      "size_bytes": 1048576,
+      "access": "read-write"
+    }
+  ]
+}

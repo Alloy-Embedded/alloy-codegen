@@ -1,0 +1,23 @@
+{
+  "patch_id": "nxp-imxrt1060-mimxrt1064-bootstrap",
+  "device": "mimxrt1064",
+  "package": "bga196",
+  "core": "cortex-m7f",
+  "summary": "NXP MIMXRT1064DVL6A i.MX RT1060 Crossover MCU with 1 MB OCRAM and 4 MB on-chip flash.",
+  "memories": [
+    {
+      "name": "OCRAM",
+      "kind": "ram",
+      "base_address": 538968064,
+      "size_bytes": 1048576,
+      "access": "read-write"
+    },
+    {
+      "name": "FLASH",
+      "kind": "flash",
+      "base_address": 1879048192,
+      "size_bytes": 4194304,
+      "access": "read-only"
+    }
+  ]
+}
