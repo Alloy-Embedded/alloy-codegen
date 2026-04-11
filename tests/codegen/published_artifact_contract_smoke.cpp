@@ -104,7 +104,10 @@ static_assert(published_device::kDeviceDescriptor.device != nullptr);
 static_assert(published_device::kPins.size() > 0u);
 static_assert(published_device::kPinSignals.size() > 0u);
 static_assert(published_device::kPeripheralInstances.size() > 0u);
-static_assert(published_device::kCapabilityOverlays.size() >= 0u);
+static_assert(
+    published_device::kCapabilityOverlays.empty()
+    || published_device::kCapabilityOverlays[0].capability_id != nullptr
+);
 static_assert(published_device::kVectorSlots[0].symbol_name != nullptr);
 static_assert(published_device::kStartupDescriptors[0].descriptor_id != nullptr);
 #ifdef ALLOY_CODEGEN_SMOKE_IP_HEADER

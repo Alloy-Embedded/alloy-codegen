@@ -142,12 +142,7 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "device_descriptor.hpp"
             ).exists()
             assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "pins.hpp"
+                publication_root / family_dir / "generated" / "devices" / device_name / "pins.hpp"
             ).exists()
             assert (
                 publication_root
@@ -216,8 +211,7 @@ def test_foundational_families_remain_complete_across_repeat_publish_cycles(
         assert result_a.status == "completed"
         assert result_b.status == "completed"
         assert (
-            result_a.payload.target_artifact_revision
-            == result_b.payload.target_artifact_revision
+            result_a.payload.target_artifact_revision == result_b.payload.target_artifact_revision
         )
         assert (
             result_a.payload.publication_record.content_sha256
