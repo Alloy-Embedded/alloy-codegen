@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 
 from alloy_codegen.context import ExecutionContext
+from alloy_codegen.emission import build_device_coverage
+from alloy_codegen.ir.model import PeripheralInstance
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run as run_emit
+from alloy_codegen.stages.normalize import run as run_normalize
 
 
 def test_foundational_families_emit_publishability_reports(
@@ -55,3 +59,42 @@ def test_stm32g0_publishability_report_shows_all_devices_publishable(
     assert device_map["stm32g0b1re"]["domains"]["dma"] is True
     assert device_map["stm32g0b1re"]["counts"]["dma_controllers"] == 1
     assert device_map["stm32g0b1re"]["counts"]["dma_routes"] == 2
+
+
+def test_dma_coverage_uses_normalized_dma_descriptors_not_name_heuristics(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    result = run_normalize(PipelineScope(vendor="nxp", family="imxrt1060"), nxp_execution_context)
+    device = result.payload.devices[0]
+    provenance = device.peripherals[0].provenance
+    device_with_dma_named_peripherals = replace(
+        device,
+        peripherals=(
+            *device.peripherals,
+            PeripheralInstance(
+                name="DMA0",
+                ip_name="dma",
+                ip_version=None,
+                instance=0,
+                base_address=0x400E8000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+            ),
+            PeripheralInstance(
+                name="DMAMUX1",
+                ip_name="dmamux",
+                ip_version=None,
+                instance=1,
+                base_address=0x400EC000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+            ),
+        ),
+    )
+
+    coverage = build_device_coverage(device_with_dma_named_peripherals)
+
+    assert coverage["domains"]["dma"] is True
+    assert coverage["publishable"] is True

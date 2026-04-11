@@ -415,12 +415,7 @@ def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
         bool(device.dma_controllers)
         or bool(device.dma_requests)
         or bool(device.dma_routes)
-        or any(
-            token in value.lower()
-            for peripheral in device.peripherals
-            for value in (peripheral.name, peripheral.ip_name)
-            for token in ("dma", "dmamux", "edma")
-        )
+        or bool(device.dma_conflict_groups)
     )
     domain_status = {
         "connectors": bool(device.signal_endpoints and device.connection_candidates),
