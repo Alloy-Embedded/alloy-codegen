@@ -5,7 +5,11 @@ from __future__ import annotations
 from alloy_codegen.bootstrap import PUBLICATION_TARGET_REPOSITORY
 from alloy_codegen.consumer_verification import verify_alloy_smoke_consumer
 from alloy_codegen.context import ExecutionContext
-from alloy_codegen.emission import emit_publication_summary, materialize_artifacts
+from alloy_codegen.emission import (
+    build_coverage_payload,
+    emit_publication_summary,
+    materialize_artifacts,
+)
 from alloy_codegen.publication import (
     compute_target_artifact_revision,
     emit_publication_record,
@@ -23,7 +27,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     """Run the bootstrap publish stage."""
     execution_context = context or ExecutionContext.default()
     validate_result = run_validate(scope, execution_context)
+    coverage_payload = build_coverage_payload(
+        devices=validate_result.payload.devices,
+        report=validate_result.payload.report,
+    )
     draft_system_descriptor_domains = validate_result.payload.report.draft_system_descriptor_domains
+    incomplete_devices = tuple(
+        str(device_payload["device"])
+        for device_payload in coverage_payload["devices"]
+        if not bool(device_payload["publishable"])
+    )
     if not validate_result.payload.report.is_passing:
         blocked_by_draft_domains = bool(draft_system_descriptor_domains)
         warning = (
@@ -31,6 +44,27 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             f"{', '.join(draft_system_descriptor_domains)}."
             if blocked_by_draft_domains
             else "Validation did not pass; publication is blocked."
+        )
+        return StageResult(
+            stage="publish",
+            scope=validate_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=None,
+                artifacts=(),
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(warning,),
+        )
+    if not bool(coverage_payload["all_devices_publishable"]):
+        warning = (
+            "Publication is blocked because the requested scope is not fully publishable: "
+            + ", ".join(incomplete_devices)
+            + "."
         )
         return StageResult(
             stage="publish",

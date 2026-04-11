@@ -357,10 +357,25 @@ def test_emit_nxp_imxrt1060_artifact_content(
     family_dir = "nxp/imxrt1060"
 
     register_map = artifacts[f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp"]
+    device_descriptor = artifacts[
+        f"{family_dir}/generated/devices/mimxrt1062/device_descriptor.hpp"
+    ]
+    pins_header = artifacts[f"{family_dir}/generated/devices/mimxrt1062/pins.hpp"]
+    peripheral_instances = artifacts[
+        f"{family_dir}/generated/devices/mimxrt1062/peripheral_instances.hpp"
+    ]
+    capability_overlays = artifacts[
+        f"{family_dir}/generated/devices/mimxrt1062/capability_overlays.hpp"
+    ]
     assert "kPeripheralBases" in register_map.content
     assert "nxp" in register_map.content
     assert "imxrt1060" in register_map.content
     assert "mimxrt1062" in register_map.content
+    assert "kDeviceDescriptor" in device_descriptor.content
+    assert "kPins" in pins_header.content
+    assert "kPinSignals" in pins_header.content
+    assert "kPeripheralInstances" in peripheral_instances.content
+    assert "kCapabilityOverlays" in capability_overlays.content
 
     connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
     assert "kConnectionCandidates" in connector_tables.content
@@ -415,7 +430,13 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     family_dir = "nxp/imxrt1060"
     fixture_root = IMXRT1060_EMITTED_DIR
 
-    for name in ("register_map.hpp",):
+    for name in (
+        "register_map.hpp",
+        "device_descriptor.hpp",
+        "pins.hpp",
+        "peripheral_instances.hpp",
+        "capability_overlays.hpp",
+    ):
         assert artifacts[f"{family_dir}/generated/devices/mimxrt1062/{name}"].content == (
             fixture_root / "generated" / "devices" / "mimxrt1062" / name
         ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"

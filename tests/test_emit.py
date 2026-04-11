@@ -51,6 +51,16 @@ def test_emit_includes_metadata_artifacts_with_content(
     system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
     device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
     register_map_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"]
+    device_descriptor_artifact = artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/device_descriptor.hpp"
+    ]
+    pins_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/pins.hpp"]
+    peripheral_instances_artifact = artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/peripheral_instances.hpp"
+    ]
+    capability_overlays_artifact = artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
+    ]
     rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
     dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
     connector_tables_artifact = artifacts["st/stm32g0/generated/connector_tables.hpp"]
@@ -189,6 +199,15 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert register_map_artifact.content_sha256 is not None
     assert register_map_artifact.materialized_path is not None
     assert Path(register_map_artifact.materialized_path).exists()
+    assert device_descriptor_artifact.artifact_kind == "generated-cpp"
+    assert "kDeviceDescriptor" in device_descriptor_artifact.content
+    assert pins_artifact.artifact_kind == "generated-cpp"
+    assert "kPins" in pins_artifact.content
+    assert "kPinSignals" in pins_artifact.content
+    assert peripheral_instances_artifact.artifact_kind == "generated-cpp"
+    assert "kPeripheralInstances" in peripheral_instances_artifact.content
+    assert capability_overlays_artifact.artifact_kind == "generated-cpp"
+    assert "kCapabilityOverlays" in capability_overlays_artifact.content
 
     for gpio_artifact in gpio_artifacts:
         assert gpio_artifact.artifact_kind == "generated-cpp"
@@ -293,6 +312,22 @@ def test_emit_matches_golden_artifacts(
     assert json.loads(
         artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"].content
     ) == _load_json_fixture(fixture_root / "metadata" / "devices" / "stm32g071rb.json")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/device_descriptor.hpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "device_descriptor.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/pins.hpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "pins.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/peripheral_instances.hpp"
+    ].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "peripheral_instances.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
+    ].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "capability_overlays.hpp"
+    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "register_map.hpp"
     ).read_text(encoding="utf-8")

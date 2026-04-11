@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+from dataclasses import replace
 from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
@@ -247,6 +248,56 @@ def test_publish_blocks_when_system_descriptor_domain_is_draft(
     assert result.payload.draft_system_descriptor_domains == ("startup",)
     assert result.warnings == (
         "Publication is blocked by draft system descriptor domains: startup.",
+    )
+    assert not execution_context.publication_root.exists()
+
+
+def test_publish_blocks_when_requested_scope_is_not_fully_publishable(
+    execution_context: ExecutionContext,
+    monkeypatch,
+) -> None:
+    normalize_result = run_normalize(PipelineScope(device="stm32g071rb"), execution_context)
+    incomplete_device = replace(normalize_result.payload.devices[0], startup_descriptors=())
+    passing_report = ValidationReport(
+        report_id="bootstrap-validation-v1",
+        scope=normalize_result.scope.to_dict(),
+        results=(),
+        gates=(
+            ValidationGateStatus(
+                gate_id="gate-c",
+                passed=True,
+                blocking=True,
+                message="gate-c passed with 0 rule(s).",
+                rule_ids=(),
+            ),
+        ),
+    )
+
+    def fake_validate(scope: PipelineScope, context: ExecutionContext) -> StageResult:
+        return StageResult(
+            stage="validate",
+            scope=scope,
+            status="completed",
+            payload=ValidationBundle(
+                source_manifest=normalize_result.payload.source_manifest,
+                patch_manifest=normalize_result.payload.patch_manifest,
+                devices=(incomplete_device,),
+                report=passing_report,
+            ),
+        )
+
+    def fail_emit(_: PipelineScope, __: ExecutionContext) -> StageResult:
+        raise AssertionError("publish should not emit artifacts when coverage is incomplete")
+
+    monkeypatch.setattr("alloy_codegen.stages.publish.run_validate", fake_validate)
+    monkeypatch.setattr("alloy_codegen.stages.publish.run_emit", fail_emit)
+
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+
+    assert result.status == "failed"
+    assert result.payload.publication_mode == "blocked"
+    assert result.warnings == (
+        "Publication is blocked because the requested scope is not fully publishable: stm32g071rb.",
     )
     assert not execution_context.publication_root.exists()
 

@@ -467,6 +467,37 @@ def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
     }
 
 
+def build_device_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
+    """Build the machine-readable coverage payload for one device."""
+    return _device_descriptor_coverage(device)
+
+
+def build_coverage_payload(
+    *,
+    devices: tuple[CanonicalDeviceIR, ...],
+    report: ValidationReport,
+) -> dict[str, object]:
+    """Build the family coverage payload shared by emit and publish."""
+    if not devices:
+        raise ValueError("Coverage payload generation requires at least one device.")
+    first_device = devices[0]
+    device_coverage = [
+        build_device_coverage(device)
+        for device in sorted(devices, key=lambda item: item.identity.device)
+    ]
+    return {
+        "schema_version": first_device.schema_version,
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "report_id": report.report_id,
+        "draft_system_descriptor_domains": list(report.draft_system_descriptor_domains),
+        "all_devices_publishable": all(
+            bool(device_payload["publishable"]) for device_payload in device_coverage
+        ),
+        "devices": device_coverage,
+    }
+
+
 def emit_artifact_manifest(
     *,
     family_dir: str,
@@ -518,7 +549,7 @@ def emit_validation_summary(
             {
                 "device": device.identity.device,
                 "package": device.identity.package,
-                "publishable": _device_descriptor_coverage(device)["publishable"],
+                "publishable": build_device_coverage(device)["publishable"],
             }
             for device in sorted(devices, key=lambda item: item.identity.device)
         ],
@@ -536,28 +567,345 @@ def emit_coverage_report(
     devices: tuple[CanonicalDeviceIR, ...],
     report: ValidationReport,
 ) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("Coverage report emission requires at least one device.")
-    first_device = devices[0]
-    device_coverage = [
-        _device_descriptor_coverage(device)
-        for device in sorted(devices, key=lambda item: item.identity.device)
-    ]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "report_id": report.report_id,
-        "draft_system_descriptor_domains": list(report.draft_system_descriptor_domains),
-        "all_devices_publishable": all(
-            bool(device_payload["publishable"]) for device_payload in device_coverage
-        ),
-        "devices": device_coverage,
-    }
+    payload = build_coverage_payload(devices=devices, report=report)
     return _text_artifact(
         path=_family_report_path(family_dir, "coverage.json"),
         artifact_kind="coverage-report",
         payload=payload,
+    )
+
+
+def _capability_overlay_rows(device: CanonicalDeviceIR) -> list[tuple[str, ...]]:
+    rows: list[tuple[str, ...]] = []
+    for capability in sorted(device.capabilities, key=lambda item: item.capability_id):
+        if capability.scope == "ip-block":
+            continue
+        rows.append(
+            (
+                capability.capability_id,
+                capability.scope,
+                capability.peripheral_class,
+                capability.name,
+                capability.value,
+                capability.ip_name or "",
+                capability.ip_version or "",
+                capability.peripheral or "",
+                capability.package or "",
+            )
+        )
+    return rows
+
+
+def _package_pad_ids_by_pin(device: CanonicalDeviceIR) -> dict[str, tuple[str, ...]]:
+    mapping: dict[str, list[str]] = {}
+    for pad in sorted(device.package_pads, key=lambda item: item.pad_id):
+        if pad.bonded_pin is None:
+            continue
+        mapping.setdefault(pad.bonded_pin, []).append(pad.pad_id)
+    return {pin_name: tuple(sorted(pad_ids)) for pin_name, pad_ids in sorted(mapping.items())}
+
+
+def _constraint_ids_by_pin(device: CanonicalDeviceIR) -> dict[str, tuple[str, ...]]:
+    mapping: dict[str, list[str]] = {}
+    for constraint in sorted(device.pin_constraints, key=lambda item: item.constraint_id):
+        mapping.setdefault(constraint.pin, []).append(constraint.constraint_id)
+    return {
+        pin_name: tuple(sorted(constraint_ids))
+        for pin_name, constraint_ids in sorted(mapping.items())
+    }
+
+
+def _interrupt_names_by_peripheral(device: CanonicalDeviceIR) -> dict[str, tuple[str, ...]]:
+    mapping: dict[str, list[str]] = {}
+    for interrupt in sorted(device.interrupts, key=lambda item: (item.line, item.name)):
+        if interrupt.peripheral is None:
+            continue
+        mapping.setdefault(interrupt.peripheral, []).append(interrupt.name)
+    return {peripheral_name: tuple(names) for peripheral_name, names in sorted(mapping.items())}
+
+
+def _binding_by_peripheral(device: CanonicalDeviceIR) -> dict[str, object]:
+    return {
+        binding.peripheral: binding
+        for binding in sorted(device.peripheral_clock_bindings, key=lambda item: item.peripheral)
+    }
+
+
+def emit_device_descriptor_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    capability_overlay_count = len(_capability_overlay_rows(device))
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "struct DeviceDescriptor {",
+                "  const char* vendor;",
+                "  const char* family;",
+                "  const char* device;",
+                "  const char* package_name;",
+                "  const char* core;",
+                "  const char* summary;",
+                "  int pin_count;",
+                "  int peripheral_count;",
+                "  int interrupt_count;",
+                "  int memory_region_count;",
+                "  int capability_overlay_count;",
+                "  int startup_descriptor_count;",
+                "};",
+                "inline constexpr DeviceDescriptor kDeviceDescriptor = {",
+                f"  {json.dumps(device.identity.vendor)},",
+                f"  {json.dumps(device.identity.family)},",
+                f"  {json.dumps(device.identity.device)},",
+                f"  {json.dumps(device.identity.package)},",
+                f"  {json.dumps(device.identity.core)},",
+                f"  {json.dumps(device.identity.summary)},",
+                f"  {len(device.pins)},",
+                f"  {len(device.peripherals)},",
+                f"  {len(device.interrupts)},",
+                f"  {len(device.memories)},",
+                f"  {capability_overlay_count},",
+                f"  {len(device.startup_descriptors)},",
+                "};",
+            ]
+        ),
+    )
+    content = "\n".join(["#pragma once", "", namespace_block, ""])
+    return _cpp_artifact(
+        path=_device_generated_path(family_dir, device.identity.device, "device_descriptor.hpp"),
+        content=content,
+    )
+
+
+def emit_pins_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    package_pad_ids_by_pin = _package_pad_ids_by_pin(device)
+    constraint_ids_by_pin = _constraint_ids_by_pin(device)
+    pin_rows = [
+        (
+            pin.name,
+            pin.port,
+            pin.number,
+            package_pad_ids_by_pin.get(pin.name, ()),
+            constraint_ids_by_pin.get(pin.name, ()),
+        )
+        for pin in sorted(device.pins, key=_pin_key)
+    ]
+    signal_rows = [
+        (
+            pin.name,
+            signal.function,
+            signal.peripheral,
+            signal.signal,
+            signal.af_number,
+        )
+        for pin in sorted(device.pins, key=_pin_key)
+        for signal in sorted(
+            pin.signals,
+            key=lambda item: (
+                item.function,
+                item.peripheral or "",
+                item.signal or "",
+                -1 if item.af_number is None else item.af_number,
+            ),
+        )
+    ]
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "struct PinDescriptor {",
+                "  const char* pin_name;",
+                "  const char* port;",
+                "  int number;",
+                "  const char* package_pad_ids;",
+                "  const char* constraint_ids;",
+                "};",
+                *_std_array_lines(
+                    type_name="PinDescriptor",
+                    variable_name="kPins",
+                    row_lines=[
+                        f"  {{{json.dumps(pin_name)}, {_quoted(port)}, {number}, "
+                        f"{json.dumps(','.join(package_pad_ids))}, "
+                        f"{json.dumps(','.join(constraint_ids))}}},"
+                        for pin_name, port, number, package_pad_ids, constraint_ids in pin_rows
+                    ],
+                ),
+                "",
+                "struct PinSignalDescriptor {",
+                "  const char* pin_name;",
+                "  const char* function;",
+                "  const char* peripheral;",
+                "  const char* signal;",
+                "  int af_number;",
+                "};",
+                *_std_array_lines(
+                    type_name="PinSignalDescriptor",
+                    variable_name="kPinSignals",
+                    row_lines=[
+                        f"  {{{json.dumps(pin_name)}, {json.dumps(function)}, "
+                        f"{_quoted(peripheral)}, {_quoted(signal_name)}, "
+                        f"{-1 if af_number is None else af_number}}},"
+                        for pin_name, function, peripheral, signal_name, af_number in signal_rows
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(["#pragma once", "", "#include <array>", "", namespace_block, ""])
+    return _cpp_artifact(
+        path=_device_generated_path(family_dir, device.identity.device, "pins.hpp"),
+        content=content,
+    )
+
+
+def emit_peripheral_instances_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    interrupts_by_peripheral = _interrupt_names_by_peripheral(device)
+    bindings_by_peripheral = _binding_by_peripheral(device)
+    overlay_ids_by_peripheral: dict[str, tuple[str, ...]] = {}
+    for capability in sorted(device.capabilities, key=lambda item: item.capability_id):
+        if capability.scope == "ip-block" or capability.peripheral is None:
+            continue
+        overlay_ids_by_peripheral.setdefault(capability.peripheral, tuple())
+    overlay_ids_by_peripheral = {
+        peripheral_name: tuple(
+            capability.capability_id
+            for capability in sorted(device.capabilities, key=lambda item: item.capability_id)
+            if capability.scope != "ip-block" and capability.peripheral == peripheral_name
+        )
+        for peripheral_name in sorted(
+            {
+                capability.peripheral
+                for capability in device.capabilities
+                if capability.scope != "ip-block" and capability.peripheral is not None
+            }
+        )
+    }
+    peripheral_rows: list[str] = []
+    for peripheral in sorted(device.peripherals, key=lambda item: item.name):
+        binding = bindings_by_peripheral.get(peripheral.name)
+        clock_gate_id = None if binding is None else binding.clock_gate_id
+        reset_id = None if binding is None else binding.reset_id
+        selector_id = None if binding is None else binding.selector_id
+        interrupt_names = ",".join(interrupts_by_peripheral.get(peripheral.name, ()))
+        overlay_ids = ",".join(overlay_ids_by_peripheral.get(peripheral.name, ()))
+        peripheral_rows.append(
+            "  {"
+            f"{json.dumps(peripheral.name)}, "
+            f"{json.dumps(peripheral.ip_name)}, "
+            f"{_quoted(peripheral.ip_version)}, "
+            f"{peripheral.instance}, "
+            f"0x{peripheral.base_address:08X}u, "
+            f"{_quoted(peripheral.rcc_enable_signal)}, "
+            f"{_quoted(peripheral.rcc_reset_signal)}, "
+            f"{_quoted(clock_gate_id)}, "
+            f"{_quoted(reset_id)}, "
+            f"{_quoted(selector_id)}, "
+            f"{json.dumps(interrupt_names)}, "
+            f"{json.dumps(overlay_ids)}"
+            "},"
+        )
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "struct PeripheralInstanceDescriptor {",
+                "  const char* name;",
+                "  const char* ip_name;",
+                "  const char* ip_version;",
+                "  int instance;",
+                "  std::uintptr_t base_address;",
+                "  const char* rcc_enable_signal;",
+                "  const char* rcc_reset_signal;",
+                "  const char* clock_gate_id;",
+                "  const char* reset_id;",
+                "  const char* selector_id;",
+                "  const char* interrupt_names;",
+                "  const char* capability_overlay_ids;",
+                "};",
+                *_std_array_lines(
+                    type_name="PeripheralInstanceDescriptor",
+                    variable_name="kPeripheralInstances",
+                    row_lines=peripheral_rows,
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(
+        ["#pragma once", "", "#include <array>", "#include <cstdint>", "", namespace_block, ""]
+    )
+    return _cpp_artifact(
+        path=_device_generated_path(
+            family_dir,
+            device.identity.device,
+            "peripheral_instances.hpp",
+        ),
+        content=content,
+    )
+
+
+def emit_capability_overlays_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    overlay_rows = _capability_overlay_rows(device)
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "struct CapabilityOverlayDescriptor {",
+                "  const char* capability_id;",
+                "  const char* scope;",
+                "  const char* peripheral_class;",
+                "  const char* name;",
+                "  const char* value;",
+                "  const char* ip_name;",
+                "  const char* ip_version;",
+                "  const char* peripheral;",
+                "  const char* package_name;",
+                "};",
+                *_std_array_lines(
+                    type_name="CapabilityOverlayDescriptor",
+                    variable_name="kCapabilityOverlays",
+                    row_lines=[
+                        f"  {{{json.dumps(capability_id)}, {json.dumps(scope)}, "
+                        f"{json.dumps(peripheral_class)}, {json.dumps(name)}, {json.dumps(value)}, "
+                        f"{_quoted(ip_name or None)}, {_quoted(ip_version or None)}, "
+                        f"{_quoted(peripheral or None)}, {_quoted(package_name or None)}}},"
+                        for (
+                            capability_id,
+                            scope,
+                            peripheral_class,
+                            name,
+                            value,
+                            ip_name,
+                            ip_version,
+                            peripheral,
+                            package_name,
+                        ) in overlay_rows
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(["#pragma once", "", "#include <array>", "", namespace_block, ""])
+    return _cpp_artifact(
+        path=_device_generated_path(
+            family_dir,
+            device.identity.device,
+            "capability_overlays.hpp",
+        ),
+        content=content,
     )
 
 

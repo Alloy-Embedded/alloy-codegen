@@ -22,7 +22,6 @@ Published `alloy-devices` trees may contain:
 - generated descriptor headers and translation units:
   - `generated/peripherals/*.hpp`
   - `generated/ip/*.hpp`
-  - `generated/signal_map.hpp`
   - `generated/connector_tables.hpp`
   - `generated/rcc_map.hpp`
   - `generated/dma_map.hpp`
@@ -30,24 +29,33 @@ Published `alloy-devices` trees may contain:
   - `generated/memory_map.hpp`
   - `generated/package_map.hpp`
   - `generated/clock_tree_lite.hpp`
+  - `generated/devices/<device>/device_descriptor.hpp`
+  - `generated/devices/<device>/pins.hpp`
+  - `generated/devices/<device>/peripheral_instances.hpp`
+  - `generated/devices/<device>/capability_overlays.hpp`
   - `generated/devices/<device>/register_map.hpp`
-  - `generated/devices/<device>/pin_functions.hpp`
-  - `generated/devices/<device>/startup.cpp`
   - `generated/devices/<device>/startup_descriptors.hpp`
   - `generated/devices/<device>/startup_vectors.cpp`
 - reports:
   - `reports/validation-report.json`
+  - `reports/validation-summary.json`
+  - `reports/coverage.json`
   - `reports/publication-record.json`
-  - `reports/publication-summary.json`
 
 Those files may describe:
 
 - addresses
-- registers and IP versions
+- device descriptors, register maps, and IP versions
 - pins, packages, and constraints
 - connector candidates, groups, requirements, and operations
 - interrupts, memories, startup descriptors, clocks, resets, and DMA routes
 - validation and publication status
+
+The published C++ contract is descriptor-first:
+
+- family-level headers describe shared hardware facts across the family
+- device-level headers describe one target device without requiring JSON-side inference
+- reports describe whether the emitted contract is complete enough for Alloy to consume directly
 
 ## Alloy-Owned Behavior
 

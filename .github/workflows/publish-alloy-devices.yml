@@ -133,6 +133,43 @@ jobs:
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
             --json | tee out/release/publish.json
 
+      - name: Assert published family is contract-complete
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from alloy_codegen.bootstrap import registered_device_names
+
+          vendor = "${{ steps.settings.outputs.vendor }}"
+          family = "${{ steps.settings.outputs.family }}"
+          family_root = Path("alloy-devices") / vendor / family
+
+          coverage = json.loads((family_root / "reports" / "coverage.json").read_text())
+          summary = json.loads((family_root / "reports" / "validation-summary.json").read_text())
+
+          assert coverage["vendor"] == vendor, coverage
+          assert coverage["family"] == family, coverage
+          assert coverage["all_devices_publishable"] is True, coverage
+          assert all(bool(device["publishable"]) for device in coverage["devices"]), coverage
+          assert summary["draft_system_descriptor_domains"] == [], summary
+
+          expected_devices = registered_device_names(vendor, family)
+          assert {device["device"] for device in coverage["devices"]} == set(expected_devices)
+
+          for device in expected_devices:
+              for relative_path in (
+                  f"generated/devices/{device}/device_descriptor.hpp",
+                  f"generated/devices/{device}/pins.hpp",
+                  f"generated/devices/{device}/peripheral_instances.hpp",
+                  f"generated/devices/{device}/capability_overlays.hpp",
+                  f"generated/devices/{device}/register_map.hpp",
+                  f"generated/devices/{device}/startup_descriptors.hpp",
+                  f"generated/devices/{device}/startup_vectors.cpp",
+              ):
+                  assert (family_root / relative_path).exists(), relative_path
+          PY
+
       - name: Derive release commit metadata
         id: release
         run: |

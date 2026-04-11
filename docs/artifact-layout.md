@@ -8,25 +8,35 @@ separate roots.
 The local artifact root is controlled by `ExecutionContext.artifact_root` or
 `--artifact-root`. It contains:
 
-- `st/<family>/artifact-manifest.json`
-- `st/<family>/metadata/family-index.json`
-- `st/<family>/metadata/family-connectivity.json`
-- `st/<family>/metadata/ip-blocks.json`
-- `st/<family>/metadata/capabilities.json`
-- `st/<family>/metadata/packages.json`
-- `st/<family>/metadata/connectors.json`
-- `st/<family>/metadata/system-descriptors.json`
-- `st/<family>/metadata/devices/<device>.json`
-- `st/<family>/generated/peripherals/<peripheral>.hpp`
-- `st/<family>/generated/devices/<device>/register_map.hpp`
-- `st/<family>/generated/devices/<device>/pin_functions.hpp`
-- `st/<family>/generated/devices/<device>/startup.cpp`
-- `st/<family>/generated/devices/<device>/startup_descriptors.hpp`
-- `st/<family>/generated/devices/<device>/startup_vectors.cpp`
-- `st/<family>/reports/validation-report.json`
-- `st/<family>/reports/validation-summary.json`
-- `st/<family>/reports/coverage.json`
-- `st/<family>/reports/publication-summary.json`
+- `<vendor>/<family>/artifact-manifest.json`
+- `<vendor>/<family>/metadata/family-index.json`
+- `<vendor>/<family>/metadata/family-connectivity.json`
+- `<vendor>/<family>/metadata/ip-blocks.json`
+- `<vendor>/<family>/metadata/capabilities.json`
+- `<vendor>/<family>/metadata/packages.json`
+- `<vendor>/<family>/metadata/connectors.json`
+- `<vendor>/<family>/metadata/system-descriptors.json`
+- `<vendor>/<family>/metadata/devices/<device>.json`
+- `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
+- `<vendor>/<family>/generated/ip/<ip-version>.hpp`
+- `<vendor>/<family>/generated/connector_tables.hpp`
+- `<vendor>/<family>/generated/rcc_map.hpp`
+- `<vendor>/<family>/generated/dma_map.hpp`
+- `<vendor>/<family>/generated/interrupt_map.hpp`
+- `<vendor>/<family>/generated/memory_map.hpp`
+- `<vendor>/<family>/generated/package_map.hpp`
+- `<vendor>/<family>/generated/clock_tree_lite.hpp`
+- `<vendor>/<family>/generated/devices/<device>/device_descriptor.hpp`
+- `<vendor>/<family>/generated/devices/<device>/pins.hpp`
+- `<vendor>/<family>/generated/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/devices/<device>/capability_overlays.hpp`
+- `<vendor>/<family>/generated/devices/<device>/register_map.hpp`
+- `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
+- `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
+- `<vendor>/<family>/reports/validation-report.json`
+- `<vendor>/<family>/reports/validation-summary.json`
+- `<vendor>/<family>/reports/coverage.json`
+- `<vendor>/<family>/reports/publication-summary.json`
 
 `publication-summary.json` is a local run artifact. It may contain absolute filesystem paths
 for the local machine that executed the pipeline.
@@ -38,27 +48,37 @@ The publication root is controlled by `ExecutionContext.publication_root` or
 `ExecutionContext.default()` prefers it automatically. The publication root models the
 checked-out `alloy-devices` repository.
 
-For the bootstrap family, successful publication writes:
+Successful publication writes:
 
-- `st/<family>/artifact-manifest.json`
-- `st/<family>/metadata/family-index.json`
-- `st/<family>/metadata/family-connectivity.json`
-- `st/<family>/metadata/ip-blocks.json`
-- `st/<family>/metadata/capabilities.json`
-- `st/<family>/metadata/packages.json`
-- `st/<family>/metadata/connectors.json`
-- `st/<family>/metadata/system-descriptors.json`
-- `st/<family>/metadata/devices/<device>.json`
-- `st/<family>/generated/peripherals/<peripheral>.hpp`
-- `st/<family>/generated/devices/<device>/register_map.hpp`
-- `st/<family>/generated/devices/<device>/pin_functions.hpp`
-- `st/<family>/generated/devices/<device>/startup.cpp`
-- `st/<family>/generated/devices/<device>/startup_descriptors.hpp`
-- `st/<family>/generated/devices/<device>/startup_vectors.cpp`
-- `st/<family>/reports/validation-report.json`
-- `st/<family>/reports/validation-summary.json`
-- `st/<family>/reports/coverage.json`
-- `st/<family>/reports/publication-record.json`
+- `<vendor>/<family>/artifact-manifest.json`
+- `<vendor>/<family>/metadata/family-index.json`
+- `<vendor>/<family>/metadata/family-connectivity.json`
+- `<vendor>/<family>/metadata/ip-blocks.json`
+- `<vendor>/<family>/metadata/capabilities.json`
+- `<vendor>/<family>/metadata/packages.json`
+- `<vendor>/<family>/metadata/connectors.json`
+- `<vendor>/<family>/metadata/system-descriptors.json`
+- `<vendor>/<family>/metadata/devices/<device>.json`
+- `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
+- `<vendor>/<family>/generated/ip/<ip-version>.hpp`
+- `<vendor>/<family>/generated/connector_tables.hpp`
+- `<vendor>/<family>/generated/rcc_map.hpp`
+- `<vendor>/<family>/generated/dma_map.hpp`
+- `<vendor>/<family>/generated/interrupt_map.hpp`
+- `<vendor>/<family>/generated/memory_map.hpp`
+- `<vendor>/<family>/generated/package_map.hpp`
+- `<vendor>/<family>/generated/clock_tree_lite.hpp`
+- `<vendor>/<family>/generated/devices/<device>/device_descriptor.hpp`
+- `<vendor>/<family>/generated/devices/<device>/pins.hpp`
+- `<vendor>/<family>/generated/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/devices/<device>/capability_overlays.hpp`
+- `<vendor>/<family>/generated/devices/<device>/register_map.hpp`
+- `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
+- `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
+- `<vendor>/<family>/reports/validation-report.json`
+- `<vendor>/<family>/reports/validation-summary.json`
+- `<vendor>/<family>/reports/coverage.json`
+- `<vendor>/<family>/reports/publication-record.json`
 
 ## Contract Notes
 

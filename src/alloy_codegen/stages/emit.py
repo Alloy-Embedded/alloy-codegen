@@ -13,10 +13,12 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     emit_artifact_manifest,
     emit_capabilities_metadata,
+    emit_capability_overlays_header,
     emit_clock_tree_lite_header,
     emit_connector_tables_header,
     emit_connectors_metadata,
     emit_coverage_report,
+    emit_device_descriptor_header,
     emit_device_metadata,
     emit_dma_map_header,
     emit_family_connectivity,
@@ -28,6 +30,8 @@ from alloy_codegen.emission import (
     emit_memory_map_header,
     emit_package_map_header,
     emit_packages_metadata,
+    emit_peripheral_instances_header,
+    emit_pins_header,
     emit_rcc_map_header,
     emit_register_map_header,
     emit_startup_descriptors_header,
@@ -97,6 +101,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
                 emit_register_map_header(family_dir=family_dir, device=device),
+                emit_device_descriptor_header(family_dir=family_dir, device=device),
+                emit_pins_header(family_dir=family_dir, device=device),
+                emit_peripheral_instances_header(family_dir=family_dir, device=device),
+                emit_capability_overlays_header(family_dir=family_dir, device=device),
                 emit_startup_descriptors_header(family_dir=family_dir, device=device),
                 emit_startup_vectors_source(family_dir=family_dir, device=device),
             )

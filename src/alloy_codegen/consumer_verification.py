@@ -114,6 +114,22 @@ def verify_alloy_smoke_consumer(
         f'-DALLOY_CODEGEN_SMOKE_PACKAGE_MAP_HEADER="{vendor}/{family}/generated/package_map.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER="{vendor}/{family}/generated/clock_tree_lite.hpp"',
         (
+            f"-DALLOY_CODEGEN_SMOKE_DEVICE_DESCRIPTOR_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/device_descriptor.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_PINS_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/pins.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_PERIPHERAL_INSTANCES_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/peripheral_instances.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_CAPABILITY_OVERLAYS_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/capability_overlays.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_STARTUP_DESCRIPTORS_HEADER="
             f'"{vendor}/{family}/generated/devices/{device}/startup_descriptors.hpp"'
         ),
