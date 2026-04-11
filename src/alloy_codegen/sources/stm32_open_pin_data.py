@@ -286,9 +286,7 @@ def parse_raw_pin_data_document(
                 "bonded"
                 if identity is not None
                 else (
-                    "unbonded"
-                    if _pad_kind(pin_node.get("Type"), raw_name) == "nc"
-                    else "dedicated"
+                    "unbonded" if _pad_kind(pin_node.get("Type"), raw_name) == "nc" else "dedicated"
                 )
             ),
         )

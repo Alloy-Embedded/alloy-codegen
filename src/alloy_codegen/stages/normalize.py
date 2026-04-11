@@ -257,11 +257,7 @@ def _normalize_interrupts(
         primary = entries[0]
         primary_name = primary.name
         alias_names = tuple(
-            dict.fromkeys(
-                entry.name
-                for entry in entries[1:]
-                if entry.name != primary_name
-            )
+            dict.fromkeys(entry.name for entry in entries[1:] if entry.name != primary_name)
         )
         normalized_interrupts.append(
             InterruptDefinition(
