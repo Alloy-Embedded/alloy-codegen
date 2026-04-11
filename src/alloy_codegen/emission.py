@@ -861,10 +861,7 @@ def emit_peripheral_instances_header(
 
     sorted_peripherals = sorted(device.peripherals, key=lambda item: item.name)
     peripheral_rows: list[str] = []
-    enum_rows = [
-        f"  {_enum_identifier(peripheral.name)},"
-        for peripheral in sorted_peripherals
-    ]
+    enum_rows = [f"  {_enum_identifier(peripheral.name)}," for peripheral in sorted_peripherals]
     for peripheral in sorted_peripherals:
         binding = bindings_by_peripheral.get(peripheral.name)
         clock_gate_id = None if binding is None else binding.clock_gate_id
@@ -1353,8 +1350,7 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
         )
     ]
     register_enum_rows = [
-        f"  {_enum_identifier(register_id)},"
-        for register_id, *_rest in register_rows
+        f"  {_enum_identifier(register_id)}," for register_id, *_rest in register_rows
     ]
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
@@ -1555,8 +1551,7 @@ def emit_interrupt_bindings_header(
         alias_names_by_binding[binding.binding_id] = tuple(binding.alias_names)
     alias_offsets, alias_counts = _offset_count_maps(alias_names_by_binding)
     binding_enum_rows = [
-        f"  {_enum_identifier(binding_id)},"
-        for binding_id, *_rest in binding_rows
+        f"  {_enum_identifier(binding_id)}," for binding_id, *_rest in binding_rows
     ]
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
@@ -1669,8 +1664,7 @@ def emit_dma_bindings_header(
         )
     ]
     binding_enum_rows = [
-        f"  {_enum_identifier(binding_id)},"
-        for binding_id, *_rest in binding_rows
+        f"  {_enum_identifier(binding_id)}," for binding_id, *_rest in binding_rows
     ]
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
@@ -2084,10 +2078,7 @@ def emit_connector_tables_header(
         "",
         "enum class RouteRequirementId : std::uint16_t {",
         *(
-            [
-                f"  {identifier},"
-                for identifier in requirement_enum_map.values()
-            ]
+            [f"  {identifier}," for identifier in requirement_enum_map.values()]
             if requirement_enum_map
             else ["  none,"]
         ),
@@ -2140,10 +2131,7 @@ def emit_connector_tables_header(
         "",
         "enum class RouteOperationId : std::uint16_t {",
         *(
-            [
-                f"  {identifier},"
-                for identifier in operation_enum_map.values()
-            ]
+            [f"  {identifier}," for identifier in operation_enum_map.values()]
             if operation_enum_map
             else ["  none,"]
         ),
@@ -2295,10 +2283,7 @@ def emit_connector_tables_header(
         "",
         "enum class ConnectionGroupId : std::uint16_t {",
         *(
-            [
-                f"  {identifier},"
-                for identifier in group_enum_map.values()
-            ]
+            [f"  {identifier}," for identifier in group_enum_map.values()]
             if group_enum_map
             else ["  none,"]
         ),

@@ -61,9 +61,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     interrupt_bindings_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"
     ]
-    dma_bindings_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"
-    ]
+    dma_bindings_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"]
     capability_overlays_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
     ]
@@ -346,9 +344,7 @@ def test_emit_matches_golden_artifacts(
     ].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "peripheral_instances.hpp"
     ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"
-    ].content == (
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "interrupt_bindings.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"].content == (

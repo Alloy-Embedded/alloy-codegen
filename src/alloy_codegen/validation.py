@@ -709,10 +709,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         and requirement.target_ref_id is not None
         and (
             requirement.kind != "source-select"
-            or (
-                requirement.value_ref_kind == "selector"
-                and requirement.value_ref_id is not None
-            )
+            or (requirement.value_ref_kind == "selector" and requirement.value_ref_id is not None)
         )
         for requirement in device.route_requirements
     )
@@ -934,9 +931,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         binding.conflict_group is None or binding.conflict_group in dma_conflict_ids
         for binding in device.dma_bindings
     )
-    dma_bindings_cover_routes = {
-        binding.route_id for binding in device.dma_bindings
-    } == {
+    dma_bindings_cover_routes = {binding.route_id for binding in device.dma_bindings} == {
         route.route_id for route in device.dma_routes if route.peripheral is not None
     }
     dma_conflict_groups_reference_known_routes = all(
@@ -1217,18 +1212,14 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             category="semantic",
             severity="error",
             passed=route_requirements_typed,
-            message=(
-                f"{device.identity.device} route requirements expose typed runtime fields."
-            ),
+            message=(f"{device.identity.device} route requirements expose typed runtime fields."),
         ),
         _rule(
             rule_id=f"{device.identity.device}-route-operations-typed",
             category="semantic",
             severity="error",
             passed=route_operations_typed,
-            message=(
-                f"{device.identity.device} route operations expose typed runtime fields."
-            ),
+            message=(f"{device.identity.device} route operations expose typed runtime fields."),
         ),
         _rule(
             rule_id=f"{device.identity.device}-register-target-operations-resolved",
@@ -1270,8 +1261,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=interrupt_bindings_reference_known_peripherals,
             message=(
-                f"{device.identity.device} interrupt bindings reference known "
-                "peripheral instances."
+                f"{device.identity.device} interrupt bindings reference known peripheral instances."
             ),
         ),
         _rule(
@@ -1279,9 +1269,7 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             category="semantic",
             severity="error",
             passed=interrupt_bindings_reference_known_interrupts,
-            message=(
-                f"{device.identity.device} interrupt bindings reference declared interrupts."
-            ),
+            message=(f"{device.identity.device} interrupt bindings reference declared interrupts."),
         ),
         _rule(
             rule_id=f"{device.identity.device}-interrupt-bindings-reference-known-vector-slots",

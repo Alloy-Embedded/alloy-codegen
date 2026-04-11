@@ -137,9 +137,7 @@ SYSTEM_VECTOR_BASELINES = {
     ),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
-REGISTER_FIELD_TARGET_PATTERN = re.compile(
-    r"^(?P<lhs>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$"
-)
+REGISTER_FIELD_TARGET_PATTERN = re.compile(r"^(?P<lhs>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
 
 
 def _sanitize(value: str) -> str:
@@ -926,8 +924,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     interrupt_bindings = tuple(
         InterruptBindingDescriptor(
             binding_id=(
-                f"interrupt-binding:{_sanitize(interrupt.peripheral)}:"
-                f"{_sanitize(interrupt.name)}"
+                f"interrupt-binding:{_sanitize(interrupt.peripheral)}:{_sanitize(interrupt.name)}"
             ),
             peripheral=interrupt.peripheral,
             interrupt=interrupt.name,
