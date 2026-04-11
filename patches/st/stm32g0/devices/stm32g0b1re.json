@@ -22,6 +22,6 @@
       "access": "rwx"
     }
   ],
-  "peripherals": ["GPIOA", "GPIOB", "FDCAN1"],
-  "dma_requests": []
+  "peripherals": ["GPIOA", "GPIOB", "FDCAN1", "DMA1", "DMAMUX1", "USART1"],
+  "dma_request_refs": ["dma1-usart1-rx", "dma1-usart1-tx"]
 }

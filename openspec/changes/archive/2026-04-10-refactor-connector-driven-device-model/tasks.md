@@ -108,7 +108,7 @@
 - [x] C8.1 ST, Microchip, and NXP all publish families using the same connector-driven descriptor
       contract
 - [x] C8.2 No foundational family requires vendor-specific emitter exceptions at publish time
-- [ ] C8.3 Vendor 4 remains blocked until `C8.1` and `C8.2` are closed
+- [x] C8.3 Vendor 4 remains blocked until `C8.1` and `C8.2` are closed
 
 ## Phase I: Legacy cleanup
 

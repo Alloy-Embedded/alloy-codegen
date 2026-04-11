@@ -27,6 +27,22 @@
         <name>DMA1_Channel1</name>
         <value>9</value>
       </interrupt>
+      <interrupt>
+        <name>DMA1_Channel2_3</name>
+        <value>10</value>
+      </interrupt>
+    </peripheral>
+    <peripheral>
+      <name>DMAMUX1</name>
+      <baseAddress>0x40020800</baseAddress>
+    </peripheral>
+    <peripheral>
+      <name>USART1</name>
+      <baseAddress>0x40013800</baseAddress>
+      <interrupt>
+        <name>USART1</name>
+        <value>27</value>
+      </interrupt>
     </peripheral>
     <peripheral>
       <name>FDCAN1</name>

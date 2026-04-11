@@ -34,7 +34,7 @@
       {
         "local_path": "data/STMicro/STM32G071.svd",
         "origin_url": "https://github.com/cmsis-svd/cmsis-svd-data.git",
-        "revision": "content-sha256:4ba9f4efca6779dec8da4e974464f7dd99ac3728870c28657aabc8a39d4c66c4",
+        "revision": "content-sha256:8fe32aeee578e8e258f67a67bc9bdd6cc89205da47e87cb4a01012a244f2dec2",
         "scope": {
           "device": "stm32g071rb",
           "family": "stm32g0",
