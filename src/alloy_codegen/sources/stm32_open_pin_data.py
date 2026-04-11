@@ -265,34 +265,41 @@ def parse_raw_pin_data_document(
     package_name = (mcu_root.get("Package") or "").lower()
     pins_by_position: dict[int, RawPinDocumentEntry] = {}
     pins_without_position: list[RawPinDocumentEntry] = []
-    package_pads: list[RawPackagePadEntry] = []
+    package_pads_by_position: dict[int, RawPackagePadEntry] = {}
+    package_pads_without_position: list[RawPackagePadEntry] = []
 
     for pin_node in mcu_root.findall("st:Pin", XML_NAMESPACE):
         raw_name = pin_node.get("Name") or ""
         position_text = pin_node.get("Position")
         identity = _extract_pin_identity(raw_name)
-        package_pads.append(
-            RawPackagePadEntry(
-                pad_id=position_text or raw_name,
-                position_label=position_text or raw_name,
-                physical_index=(
-                    int(position_text)
-                    if position_text is not None and position_text.isdigit()
-                    else None
-                ),
-                pad_kind=_pad_kind(pin_node.get("Type"), raw_name),
-                bonded_pin=None if identity is None else identity[0],
-                bonding_state=(
-                    "bonded"
-                    if identity is not None
-                    else (
-                        "unbonded"
-                        if _pad_kind(pin_node.get("Type"), raw_name) == "nc"
-                        else "dedicated"
-                    )
-                ),
-            )
+        raw_package_pad = RawPackagePadEntry(
+            pad_id=position_text or raw_name,
+            position_label=position_text or raw_name,
+            physical_index=(
+                int(position_text)
+                if position_text is not None and position_text.isdigit()
+                else None
+            ),
+            pad_kind=_pad_kind(pin_node.get("Type"), raw_name),
+            bonded_pin=None if identity is None else identity[0],
+            bonding_state=(
+                "bonded"
+                if identity is not None
+                else (
+                    "unbonded"
+                    if _pad_kind(pin_node.get("Type"), raw_name) == "nc"
+                    else "dedicated"
+                )
+            ),
         )
+        if position_text is not None and position_text.isdigit():
+            # STM32_open_pin_data may publish alternate/remap candidates under the
+            # same package position. Keep the first physical pad entry so the
+            # package map stays aligned with the primary pin selection used by
+            # `pins_by_position` below.
+            package_pads_by_position.setdefault(int(position_text), raw_package_pad)
+        else:
+            package_pads_without_position.append(raw_package_pad)
         identity = _extract_pin_identity(raw_name)
         if identity is None:
             continue
@@ -340,7 +347,11 @@ def parse_raw_pin_data_document(
         ),
         package_pads=tuple(
             sorted(
-                package_pads,
+                [
+                    package_pads_by_position[position]
+                    for position in sorted(package_pads_by_position)
+                ]
+                + package_pads_without_position,
                 key=lambda item: (
                     item.physical_index is None,
                     -1 if item.physical_index is None else item.physical_index,

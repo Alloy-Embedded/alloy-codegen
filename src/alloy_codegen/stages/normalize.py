@@ -86,7 +86,13 @@ from alloy_codegen.sources.nxp_mcux import (
 from alloy_codegen.sources.nxp_mcux import (
     resolve_svd_path as resolve_nxp_svd_path,
 )
-from alloy_codegen.sources.raw import RawDeviceDocument, RawPackagePadEntry, RawPinDataDocument
+from alloy_codegen.sources.raw import (
+    RawDeviceDocument,
+    RawInterrupt,
+    RawPackagePadEntry,
+    RawPeripheral,
+    RawPinDataDocument,
+)
 from alloy_codegen.sources.stm32_open_pin_data import (
     parse_ip_version_table,
     parse_raw_pin_data_document,
@@ -233,6 +239,78 @@ def _package_pad_to_ir(
         provenance=provenance,
         bonding_state=raw_pad.bonding_state,
     )
+
+
+def _normalize_interrupts(
+    raw_interrupts: tuple[RawInterrupt, ...],
+    *,
+    provenance: Provenance,
+    peripheral_aliases: dict[str, str] | None = None,
+) -> tuple[InterruptDefinition, ...]:
+    alias_map = peripheral_aliases or {}
+    interrupts_by_line: dict[int, list[RawInterrupt]] = {}
+    for interrupt in raw_interrupts:
+        interrupts_by_line.setdefault(interrupt.line, []).append(interrupt)
+
+    normalized_interrupts: list[InterruptDefinition] = []
+    for line, entries in interrupts_by_line.items():
+        primary = entries[0]
+        primary_name = primary.name
+        alias_names = tuple(
+            dict.fromkeys(
+                entry.name
+                for entry in entries[1:]
+                if entry.name != primary_name
+            )
+        )
+        normalized_interrupts.append(
+            InterruptDefinition(
+                name=primary_name,
+                line=line,
+                peripheral=(
+                    None
+                    if primary.peripheral is None
+                    else alias_map.get(
+                        _canonical_peripheral_name(primary.peripheral),
+                        _canonical_peripheral_name(primary.peripheral),
+                    )
+                ),
+                provenance=provenance,
+                alias_names=alias_names,
+            )
+        )
+    return tuple(normalized_interrupts)
+
+
+def _deduplicate_raw_peripherals(
+    raw_peripherals: tuple[RawPeripheral, ...],
+    *,
+    preferred_names: set[str],
+) -> tuple[tuple[RawPeripheral, ...], dict[str, str]]:
+    selected_by_base: dict[int, RawPeripheral] = {}
+    order: list[int] = []
+    alias_map: dict[str, str] = {}
+    for peripheral in raw_peripherals:
+        canonical_name = _canonical_peripheral_name(peripheral.name)
+        candidate = RawPeripheral(
+            name=canonical_name,
+            base_address=peripheral.base_address,
+        )
+        existing = selected_by_base.get(candidate.base_address)
+        if existing is None:
+            selected_by_base[candidate.base_address] = candidate
+            order.append(candidate.base_address)
+            alias_map[candidate.name] = candidate.name
+            continue
+        existing_preferred = existing.name in preferred_names
+        candidate_preferred = candidate.name in preferred_names
+        if candidate_preferred and not existing_preferred:
+            alias_map[existing.name] = candidate.name
+            selected_by_base[candidate.base_address] = candidate
+        alias_map[candidate.name] = selected_by_base[candidate.base_address].name
+    for selected in selected_by_base.values():
+        alias_map[selected.name] = selected.name
+    return tuple(selected_by_base[base_address] for base_address in order), alias_map
 
 
 def _add_pin_constraint(
@@ -677,19 +755,7 @@ def build_canonical_ir(
             )
             for peripheral in raw.peripherals
         ),
-        interrupts=tuple(
-            InterruptDefinition(
-                name=interrupt.name,
-                line=interrupt.line,
-                peripheral=(
-                    None
-                    if interrupt.peripheral is None
-                    else _canonical_peripheral_name(interrupt.peripheral)
-                ),
-                provenance=svd_provenance,
-            )
-            for interrupt in raw.interrupts
-        ),
+        interrupts=_normalize_interrupts(raw.interrupts, provenance=svd_provenance),
         dma_controllers=tuple(
             _dma_controller_to_ir(controller, patch_provenance)
             for controller in patch.dma_controllers
@@ -947,26 +1013,17 @@ def build_nxp_canonical_ir(
         )
         if pad.bonded_pin in pin_names_with_signals
     )
-    # Deduplicate interrupts by (name, line).  NXP SVDs often repeat the same
-    # interrupt entry across multiple peripheral blocks (e.g. shared DMA IRQs).
-    # Keeping duplicates produces duplicate vector-slot numbers, which breaks the
-    # vector-slots-unique validation rule.
-    _seen_interrupt_keys: dict[tuple[str, int], None] = {}
-    dedup_interrupts: list[InterruptDefinition] = []
-    for i in raw.interrupts:
-        key = (i.name, i.line)
-        if key not in _seen_interrupt_keys:
-            _seen_interrupt_keys[key] = None
-            dedup_interrupts.append(
-                InterruptDefinition(
-                    name=i.name,
-                    line=i.line,
-                    peripheral=(
-                        None if i.peripheral is None else _canonical_peripheral_name(i.peripheral)
-                    ),
-                    provenance=svd_provenance,
-                )
-            )
+    dedup_peripherals, peripheral_aliases = _deduplicate_raw_peripherals(
+        raw.peripherals,
+        preferred_names={
+            *(_canonical_peripheral_name(p.name) for p in patch.peripherals),
+            *(
+                _canonical_peripheral_name(interrupt.peripheral)
+                for interrupt in raw.interrupts
+                if interrupt.peripheral is not None
+            ),
+        },
+    )
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -994,9 +1051,13 @@ def build_nxp_canonical_ir(
                 ip_version=None,
                 provenance=svd_provenance,
             )
-            for p in raw.peripherals
+            for p in dedup_peripherals
         ),
-        interrupts=tuple(dedup_interrupts),
+        interrupts=_normalize_interrupts(
+            raw.interrupts,
+            provenance=svd_provenance,
+            peripheral_aliases=peripheral_aliases,
+        ),
         dma_controllers=tuple(
             _dma_controller_to_ir(controller, patch_provenance)
             for controller in patch.dma_controllers

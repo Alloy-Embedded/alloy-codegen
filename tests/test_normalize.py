@@ -13,7 +13,14 @@ from alloy_codegen.bootstrap import (
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.ir.model import PackagePad, PinDefinition, PinSignal, Provenance
 from alloy_codegen.scope import PipelineScope
-from alloy_codegen.stages.normalize import _derive_pin_constraints, run
+from alloy_codegen.sources.raw import RawInterrupt, RawPeripheral
+from alloy_codegen.sources.stm32_open_pin_data import parse_raw_pin_data_document
+from alloy_codegen.stages.normalize import (
+    _deduplicate_raw_peripherals,
+    _derive_pin_constraints,
+    _normalize_interrupts,
+    run,
+)
 
 G0_FIXTURE_DIR = Path(__file__).parent / "fixtures" / BOOTSTRAP_FAMILY
 F4_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "stm32f4"
@@ -238,6 +245,73 @@ def test_normalize_same70_derives_wakeup_pin_constraints(
 
     assert ("PA0", "wakeup-capable", "WKUP0") in wakeup_constraints
     assert ("PD28", "wakeup-capable", "WKUP5") in wakeup_constraints
+
+
+def test_parse_st_pin_data_collapses_duplicate_package_positions(tmp_path: Path) -> None:
+    mcu_path = tmp_path / "device.xml"
+    gpio_modes_path = tmp_path / "gpio.xml"
+    mcu_path.write_text(
+        """\
+<Mcu xmlns="http://dummy.com" RefName="stm32demo" Package="tssop20">
+  <IP Name="GPIO" Version="v1"/>
+  <Pin Name="PB7" Position="1" Type="I/O" />
+  <Pin Name="PB8" Position="1" Type="I/O" />
+  <Pin Name="PA11 [PA9]" Position="16" Type="I/O" />
+  <Pin Name="PA9 [PA11]" Position="16" Type="I/O" Variant="PINREMAP" />
+</Mcu>
+""",
+        encoding="utf-8",
+    )
+    gpio_modes_path.write_text(
+        """\
+<Modes xmlns="http://dummy.com">
+  <GPIO_Pin Name="PB7" />
+  <GPIO_Pin Name="PA11" />
+</Modes>
+""",
+        encoding="utf-8",
+    )
+
+    raw = parse_raw_pin_data_document(mcu_path=mcu_path, gpio_modes_path=gpio_modes_path)
+
+    assert [pad.position_label for pad in raw.package_pads] == ["1", "16"]
+    assert [pad.bonded_pin for pad in raw.package_pads] == ["PB7", "PA11"]
+
+
+def test_normalize_interrupts_merges_same_line_aliases() -> None:
+    provenance = Provenance(source_id="test", source_path="raw.svd", patch_ids=("test",))
+    interrupts = _normalize_interrupts(
+        (
+            RawInterrupt(name="TIM6_DAC_LPTIM1", line=33, peripheral="TIM6"),
+            RawInterrupt(name="TIM6_DAC", line=33, peripheral="DAC"),
+            RawInterrupt(name="SPI1", line=51, peripheral="SPI1"),
+            RawInterrupt(name="SPI1", line=51, peripheral="SPI1"),
+        ),
+        provenance=provenance,
+    )
+
+    assert len(interrupts) == 2
+    assert interrupts[0].name == "TIM6_DAC_LPTIM1"
+    assert interrupts[0].alias_names == ("TIM6_DAC",)
+    assert interrupts[1].name == "SPI1"
+    assert interrupts[1].alias_names == ()
+
+
+def test_deduplicate_raw_peripherals_tracks_alias_mapping() -> None:
+    peripherals, aliases = _deduplicate_raw_peripherals(
+        (
+            RawPeripheral(name="CCM_ANALOG", base_address=0x400D8000),
+            RawPeripheral(name="PMU", base_address=0x400D8000),
+            RawPeripheral(name="TEMPMON", base_address=0x400D8000),
+            RawPeripheral(name="GPIO1", base_address=0x401B8000),
+        ),
+        preferred_names={"PMU", "TEMPMON", "GPIO1"},
+    )
+
+    assert [peripheral.name for peripheral in peripherals] == ["PMU", "GPIO1"]
+    assert aliases["CCM_ANALOG"] == "PMU"
+    assert aliases["PMU"] == "PMU"
+    assert aliases["TEMPMON"] == "PMU"
 
 
 def test_derive_pin_constraints_classifies_signal_semantics() -> None:

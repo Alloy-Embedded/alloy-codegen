@@ -648,7 +648,14 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 or peripheral_interrupt_counts[interrupt.peripheral] < 2
                 else f"interrupt-group:{_sanitize(interrupt.peripheral)}"
             ),
-            alias_names=_interrupt_aliases(interrupt.name, interrupt.peripheral),
+            alias_names=tuple(
+                dict.fromkeys(
+                    (
+                        *interrupt.alias_names,
+                        *_interrupt_aliases(interrupt.name, interrupt.peripheral),
+                    )
+                )
+            ),
         )
         for interrupt in device.interrupts
     )

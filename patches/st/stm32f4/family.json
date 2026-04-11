@@ -54,6 +54,11 @@
       "rcc_reset_signal": "RCC_AHB1RSTR.GPIODRST"
     },
     {
+      "name": "GPIOH",
+      "rcc_enable_signal": "RCC_AHB1ENR.GPIOHEN",
+      "rcc_reset_signal": "RCC_AHB1RSTR.GPIOHRST"
+    },
+    {
       "name": "DMA1",
       "rcc_enable_signal": "RCC_AHB1ENR.DMA1EN",
       "rcc_reset_signal": "RCC_AHB1RSTR.DMA1RST"
