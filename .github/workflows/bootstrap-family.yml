@@ -72,6 +72,35 @@ jobs:
       - name: Ruff format
         run: python -m ruff format --check src tests
 
+      - name: Vendor admission gate
+        run: |
+          # Vendor 4 admission is blocked until all foundational families pass gates T7, T8, T9.
+          # Only st, microchip, and nxp are currently admitted. Any other vendor directory in
+          # patches/ means vendor-4 work has started without a completed admission spec.
+          ADMITTED_VENDORS="st microchip nxp"
+          UNKNOWN=()
+          for vendor_dir in patches/*/; do
+            vendor="$(basename "$vendor_dir")"
+            admitted=false
+            for admitted_vendor in $ADMITTED_VENDORS; do
+              if [ "$vendor" = "$admitted_vendor" ]; then
+                admitted=true
+                break
+              fi
+            done
+            if [ "$admitted" = "false" ]; then
+              UNKNOWN+=("$vendor")
+            fi
+          done
+          if [ ${#UNKNOWN[@]} -gt 0 ]; then
+            echo "ERROR: Unadmitted vendor(s) detected in patches/: ${UNKNOWN[*]}"
+            echo "Vendor 4 admission requires gates T7 (st/stm32f4), T8 (microchip/same70), and"
+            echo "T9 (nxp/imxrt1060) to be provably closed and a completed vendor-admission proposal"
+            echo "to exist in openspec/changes/ before any new vendor directory may be added."
+            exit 1
+          fi
+          echo "Vendor admission gate passed. Admitted vendors: $ADMITTED_VENDORS"
+
   bootstrap-family:
     name: Bootstrap Family (${{ matrix.device }})
     runs-on: ubuntu-latest
