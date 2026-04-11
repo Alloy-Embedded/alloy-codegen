@@ -5,7 +5,7 @@
     "pipeline_name": "alloy-codegen",
     "target_repository": "alloy-devices"
   },
-  "canonical_ir_sha256": "2889386dd0f7fbb3c437c8a75bd500478f79a8ba7bf24ddb49c453c4cbb5f09e",
+  "canonical_ir_sha256": "c42c918fdfdee1cf94a4ab11d22ec13c69cbf46e6bf176ab2f63e161126f85f9",
   "generator_version": "0.1.0",
   "ir_schema_version": "1.1.0",
   "manifest_kind": "artifact-manifest-v1",
@@ -32,9 +32,9 @@
     "manifest_kind": "source-manifest-v1",
     "sources": [
       {
-        "local_path": "svd/MIMXRT1062/MIMXRT1062.xml",
+        "local_path": "MIMXRT1062/MIMXRT1062.xml",
         "origin_url": "https://github.com/nxp-mcuxpresso/mcux-soc-svd",
-        "revision": "content-sha256:0f0d2973fad52d15107e38f77e5178375f75536e71f586c7c5a231c2df310a22",
+        "revision": "content-sha256:285bbcaab326987d8d4b79522ee1a6b1d9af1c616a1e1b66bf60b0c7b12b6e75",
         "scope": {
           "device": "mimxrt1062",
           "family": "imxrt1060",
@@ -45,7 +45,7 @@
         "upstream_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       {
-        "local_path": "sdk/devices/MIMXRT1062/drivers/fsl_iomuxc.h",
+        "local_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h",
         "origin_url": "https://github.com/nxp-mcuxpresso/mcux-sdk",
         "revision": "content-sha256:bcdddfc75ecb776e3c5116959b78917c8a480a873f1e999bbb6007ff61b8e805",
         "scope": {
@@ -63,5 +63,5 @@
     ]
   },
   "validation_report_id": "bootstrap-validation-v1",
-  "validation_report_sha256": "081344f27b3280298403d263acbef91e9d75150525f8be5f70dd1ce47e601d89"
+  "validation_report_sha256": "fbaf79ef4aff43219b8e00a28dde4907b59d606ba1c327f1b8ed007719cab63a"
 }

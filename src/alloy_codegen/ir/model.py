@@ -144,6 +144,21 @@ class RegisterDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class RegisterFieldDescriptor:
+    """One normalized register field owned by a peripheral register."""
+
+    field_id: str
+    register_id: str
+    peripheral: str
+    register_name: str
+    name: str
+    bit_offset: int
+    bit_width: int
+    access: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
 class CapabilityDescriptor:
     """One versioned capability fact exposed to emitters and Alloy."""
 
@@ -204,6 +219,11 @@ class RouteRequirement:
     target: str | None
     value: str | None
     provenance: Provenance
+    target_ref_kind: str | None = field(default=None, metadata={"omit_if_empty": True})
+    target_ref_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    value_ref_kind: str | None = field(default=None, metadata={"omit_if_empty": True})
+    value_ref_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    value_int: int | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -222,6 +242,12 @@ class RouteOperation:
     register_name: str | None = None
     register_offset: int | None = None
     value_int: int | None = None
+    register_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_field_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    target_ref_kind: str | None = field(default=None, metadata={"omit_if_empty": True})
+    target_ref_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    value_ref_kind: str | None = field(default=None, metadata={"omit_if_empty": True})
+    value_ref_id: str | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -252,6 +278,24 @@ class ConnectionGroup:
     package: str | None
     conflict_group: str | None
     provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class InterruptBindingDescriptor:
+    """One typed interrupt binding owned by a peripheral instance."""
+
+    binding_id: str
+    peripheral: str
+    interrupt: str
+    line: int
+    vector_slot: int | None
+    symbol_name: str | None
+    shared_group: str | None
+    provenance: Provenance
+    alias_names: tuple[str, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -296,6 +340,11 @@ class ClockSelectorLite:
     parent_options: tuple[str, ...]
     register_target: str | None
     provenance: Provenance
+    register_peripheral: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_name: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_offset: int | None = field(default=None, metadata={"omit_if_empty": True})
+    register_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_field_id: str | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -307,6 +356,11 @@ class ClockGateDescriptor:
     enable_signal: str
     parent_node: str | None
     provenance: Provenance
+    register_peripheral: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_name: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_offset: int | None = field(default=None, metadata={"omit_if_empty": True})
+    register_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_field_id: str | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -318,6 +372,11 @@ class ResetDescriptor:
     reset_signal: str
     active_level: str | None
     provenance: Provenance
+    register_peripheral: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_name: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_offset: int | None = field(default=None, metadata={"omit_if_empty": True})
+    register_id: str | None = field(default=None, metadata={"omit_if_empty": True})
+    register_field_id: str | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -328,6 +387,20 @@ class PeripheralClockBinding:
     clock_gate_id: str | None
     reset_id: str | None
     selector_id: str | None
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
+class DmaBindingDescriptor:
+    """One typed DMA binding owned by a peripheral instance."""
+
+    binding_id: str
+    peripheral: str
+    signal: str | None
+    controller: str
+    request_line: str
+    route_id: str
+    conflict_group: str | None
     provenance: Provenance
 
 
@@ -381,6 +454,10 @@ class CanonicalDeviceIR:
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
+    register_fields: tuple[RegisterFieldDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
     ip_blocks: tuple[IpBlockDefinition, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
@@ -417,6 +494,10 @@ class CanonicalDeviceIR:
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
+    interrupt_bindings: tuple[InterruptBindingDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
     vector_slots: tuple[VectorSlotDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
@@ -446,6 +527,10 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     dma_controllers: tuple[DmaControllerDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    dma_bindings: tuple[DmaBindingDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

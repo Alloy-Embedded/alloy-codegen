@@ -364,6 +364,11 @@ def test_emit_nxp_imxrt1060_artifact_content(
     peripheral_instances = artifacts[
         f"{family_dir}/generated/devices/mimxrt1062/peripheral_instances.hpp"
     ]
+    interrupt_bindings = artifacts[
+        f"{family_dir}/generated/devices/mimxrt1062/interrupt_bindings.hpp"
+    ]
+    dma_bindings = artifacts[f"{family_dir}/generated/devices/mimxrt1062/dma_bindings.hpp"]
+    register_fields = artifacts[f"{family_dir}/generated/devices/mimxrt1062/register_fields.hpp"]
     capability_overlays = artifacts[
         f"{family_dir}/generated/devices/mimxrt1062/capability_overlays.hpp"
     ]
@@ -375,6 +380,10 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "kPins" in pins_header.content
     assert "kPinSignals" in pins_header.content
     assert "kPeripheralInstances" in peripheral_instances.content
+    assert "kInterruptBindings" in interrupt_bindings.content
+    assert "kInterruptBindingAliases" in interrupt_bindings.content
+    assert "kDmaBindings" in dma_bindings.content
+    assert "kRegisterFields" in register_fields.content
     assert "kCapabilityOverlays" in capability_overlays.content
 
     connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
@@ -432,9 +441,12 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
 
     for name in (
         "register_map.hpp",
+        "register_fields.hpp",
         "device_descriptor.hpp",
         "pins.hpp",
         "peripheral_instances.hpp",
+        "interrupt_bindings.hpp",
+        "dma_bindings.hpp",
         "capability_overlays.hpp",
     ):
         assert artifacts[f"{family_dir}/generated/devices/mimxrt1062/{name}"].content == (

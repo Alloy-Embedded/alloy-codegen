@@ -8,7 +8,7 @@
       <name>GPIOA</name>
       <baseAddress>0x50000000</baseAddress>
       <registers>
-        <register><name>MODER</name><addressOffset>0x00</addressOffset></register>
+        <register><name>MODER</name><addressOffset>0x00</addressOffset><fields><field><name>MODE2</name><bitOffset>4</bitOffset><bitWidth>2</bitWidth></field></fields></register>
         <register><name>AFRL</name><addressOffset>0x20</addressOffset></register>
         <register><name>AFRH</name><addressOffset>0x24</addressOffset></register>
       </registers>
@@ -17,7 +17,7 @@
       <name>GPIOB</name>
       <baseAddress>0x50000400</baseAddress>
       <registers>
-        <register><name>MODER</name><addressOffset>0x00</addressOffset></register>
+        <register><name>MODER</name><addressOffset>0x00</addressOffset><fields><field><name>MODE6</name><bitOffset>12</bitOffset><bitWidth>2</bitWidth></field></fields></register>
         <register><name>AFRL</name><addressOffset>0x20</addressOffset></register>
         <register><name>AFRH</name><addressOffset>0x24</addressOffset></register>
       </registers>
@@ -60,7 +60,7 @@
       <name>USART1</name>
       <baseAddress>0x40013800</baseAddress>
       <registers>
-        <register><name>CR1</name><addressOffset>0x00</addressOffset></register>
+        <register><name>CR1</name><addressOffset>0x00</addressOffset><fields><field><name>UE</name><bitOffset>0</bitOffset><bitWidth>1</bitWidth></field></fields></register>
         <register><name>CR2</name><addressOffset>0x04</addressOffset></register>
         <register><name>BRR</name><addressOffset>0x0C</addressOffset></register>
         <register><name>ISR</name><addressOffset>0x1C</addressOffset></register>

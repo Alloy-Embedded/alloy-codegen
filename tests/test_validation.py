@@ -6,6 +6,45 @@ from alloy_codegen.stages.validate import run as run_validate
 from alloy_codegen.validation import build_validation_report
 
 
+def _clone_device(device: CanonicalDeviceIR, **overrides: object) -> CanonicalDeviceIR:
+    payload: dict[str, object] = {
+        "schema_version": device.schema_version,
+        "identity": device.identity,
+        "memories": device.memories,
+        "packages": device.packages,
+        "pins": device.pins,
+        "peripherals": device.peripherals,
+        "interrupts": device.interrupts,
+        "dma_requests": device.dma_requests,
+        "provenance": device.provenance,
+        "registers": device.registers,
+        "register_fields": device.register_fields,
+        "ip_blocks": device.ip_blocks,
+        "capabilities": device.capabilities,
+        "package_pads": device.package_pads,
+        "pin_constraints": device.pin_constraints,
+        "signal_endpoints": device.signal_endpoints,
+        "route_requirements": device.route_requirements,
+        "route_operations": device.route_operations,
+        "connection_candidates": device.connection_candidates,
+        "connection_groups": device.connection_groups,
+        "interrupt_bindings": device.interrupt_bindings,
+        "vector_slots": device.vector_slots,
+        "startup_descriptors": device.startup_descriptors,
+        "clock_nodes": device.clock_nodes,
+        "clock_selectors": device.clock_selectors,
+        "clock_gates": device.clock_gates,
+        "resets": device.resets,
+        "peripheral_clock_bindings": device.peripheral_clock_bindings,
+        "dma_controllers": device.dma_controllers,
+        "dma_bindings": device.dma_bindings,
+        "dma_routes": device.dma_routes,
+        "dma_conflict_groups": device.dma_conflict_groups,
+    }
+    payload.update(overrides)
+    return type(device)(**payload)
+
+
 def test_validate_reports_gate_statuses(execution_context: ExecutionContext) -> None:
     result = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
     report = result.payload.report
@@ -44,35 +83,9 @@ def test_validation_fails_gate_c_when_route_candidate_references_unknown_require
         capability_ids=candidate.capability_ids,
         provenance=candidate.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
+    broken_device = _clone_device(
+        original_device,
         connection_candidates=(broken_candidate,) + original_device.connection_candidates[1:],
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -299,35 +312,9 @@ def test_validation_fails_gate_c_when_candidate_has_no_package_requirement(
         capability_ids=candidate.capability_ids,
         provenance=candidate.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
+    broken_device = _clone_device(
+        original_device,
         connection_candidates=(broken_candidate,) + original_device.connection_candidates[1:],
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -367,40 +354,14 @@ def test_validation_fails_gate_c_when_candidate_has_no_source_requirement(
         capability_ids=candidate.capability_ids,
         provenance=candidate.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
+    broken_device = _clone_device(
+        original_device,
         connection_candidates=(broken_candidate,)
         + tuple(
             item
             for item in original_device.connection_candidates
             if item.candidate_id != candidate.candidate_id
         ),
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -445,40 +406,14 @@ def test_validation_fails_gate_c_when_candidate_capabilities_lack_instance_overl
         ),
         provenance=candidate.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
+    broken_device = _clone_device(
+        original_device,
         connection_candidates=(broken_candidate,)
         + tuple(
             item
             for item in original_device.connection_candidates
             if item.candidate_id != candidate.candidate_id
         ),
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -508,35 +443,9 @@ def test_validation_fails_gate_c_when_group_signals_are_not_satisfiable(
         conflict_group=group.conflict_group,
         provenance=group.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
+    broken_device = _clone_device(
+        original_device,
         connection_groups=(broken_group,) + original_device.connection_groups[1:],
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -584,35 +493,9 @@ def test_validation_fails_gate_c_when_group_candidate_lacks_bonded_package_requi
         broken_candidate if item.candidate_id == candidate_id else item
         for item in original_device.connection_candidates
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
+    broken_device = _clone_device(
+        original_device,
         connection_candidates=broken_candidates,
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -734,35 +617,9 @@ def test_validation_fails_gate_c_when_memory_lacks_startup_roles(
         )
         for memory in original_device.memories
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
+    broken_device = _clone_device(
+        original_device,
         memories=broken_memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -782,37 +639,11 @@ def test_validation_fails_gate_c_when_system_vector_baseline_is_missing(
 ) -> None:
     validated = run_validate(PipelineScope(device="stm32g071rb"), execution_context)
     original_device = validated.payload.devices[0]
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
-        connection_groups=original_device.connection_groups,
+    broken_device = _clone_device(
+        original_device,
         vector_slots=tuple(
             vector_slot for vector_slot in original_device.vector_slots if vector_slot.slot != 1
         ),
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -844,35 +675,9 @@ def test_validation_fails_gate_c_when_interrupt_shared_group_is_not_shared(
         shared_group="interrupt-group:fake",
         alias_names=interrupt.alias_names,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
+    broken_device = _clone_device(
+        original_device,
         interrupts=(broken_interrupt,) + original_device.interrupts[1:],
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -900,35 +705,9 @@ def test_validation_fails_gate_c_when_dma_controller_channel_count_is_missing(
         request_count=controller.request_count,
         provenance=controller.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+    broken_device = _clone_device(
+        original_device,
         dma_controllers=(broken_controller,) + original_device.dma_controllers[1:],
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -956,35 +735,9 @@ def test_validation_fails_gate_c_when_dma_controller_request_count_is_missing(
         request_count=None,
         provenance=controller.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
-        clock_selectors=original_device.clock_selectors,
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
+    broken_device = _clone_device(
+        original_device,
         dma_controllers=(broken_controller,) + original_device.dma_controllers[1:],
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(
@@ -1015,40 +768,14 @@ def test_validation_fails_gate_c_when_clock_selector_references_unknown_parent(
         register_target=selector.register_target,
         provenance=selector.provenance,
     )
-    broken_device = type(original_device)(
-        schema_version=original_device.schema_version,
-        identity=original_device.identity,
-        memories=original_device.memories,
-        packages=original_device.packages,
-        pins=original_device.pins,
-        peripherals=original_device.peripherals,
-        interrupts=original_device.interrupts,
-        dma_requests=original_device.dma_requests,
-        provenance=original_device.provenance,
-        ip_blocks=original_device.ip_blocks,
-        capabilities=original_device.capabilities,
-        package_pads=original_device.package_pads,
-        pin_constraints=original_device.pin_constraints,
-        signal_endpoints=original_device.signal_endpoints,
-        route_requirements=original_device.route_requirements,
-        route_operations=original_device.route_operations,
-        connection_candidates=original_device.connection_candidates,
-        connection_groups=original_device.connection_groups,
-        vector_slots=original_device.vector_slots,
-        startup_descriptors=original_device.startup_descriptors,
-        clock_nodes=original_device.clock_nodes,
+    broken_device = _clone_device(
+        original_device,
         clock_selectors=(broken_selector,)
         + tuple(
             candidate
             for candidate in original_device.clock_selectors
             if candidate.selector_id != selector.selector_id
         ),
-        clock_gates=original_device.clock_gates,
-        resets=original_device.resets,
-        peripheral_clock_bindings=original_device.peripheral_clock_bindings,
-        dma_controllers=original_device.dma_controllers,
-        dma_routes=original_device.dma_routes,
-        dma_conflict_groups=original_device.dma_conflict_groups,
     )
 
     report = build_validation_report(

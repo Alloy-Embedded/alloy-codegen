@@ -59,8 +59,11 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/devices/{device_name}/device_descriptor.hpp",
                 f"{family_dir}/generated/devices/{device_name}/pins.hpp",
                 f"{family_dir}/generated/devices/{device_name}/peripheral_instances.hpp",
+                f"{family_dir}/generated/devices/{device_name}/interrupt_bindings.hpp",
+                f"{family_dir}/generated/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/devices/{device_name}/capability_overlays.hpp",
                 f"{family_dir}/generated/devices/{device_name}/register_map.hpp",
+                f"{family_dir}/generated/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_descriptors.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",
             )
@@ -158,6 +161,22 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "generated"
                 / "devices"
                 / device_name
+                / "interrupt_bindings.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "devices"
+                / device_name
+                / "dma_bindings.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "devices"
+                / device_name
                 / "capability_overlays.hpp"
             ).exists()
             assert (
@@ -167,6 +186,14 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "register_map.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "devices"
+                / device_name
+                / "register_fields.hpp"
             ).exists()
 
 

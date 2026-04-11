@@ -27,6 +27,7 @@ from alloy_codegen.ir.model import (
     PinSignal,
     Provenance,
     RegisterDescriptor,
+    RegisterFieldDescriptor,
     ResetDescriptor,
 )
 from alloy_codegen.patches import (
@@ -94,6 +95,7 @@ from alloy_codegen.sources.raw import (
     RawPeripheral,
     RawPinDataDocument,
     RawRegister,
+    RawRegisterField,
 )
 from alloy_codegen.sources.stm32_open_pin_data import (
     parse_ip_version_table,
@@ -569,6 +571,32 @@ def _register_to_ir(
     )
 
 
+def _register_field_to_ir(
+    *,
+    peripheral_name: str,
+    register_id: str,
+    register_name: str,
+    raw_field: RawRegisterField,
+    provenance: Provenance,
+) -> RegisterFieldDescriptor:
+    return RegisterFieldDescriptor(
+        field_id=(
+            "field:"
+            f"{_sanitize_token(peripheral_name)}:"
+            f"{_sanitize_token(register_name)}:"
+            f"{_sanitize_token(raw_field.name)}"
+        ),
+        register_id=register_id,
+        peripheral=peripheral_name,
+        register_name=register_name,
+        name=raw_field.name,
+        bit_offset=raw_field.bit_offset,
+        bit_width=raw_field.bit_width,
+        access=raw_field.access,
+        provenance=provenance,
+    )
+
+
 def _dma_request_to_ir(
     request: DmaRequestPatch,
     provenance: Provenance,
@@ -696,6 +724,47 @@ def _registers_from_raw_peripherals(
     return tuple(registers)
 
 
+def _register_fields_from_raw_peripherals(
+    raw_peripherals: tuple[RawPeripheral, ...],
+    *,
+    provenance: Provenance,
+) -> tuple[RegisterFieldDescriptor, ...]:
+    fields: list[RegisterFieldDescriptor] = []
+    for peripheral in raw_peripherals:
+        canonical_peripheral = _canonical_peripheral_name(peripheral.name)
+        seen_offsets: set[int] = set()
+        for raw_register in sorted(
+            peripheral.registers,
+            key=lambda item: (item.offset_bytes, item.name),
+        ):
+            if raw_register.offset_bytes in seen_offsets:
+                continue
+            seen_offsets.add(raw_register.offset_bytes)
+            register = _register_to_ir(
+                peripheral_name=canonical_peripheral,
+                raw_register=raw_register,
+                provenance=provenance,
+            )
+            seen_field_names: set[str] = set()
+            for raw_field in sorted(
+                raw_register.fields,
+                key=lambda item: (item.bit_offset, item.name),
+            ):
+                if raw_field.name in seen_field_names:
+                    continue
+                seen_field_names.add(raw_field.name)
+                fields.append(
+                    _register_field_to_ir(
+                        peripheral_name=canonical_peripheral,
+                        register_id=register.register_id,
+                        register_name=raw_register.name,
+                        raw_field=raw_field,
+                        provenance=provenance,
+                    )
+                )
+    return tuple(fields)
+
+
 def build_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -792,6 +861,10 @@ def build_canonical_ir(
             ),
         ),
         registers=_registers_from_raw_peripherals(raw.peripherals, provenance=svd_provenance),
+        register_fields=_register_fields_from_raw_peripherals(
+            raw.peripherals,
+            provenance=svd_provenance,
+        ),
         pins=pins,
         peripherals=tuple(
             _peripheral_to_ir(
@@ -1093,6 +1166,10 @@ def build_nxp_canonical_ir(
             ),
         ),
         registers=_registers_from_raw_peripherals(dedup_peripherals, provenance=svd_provenance),
+        register_fields=_register_fields_from_raw_peripherals(
+            dedup_peripherals,
+            provenance=svd_provenance,
+        ),
         pins=pins,
         peripherals=tuple(
             _peripheral_to_ir(

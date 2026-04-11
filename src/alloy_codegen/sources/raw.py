@@ -22,6 +22,17 @@ class RawRegister:
     offset_bytes: int
     access: str | None
     size_bits: int | None
+    fields: tuple[RawRegisterField, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class RawRegisterField:
+    """One register field extracted from a raw source register block."""
+
+    name: str
+    bit_offset: int
+    bit_width: int
+    access: str | None
 
 
 @dataclass(frozen=True, slots=True)

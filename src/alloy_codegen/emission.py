@@ -84,6 +84,21 @@ def _quoted(value: str | None) -> str:
     return "nullptr" if value is None else json.dumps(value)
 
 
+def _runtime_ref_kind_enum(kind: str | None) -> str:
+    mapping = {
+        None: "none",
+        "package": "package",
+        "state": "state",
+        "pin": "pin",
+        "constraint": "constraint",
+        "selector": "selector",
+        "clock-gate": "clock_gate",
+        "reset": "reset",
+        "int": "integer",
+    }
+    return f"RuntimeRefKind::{mapping.get(kind, 'other')}"
+
+
 def _file_component(value: str) -> str:
     return _identifier(value).strip("_").lower()
 
@@ -121,6 +136,11 @@ def _std_array_lines(
         *row_lines,
         "}};",
     ]
+
+
+def _enum_rows(enum_map: dict[object, str]) -> list[str]:
+    rows = [f"  {identifier}," for identifier in enum_map.values()]
+    return rows if rows else ["  none,"]
 
 
 def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
@@ -636,6 +656,44 @@ def _binding_by_peripheral(device: CanonicalDeviceIR) -> dict[str, object]:
     }
 
 
+def _interrupt_bindings_by_peripheral(
+    device: CanonicalDeviceIR,
+) -> dict[str, tuple[object, ...]]:
+    mapping: dict[str, list[object]] = {}
+    for binding in sorted(
+        device.interrupt_bindings,
+        key=lambda item: (item.peripheral, item.line, item.interrupt),
+    ):
+        mapping.setdefault(binding.peripheral, []).append(binding)
+    return {peripheral: tuple(items) for peripheral, items in sorted(mapping.items())}
+
+
+def _dma_bindings_by_peripheral(
+    device: CanonicalDeviceIR,
+) -> dict[str, tuple[object, ...]]:
+    mapping: dict[str, list[object]] = {}
+    for binding in sorted(
+        device.dma_bindings,
+        key=lambda item: (item.peripheral, item.signal or "", item.controller, item.request_line),
+    ):
+        mapping.setdefault(binding.peripheral, []).append(binding)
+    return {peripheral: tuple(items) for peripheral, items in sorted(mapping.items())}
+
+
+def _offset_count_maps(
+    grouped_items: dict[str, tuple[object, ...]],
+) -> tuple[dict[str, int], dict[str, int]]:
+    offsets: dict[str, int] = {}
+    counts: dict[str, int] = {}
+    next_offset = 0
+    for peripheral_name in sorted(grouped_items):
+        items = grouped_items[peripheral_name]
+        offsets[peripheral_name] = next_offset
+        counts[peripheral_name] = len(items)
+        next_offset += len(items)
+    return offsets, counts
+
+
 def emit_device_descriptor_header(
     *,
     family_dir: str,
@@ -776,11 +834,6 @@ def emit_peripheral_instances_header(
 ) -> EmittedArtifact:
     interrupts_by_peripheral = _interrupt_names_by_peripheral(device)
     bindings_by_peripheral = _binding_by_peripheral(device)
-    overlay_ids_by_peripheral: dict[str, tuple[str, ...]] = {}
-    for capability in sorted(device.capabilities, key=lambda item: item.capability_id):
-        if capability.scope == "ip-block" or capability.peripheral is None:
-            continue
-        overlay_ids_by_peripheral.setdefault(capability.peripheral, tuple())
     overlay_ids_by_peripheral = {
         peripheral_name: tuple(
             capability.capability_id
@@ -795,6 +848,11 @@ def emit_peripheral_instances_header(
             }
         )
     }
+    interrupt_bindings_by_peripheral = _interrupt_bindings_by_peripheral(device)
+    dma_bindings_by_peripheral = _dma_bindings_by_peripheral(device)
+    overlay_offsets, overlay_counts = _offset_count_maps(overlay_ids_by_peripheral)
+    interrupt_offsets, interrupt_counts = _offset_count_maps(interrupt_bindings_by_peripheral)
+    dma_offsets, dma_counts = _offset_count_maps(dma_bindings_by_peripheral)
     register_count_by_peripheral: dict[str, int] = {}
     for register in device.registers:
         register_count_by_peripheral[register.peripheral] = (
@@ -828,6 +886,12 @@ def emit_peripheral_instances_header(
             f"{_quoted(clock_gate_id)}, "
             f"{_quoted(reset_id)}, "
             f"{_quoted(selector_id)}, "
+            f"{interrupt_offsets.get(peripheral.name, 0)}u, "
+            f"{interrupt_counts.get(peripheral.name, 0)}u, "
+            f"{dma_offsets.get(peripheral.name, 0)}u, "
+            f"{dma_counts.get(peripheral.name, 0)}u, "
+            f"{overlay_offsets.get(peripheral.name, 0)}u, "
+            f"{overlay_counts.get(peripheral.name, 0)}u, "
             f"{json.dumps(interrupt_names)}, "
             f"{json.dumps(overlay_ids)}, "
             f"{register_count_by_peripheral.get(peripheral.name, 0)}"
@@ -854,6 +918,12 @@ def emit_peripheral_instances_header(
                 "  const char* clock_gate_id;",
                 "  const char* reset_id;",
                 "  const char* selector_id;",
+                "  std::uint16_t interrupt_binding_offset;",
+                "  std::uint16_t interrupt_binding_count;",
+                "  std::uint16_t dma_binding_offset;",
+                "  std::uint16_t dma_binding_count;",
+                "  std::uint16_t capability_overlay_offset;",
+                "  std::uint16_t capability_overlay_count;",
                 "  const char* interrupt_names;",
                 "  const char* capability_overlay_ids;",
                 "  int register_count;",
@@ -1270,6 +1340,7 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
     sorted_peripherals = sorted(device.peripherals, key=lambda item: item.name)
     register_rows = [
         (
+            register.register_id,
             register.peripheral,
             register.name,
             register.offset_bytes,
@@ -1280,6 +1351,10 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
             device.registers,
             key=lambda item: (item.peripheral, item.offset_bytes, item.name),
         )
+    ]
+    register_enum_rows = [
+        f"  {_enum_identifier(register_id)},"
+        for register_id, *_rest in register_rows
     ]
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
@@ -1301,7 +1376,12 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
                     ],
                 ),
                 "",
+                "enum class RegisterId : std::uint16_t {",
+                *register_enum_rows,
+                "};",
+                "",
                 "struct RegisterDescriptor {",
+                "  RegisterId register_id;",
                 "  PeripheralId peripheral_id;",
                 "  const char* peripheral_name;",
                 "  const char* register_name;",
@@ -1314,12 +1394,14 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
                     variable_name="kRegisters",
                     row_lines=[
                         (
-                            f"  {{PeripheralId::{_enum_identifier(peripheral_name)}, "
+                            f"  {{RegisterId::{_enum_identifier(register_id)}, "
+                            f"PeripheralId::{_enum_identifier(peripheral_name)}, "
                             f"{json.dumps(peripheral_name)}, {json.dumps(register_name)}, "
                             f"{offset_bytes}u, {_quoted(access)}, "
                             f"{-1 if size_bits is None else size_bits}}},"
                         )
                         for (
+                            register_id,
                             peripheral_name,
                             register_name,
                             offset_bytes,
@@ -1345,6 +1427,312 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
     )
     return _cpp_artifact(
         path=_device_generated_path(family_dir, device.identity.device, "register_map.hpp"),
+        content=content,
+    )
+
+
+def emit_register_fields_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    field_rows = [
+        (
+            field.field_id,
+            field.register_id,
+            field.peripheral,
+            field.register_name,
+            field.name,
+            field.bit_offset,
+            field.bit_width,
+            field.access,
+        )
+        for field in sorted(
+            device.register_fields,
+            key=lambda item: (
+                item.peripheral,
+                item.register_name,
+                item.bit_offset,
+                item.name,
+            ),
+        )
+    ]
+    field_enum_rows = [f"  {_enum_identifier(field_id)}," for field_id, *_rest in field_rows]
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "enum class FieldId : std::uint16_t {",
+                *field_enum_rows,
+                "};",
+                "",
+                "struct RegisterFieldDescriptor {",
+                "  FieldId field_id;",
+                "  RegisterId register_id;",
+                "  PeripheralId peripheral_id;",
+                "  const char* peripheral_name;",
+                "  const char* register_name;",
+                "  const char* field_name;",
+                "  std::uint16_t bit_offset;",
+                "  std::uint16_t bit_width;",
+                "  const char* access;",
+                "};",
+                *_std_array_lines(
+                    type_name="RegisterFieldDescriptor",
+                    variable_name="kRegisterFields",
+                    row_lines=[
+                        (
+                            f"  {{FieldId::{_enum_identifier(field_id)}, "
+                            f"RegisterId::{_enum_identifier(register_id)}, "
+                            f"PeripheralId::{_enum_identifier(peripheral_name)}, "
+                            f"{json.dumps(peripheral_name)}, {json.dumps(register_name)}, "
+                            f"{json.dumps(field_name)}, {bit_offset}u, {bit_width}u, "
+                            f"{_quoted(access)}}},"
+                        )
+                        for (
+                            field_id,
+                            register_id,
+                            peripheral_name,
+                            register_name,
+                            field_name,
+                            bit_offset,
+                            bit_width,
+                            access,
+                        ) in field_rows
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "register_map.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_generated_path(family_dir, device.identity.device, "register_fields.hpp"),
+        content=content,
+    )
+
+
+def emit_interrupt_bindings_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    binding_rows = [
+        (
+            binding.binding_id,
+            binding.peripheral,
+            binding.interrupt,
+            binding.line,
+            binding.vector_slot,
+            binding.symbol_name,
+            binding.shared_group,
+        )
+        for binding in sorted(
+            device.interrupt_bindings,
+            key=lambda item: (item.peripheral, item.line, item.interrupt),
+        )
+    ]
+    alias_rows = [
+        (binding.binding_id, alias_name)
+        for binding in sorted(
+            device.interrupt_bindings,
+            key=lambda item: (item.peripheral, item.line, item.interrupt),
+        )
+        for alias_name in binding.alias_names
+    ]
+    alias_names_by_binding: dict[str, tuple[str, ...]] = {}
+    for binding in device.interrupt_bindings:
+        alias_names_by_binding[binding.binding_id] = tuple(binding.alias_names)
+    alias_offsets, alias_counts = _offset_count_maps(alias_names_by_binding)
+    binding_enum_rows = [
+        f"  {_enum_identifier(binding_id)},"
+        for binding_id, *_rest in binding_rows
+    ]
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "enum class InterruptBindingId : std::uint16_t {",
+                *binding_enum_rows,
+                "};",
+                "",
+                "struct InterruptBindingDescriptor {",
+                "  InterruptBindingId binding_id;",
+                "  PeripheralId peripheral_id;",
+                "  const char* peripheral_name;",
+                "  const char* interrupt_name;",
+                "  int line;",
+                "  int vector_slot;",
+                "  const char* symbol_name;",
+                "  const char* shared_group;",
+                "  std::uint16_t alias_offset;",
+                "  std::uint16_t alias_count;",
+                "};",
+                *_std_array_lines(
+                    type_name="InterruptBindingDescriptor",
+                    variable_name="kInterruptBindings",
+                    row_lines=[
+                        (
+                            f"  {{InterruptBindingId::{_enum_identifier(binding_id)}, "
+                            f"PeripheralId::{_enum_identifier(peripheral_name)}, "
+                            f"{json.dumps(peripheral_name)}, {json.dumps(interrupt_name)}, "
+                            f"{line}, {-1 if vector_slot is None else vector_slot}, "
+                            f"{_quoted(symbol_name)}, {_quoted(shared_group)}, "
+                            f"{alias_offsets.get(binding_id, 0)}u, "
+                            f"{alias_counts.get(binding_id, 0)}u}},"
+                        )
+                        for (
+                            binding_id,
+                            peripheral_name,
+                            interrupt_name,
+                            line,
+                            vector_slot,
+                            symbol_name,
+                            shared_group,
+                        ) in binding_rows
+                    ],
+                ),
+                "",
+                "struct InterruptBindingAlias {",
+                "  InterruptBindingId binding_id;",
+                "  const char* alias_name;",
+                "};",
+                *_std_array_lines(
+                    type_name="InterruptBindingAlias",
+                    variable_name="kInterruptBindingAliases",
+                    row_lines=[
+                        (
+                            f"  {{InterruptBindingId::{_enum_identifier(binding_id)}, "
+                            f"{json.dumps(alias_name)}}},"
+                        )
+                        for binding_id, alias_name in alias_rows
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "peripheral_instances.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_generated_path(
+            family_dir,
+            device.identity.device,
+            "interrupt_bindings.hpp",
+        ),
+        content=content,
+    )
+
+
+def emit_dma_bindings_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    binding_rows = [
+        (
+            binding.binding_id,
+            binding.peripheral,
+            binding.signal,
+            binding.controller,
+            binding.request_line,
+            binding.route_id,
+            binding.conflict_group,
+        )
+        for binding in sorted(
+            device.dma_bindings,
+            key=lambda item: (
+                item.peripheral,
+                item.signal or "",
+                item.controller,
+                item.request_line,
+            ),
+        )
+    ]
+    binding_enum_rows = [
+        f"  {_enum_identifier(binding_id)},"
+        for binding_id, *_rest in binding_rows
+    ]
+    namespace_block = _cpp_namespace_block(
+        _namespace_components(device),
+        "\n".join(
+            [
+                "enum class DmaBindingId : std::uint16_t {",
+                *binding_enum_rows,
+                "};",
+                "",
+                "struct DmaBindingDescriptor {",
+                "  DmaBindingId binding_id;",
+                "  PeripheralId peripheral_id;",
+                "  const char* peripheral_name;",
+                "  const char* signal_name;",
+                "  const char* controller_name;",
+                "  const char* request_line;",
+                "  const char* route_id;",
+                "  const char* conflict_group;",
+                "};",
+                *_std_array_lines(
+                    type_name="DmaBindingDescriptor",
+                    variable_name="kDmaBindings",
+                    row_lines=[
+                        (
+                            f"  {{DmaBindingId::{_enum_identifier(binding_id)}, "
+                            f"PeripheralId::{_enum_identifier(peripheral_name)}, "
+                            f"{json.dumps(peripheral_name)}, {_quoted(signal_name)}, "
+                            f"{json.dumps(controller_name)}, {json.dumps(request_line)}, "
+                            f"{json.dumps(route_id)}, {_quoted(conflict_group)}}},"
+                        )
+                        for (
+                            binding_id,
+                            peripheral_name,
+                            signal_name,
+                            controller_name,
+                            request_line,
+                            route_id,
+                            conflict_group,
+                        ) in binding_rows
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "peripheral_instances.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_generated_path(
+            family_dir,
+            device.identity.device,
+            "dma_bindings.hpp",
+        ),
         content=content,
     )
 
@@ -1400,22 +1788,16 @@ def emit_connector_tables_header(
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> EmittedArtifact:
     _vendor, _family = family_dir.split("/", 1)
-    endpoint_rows = [
-        (
-            device.identity.device,
-            endpoint.endpoint_id,
-            endpoint.peripheral_class,
-            endpoint.signal,
-            endpoint.direction,
-        )
-        for device in devices
-        for endpoint in sorted(device.signal_endpoints, key=lambda item: item.endpoint_id)
-    ]
     requirement_rows = [
         (
             device.identity.device,
             requirement.requirement_id,
             requirement.kind,
+            requirement.target_ref_kind,
+            requirement.target_ref_id,
+            requirement.value_ref_kind,
+            requirement.value_ref_id,
+            requirement.value_int,
             requirement.target,
             requirement.value,
         )
@@ -1430,12 +1812,18 @@ def emit_connector_tables_header(
             operation.schema_id,
             operation.subject_kind,
             operation.subject_id,
+            operation.target_ref_kind,
+            operation.target_ref_id,
+            operation.value_ref_kind,
+            operation.value_ref_id,
             operation.register_peripheral,
             operation.register_name,
             operation.register_offset,
+            operation.register_id,
+            operation.register_field_id,
+            operation.value_int,
             operation.target,
             operation.value,
-            operation.value_int,
         )
         for device in devices
         for operation in sorted(device.route_operations, key=lambda item: item.operation_id)
@@ -1470,8 +1858,215 @@ def emit_connector_tables_header(
         for device in devices
         for group in sorted(device.connection_groups, key=lambda item: item.group_id)
     ]
+    endpoint_rows = [
+        (
+            device.identity.device,
+            endpoint.endpoint_id,
+            endpoint.peripheral_class,
+            endpoint.signal,
+            endpoint.direction,
+        )
+        for device in devices
+        for endpoint in sorted(device.signal_endpoints, key=lambda item: item.endpoint_id)
+    ]
+    requirement_enum_map = {
+        (device_name, requirement_id): _enum_identifier(f"{device_name}_{requirement_id}")
+        for device_name, requirement_id, *_rest in requirement_rows
+    }
+    operation_enum_map = {
+        (device_name, operation_id): _enum_identifier(f"{device_name}_{operation_id}")
+        for device_name, operation_id, *_rest in operation_rows
+    }
+    candidate_enum_map = {
+        (device_name, candidate_id): _enum_identifier(f"{device_name}_{candidate_id}")
+        for device_name, candidate_id, *_rest in candidate_rows
+    }
+    group_enum_map = {
+        (device_name, group_id): _enum_identifier(f"{device_name}_{group_id}")
+        for device_name, group_id, *_rest in group_rows
+    }
+    group_index_map = {
+        (device_name, group_id): index
+        for index, (device_name, group_id, *_rest) in enumerate(group_rows)
+    }
+
+    candidate_requirements_by_candidate = {
+        (device_name, candidate_id): tuple(requirement_ids)
+        for (
+            device_name,
+            candidate_id,
+            _pin,
+            _peripheral,
+            _signal,
+            _route_kind,
+            _route_selector,
+            _route_group_id,
+            requirement_ids,
+            _operation_ids,
+            _capability_ids,
+        ) in candidate_rows
+    }
+    candidate_operations_by_candidate = {
+        (device_name, candidate_id): tuple(operation_ids)
+        for (
+            device_name,
+            candidate_id,
+            _pin,
+            _peripheral,
+            _signal,
+            _route_kind,
+            _route_selector,
+            _route_group_id,
+            _requirement_ids,
+            operation_ids,
+            _capability_ids,
+        ) in candidate_rows
+    }
+    candidate_capabilities_by_candidate = {
+        (device_name, candidate_id): tuple(capability_ids)
+        for (
+            device_name,
+            candidate_id,
+            _pin,
+            _peripheral,
+            _signal,
+            _route_kind,
+            _route_selector,
+            _route_group_id,
+            _requirement_ids,
+            _operation_ids,
+            capability_ids,
+        ) in candidate_rows
+    }
+    candidate_requirement_offsets, candidate_requirement_counts = _offset_count_maps(
+        candidate_requirements_by_candidate
+    )
+    candidate_operation_offsets, candidate_operation_counts = _offset_count_maps(
+        candidate_operations_by_candidate
+    )
+    candidate_capability_offsets, candidate_capability_counts = _offset_count_maps(
+        candidate_capabilities_by_candidate
+    )
+    candidate_requirement_ref_rows = [
+        (
+            device_name,
+            candidate_id,
+            requirement_id,
+        )
+        for (device_name, candidate_id), requirement_ids in sorted(
+            candidate_requirements_by_candidate.items()
+        )
+        for requirement_id in requirement_ids
+    ]
+    candidate_operation_ref_rows = [
+        (
+            device_name,
+            candidate_id,
+            operation_id,
+        )
+        for (device_name, candidate_id), operation_ids in sorted(
+            candidate_operations_by_candidate.items()
+        )
+        for operation_id in operation_ids
+    ]
+    candidate_capability_ref_rows = [
+        (
+            device_name,
+            candidate_id,
+            capability_id,
+        )
+        for (device_name, candidate_id), capability_ids in sorted(
+            candidate_capabilities_by_candidate.items()
+        )
+        for capability_id in capability_ids
+    ]
+    group_signals_by_group = {
+        (device_name, group_id): tuple(signals)
+        for (
+            device_name,
+            group_id,
+            _peripheral,
+            signals,
+            _candidate_ids,
+            _package_name,
+            _conflict_group,
+        ) in group_rows
+    }
+    group_candidates_by_group = {
+        (device_name, group_id): tuple(candidate_ids)
+        for (
+            device_name,
+            group_id,
+            _peripheral,
+            _signals,
+            candidate_ids,
+            _package_name,
+            _conflict_group,
+        ) in group_rows
+    }
+    group_signal_offsets, group_signal_counts = _offset_count_maps(group_signals_by_group)
+    group_candidate_offsets, group_candidate_counts = _offset_count_maps(group_candidates_by_group)
+    group_signal_rows = [
+        (device_name, group_id, signal_name)
+        for (device_name, group_id), signals in sorted(group_signals_by_group.items())
+        for signal_name in signals
+    ]
+    group_candidate_ref_rows = [
+        (device_name, group_id, candidate_id)
+        for (device_name, group_id), candidate_ids in sorted(group_candidates_by_group.items())
+        for candidate_id in candidate_ids
+    ]
+    candidate_descriptor_row_lines = []
+    for (
+        device_name,
+        candidate_id,
+        pin,
+        peripheral,
+        signal,
+        route_kind,
+        route_selector,
+        route_group_id,
+        _requirement_ids,
+        _operation_ids,
+        _capability_ids,
+    ) in candidate_rows:
+        route_group_index = (
+            -1 if route_group_id is None else group_index_map[(device_name, route_group_id)]
+        )
+        candidate_descriptor_row_lines.append(
+            "  {"
+            f"{json.dumps(device_name)}, "
+            f"ConnectionCandidateId::{candidate_enum_map[(device_name, candidate_id)]}, "
+            f"{json.dumps(candidate_id)}, "
+            f"{json.dumps(pin)}, "
+            f"{json.dumps(peripheral)}, "
+            f"{json.dumps(signal)}, "
+            f"{json.dumps(route_kind)}, "
+            f"{_quoted(route_selector)}, "
+            f"{route_group_index}, "
+            f"{candidate_requirement_offsets.get((device_name, candidate_id), 0)}u, "
+            f"{candidate_requirement_counts.get((device_name, candidate_id), 0)}u, "
+            f"{candidate_operation_offsets.get((device_name, candidate_id), 0)}u, "
+            f"{candidate_operation_counts.get((device_name, candidate_id), 0)}u, "
+            f"{candidate_capability_offsets.get((device_name, candidate_id), 0)}u, "
+            f"{candidate_capability_counts.get((device_name, candidate_id), 0)}u"
+            "},"
+        )
 
     body_lines = [
+        "enum class RuntimeRefKind : std::uint8_t {",
+        "  none,",
+        "  package,",
+        "  state,",
+        "  pin,",
+        "  constraint,",
+        "  selector,",
+        "  clock_gate,",
+        "  reset,",
+        "  integer,",
+        "  other,",
+        "};",
+        "",
         "struct SignalEndpointDescriptor {",
         "  const char* device;",
         "  const char* endpoint_id;",
@@ -1487,127 +2082,307 @@ def emit_connector_tables_header(
         ],
         "};",
         "",
+        "enum class RouteRequirementId : std::uint16_t {",
+        *(
+            [
+                f"  {identifier},"
+                for identifier in requirement_enum_map.values()
+            ]
+            if requirement_enum_map
+            else ["  none,"]
+        ),
+        "};",
+        "",
         "struct RouteRequirementDescriptor {",
         "  const char* device;",
-        "  const char* requirement_id;",
+        "  RouteRequirementId requirement_id;",
+        "  const char* requirement_name;",
         "  const char* kind;",
-        "  const char* target;",
-        "  const char* value;",
+        "  RuntimeRefKind target_ref_kind;",
+        "  const char* target_ref_id;",
+        "  RuntimeRefKind value_ref_kind;",
+        "  const char* value_ref_id;",
+        "  int value_int;",
+        "  const char* diagnostic_target;",
+        "  const char* diagnostic_value;",
         "};",
-        "inline constexpr RouteRequirementDescriptor kRouteRequirements[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(requirement_id)}, "
-            f"{json.dumps(kind)}, {_quoted(target)}, {_quoted(value)}}},"
-            for device_name, requirement_id, kind, target, value in requirement_rows
-        ],
+        *_std_array_lines(
+            type_name="RouteRequirementDescriptor",
+            variable_name="kRouteRequirements",
+            row_lines=[
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"RouteRequirementId::{requirement_enum_map[(device_name, requirement_id)]}, "
+                f"{json.dumps(requirement_id)}, "
+                f"{json.dumps(kind)}, "
+                f"{_runtime_ref_kind_enum(target_ref_kind)}, "
+                f"{_quoted(target_ref_id)}, "
+                f"{_runtime_ref_kind_enum(value_ref_kind)}, "
+                f"{_quoted(value_ref_id)}, "
+                f"{-1 if value_int is None else value_int}, "
+                f"{_quoted(target)}, "
+                f"{_quoted(value)}"
+                "},"
+                for (
+                    device_name,
+                    requirement_id,
+                    kind,
+                    target_ref_kind,
+                    target_ref_id,
+                    value_ref_kind,
+                    value_ref_id,
+                    value_int,
+                    target,
+                    value,
+                ) in requirement_rows
+            ],
+        ),
+        "",
+        "enum class RouteOperationId : std::uint16_t {",
+        *(
+            [
+                f"  {identifier},"
+                for identifier in operation_enum_map.values()
+            ]
+            if operation_enum_map
+            else ["  none,"]
+        ),
         "};",
         "",
         "struct RouteOperationDescriptor {",
         "  const char* device;",
-        "  const char* operation_id;",
+        "  RouteOperationId operation_id;",
+        "  const char* operation_name;",
         "  const char* kind;",
         "  const char* schema_id;",
         "  const char* subject_kind;",
         "  const char* subject_id;",
+        "  RuntimeRefKind target_ref_kind;",
+        "  const char* target_ref_id;",
+        "  RuntimeRefKind value_ref_kind;",
+        "  const char* value_ref_id;",
         "  const char* register_peripheral;",
         "  const char* register_name;",
         "  int register_offset;",
-        "  const char* target;",
-        "  const char* value;",
+        "  const char* register_id;",
+        "  const char* register_field_id;",
         "  int value_int;",
+        "  const char* diagnostic_target;",
+        "  const char* diagnostic_value;",
         "};",
-        "inline constexpr RouteOperationDescriptor kRouteOperations[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(operation_id)}, "
-            f"{json.dumps(kind)}, {_quoted(schema_id)}, {_quoted(subject_kind)}, "
-            f"{_quoted(subject_id)}, {_quoted(register_peripheral)}, "
-            f"{_quoted(register_name)}, "
-            f"{-1 if register_offset is None else register_offset}, "
-            f"{json.dumps(target)}, {_quoted(value)}, "
-            f"{-1 if value_int is None else value_int}}},"
-            for (
-                device_name,
-                operation_id,
-                kind,
-                schema_id,
-                subject_kind,
-                subject_id,
-                register_peripheral,
-                register_name,
-                register_offset,
-                target,
-                value,
-                value_int,
-            ) in operation_rows
-        ],
+        *_std_array_lines(
+            type_name="RouteOperationDescriptor",
+            variable_name="kRouteOperations",
+            row_lines=[
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"RouteOperationId::{operation_enum_map[(device_name, operation_id)]}, "
+                f"{json.dumps(operation_id)}, "
+                f"{json.dumps(kind)}, "
+                f"{_quoted(schema_id)}, "
+                f"{_quoted(subject_kind)}, "
+                f"{_quoted(subject_id)}, "
+                f"{_runtime_ref_kind_enum(target_ref_kind)}, "
+                f"{_quoted(target_ref_id)}, "
+                f"{_runtime_ref_kind_enum(value_ref_kind)}, "
+                f"{_quoted(value_ref_id)}, "
+                f"{_quoted(register_peripheral)}, "
+                f"{_quoted(register_name)}, "
+                f"{-1 if register_offset is None else register_offset}, "
+                f"{_quoted(register_id)}, "
+                f"{_quoted(register_field_id)}, "
+                f"{-1 if value_int is None else value_int}, "
+                f"{_quoted(target)}, "
+                f"{_quoted(value)}"
+                "},"
+                for (
+                    device_name,
+                    operation_id,
+                    kind,
+                    schema_id,
+                    subject_kind,
+                    subject_id,
+                    target_ref_kind,
+                    target_ref_id,
+                    value_ref_kind,
+                    value_ref_id,
+                    register_peripheral,
+                    register_name,
+                    register_offset,
+                    register_id,
+                    register_field_id,
+                    value_int,
+                    target,
+                    value,
+                ) in operation_rows
+            ],
+        ),
+        "",
+        "enum class ConnectionCandidateId : std::uint16_t {",
+        *_enum_rows(candidate_enum_map),
         "};",
         "",
         "struct ConnectionCandidateDescriptor {",
         "  const char* device;",
-        "  const char* candidate_id;",
+        "  ConnectionCandidateId candidate_id;",
+        "  const char* candidate_name;",
         "  const char* pin;",
         "  const char* peripheral;",
         "  const char* signal;",
         "  const char* route_kind;",
         "  const char* route_selector;",
-        "  const char* route_group_id;",
-        "  const char* requirement_ids;",
-        "  const char* operation_ids;",
-        "  const char* capability_ids;",
+        "  int route_group_index;",
+        "  std::uint16_t requirement_offset;",
+        "  std::uint16_t requirement_count;",
+        "  std::uint16_t operation_offset;",
+        "  std::uint16_t operation_count;",
+        "  std::uint16_t capability_offset;",
+        "  std::uint16_t capability_count;",
         "};",
-        "inline constexpr ConnectionCandidateDescriptor kConnectionCandidates[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(candidate_id)}, {json.dumps(pin)}, "
-            f"{json.dumps(peripheral)}, {json.dumps(signal)}, {json.dumps(route_kind)}, "
-            f"{_quoted(route_selector)}, {_quoted(route_group_id)}, "
-            f"{json.dumps(','.join(requirement_ids))}, {json.dumps(','.join(operation_ids))}, "
-            f"{json.dumps(','.join(capability_ids))}}},"
-            for (
-                device_name,
-                candidate_id,
-                pin,
-                peripheral,
-                signal,
-                route_kind,
-                route_selector,
-                route_group_id,
-                requirement_ids,
-                operation_ids,
-                capability_ids,
-            ) in candidate_rows
-        ],
+        *_std_array_lines(
+            type_name="ConnectionCandidateDescriptor",
+            variable_name="kConnectionCandidates",
+            row_lines=candidate_descriptor_row_lines,
+        ),
+        "",
+        "struct CandidateRequirementRef {",
+        "  ConnectionCandidateId candidate_id;",
+        "  RouteRequirementId requirement_id;",
+        "};",
+        *_std_array_lines(
+            type_name="CandidateRequirementRef",
+            variable_name="kCandidateRequirementRefs",
+            row_lines=[
+                "  {"
+                f"ConnectionCandidateId::{candidate_enum_map[(device_name, candidate_id)]}, "
+                f"RouteRequirementId::{requirement_enum_map[(device_name, requirement_id)]}"
+                "},"
+                for device_name, candidate_id, requirement_id in candidate_requirement_ref_rows
+            ],
+        ),
+        "",
+        "struct CandidateOperationRef {",
+        "  ConnectionCandidateId candidate_id;",
+        "  RouteOperationId operation_id;",
+        "};",
+        *_std_array_lines(
+            type_name="CandidateOperationRef",
+            variable_name="kCandidateOperationRefs",
+            row_lines=[
+                "  {"
+                f"ConnectionCandidateId::{candidate_enum_map[(device_name, candidate_id)]}, "
+                f"RouteOperationId::{operation_enum_map[(device_name, operation_id)]}"
+                "},"
+                for device_name, candidate_id, operation_id in candidate_operation_ref_rows
+            ],
+        ),
+        "",
+        "struct CandidateCapabilityRef {",
+        "  ConnectionCandidateId candidate_id;",
+        "  const char* capability_id;",
+        "};",
+        *_std_array_lines(
+            type_name="CandidateCapabilityRef",
+            variable_name="kCandidateCapabilityRefs",
+            row_lines=[
+                "  {"
+                f"ConnectionCandidateId::{candidate_enum_map[(device_name, candidate_id)]}, "
+                f"{json.dumps(capability_id)}"
+                "},"
+                for device_name, candidate_id, capability_id in candidate_capability_ref_rows
+            ],
+        ),
+        "",
+        "enum class ConnectionGroupId : std::uint16_t {",
+        *(
+            [
+                f"  {identifier},"
+                for identifier in group_enum_map.values()
+            ]
+            if group_enum_map
+            else ["  none,"]
+        ),
         "};",
         "",
         "struct ConnectionGroupDescriptor {",
         "  const char* device;",
-        "  const char* group_id;",
+        "  ConnectionGroupId group_id;",
+        "  const char* group_name;",
         "  const char* peripheral;",
-        "  const char* signals;",
-        "  const char* candidate_ids;",
         "  const char* package_name;",
         "  const char* conflict_group;",
+        "  std::uint16_t signal_offset;",
+        "  std::uint16_t signal_count;",
+        "  std::uint16_t candidate_offset;",
+        "  std::uint16_t candidate_count;",
         "};",
-        "inline constexpr ConnectionGroupDescriptor kConnectionGroups[] = {",
-        *[
-            f"  {{{json.dumps(device_name)}, {json.dumps(group_id)}, {json.dumps(peripheral)}, "
-            f"{json.dumps(','.join(signals))}, {json.dumps(','.join(candidate_ids))}, "
-            f"{_quoted(package_name)}, {_quoted(conflict_group)}}},"
-            for (
-                device_name,
-                group_id,
-                peripheral,
-                signals,
-                candidate_ids,
-                package_name,
-                conflict_group,
-            ) in group_rows
-        ],
+        *_std_array_lines(
+            type_name="ConnectionGroupDescriptor",
+            variable_name="kConnectionGroups",
+            row_lines=[
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"ConnectionGroupId::{group_enum_map[(device_name, group_id)]}, "
+                f"{json.dumps(group_id)}, "
+                f"{json.dumps(peripheral)}, "
+                f"{_quoted(package_name)}, "
+                f"{_quoted(conflict_group)}, "
+                f"{group_signal_offsets.get((device_name, group_id), 0)}u, "
+                f"{group_signal_counts.get((device_name, group_id), 0)}u, "
+                f"{group_candidate_offsets.get((device_name, group_id), 0)}u, "
+                f"{group_candidate_counts.get((device_name, group_id), 0)}u"
+                "},"
+                for (
+                    device_name,
+                    group_id,
+                    peripheral,
+                    _signals,
+                    _candidate_ids,
+                    package_name,
+                    conflict_group,
+                ) in group_rows
+            ],
+        ),
+        "",
+        "struct ConnectionGroupSignalRef {",
+        "  ConnectionGroupId group_id;",
+        "  const char* signal_name;",
         "};",
+        *_std_array_lines(
+            type_name="ConnectionGroupSignalRef",
+            variable_name="kConnectionGroupSignals",
+            row_lines=[
+                "  {"
+                f"ConnectionGroupId::{group_enum_map[(device_name, group_id)]}, "
+                f"{json.dumps(signal_name)}"
+                "},"
+                for device_name, group_id, signal_name in group_signal_rows
+            ],
+        ),
+        "",
+        "struct ConnectionGroupCandidateRef {",
+        "  ConnectionGroupId group_id;",
+        "  ConnectionCandidateId candidate_id;",
+        "};",
+        *_std_array_lines(
+            type_name="ConnectionGroupCandidateRef",
+            variable_name="kConnectionGroupCandidateRefs",
+            row_lines=[
+                "  {"
+                f"ConnectionGroupId::{group_enum_map[(device_name, group_id)]}, "
+                f"ConnectionCandidateId::{candidate_enum_map[(device_name, candidate_id)]}"
+                "},"
+                for device_name, group_id, candidate_id in group_candidate_ref_rows
+            ],
+        ),
     ]
     namespace_block = _cpp_namespace_block((_vendor, _family, "generated"), "\n".join(body_lines))
     content = "\n".join(
         [
             "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
             "",
             namespace_block,
             "",
@@ -1917,6 +2692,11 @@ def emit_clock_tree_lite_header(
             selector.selector_id,
             selector.parent_options,
             selector.register_target,
+            selector.register_peripheral,
+            selector.register_name,
+            selector.register_offset,
+            selector.register_id,
+            selector.register_field_id,
         )
         for device in devices
         for selector in sorted(device.clock_selectors, key=lambda item: item.selector_id)
@@ -1928,6 +2708,11 @@ def emit_clock_tree_lite_header(
             gate.peripheral,
             gate.enable_signal,
             gate.parent_node,
+            gate.register_peripheral,
+            gate.register_name,
+            gate.register_offset,
+            gate.register_id,
+            gate.register_field_id,
         )
         for device in devices
         for gate in sorted(device.clock_gates, key=lambda item: item.gate_id)
@@ -1939,6 +2724,11 @@ def emit_clock_tree_lite_header(
             reset.peripheral,
             reset.reset_signal,
             reset.active_level,
+            reset.register_peripheral,
+            reset.register_name,
+            reset.register_offset,
+            reset.register_id,
+            reset.register_field_id,
         )
         for device in devices
         for reset in sorted(device.resets, key=lambda item: item.reset_id)
@@ -1954,82 +2744,261 @@ def emit_clock_tree_lite_header(
         for device in devices
         for binding in sorted(device.peripheral_clock_bindings, key=lambda item: item.peripheral)
     ]
+    node_enum_map = {
+        (device_name, node_id): _enum_identifier(f"{device_name}_{node_id}")
+        for device_name, node_id, *_rest in node_rows
+    }
+    selector_enum_map = {
+        (device_name, selector_id): _enum_identifier(f"{device_name}_{selector_id}")
+        for device_name, selector_id, *_rest in selector_rows
+    }
+    gate_enum_map = {
+        (device_name, gate_id): _enum_identifier(f"{device_name}_{gate_id}")
+        for device_name, gate_id, *_rest in gate_rows
+    }
+    reset_enum_map = {
+        (device_name, reset_id): _enum_identifier(f"{device_name}_{reset_id}")
+        for device_name, reset_id, *_rest in reset_rows
+    }
+    node_index_map = {
+        (device_name, node_id): index
+        for index, (device_name, node_id, *_rest) in enumerate(node_rows)
+    }
+    selector_index_map = {
+        (device_name, selector_id): index
+        for index, (device_name, selector_id, *_rest) in enumerate(selector_rows)
+    }
+    gate_index_map = {
+        (device_name, gate_id): index
+        for index, (device_name, gate_id, *_rest) in enumerate(gate_rows)
+    }
+    reset_index_map = {
+        (device_name, reset_id): index
+        for index, (device_name, reset_id, *_rest) in enumerate(reset_rows)
+    }
+    selector_parent_options_by_selector = {
+        (device_name, selector_id): tuple(parent_options)
+        for (
+            device_name,
+            selector_id,
+            parent_options,
+            _register_target,
+            _register_peripheral,
+            _register_name,
+            _register_offset,
+            _register_id,
+            _register_field_id,
+        ) in selector_rows
+    }
+    selector_parent_offsets, selector_parent_counts = _offset_count_maps(
+        selector_parent_options_by_selector
+    )
+    selector_parent_rows = [
+        (device_name, selector_id, parent_option)
+        for (device_name, selector_id), parent_options in sorted(
+            selector_parent_options_by_selector.items()
+        )
+        for parent_option in parent_options
+    ]
 
     _vendor, _family = family_dir.split("/", 1)
     body_lines = [
+        "enum class ClockNodeId : std::uint16_t {",
+        *_enum_rows(node_enum_map),
+        "};",
+        "",
+        "enum class ClockSelectorId : std::uint16_t {",
+        *_enum_rows(selector_enum_map),
+        "};",
+        "",
+        "enum class ClockGateId : std::uint16_t {",
+        *_enum_rows(gate_enum_map),
+        "};",
+        "",
+        "enum class ResetId : std::uint16_t {",
+        *_enum_rows(reset_enum_map),
+        "};",
+        "",
         "struct ClockNodeDescriptor {",
         "  const char* device;",
-        "  const char* node_id;",
+        "  ClockNodeId node_id;",
+        "  const char* node_name;",
         "  const char* kind;",
-        "  const char* parent;",
-        "  const char* selector;",
+        "  int parent_index;",
+        "  int selector_index;",
         "};",
         *_std_array_lines(
             type_name="ClockNodeDescriptor",
             variable_name="kClockNodes",
             row_lines=[
-                f"  {{{json.dumps(device_name)}, {json.dumps(node_id)}, {json.dumps(kind)}, "
-                f"{_quoted(parent)}, {_quoted(selector)}}},"
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"ClockNodeId::{node_enum_map[(device_name, node_id)]}, "
+                f"{json.dumps(node_id)}, "
+                f"{json.dumps(kind)}, "
+                f"{-1 if parent is None else node_index_map[(device_name, parent)]}, "
+                f"{-1 if selector is None else selector_index_map[(device_name, selector)]}"
+                "},"
                 for device_name, node_id, kind, parent, selector in node_rows
             ],
         ),
         "",
         "struct ClockSelectorDescriptor {",
         "  const char* device;",
-        "  const char* selector_id;",
-        "  const char* parent_options;",
+        "  ClockSelectorId selector_id;",
+        "  const char* selector_name;",
+        "  std::uint16_t parent_option_offset;",
+        "  std::uint16_t parent_option_count;",
         "  const char* register_target;",
+        "  const char* register_peripheral;",
+        "  const char* register_name;",
+        "  int register_offset;",
+        "  const char* register_id;",
+        "  const char* register_field_id;",
         "};",
         *_std_array_lines(
             type_name="ClockSelectorDescriptor",
             variable_name="kClockSelectors",
             row_lines=[
-                f"  {{{json.dumps(device_name)}, {json.dumps(selector_id)}, "
-                f"{json.dumps(','.join(parent_options))}, {_quoted(register_target)}}},"
-                for device_name, selector_id, parent_options, register_target in selector_rows
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"ClockSelectorId::{selector_enum_map[(device_name, selector_id)]}, "
+                f"{json.dumps(selector_id)}, "
+                f"{selector_parent_offsets.get((device_name, selector_id), 0)}u, "
+                f"{selector_parent_counts.get((device_name, selector_id), 0)}u, "
+                f"{_quoted(register_target)}, "
+                f"{_quoted(register_peripheral)}, "
+                f"{_quoted(register_name)}, "
+                f"{-1 if register_offset is None else register_offset}, "
+                f"{_quoted(register_id)}, "
+                f"{_quoted(register_field_id)}"
+                "},"
+                for (
+                    device_name,
+                    selector_id,
+                    _parent_options,
+                    register_target,
+                    register_peripheral,
+                    register_name,
+                    register_offset,
+                    register_id,
+                    register_field_id,
+                ) in selector_rows
+            ],
+        ),
+        "",
+        "struct ClockSelectorParentOption {",
+        "  ClockSelectorId selector_id;",
+        "  ClockNodeId parent_node_id;",
+        "};",
+        *_std_array_lines(
+            type_name="ClockSelectorParentOption",
+            variable_name="kClockSelectorParentOptions",
+            row_lines=[
+                "  {"
+                f"ClockSelectorId::{selector_enum_map[(device_name, selector_id)]}, "
+                f"ClockNodeId::{node_enum_map[(device_name, parent_option)]}"
+                "},"
+                for device_name, selector_id, parent_option in selector_parent_rows
             ],
         ),
         "",
         "struct ClockGateDescriptor {",
         "  const char* device;",
-        "  const char* gate_id;",
+        "  ClockGateId gate_id;",
+        "  const char* gate_name;",
         "  const char* peripheral;",
+        "  int parent_node_index;",
         "  const char* enable_signal;",
-        "  const char* parent_node;",
+        "  const char* register_peripheral;",
+        "  const char* register_name;",
+        "  int register_offset;",
+        "  const char* register_id;",
+        "  const char* register_field_id;",
         "};",
         *_std_array_lines(
             type_name="ClockGateDescriptor",
             variable_name="kClockGates",
             row_lines=[
-                f"  {{{json.dumps(device_name)}, {json.dumps(gate_id)}, {_quoted(peripheral)}, "
-                f"{json.dumps(enable_signal)}, {_quoted(parent_node)}}},"
-                for device_name, gate_id, peripheral, enable_signal, parent_node in gate_rows
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"ClockGateId::{gate_enum_map[(device_name, gate_id)]}, "
+                f"{json.dumps(gate_id)}, "
+                f"{_quoted(peripheral)}, "
+                f"{-1 if parent_node is None else node_index_map[(device_name, parent_node)]}, "
+                f"{json.dumps(enable_signal)}, "
+                f"{_quoted(register_peripheral)}, "
+                f"{_quoted(register_name)}, "
+                f"{-1 if register_offset is None else register_offset}, "
+                f"{_quoted(register_id)}, "
+                f"{_quoted(register_field_id)}"
+                "},"
+                for (
+                    device_name,
+                    gate_id,
+                    peripheral,
+                    enable_signal,
+                    parent_node,
+                    register_peripheral,
+                    register_name,
+                    register_offset,
+                    register_id,
+                    register_field_id,
+                ) in gate_rows
             ],
         ),
         "",
         "struct ResetDescriptor {",
         "  const char* device;",
-        "  const char* reset_id;",
+        "  ResetId reset_id;",
+        "  const char* reset_name;",
         "  const char* peripheral;",
         "  const char* reset_signal;",
         "  const char* active_level;",
+        "  const char* register_peripheral;",
+        "  const char* register_name;",
+        "  int register_offset;",
+        "  const char* register_id;",
+        "  const char* register_field_id;",
         "};",
         *_std_array_lines(
             type_name="ResetDescriptor",
             variable_name="kResets",
             row_lines=[
-                f"  {{{json.dumps(device_name)}, {json.dumps(reset_id)}, {_quoted(peripheral)}, "
-                f"{json.dumps(reset_signal)}, {json.dumps(active_level)}}},"
-                for device_name, reset_id, peripheral, reset_signal, active_level in reset_rows
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"ResetId::{reset_enum_map[(device_name, reset_id)]}, "
+                f"{json.dumps(reset_id)}, "
+                f"{_quoted(peripheral)}, "
+                f"{json.dumps(reset_signal)}, "
+                f"{json.dumps(active_level)}, "
+                f"{_quoted(register_peripheral)}, "
+                f"{_quoted(register_name)}, "
+                f"{-1 if register_offset is None else register_offset}, "
+                f"{_quoted(register_id)}, "
+                f"{_quoted(register_field_id)}"
+                "},"
+                for (
+                    device_name,
+                    reset_id,
+                    peripheral,
+                    reset_signal,
+                    active_level,
+                    register_peripheral,
+                    register_name,
+                    register_offset,
+                    register_id,
+                    register_field_id,
+                ) in reset_rows
             ],
         ),
         "",
         "struct PeripheralClockBindingDescriptor {",
         "  const char* device;",
         "  const char* peripheral;",
-        "  const char* clock_gate_id;",
-        "  const char* reset_id;",
-        "  const char* selector_id;",
+        "  int clock_gate_index;",
+        "  int reset_index;",
+        "  int selector_index;",
         "};",
         *_std_array_lines(
             type_name="PeripheralClockBindingDescriptor",
@@ -2038,9 +3007,9 @@ def emit_clock_tree_lite_header(
                 "  {"
                 f"{json.dumps(device_name)}, "
                 f"{json.dumps(peripheral)}, "
-                f"{_quoted(clock_gate_id)}, "
-                f"{_quoted(reset_id)}, "
-                f"{_quoted(selector_id)}"
+                f"{-1 if clock_gate_id is None else gate_index_map[(device_name, clock_gate_id)]}, "
+                f"{-1 if reset_id is None else reset_index_map[(device_name, reset_id)]}, "
+                f"{-1 if selector_id is None else selector_index_map[(device_name, selector_id)]}"
                 "},"
                 for device_name, peripheral, clock_gate_id, reset_id, selector_id in binding_rows
             ],

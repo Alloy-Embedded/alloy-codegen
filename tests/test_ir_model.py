@@ -8,10 +8,12 @@ from alloy_codegen.ir.model import (
     ConnectionCandidate,
     ConnectionGroup,
     DeviceIdentity,
+    DmaBindingDescriptor,
     DmaConflictGroup,
     DmaControllerDescriptor,
     DmaRequestDefinition,
     DmaRouteDescriptor,
+    InterruptBindingDescriptor,
     InterruptDefinition,
     IpBlockDefinition,
     MemoryRegion,
@@ -23,6 +25,7 @@ from alloy_codegen.ir.model import (
     PinDefinition,
     PinSignal,
     Provenance,
+    RegisterFieldDescriptor,
     ResetDescriptor,
     RouteOperation,
     RouteRequirement,
@@ -126,9 +129,12 @@ def test_canonical_device_ir_omits_empty_transitional_domains() -> None:
     payload = _base_device().to_dict()
 
     assert "ip_blocks" not in payload
+    assert "register_fields" not in payload
     assert "connection_candidates" not in payload
+    assert "interrupt_bindings" not in payload
     assert "startup_descriptors" not in payload
     assert "clock_nodes" not in payload
+    assert "dma_bindings" not in payload
     assert "dma_routes" not in payload
 
 
@@ -199,6 +205,19 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
                 provenance=provenance,
             ),
         ),
+        register_fields=(
+            RegisterFieldDescriptor(
+                field_id="field:usart1:cr1:te",
+                register_id="register:usart1:cr1",
+                peripheral="USART1",
+                register_name="CR1",
+                name="TE",
+                bit_offset=3,
+                bit_width=1,
+                access="read-write",
+                provenance=provenance,
+            ),
+        ),
         route_requirements=(
             RouteRequirement(
                 requirement_id="req-usart1-clock",
@@ -240,6 +259,19 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
                 candidate_ids=("cand-usart1-tx-pa9",),
                 package="lqfp64",
                 conflict_group=None,
+                provenance=provenance,
+            ),
+        ),
+        interrupt_bindings=(
+            InterruptBindingDescriptor(
+                binding_id="interrupt-binding:usart1:usart1",
+                peripheral="USART1",
+                interrupt="USART1",
+                line=27,
+                vector_slot=43,
+                symbol_name="USART1_IRQHandler",
+                shared_group=None,
+                alias_names=("USART1_IRQHandler",),
                 provenance=provenance,
             ),
         ),
@@ -307,6 +339,18 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
                 provenance=provenance,
             ),
         ),
+        dma_bindings=(
+            DmaBindingDescriptor(
+                binding_id="dma-binding:usart1:tx:dma1:dma1_ch1",
+                peripheral="USART1",
+                signal="TX",
+                controller="DMA1",
+                request_line="DMA1_CH1",
+                route_id="dma-usart1-tx",
+                conflict_group="dma1-shared",
+                provenance=provenance,
+            ),
+        ),
         dma_routes=(
             DmaRouteDescriptor(
                 route_id="dma-usart1-tx",
@@ -346,10 +390,12 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
     assert payload["package_pads"][0]["bonding_state"] == "bonded"
     assert payload["pin_constraints"][0]["constraint_id"] == "pa9-debug-conflict"
     assert payload["signal_endpoints"][0]["endpoint_id"] == "uart-tx"
+    assert payload["register_fields"][0]["field_id"] == "field:usart1:cr1:te"
     assert payload["route_requirements"][0]["requirement_id"] == "req-usart1-clock"
     assert payload["route_operations"][0]["operation_id"] == "op-usart1-af"
     assert payload["connection_candidates"][0]["candidate_id"] == "cand-usart1-tx-pa9"
     assert payload["connection_groups"][0]["group_id"] == "grp-usart1-default"
+    assert payload["interrupt_bindings"][0]["binding_id"] == "interrupt-binding:usart1:usart1"
     assert payload["vector_slots"][0]["symbol_name"] == "USART1_IRQHandler"
     assert payload["interrupts"][0]["alias_names"] == ["USART1_IRQHandler"]
     assert payload["memories"][0]["startup_roles"] == [
@@ -364,5 +410,6 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
     assert payload["peripheral_clock_bindings"][0]["peripheral"] == "USART1"
     assert payload["dma_controllers"][0]["controller"] == "DMA1"
     assert payload["dma_controllers"][0]["request_count"] == 2
+    assert payload["dma_bindings"][0]["binding_id"] == "dma-binding:usart1:tx:dma1:dma1_ch1"
     assert payload["dma_routes"][0]["route_id"] == "dma-usart1-tx"
     assert payload["dma_conflict_groups"][0]["conflict_group_id"] == "dma1-shared"

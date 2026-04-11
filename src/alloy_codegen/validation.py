@@ -26,6 +26,10 @@ SYSTEM_DESCRIPTOR_RULE_SUFFIXES: dict[str, tuple[str, ...]] = {
         "interrupt-aliases-present",
         "interrupt-aliases-unique",
         "interrupt-shared-groups-consistent",
+        "interrupt-bindings-reference-known-peripherals",
+        "interrupt-bindings-reference-known-interrupts",
+        "interrupt-bindings-reference-known-vector-slots",
+        "runtime-interrupt-bindings-present",
         "vector-slots-reference-known-interrupts",
         "vector-slots-unique",
         "interrupts-have-vector-slot",
@@ -61,6 +65,11 @@ SYSTEM_DESCRIPTOR_RULE_SUFFIXES: dict[str, tuple[str, ...]] = {
         "dma-routes-reference-known-controllers",
         "dma-routes-reference-known-peripherals",
         "dma-routes-reference-known-conflicts",
+        "dma-bindings-reference-known-peripherals",
+        "dma-bindings-reference-known-controllers",
+        "dma-bindings-reference-known-routes",
+        "dma-bindings-reference-known-conflicts",
+        "dma-bindings-cover-routes",
         "dma-conflict-groups-reference-known-routes",
         "dma-conflict-groups-nontrivial",
         "dma-route-conflict-annotations-consistent",
@@ -469,6 +478,9 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     }
     group_ids = {group.group_id for group in device.connection_groups}
     interrupt_names = {interrupt.name for interrupt in device.interrupts}
+    interrupt_counts_by_peripheral = Counter(
+        interrupt.peripheral for interrupt in device.interrupts if interrupt.peripheral is not None
+    )
     shared_interrupt_groups: dict[str, list[object]] = {}
     for interrupt in device.interrupts:
         if interrupt.shared_group is not None:
@@ -533,7 +545,8 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         any(
             requirement_id in requirement_map
             and requirement_map[requirement_id].kind == "package"
-            and requirement_map[requirement_id].target == device.identity.package
+            and requirement_map[requirement_id].target_ref_kind == "package"
+            and requirement_map[requirement_id].target_ref_id == device.identity.package
             for requirement_id in candidate.requirement_ids
         )
         for candidate in device.connection_candidates
@@ -541,7 +554,9 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     candidate_source_requirements_known = all(
         candidate.route_selector is None
         or any(
-            requirement.kind == "source-select" and requirement.value == candidate.route_selector
+            requirement.kind == "source-select"
+            and requirement.value_ref_kind == "selector"
+            and requirement.value_ref_id == candidate.route_selector
             for requirement in _candidate_requirements(candidate.candidate_id)
         )
         for candidate in device.connection_candidates
@@ -631,15 +646,18 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         all(
             any(
                 requirement.kind == "package"
-                and requirement.target == (group.package or device.identity.package)
+                and requirement.target_ref_kind == "package"
+                and requirement.target_ref_id == (group.package or device.identity.package)
                 for requirement in _candidate_requirements(candidate_id)
             )
             and (
                 candidate_lookup[candidate_id].pin not in bonded_pin_names
                 or any(
                     requirement.kind == "bonded-pin"
-                    and requirement.target == candidate_lookup[candidate_id].pin
-                    and requirement.value == (group.package or device.identity.package)
+                    and requirement.target_ref_kind == "pin"
+                    and requirement.target_ref_id == candidate_lookup[candidate_id].pin
+                    and requirement.value_ref_kind == "package"
+                    and requirement.value_ref_id == (group.package or device.identity.package)
                     for requirement in _candidate_requirements(candidate_id)
                 )
             )
@@ -664,20 +682,47 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         for ip_block in device.ip_blocks
     )
     register_counts_by_peripheral = Counter(register.peripheral for register in device.registers)
+    register_field_counts_by_peripheral = Counter(
+        register_field.peripheral for register_field in device.register_fields
+    )
     runtime_peripheral_registers_present = all(
         canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
         or register_counts_by_peripheral.get(peripheral.name, 0) > 0
+        for peripheral in device.peripherals
+    )
+    runtime_peripheral_register_fields_present = all(
+        canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or register_field_counts_by_peripheral.get(peripheral.name, 0) > 0
         for peripheral in device.peripherals
     )
     route_operations_typed = all(
         operation.schema_id is not None
         and operation.subject_kind is not None
         and operation.subject_id is not None
+        and operation.target_ref_kind is not None
+        and operation.target_ref_id is not None
         and (operation.kind != "write-selector" or operation.value_int is not None)
         for operation in device.route_operations
     )
+    route_requirements_typed = all(
+        requirement.target_ref_kind is not None
+        and requirement.target_ref_id is not None
+        and (
+            requirement.kind != "source-select"
+            or (
+                requirement.value_ref_kind == "selector"
+                and requirement.value_ref_id is not None
+            )
+        )
+        for requirement in device.route_requirements
+    )
     register_target_operations_resolved = all(
-        operation.target.startswith("RCC_") is False or operation.register_offset is not None
+        operation.target_ref_kind not in {"clock-gate", "reset"}
+        or (
+            operation.register_offset is not None
+            or operation.register_id is not None
+            or operation.register_name is not None
+        )
         for operation in device.route_operations
     )
     interrupt_aliases_present = all(interrupt.alias_names for interrupt in device.interrupts)
@@ -690,6 +735,27 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         and all(interrupt.peripheral == interrupts[0].peripheral for interrupt in interrupts)
         and interrupts[0].peripheral is not None
         for interrupts in shared_interrupt_groups.values()
+    )
+    vector_slot_lookup = {vector_slot.slot: vector_slot for vector_slot in device.vector_slots}
+    interrupt_bindings_reference_known_peripherals = all(
+        binding.peripheral in peripheral_names for binding in device.interrupt_bindings
+    )
+    interrupt_bindings_reference_known_interrupts = all(
+        binding.interrupt in interrupt_names for binding in device.interrupt_bindings
+    )
+    interrupt_bindings_reference_known_vector_slots = all(
+        binding.vector_slot is None
+        or (
+            binding.vector_slot in vector_slot_lookup
+            and vector_slot_lookup[binding.vector_slot].interrupt == binding.interrupt
+        )
+        for binding in device.interrupt_bindings
+    )
+    runtime_interrupt_bindings_present = all(
+        canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or interrupt_counts_by_peripheral.get(peripheral.name, 0) == 0
+        or any(binding.peripheral == peripheral.name for binding in device.interrupt_bindings)
+        for peripheral in device.peripherals
     )
     vector_slots_reference_known_interrupts = all(
         vector_slot.interrupt is None or vector_slot.interrupt in interrupt_names
@@ -777,11 +843,40 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     clock_selectors_structured = all(
         bool(selector.parent_options)
         and all(parent_option in clock_node_ids for parent_option in selector.parent_options)
+        and (
+            selector.register_target is None
+            or (
+                selector.register_peripheral is not None
+                and (
+                    selector.register_id is not None
+                    or selector.register_offset is not None
+                    or selector.register_name is not None
+                )
+            )
+        )
         for selector in device.clock_selectors
     )
     clock_gates_reference_known_nodes = all(
         gate.parent_node is None or gate.parent_node in clock_node_ids
         for gate in device.clock_gates
+    )
+    clock_gates_structured = all(
+        gate.register_peripheral is not None
+        and (
+            gate.register_id is not None
+            or gate.register_offset is not None
+            or gate.register_name is not None
+        )
+        for gate in device.clock_gates
+    )
+    resets_structured = all(
+        reset.register_peripheral is not None
+        and (
+            reset.register_id is not None
+            or reset.register_offset is not None
+            or reset.register_name is not None
+        )
+        for reset in device.resets
     )
     clock_bound_peripherals_covered = all(
         peripheral.name in {binding.peripheral for binding in device.peripheral_clock_bindings}
@@ -826,6 +921,24 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         route.conflict_group is None or route.conflict_group in dma_conflict_ids
         for route in device.dma_routes
     )
+    dma_bindings_reference_known_peripherals = all(
+        binding.peripheral in peripheral_names for binding in device.dma_bindings
+    )
+    dma_bindings_reference_known_controllers = all(
+        binding.controller in dma_controller_ids for binding in device.dma_bindings
+    )
+    dma_bindings_reference_known_routes = all(
+        binding.route_id in dma_route_ids for binding in device.dma_bindings
+    )
+    dma_bindings_reference_known_conflicts = all(
+        binding.conflict_group is None or binding.conflict_group in dma_conflict_ids
+        for binding in device.dma_bindings
+    )
+    dma_bindings_cover_routes = {
+        binding.route_id for binding in device.dma_bindings
+    } == {
+        route.route_id for route in device.dma_routes if route.peripheral is not None
+    }
     dma_conflict_groups_reference_known_routes = all(
         route_id in dma_route_ids
         for conflict_group in device.dma_conflict_groups
@@ -1090,6 +1203,25 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             ),
         ),
         _rule(
+            rule_id=f"{device.identity.device}-runtime-peripherals-have-register-field-descriptors",
+            category="semantic",
+            severity="error",
+            passed=runtime_peripheral_register_fields_present,
+            message=(
+                f"{device.identity.device} runtime-owned peripheral instances expose "
+                "normalized register field descriptors."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-route-requirements-typed",
+            category="semantic",
+            severity="error",
+            passed=route_requirements_typed,
+            message=(
+                f"{device.identity.device} route requirements expose typed runtime fields."
+            ),
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-route-operations-typed",
             category="semantic",
             severity="error",
@@ -1130,6 +1262,44 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             message=(
                 f"{device.identity.device} interrupt shared groups describe a real "
                 "multi-interrupt owner."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-interrupt-bindings-reference-known-peripherals",
+            category="semantic",
+            severity="error",
+            passed=interrupt_bindings_reference_known_peripherals,
+            message=(
+                f"{device.identity.device} interrupt bindings reference known "
+                "peripheral instances."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-interrupt-bindings-reference-known-interrupts",
+            category="semantic",
+            severity="error",
+            passed=interrupt_bindings_reference_known_interrupts,
+            message=(
+                f"{device.identity.device} interrupt bindings reference declared interrupts."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-interrupt-bindings-reference-known-vector-slots",
+            category="semantic",
+            severity="error",
+            passed=interrupt_bindings_reference_known_vector_slots,
+            message=(
+                f"{device.identity.device} interrupt bindings reference matching vector slots."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-runtime-interrupt-bindings-present",
+            category="semantic",
+            severity="error",
+            passed=runtime_interrupt_bindings_present,
+            message=(
+                f"{device.identity.device} runtime-owned peripherals with interrupts "
+                "expose typed interrupt bindings."
             ),
         ),
         _rule(
@@ -1253,6 +1423,20 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             ),
         ),
         _rule(
+            rule_id=f"{device.identity.device}-clock-gates-structured",
+            category="semantic",
+            severity="error",
+            passed=clock_gates_structured,
+            message=f"{device.identity.device} clock gates expose typed register references.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-resets-structured",
+            category="semantic",
+            severity="error",
+            passed=resets_structured,
+            message=f"{device.identity.device} resets expose typed register references.",
+        ),
+        _rule(
             rule_id=f"{device.identity.device}-clock-gates-reference-known-nodes",
             category="semantic",
             severity="error",
@@ -1316,6 +1500,41 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=dma_routes_reference_known_conflicts,
             message=f"{device.identity.device} DMA routes reference declared conflict groups.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-bindings-reference-known-peripherals",
+            category="semantic",
+            severity="error",
+            passed=dma_bindings_reference_known_peripherals,
+            message=f"{device.identity.device} DMA bindings reference known peripherals.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-bindings-reference-known-controllers",
+            category="semantic",
+            severity="error",
+            passed=dma_bindings_reference_known_controllers,
+            message=f"{device.identity.device} DMA bindings reference known controllers.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-bindings-reference-known-routes",
+            category="semantic",
+            severity="error",
+            passed=dma_bindings_reference_known_routes,
+            message=f"{device.identity.device} DMA bindings reference known DMA routes.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-bindings-reference-known-conflicts",
+            category="semantic",
+            severity="error",
+            passed=dma_bindings_reference_known_conflicts,
+            message=f"{device.identity.device} DMA bindings reference declared conflict groups.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-dma-bindings-cover-routes",
+            category="semantic",
+            severity="error",
+            passed=dma_bindings_cover_routes,
+            message=f"{device.identity.device} DMA bindings cover the typed DMA route set.",
         ),
         _rule(
             rule_id=f"{device.identity.device}-dma-conflict-groups-reference-known-routes",

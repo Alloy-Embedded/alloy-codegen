@@ -30,8 +30,11 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/devices/<device>/device_descriptor.hpp`
 - `<vendor>/<family>/generated/devices/<device>/pins.hpp`
 - `<vendor>/<family>/generated/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/devices/<device>/interrupt_bindings.hpp`
+- `<vendor>/<family>/generated/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/devices/<device>/capability_overlays.hpp`
 - `<vendor>/<family>/generated/devices/<device>/register_map.hpp`
+- `<vendor>/<family>/generated/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `<vendor>/<family>/reports/validation-report.json`
@@ -73,8 +76,11 @@ Successful publication writes:
 - `<vendor>/<family>/generated/devices/<device>/device_descriptor.hpp`
 - `<vendor>/<family>/generated/devices/<device>/pins.hpp`
 - `<vendor>/<family>/generated/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/devices/<device>/interrupt_bindings.hpp`
+- `<vendor>/<family>/generated/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/devices/<device>/capability_overlays.hpp`
 - `<vendor>/<family>/generated/devices/<device>/register_map.hpp`
+- `<vendor>/<family>/generated/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `<vendor>/<family>/reports/validation-report.json`

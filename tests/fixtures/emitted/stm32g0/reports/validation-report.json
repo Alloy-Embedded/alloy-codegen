@@ -29,7 +29,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 72 rule(s).",
+      "message": "gate-c passed with 85 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -74,11 +74,17 @@
         "stm32g071rb-peripherals-carry-backend-schema",
         "stm32g071rb-ip-blocks-carry-backend-schema",
         "stm32g071rb-runtime-peripherals-have-register-descriptors",
+        "stm32g071rb-runtime-peripherals-have-register-field-descriptors",
+        "stm32g071rb-route-requirements-typed",
         "stm32g071rb-route-operations-typed",
         "stm32g071rb-register-target-operations-resolved",
         "stm32g071rb-interrupts-carry-aliases",
         "stm32g071rb-interrupt-aliases-unique",
         "stm32g071rb-interrupt-shared-groups-consistent",
+        "stm32g071rb-interrupt-bindings-reference-known-peripherals",
+        "stm32g071rb-interrupt-bindings-reference-known-interrupts",
+        "stm32g071rb-interrupt-bindings-reference-known-vector-slots",
+        "stm32g071rb-runtime-interrupt-bindings-present",
         "stm32g071rb-vector-slots-reference-known-interrupts",
         "stm32g071rb-vector-slots-unique",
         "stm32g071rb-interrupts-have-vector-slot",
@@ -93,6 +99,8 @@
         "stm32g071rb-clock-node-parents-known",
         "stm32g071rb-clock-graph-reaches-root",
         "stm32g071rb-clock-selectors-structured",
+        "stm32g071rb-clock-gates-structured",
+        "stm32g071rb-resets-structured",
         "stm32g071rb-clock-gates-reference-known-nodes",
         "stm32g071rb-clock-bound-peripherals-covered",
         "stm32g071rb-dma-controller-descriptors-complete",
@@ -101,6 +109,11 @@
         "stm32g071rb-dma-routes-reference-known-controllers",
         "stm32g071rb-dma-routes-reference-known-peripherals",
         "stm32g071rb-dma-routes-reference-known-conflicts",
+        "stm32g071rb-dma-bindings-reference-known-peripherals",
+        "stm32g071rb-dma-bindings-reference-known-controllers",
+        "stm32g071rb-dma-bindings-reference-known-routes",
+        "stm32g071rb-dma-bindings-reference-known-conflicts",
+        "stm32g071rb-dma-bindings-cover-routes",
         "stm32g071rb-dma-conflict-groups-reference-known-routes",
         "stm32g071rb-dma-conflict-groups-nontrivial",
         "stm32g071rb-dma-route-conflict-annotations-consistent"
@@ -469,6 +482,20 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb runtime-owned peripheral instances expose normalized register field descriptors.",
+      "passed": true,
+      "rule_id": "stm32g071rb-runtime-peripherals-have-register-field-descriptors",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb route requirements expose typed runtime fields.",
+      "passed": true,
+      "rule_id": "stm32g071rb-route-requirements-typed",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb route operations expose typed runtime fields.",
       "passed": true,
       "rule_id": "stm32g071rb-route-operations-typed",
@@ -500,6 +527,34 @@
       "message": "stm32g071rb interrupt shared groups describe a real multi-interrupt owner.",
       "passed": true,
       "rule_id": "stm32g071rb-interrupt-shared-groups-consistent",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb interrupt bindings reference known peripheral instances.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupt-bindings-reference-known-peripherals",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb interrupt bindings reference declared interrupts.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupt-bindings-reference-known-interrupts",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb interrupt bindings reference matching vector slots.",
+      "passed": true,
+      "rule_id": "stm32g071rb-interrupt-bindings-reference-known-vector-slots",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb runtime-owned peripherals with interrupts expose typed interrupt bindings.",
+      "passed": true,
+      "rule_id": "stm32g071rb-runtime-interrupt-bindings-present",
       "severity": "error"
     },
     {
@@ -602,6 +657,20 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb clock gates expose typed register references.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-gates-structured",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb resets expose typed register references.",
+      "passed": true,
+      "rule_id": "stm32g071rb-resets-structured",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb clock gates reference known clock nodes.",
       "passed": true,
       "rule_id": "stm32g071rb-clock-gates-reference-known-nodes",
@@ -658,6 +727,41 @@
     },
     {
       "category": "semantic",
+      "message": "stm32g071rb DMA bindings reference known peripherals.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-bindings-reference-known-peripherals",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA bindings reference known controllers.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-bindings-reference-known-controllers",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA bindings reference known DMA routes.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-bindings-reference-known-routes",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA bindings reference declared conflict groups.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-bindings-reference-known-conflicts",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb DMA bindings cover the typed DMA route set.",
+      "passed": true,
+      "rule_id": "stm32g071rb-dma-bindings-cover-routes",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
       "message": "stm32g071rb DMA conflict groups reference known DMA routes.",
       "passed": true,
       "rule_id": "stm32g071rb-dma-conflict-groups-reference-known-routes",
@@ -687,12 +791,16 @@
     {
       "domain_id": "interrupt",
       "draft": false,
-      "message": "interrupt domain is publishable with 6 rule(s).",
+      "message": "interrupt domain is publishable with 10 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-interrupts-reference-known-peripherals",
         "stm32g071rb-interrupt-aliases-unique",
         "stm32g071rb-interrupt-shared-groups-consistent",
+        "stm32g071rb-interrupt-bindings-reference-known-peripherals",
+        "stm32g071rb-interrupt-bindings-reference-known-interrupts",
+        "stm32g071rb-interrupt-bindings-reference-known-vector-slots",
+        "stm32g071rb-runtime-interrupt-bindings-present",
         "stm32g071rb-vector-slots-reference-known-interrupts",
         "stm32g071rb-vector-slots-unique",
         "stm32g071rb-interrupts-have-vector-slot"
@@ -740,7 +848,7 @@
     {
       "domain_id": "dma",
       "draft": false,
-      "message": "dma domain is publishable with 11 rule(s).",
+      "message": "dma domain is publishable with 16 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-dma-controllers-known",
@@ -751,6 +859,11 @@
         "stm32g071rb-dma-routes-reference-known-controllers",
         "stm32g071rb-dma-routes-reference-known-peripherals",
         "stm32g071rb-dma-routes-reference-known-conflicts",
+        "stm32g071rb-dma-bindings-reference-known-peripherals",
+        "stm32g071rb-dma-bindings-reference-known-controllers",
+        "stm32g071rb-dma-bindings-reference-known-routes",
+        "stm32g071rb-dma-bindings-reference-known-conflicts",
+        "stm32g071rb-dma-bindings-cover-routes",
         "stm32g071rb-dma-conflict-groups-reference-known-routes",
         "stm32g071rb-dma-conflict-groups-nontrivial",
         "stm32g071rb-dma-route-conflict-annotations-consistent"

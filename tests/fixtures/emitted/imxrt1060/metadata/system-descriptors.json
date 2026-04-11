@@ -14,7 +14,9 @@
             ],
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
-          }
+          },
+          "register_name": "CCGR1",
+          "register_peripheral": "CCM"
         },
         {
           "enable_signal": "CCM_CCGR3.CG13",
@@ -28,7 +30,9 @@
             ],
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
-          }
+          },
+          "register_name": "CCGR3",
+          "register_peripheral": "CCM"
         },
         {
           "enable_signal": "CCM_CCGR2.CG2",
@@ -42,7 +46,9 @@
             ],
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
-          }
+          },
+          "register_name": "CCGR2",
+          "register_peripheral": "CCM"
         },
         {
           "enable_signal": "CCM_CCGR1.CG0",
@@ -56,7 +62,9 @@
             ],
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
-          }
+          },
+          "register_name": "CCGR1",
+          "register_peripheral": "CCM"
         },
         {
           "enable_signal": "CCM_CCGR5.CG12",
@@ -70,7 +78,9 @@
             ],
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
-          }
+          },
+          "register_name": "CCGR5",
+          "register_peripheral": "CCM"
         },
         {
           "enable_signal": "CCM_CCGR0.CG6",
@@ -84,7 +94,9 @@
             ],
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
-          }
+          },
+          "register_name": "CCGR0",
+          "register_peripheral": "CCM"
         }
       ],
       "clock_nodes": [
@@ -257,22 +269,8 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
-          "register_target": "CCM_CSCDR1.UART_CLK_SEL",
-          "selector_id": "selector:lpuart-root"
-        },
-        {
-          "parent_options": [
-            "clock-node:pll3-sw-clk",
-            "clock-node:osc24m"
-          ],
-          "provenance": {
-            "patch_ids": [
-              "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1062-bootstrap"
-            ],
-            "source_id": "bootstrap-patch",
-            "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
-          },
+          "register_name": "CSCDR2",
+          "register_peripheral": "CCM",
           "register_target": "CCM_CSCDR2.LPI2C_CLK_SEL",
           "selector_id": "selector:lpi2c-root"
         },
@@ -289,8 +287,28 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_name": "CBCMR",
+          "register_peripheral": "CCM",
           "register_target": "CCM_CBCMR.LPSPI_CLK_SEL",
           "selector_id": "selector:lpspi-root"
+        },
+        {
+          "parent_options": [
+            "clock-node:pll3-sw-clk",
+            "clock-node:osc24m"
+          ],
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
+            ],
+            "source_id": "bootstrap-patch",
+            "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
+          },
+          "register_name": "CSCDR1",
+          "register_peripheral": "CCM",
+          "register_target": "CCM_CSCDR1.UART_CLK_SEL",
+          "selector_id": "selector:lpuart-root"
         }
       ],
       "device": "mimxrt1062",

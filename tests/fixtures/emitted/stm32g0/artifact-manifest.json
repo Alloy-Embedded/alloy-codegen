@@ -5,7 +5,7 @@
     "pipeline_name": "alloy-codegen",
     "target_repository": "alloy-devices"
   },
-  "canonical_ir_sha256": "e1468bc067b8519a3e9d41f71e84fedc86ba20090c4110f6c75ba6b01c972a60",
+  "canonical_ir_sha256": "07e048cdc7de8420a507757f08fec002cbdeb461bf90d2a408ad4e8ed38896a7",
   "generator_version": "0.1.0",
   "ir_schema_version": "1.1.0",
   "manifest_kind": "artifact-manifest-v1",
@@ -34,7 +34,7 @@
       {
         "local_path": "data/STMicro/STM32G071.svd",
         "origin_url": "https://github.com/cmsis-svd/cmsis-svd-data.git",
-        "revision": "content-sha256:6c2d3bc6daafd90934d0f5028cd4edb7c84c154a58ce65b6e6a1adc43b10a819",
+        "revision": "content-sha256:6183aa4a2b1c2469c129e6c798a69e2e9483df9b4eaa6a752acd4254dcdea480",
         "scope": {
           "device": "stm32g071rb",
           "family": "stm32g0",
@@ -76,5 +76,5 @@
     ]
   },
   "validation_report_id": "bootstrap-validation-v1",
-  "validation_report_sha256": "fec3a4c1de4e4ac2523e7ad9ad52a958df4e2d35a6fc13629d4015903fa75431"
+  "validation_report_sha256": "2f6852d052c7c3dbde8414334299e3dc5d69fa291ebcc0724e5ec6f7172754bb"
 }

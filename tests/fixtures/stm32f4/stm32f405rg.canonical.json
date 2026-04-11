@@ -128,7 +128,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR",
+      "register_offset": 48,
+      "register_peripheral": "RCC"
     },
     {
       "enable_signal": "RCC_AHB1ENR.DMA2EN",
@@ -142,7 +146,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR",
+      "register_offset": 48,
+      "register_peripheral": "RCC"
     },
     {
       "enable_signal": "RCC_AHB1ENR.GPIOAEN",
@@ -156,7 +164,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR",
+      "register_offset": 48,
+      "register_peripheral": "RCC"
     },
     {
       "enable_signal": "RCC_AHB1ENR.GPIOBEN",
@@ -170,7 +182,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR",
+      "register_offset": 48,
+      "register_peripheral": "RCC"
     },
     {
       "enable_signal": "RCC_AHB2ENR.OTGFSEN",
@@ -184,7 +200,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:ahb2enr",
+      "register_name": "AHB2ENR",
+      "register_offset": 52,
+      "register_peripheral": "RCC"
     },
     {
       "enable_signal": "RCC_APB2ENR.USART1EN",
@@ -198,7 +218,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:apb2enr",
+      "register_name": "APB2ENR",
+      "register_offset": 68,
+      "register_peripheral": "RCC"
     },
     {
       "enable_signal": "RCC_APB1ENR.USART2EN",
@@ -212,7 +236,11 @@
         ],
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
-      }
+      },
+      "register_id": "register:rcc:apb1enr",
+      "register_name": "APB1ENR",
+      "register_offset": 64,
+      "register_peripheral": "RCC"
     }
   ],
   "clock_nodes": [
@@ -467,6 +495,42 @@
       ]
     }
   ],
+  "dma_bindings": [
+    {
+      "binding_id": "dma-binding:usart1:rx:dma2:dma2-stream2",
+      "conflict_group": null,
+      "controller": "DMA2",
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "request_line": "DMA2_STREAM2",
+      "route_id": "dma-route:dma2:dma2-stream2:usart1:rx",
+      "signal": "RX"
+    },
+    {
+      "binding_id": "dma-binding:usart1:tx:dma2:dma2-stream7",
+      "conflict_group": null,
+      "controller": "DMA2",
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "request_line": "DMA2_STREAM7",
+      "route_id": "dma-route:dma2:dma2-stream7:usart1:tx",
+      "signal": "TX"
+    }
+  ],
   "dma_controllers": [
     {
       "channel_count": 8,
@@ -555,6 +619,108 @@
     "summary": "Representative higher-feature F4 device with USB OTG.",
     "vendor": "st"
   },
+  "interrupt_bindings": [
+    {
+      "alias_names": [
+        "DMA1_Stream0_IRQHandler"
+      ],
+      "binding_id": "interrupt-binding:dma1:dma1-stream0",
+      "interrupt": "DMA1_Stream0",
+      "line": 11,
+      "peripheral": "DMA1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "shared_group": null,
+      "symbol_name": "DMA1_Stream0_IRQHandler",
+      "vector_slot": 27
+    },
+    {
+      "alias_names": [
+        "DMA2_Stream0_IRQHandler"
+      ],
+      "binding_id": "interrupt-binding:dma2:dma2-stream0",
+      "interrupt": "DMA2_Stream0",
+      "line": 56,
+      "peripheral": "DMA2",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "shared_group": null,
+      "symbol_name": "DMA2_Stream0_IRQHandler",
+      "vector_slot": 72
+    },
+    {
+      "alias_names": [
+        "OTG_FS_IRQHandler"
+      ],
+      "binding_id": "interrupt-binding:otg-fs:otg-fs",
+      "interrupt": "OTG_FS",
+      "line": 67,
+      "peripheral": "OTG_FS",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "shared_group": null,
+      "symbol_name": "OTG_FS_IRQHandler",
+      "vector_slot": 83
+    },
+    {
+      "alias_names": [
+        "USART1_IRQHandler"
+      ],
+      "binding_id": "interrupt-binding:usart1:usart1",
+      "interrupt": "USART1",
+      "line": 37,
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "shared_group": null,
+      "symbol_name": "USART1_IRQHandler",
+      "vector_slot": 53
+    },
+    {
+      "alias_names": [
+        "USART2_IRQHandler"
+      ],
+      "binding_id": "interrupt-binding:usart2:usart2",
+      "interrupt": "USART2",
+      "line": 38,
+      "peripheral": "USART2",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "shared_group": null,
+      "symbol_name": "USART2_IRQHandler",
+      "vector_slot": 54
+    }
+  ],
   "interrupts": [
     {
       "alias_names": [
@@ -1290,6 +1456,80 @@
     "source_id": "stm32-open-pin-data",
     "source_path": "STM32F405RGTx.xml"
   },
+  "register_fields": [
+    {
+      "access": null,
+      "bit_offset": 4,
+      "bit_width": 2,
+      "field_id": "field:gpioa:moder:moder2",
+      "name": "MODER2",
+      "peripheral": "GPIOA",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "register_id": "register:gpioa:moder",
+      "register_name": "MODER"
+    },
+    {
+      "access": null,
+      "bit_offset": 12,
+      "bit_width": 2,
+      "field_id": "field:gpiob:moder:moder6",
+      "name": "MODER6",
+      "peripheral": "GPIOB",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "register_id": "register:gpiob:moder",
+      "register_name": "MODER"
+    },
+    {
+      "access": null,
+      "bit_offset": 7,
+      "bit_width": 1,
+      "field_id": "field:usart1:sr:txe",
+      "name": "TXE",
+      "peripheral": "USART1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "register_id": "register:usart1:sr",
+      "register_name": "SR"
+    },
+    {
+      "access": null,
+      "bit_offset": 7,
+      "bit_width": 1,
+      "field_id": "field:usart2:sr:txe",
+      "name": "TXE",
+      "peripheral": "USART2",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32F405.svd"
+      },
+      "register_id": "register:usart2:sr",
+      "register_name": "SR"
+    }
+  ],
   "registers": [
     {
       "access": null,
@@ -1688,6 +1928,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR",
+      "register_offset": 16,
+      "register_peripheral": "RCC",
       "reset_id": "reset:dma1",
       "reset_signal": "RCC_AHB1RSTR.DMA1RST"
     },
@@ -1702,6 +1946,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR",
+      "register_offset": 16,
+      "register_peripheral": "RCC",
       "reset_id": "reset:dma2",
       "reset_signal": "RCC_AHB1RSTR.DMA2RST"
     },
@@ -1716,6 +1964,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR",
+      "register_offset": 16,
+      "register_peripheral": "RCC",
       "reset_id": "reset:gpioa",
       "reset_signal": "RCC_AHB1RSTR.GPIOARST"
     },
@@ -1730,6 +1982,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR",
+      "register_offset": 16,
+      "register_peripheral": "RCC",
       "reset_id": "reset:gpiob",
       "reset_signal": "RCC_AHB1RSTR.GPIOBRST"
     },
@@ -1744,6 +2000,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb2rstr",
+      "register_name": "AHB2RSTR",
+      "register_offset": 20,
+      "register_peripheral": "RCC",
       "reset_id": "reset:otg-fs",
       "reset_signal": "RCC_AHB2RSTR.OTGFSRST"
     },
@@ -1758,6 +2018,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:apb2rstr",
+      "register_name": "APB2RSTR",
+      "register_offset": 36,
+      "register_peripheral": "RCC",
       "reset_id": "reset:usart1",
       "reset_signal": "RCC_APB2RSTR.USART1RST"
     },
@@ -1772,6 +2036,10 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:apb1rstr",
+      "register_name": "APB1RSTR",
+      "register_offset": 32,
+      "register_peripheral": "RCC",
       "reset_id": "reset:usart2",
       "reset_signal": "RCC_APB1RSTR.USART2RST"
     }
@@ -1788,6 +2056,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
       "register_peripheral": "RCC",
@@ -1795,8 +2064,11 @@
       "subject_id": "DMA1",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1ENR.DMA1EN",
+      "target_ref_id": "gate:dma1",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "set-bit",
@@ -1809,6 +2081,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
       "register_peripheral": "RCC",
@@ -1816,8 +2089,11 @@
       "subject_id": "DMA2",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1ENR.DMA2EN",
+      "target_ref_id": "gate:dma2",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "set-bit",
@@ -1830,6 +2106,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
       "register_peripheral": "RCC",
@@ -1837,8 +2114,11 @@
       "subject_id": "GPIOA",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1ENR.GPIOAEN",
+      "target_ref_id": "gate:gpioa",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "set-bit",
@@ -1851,6 +2131,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
       "register_peripheral": "RCC",
@@ -1858,8 +2139,11 @@
       "subject_id": "GPIOB",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1ENR.GPIOBEN",
+      "target_ref_id": "gate:gpiob",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "set-bit",
@@ -1872,6 +2156,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb2enr",
       "register_name": "AHB2ENR",
       "register_offset": 52,
       "register_peripheral": "RCC",
@@ -1879,8 +2164,11 @@
       "subject_id": "OTG_FS",
       "subject_kind": "peripheral",
       "target": "RCC_AHB2ENR.OTGFSEN",
+      "target_ref_id": "gate:otg-fs",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "set-bit",
@@ -1893,6 +2181,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:apb2enr",
       "register_name": "APB2ENR",
       "register_offset": 68,
       "register_peripheral": "RCC",
@@ -1900,8 +2189,11 @@
       "subject_id": "USART1",
       "subject_kind": "peripheral",
       "target": "RCC_APB2ENR.USART1EN",
+      "target_ref_id": "gate:usart1",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "set-bit",
@@ -1914,6 +2206,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:apb1enr",
       "register_name": "APB1ENR",
       "register_offset": 64,
       "register_peripheral": "RCC",
@@ -1921,8 +2214,11 @@
       "subject_id": "USART2",
       "subject_kind": "peripheral",
       "target": "RCC_APB1ENR.USART2EN",
+      "target_ref_id": "gate:usart2",
+      "target_ref_kind": "clock-gate",
       "value": "1",
-      "value_int": 1
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -1935,6 +2231,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
       "register_peripheral": "RCC",
@@ -1942,8 +2239,11 @@
       "subject_id": "DMA1",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1RSTR.DMA1RST",
+      "target_ref_id": "reset:dma1",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -1956,6 +2256,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
       "register_peripheral": "RCC",
@@ -1963,8 +2264,11 @@
       "subject_id": "DMA2",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1RSTR.DMA2RST",
+      "target_ref_id": "reset:dma2",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -1977,6 +2281,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
       "register_peripheral": "RCC",
@@ -1984,8 +2289,11 @@
       "subject_id": "GPIOA",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1RSTR.GPIOARST",
+      "target_ref_id": "reset:gpioa",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -1998,6 +2306,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
       "register_peripheral": "RCC",
@@ -2005,8 +2314,11 @@
       "subject_id": "GPIOB",
       "subject_kind": "peripheral",
       "target": "RCC_AHB1RSTR.GPIOBRST",
+      "target_ref_id": "reset:gpiob",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -2019,6 +2331,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:ahb2rstr",
       "register_name": "AHB2RSTR",
       "register_offset": 20,
       "register_peripheral": "RCC",
@@ -2026,8 +2339,11 @@
       "subject_id": "OTG_FS",
       "subject_kind": "peripheral",
       "target": "RCC_AHB2RSTR.OTGFSRST",
+      "target_ref_id": "reset:otg-fs",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -2040,6 +2356,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:apb2rstr",
       "register_name": "APB2RSTR",
       "register_offset": 36,
       "register_peripheral": "RCC",
@@ -2047,8 +2364,11 @@
       "subject_id": "USART1",
       "subject_kind": "peripheral",
       "target": "RCC_APB2RSTR.USART1RST",
+      "target_ref_id": "reset:usart1",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clear-bit",
@@ -2061,6 +2381,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_id": "register:rcc:apb1rstr",
       "register_name": "APB1RSTR",
       "register_offset": 32,
       "register_peripheral": "RCC",
@@ -2068,8 +2389,11 @@
       "subject_id": "USART2",
       "subject_kind": "peripheral",
       "target": "RCC_APB1RSTR.USART2RST",
+      "target_ref_id": "reset:usart2",
+      "target_ref_kind": "reset",
       "value": "0",
-      "value_int": 0
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "write-selector",
@@ -2089,8 +2413,12 @@
       "subject_id": "PA10",
       "subject_kind": "pin",
       "target": "pinmux.PA10",
+      "target_ref_id": "PA10",
+      "target_ref_kind": "pin",
       "value": "7",
-      "value_int": 7
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     },
     {
       "kind": "write-selector",
@@ -2110,8 +2438,12 @@
       "subject_id": "PA2",
       "subject_kind": "pin",
       "target": "pinmux.PA2",
+      "target_ref_id": "PA2",
+      "target_ref_kind": "pin",
       "value": "7",
-      "value_int": 7
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     },
     {
       "kind": "write-selector",
@@ -2131,8 +2463,12 @@
       "subject_id": "PA3",
       "subject_kind": "pin",
       "target": "pinmux.PA3",
+      "target_ref_id": "PA3",
+      "target_ref_kind": "pin",
       "value": "7",
-      "value_int": 7
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     },
     {
       "kind": "write-selector",
@@ -2152,8 +2488,12 @@
       "subject_id": "PA9",
       "subject_kind": "pin",
       "target": "pinmux.PA9",
+      "target_ref_id": "PA9",
+      "target_ref_kind": "pin",
       "value": "7",
-      "value_int": 7
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     }
   ],
   "route_requirements": [
@@ -2169,7 +2509,11 @@
       },
       "requirement_id": "requirement:bonded-pin:lqfp64:pa10",
       "target": "PA10",
-      "value": "lqfp64"
+      "target_ref_id": "PA10",
+      "target_ref_kind": "pin",
+      "value": "lqfp64",
+      "value_ref_id": "lqfp64",
+      "value_ref_kind": "package"
     },
     {
       "kind": "bonded-pin",
@@ -2183,7 +2527,11 @@
       },
       "requirement_id": "requirement:bonded-pin:lqfp64:pa2",
       "target": "PA2",
-      "value": "lqfp64"
+      "target_ref_id": "PA2",
+      "target_ref_kind": "pin",
+      "value": "lqfp64",
+      "value_ref_id": "lqfp64",
+      "value_ref_kind": "package"
     },
     {
       "kind": "bonded-pin",
@@ -2197,7 +2545,11 @@
       },
       "requirement_id": "requirement:bonded-pin:lqfp64:pa3",
       "target": "PA3",
-      "value": "lqfp64"
+      "target_ref_id": "PA3",
+      "target_ref_kind": "pin",
+      "value": "lqfp64",
+      "value_ref_id": "lqfp64",
+      "value_ref_kind": "package"
     },
     {
       "kind": "bonded-pin",
@@ -2211,7 +2563,11 @@
       },
       "requirement_id": "requirement:bonded-pin:lqfp64:pa9",
       "target": "PA9",
-      "value": "lqfp64"
+      "target_ref_id": "PA9",
+      "target_ref_kind": "pin",
+      "value": "lqfp64",
+      "value_ref_id": "lqfp64",
+      "value_ref_kind": "package"
     },
     {
       "kind": "clock-enable",
@@ -2225,7 +2581,11 @@
       },
       "requirement_id": "requirement:clock-enable:dma1",
       "target": "RCC_AHB1ENR.DMA1EN",
-      "value": "1"
+      "target_ref_id": "gate:dma1",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clock-enable",
@@ -2239,7 +2599,11 @@
       },
       "requirement_id": "requirement:clock-enable:dma2",
       "target": "RCC_AHB1ENR.DMA2EN",
-      "value": "1"
+      "target_ref_id": "gate:dma2",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clock-enable",
@@ -2253,7 +2617,11 @@
       },
       "requirement_id": "requirement:clock-enable:gpioa",
       "target": "RCC_AHB1ENR.GPIOAEN",
-      "value": "1"
+      "target_ref_id": "gate:gpioa",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clock-enable",
@@ -2267,7 +2635,11 @@
       },
       "requirement_id": "requirement:clock-enable:gpiob",
       "target": "RCC_AHB1ENR.GPIOBEN",
-      "value": "1"
+      "target_ref_id": "gate:gpiob",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clock-enable",
@@ -2281,7 +2653,11 @@
       },
       "requirement_id": "requirement:clock-enable:otg-fs",
       "target": "RCC_AHB2ENR.OTGFSEN",
-      "value": "1"
+      "target_ref_id": "gate:otg-fs",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clock-enable",
@@ -2295,7 +2671,11 @@
       },
       "requirement_id": "requirement:clock-enable:usart1",
       "target": "RCC_APB2ENR.USART1EN",
-      "value": "1"
+      "target_ref_id": "gate:usart1",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "clock-enable",
@@ -2309,7 +2689,11 @@
       },
       "requirement_id": "requirement:clock-enable:usart2",
       "target": "RCC_APB1ENR.USART2EN",
-      "value": "1"
+      "target_ref_id": "gate:usart2",
+      "target_ref_kind": "clock-gate",
+      "value": "1",
+      "value_int": 1,
+      "value_ref_kind": "int"
     },
     {
       "kind": "package",
@@ -2323,7 +2707,11 @@
       },
       "requirement_id": "requirement:package:lqfp64",
       "target": "lqfp64",
-      "value": "selected"
+      "target_ref_id": "lqfp64",
+      "target_ref_kind": "package",
+      "value": "selected",
+      "value_ref_id": "selected",
+      "value_ref_kind": "state"
     },
     {
       "kind": "reset-release",
@@ -2337,7 +2725,11 @@
       },
       "requirement_id": "requirement:reset-release:dma1",
       "target": "RCC_AHB1RSTR.DMA1RST",
-      "value": "0"
+      "target_ref_id": "reset:dma1",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "reset-release",
@@ -2351,7 +2743,11 @@
       },
       "requirement_id": "requirement:reset-release:dma2",
       "target": "RCC_AHB1RSTR.DMA2RST",
-      "value": "0"
+      "target_ref_id": "reset:dma2",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "reset-release",
@@ -2365,7 +2761,11 @@
       },
       "requirement_id": "requirement:reset-release:gpioa",
       "target": "RCC_AHB1RSTR.GPIOARST",
-      "value": "0"
+      "target_ref_id": "reset:gpioa",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "reset-release",
@@ -2379,7 +2779,11 @@
       },
       "requirement_id": "requirement:reset-release:gpiob",
       "target": "RCC_AHB1RSTR.GPIOBRST",
-      "value": "0"
+      "target_ref_id": "reset:gpiob",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "reset-release",
@@ -2393,7 +2797,11 @@
       },
       "requirement_id": "requirement:reset-release:otg-fs",
       "target": "RCC_AHB2RSTR.OTGFSRST",
-      "value": "0"
+      "target_ref_id": "reset:otg-fs",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "reset-release",
@@ -2407,7 +2815,11 @@
       },
       "requirement_id": "requirement:reset-release:usart1",
       "target": "RCC_APB2RSTR.USART1RST",
-      "value": "0"
+      "target_ref_id": "reset:usart1",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "reset-release",
@@ -2421,7 +2833,11 @@
       },
       "requirement_id": "requirement:reset-release:usart2",
       "target": "RCC_APB1RSTR.USART2RST",
-      "value": "0"
+      "target_ref_id": "reset:usart2",
+      "target_ref_kind": "reset",
+      "value": "0",
+      "value_int": 0,
+      "value_ref_kind": "int"
     },
     {
       "kind": "source-select",
@@ -2435,7 +2851,12 @@
       },
       "requirement_id": "requirement:source-select:pa10:usart1:rx",
       "target": "pinmux.PA10",
-      "value": "selector:7"
+      "target_ref_id": "PA10",
+      "target_ref_kind": "pin",
+      "value": "selector:7",
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     },
     {
       "kind": "source-select",
@@ -2449,7 +2870,12 @@
       },
       "requirement_id": "requirement:source-select:pa2:usart2:tx",
       "target": "pinmux.PA2",
-      "value": "selector:7"
+      "target_ref_id": "PA2",
+      "target_ref_kind": "pin",
+      "value": "selector:7",
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     },
     {
       "kind": "source-select",
@@ -2463,7 +2889,12 @@
       },
       "requirement_id": "requirement:source-select:pa3:usart2:rx",
       "target": "pinmux.PA3",
-      "value": "selector:7"
+      "target_ref_id": "PA3",
+      "target_ref_kind": "pin",
+      "value": "selector:7",
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     },
     {
       "kind": "source-select",
@@ -2477,7 +2908,12 @@
       },
       "requirement_id": "requirement:source-select:pa9:usart1:tx",
       "target": "pinmux.PA9",
-      "value": "selector:7"
+      "target_ref_id": "PA9",
+      "target_ref_kind": "pin",
+      "value": "selector:7",
+      "value_int": 7,
+      "value_ref_id": "selector:7",
+      "value_ref_kind": "selector"
     }
   ],
   "schema_version": "1.1.0",

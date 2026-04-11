@@ -11,7 +11,13 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.patches import load_device_patch
 from alloy_codegen.scope import PipelineScope
-from alloy_codegen.sources.raw import RawDeviceDocument, RawInterrupt, RawPeripheral, RawRegister
+from alloy_codegen.sources.raw import (
+    RawDeviceDocument,
+    RawInterrupt,
+    RawPeripheral,
+    RawRegister,
+    RawRegisterField,
+)
 
 CMSIS_SVD_REMOTE = "https://github.com/cmsis-svd/cmsis-svd-data.git"
 STMICRO_SUBTREE = "data/STMicro"
@@ -190,20 +196,100 @@ def _parse_registers(
 
     peripheral_default_access = peripheral_node.findtext("access")
     peripheral_default_size = peripheral_node.findtext("size")
+    register_nodes = tuple(registers_node.findall("register"))
+    register_index = {
+        name: register_node
+        for register_node in register_nodes
+        if (name := register_node.findtext("name")) is not None
+    }
     registers: list[RawRegister] = []
-    for register_node in registers_node.findall("register"):
+    for register_node in register_nodes:
         name = register_node.findtext("name")
+        base_register = _resolve_derived_register(register_node, register_index)
         offset_text = register_node.findtext("addressOffset")
+        if offset_text is None and base_register is not None:
+            offset_text = base_register.findtext("addressOffset")
         if name is None or offset_text is None:
             continue
-        access = register_node.findtext("access") or peripheral_default_access
-        size_text = register_node.findtext("size") or peripheral_default_size
+        access = register_node.findtext("access")
+        if access is None and base_register is not None:
+            access = base_register.findtext("access")
+        if access is None:
+            access = peripheral_default_access
+        size_text = register_node.findtext("size")
+        if size_text is None and base_register is not None:
+            size_text = base_register.findtext("size")
+        if size_text is None:
+            size_text = peripheral_default_size
         registers.append(
             RawRegister(
                 name=name,
                 offset_bytes=int(offset_text, 0),
                 access=access,
                 size_bits=None if size_text is None else int(size_text, 0),
+                fields=_parse_register_fields(
+                    register_node,
+                    register_index,
+                    default_access=access,
+                ),
             )
         )
     return tuple(registers)
+
+
+def _resolve_derived_register(
+    register_node: ET.Element,
+    register_index: dict[str, ET.Element],
+) -> ET.Element | None:
+    derived_from = register_node.get("derivedFrom")
+    if derived_from is None:
+        return None
+    return register_index.get(derived_from)
+
+
+def _parse_register_fields(
+    register_node: ET.Element,
+    register_index: dict[str, ET.Element],
+    *,
+    default_access: str | None,
+    seen: frozenset[str] = frozenset(),
+) -> tuple[RawRegisterField, ...]:
+    fields_node = register_node.find("fields")
+    if fields_node is None:
+        derived_from = register_node.get("derivedFrom")
+        if derived_from is None:
+            return ()
+        if derived_from in seen:
+            raise StageExecutionError(
+                f"Detected circular SVD derivedFrom field chain involving '{derived_from}'."
+            )
+        base_register = register_index.get(derived_from)
+        if base_register is None:
+            return ()
+        return _parse_register_fields(
+            base_register,
+            register_index,
+            default_access=default_access,
+            seen=seen | {derived_from},
+        )
+
+    fields: list[RawRegisterField] = []
+    for field_node in fields_node.findall("field"):
+        name = field_node.findtext("name")
+        bit_offset_text = field_node.findtext("bitOffset") or field_node.findtext("lsb")
+        bit_width_text = field_node.findtext("bitWidth")
+        if bit_width_text is None:
+            msb_text = field_node.findtext("msb")
+            if bit_offset_text is not None and msb_text is not None:
+                bit_width_text = str(int(msb_text, 0) - int(bit_offset_text, 0) + 1)
+        if name is None or bit_offset_text is None or bit_width_text is None:
+            continue
+        fields.append(
+            RawRegisterField(
+                name=name,
+                bit_offset=int(bit_offset_text, 0),
+                bit_width=int(bit_width_text, 0),
+                access=field_node.findtext("access") or default_access,
+            )
+        )
+    return tuple(fields)

@@ -33,8 +33,11 @@ Published `alloy-devices` trees may contain:
   - `generated/devices/<device>/device_descriptor.hpp`
   - `generated/devices/<device>/pins.hpp`
   - `generated/devices/<device>/peripheral_instances.hpp`
+  - `generated/devices/<device>/interrupt_bindings.hpp`
+  - `generated/devices/<device>/dma_bindings.hpp`
   - `generated/devices/<device>/capability_overlays.hpp`
   - `generated/devices/<device>/register_map.hpp`
+  - `generated/devices/<device>/register_fields.hpp`
   - `generated/devices/<device>/startup_descriptors.hpp`
   - `generated/devices/<device>/startup_vectors.cpp`
 - reports:

@@ -107,6 +107,10 @@ def verify_alloy_smoke_consumer(
             f"-DALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER="
             f'"{vendor}/{family}/generated/devices/{device}/register_map.hpp"'
         ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_REGISTER_FIELDS_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/register_fields.hpp"'
+        ),
         f'-DALLOY_CODEGEN_SMOKE_GPIO_HEADER="{gpio_header_include}"',
         f'-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER="{vendor}/{family}/generated/connector_tables.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_INTERRUPT_MAP_HEADER="{vendor}/{family}/generated/interrupt_map.hpp"',
@@ -125,6 +129,14 @@ def verify_alloy_smoke_consumer(
         (
             f"-DALLOY_CODEGEN_SMOKE_PERIPHERAL_INSTANCES_HEADER="
             f'"{vendor}/{family}/generated/devices/{device}/peripheral_instances.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_INTERRUPT_BINDINGS_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/interrupt_bindings.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_DMA_BINDINGS_HEADER="
+            f'"{vendor}/{family}/generated/devices/{device}/dma_bindings.hpp"'
         ),
         (
             f"-DALLOY_CODEGEN_SMOKE_CAPABILITY_OVERLAYS_HEADER="

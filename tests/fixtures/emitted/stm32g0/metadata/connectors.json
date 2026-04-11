@@ -107,6 +107,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:ahbenr",
           "register_name": "AHBENR",
           "register_offset": 56,
           "register_peripheral": "RCC",
@@ -114,8 +115,11 @@
           "subject_id": "DMA1",
           "subject_kind": "peripheral",
           "target": "RCC_AHBENR.DMA1EN",
+          "target_ref_id": "gate:dma1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -128,6 +132,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:ahbenr",
           "register_name": "AHBENR",
           "register_offset": 56,
           "register_peripheral": "RCC",
@@ -135,8 +140,11 @@
           "subject_id": "DMAMUX1",
           "subject_kind": "peripheral",
           "target": "RCC_AHBENR.DMAMUX1EN",
+          "target_ref_id": "gate:dmamux1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -149,6 +157,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:iopenr",
           "register_name": "IOPENR",
           "register_offset": 52,
           "register_peripheral": "RCC",
@@ -156,8 +165,11 @@
           "subject_id": "GPIOA",
           "subject_kind": "peripheral",
           "target": "RCC_IOPENR.GPIOAEN",
+          "target_ref_id": "gate:gpioa",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -170,6 +182,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:iopenr",
           "register_name": "IOPENR",
           "register_offset": 52,
           "register_peripheral": "RCC",
@@ -177,8 +190,11 @@
           "subject_id": "GPIOB",
           "subject_kind": "peripheral",
           "target": "RCC_IOPENR.GPIOBEN",
+          "target_ref_id": "gate:gpiob",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -191,6 +207,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:apbenr2",
           "register_name": "APBENR2",
           "register_offset": 64,
           "register_peripheral": "RCC",
@@ -198,8 +215,11 @@
           "subject_id": "USART1",
           "subject_kind": "peripheral",
           "target": "RCC_APBENR2.USART1EN",
+          "target_ref_id": "gate:usart1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clear-bit",
@@ -212,6 +232,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:ahbrstr",
           "register_name": "AHBRSTR",
           "register_offset": 40,
           "register_peripheral": "RCC",
@@ -219,8 +240,11 @@
           "subject_id": "DMA1",
           "subject_kind": "peripheral",
           "target": "RCC_AHBRSTR.DMA1RST",
+          "target_ref_id": "reset:dma1",
+          "target_ref_kind": "reset",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clear-bit",
@@ -233,6 +257,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:ahbrstr",
           "register_name": "AHBRSTR",
           "register_offset": 40,
           "register_peripheral": "RCC",
@@ -240,8 +265,11 @@
           "subject_id": "DMAMUX1",
           "subject_kind": "peripheral",
           "target": "RCC_AHBRSTR.DMAMUX1RST",
+          "target_ref_id": "reset:dmamux1",
+          "target_ref_kind": "reset",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clear-bit",
@@ -254,6 +282,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:ioprstr",
           "register_name": "IOPRSTR",
           "register_offset": 36,
           "register_peripheral": "RCC",
@@ -261,8 +290,11 @@
           "subject_id": "GPIOA",
           "subject_kind": "peripheral",
           "target": "RCC_IOPRSTR.GPIOARST",
+          "target_ref_id": "reset:gpioa",
+          "target_ref_kind": "reset",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clear-bit",
@@ -275,6 +307,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:ioprstr",
           "register_name": "IOPRSTR",
           "register_offset": 36,
           "register_peripheral": "RCC",
@@ -282,8 +315,11 @@
           "subject_id": "GPIOB",
           "subject_kind": "peripheral",
           "target": "RCC_IOPRSTR.GPIOBRST",
+          "target_ref_id": "reset:gpiob",
+          "target_ref_kind": "reset",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clear-bit",
@@ -296,6 +332,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_id": "register:rcc:apbrstr2",
           "register_name": "APBRSTR2",
           "register_offset": 48,
           "register_peripheral": "RCC",
@@ -303,8 +340,11 @@
           "subject_id": "USART1",
           "subject_kind": "peripheral",
           "target": "RCC_APBRSTR2.USART1RST",
+          "target_ref_id": "reset:usart1",
+          "target_ref_kind": "reset",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "write-selector",
@@ -324,8 +364,12 @@
           "subject_id": "PB6",
           "subject_kind": "pin",
           "target": "pinmux.PB6",
+          "target_ref_id": "PB6",
+          "target_ref_kind": "pin",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -345,8 +389,12 @@
           "subject_id": "PB7",
           "subject_kind": "pin",
           "target": "pinmux.PB7",
+          "target_ref_id": "PB7",
+          "target_ref_kind": "pin",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         }
       ],
       "route_requirements": [
@@ -362,7 +410,11 @@
           },
           "requirement_id": "requirement:bonded-pin:lqfp64:pb6",
           "target": "PB6",
-          "value": "lqfp64"
+          "target_ref_id": "PB6",
+          "target_ref_kind": "pin",
+          "value": "lqfp64",
+          "value_ref_id": "lqfp64",
+          "value_ref_kind": "package"
         },
         {
           "kind": "bonded-pin",
@@ -376,7 +428,11 @@
           },
           "requirement_id": "requirement:bonded-pin:lqfp64:pb7",
           "target": "PB7",
-          "value": "lqfp64"
+          "target_ref_id": "PB7",
+          "target_ref_kind": "pin",
+          "value": "lqfp64",
+          "value_ref_id": "lqfp64",
+          "value_ref_kind": "package"
         },
         {
           "kind": "clock-enable",
@@ -390,7 +446,11 @@
           },
           "requirement_id": "requirement:clock-enable:dma1",
           "target": "RCC_AHBENR.DMA1EN",
-          "value": "1"
+          "target_ref_id": "gate:dma1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -404,7 +464,11 @@
           },
           "requirement_id": "requirement:clock-enable:dmamux1",
           "target": "RCC_AHBENR.DMAMUX1EN",
-          "value": "1"
+          "target_ref_id": "gate:dmamux1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -418,7 +482,11 @@
           },
           "requirement_id": "requirement:clock-enable:gpioa",
           "target": "RCC_IOPENR.GPIOAEN",
-          "value": "1"
+          "target_ref_id": "gate:gpioa",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -432,7 +500,11 @@
           },
           "requirement_id": "requirement:clock-enable:gpiob",
           "target": "RCC_IOPENR.GPIOBEN",
-          "value": "1"
+          "target_ref_id": "gate:gpiob",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -446,7 +518,11 @@
           },
           "requirement_id": "requirement:clock-enable:usart1",
           "target": "RCC_APBENR2.USART1EN",
-          "value": "1"
+          "target_ref_id": "gate:usart1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "package",
@@ -460,7 +536,11 @@
           },
           "requirement_id": "requirement:package:lqfp64",
           "target": "lqfp64",
-          "value": "selected"
+          "target_ref_id": "lqfp64",
+          "target_ref_kind": "package",
+          "value": "selected",
+          "value_ref_id": "selected",
+          "value_ref_kind": "state"
         },
         {
           "kind": "reset-release",
@@ -474,7 +554,11 @@
           },
           "requirement_id": "requirement:reset-release:dma1",
           "target": "RCC_AHBRSTR.DMA1RST",
-          "value": "0"
+          "target_ref_id": "reset:dma1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "reset-release",
@@ -488,7 +572,11 @@
           },
           "requirement_id": "requirement:reset-release:dmamux1",
           "target": "RCC_AHBRSTR.DMAMUX1RST",
-          "value": "0"
+          "target_ref_id": "reset:dmamux1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "reset-release",
@@ -502,7 +590,11 @@
           },
           "requirement_id": "requirement:reset-release:gpioa",
           "target": "RCC_IOPRSTR.GPIOARST",
-          "value": "0"
+          "target_ref_id": "reset:gpioa",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "reset-release",
@@ -516,7 +608,11 @@
           },
           "requirement_id": "requirement:reset-release:gpiob",
           "target": "RCC_IOPRSTR.GPIOBRST",
-          "value": "0"
+          "target_ref_id": "reset:gpiob",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "reset-release",
@@ -530,7 +626,11 @@
           },
           "requirement_id": "requirement:reset-release:usart1",
           "target": "RCC_APBRSTR2.USART1RST",
-          "value": "0"
+          "target_ref_id": "reset:usart1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "source-select",
@@ -544,7 +644,12 @@
           },
           "requirement_id": "requirement:source-select:pb6:usart1:tx",
           "target": "pinmux.PB6",
-          "value": "selector:0"
+          "target_ref_id": "PB6",
+          "target_ref_kind": "pin",
+          "value": "selector:0",
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -558,7 +663,12 @@
           },
           "requirement_id": "requirement:source-select:pb7:usart1:rx",
           "target": "pinmux.PB7",
-          "value": "selector:0"
+          "target_ref_id": "PB7",
+          "target_ref_kind": "pin",
+          "value": "selector:0",
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         }
       ]
     }

@@ -439,15 +439,18 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
-          "register_name": null,
+          "register_name": "CCGR1",
           "register_offset": null,
-          "register_peripheral": null,
+          "register_peripheral": "CCM",
           "schema_id": "alloy.clock.nxp-generic-clock-v1",
           "subject_id": "GPIO1",
           "subject_kind": "peripheral",
           "target": "CCM_CCGR1.CG13",
+          "target_ref_id": "gate:gpio1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -460,15 +463,18 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
-          "register_name": null,
+          "register_name": "CCGR3",
           "register_offset": null,
-          "register_peripheral": null,
+          "register_peripheral": "CCM",
           "schema_id": "alloy.clock.nxp-generic-clock-v1",
           "subject_id": "GPIO4",
           "subject_kind": "peripheral",
           "target": "CCM_CCGR3.CG13",
+          "target_ref_id": "gate:gpio4",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -481,15 +487,18 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
-          "register_name": null,
+          "register_name": "CCGR2",
           "register_offset": null,
-          "register_peripheral": null,
+          "register_peripheral": "CCM",
           "schema_id": "alloy.clock.nxp-generic-clock-v1",
           "subject_id": "LPI2C1",
           "subject_kind": "peripheral",
           "target": "CCM_CCGR2.CG2",
+          "target_ref_id": "gate:lpi2c1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -502,15 +511,18 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
-          "register_name": null,
+          "register_name": "CCGR1",
           "register_offset": null,
-          "register_peripheral": null,
+          "register_peripheral": "CCM",
           "schema_id": "alloy.clock.nxp-generic-clock-v1",
           "subject_id": "LPSPI1",
           "subject_kind": "peripheral",
           "target": "CCM_CCGR1.CG0",
+          "target_ref_id": "gate:lpspi1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -523,15 +535,18 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
-          "register_name": null,
+          "register_name": "CCGR5",
           "register_offset": null,
-          "register_peripheral": null,
+          "register_peripheral": "CCM",
           "schema_id": "alloy.clock.nxp-generic-clock-v1",
           "subject_id": "LPUART1",
           "subject_kind": "peripheral",
           "target": "CCM_CCGR5.CG12",
+          "target_ref_id": "gate:lpuart1",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "set-bit",
@@ -544,15 +559,18 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
-          "register_name": null,
+          "register_name": "CCGR0",
           "register_offset": null,
-          "register_peripheral": null,
+          "register_peripheral": "CCM",
           "schema_id": "alloy.clock.nxp-generic-clock-v1",
           "subject_id": "LPUART3",
           "subject_kind": "peripheral",
           "target": "CCM_CCGR0.CG6",
+          "target_ref_id": "gate:lpuart3",
+          "target_ref_kind": "clock-gate",
           "value": "1",
-          "value_int": 1
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "write-selector",
@@ -572,8 +590,12 @@
           "subject_id": "GPIO_AD_B0_00",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_00",
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
           "value": "5",
-          "value_int": 5
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -593,8 +615,12 @@
           "subject_id": "GPIO_AD_B0_00",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_00",
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -614,8 +640,12 @@
           "subject_id": "GPIO_AD_B0_00",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_00",
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
           "value": "2",
-          "value_int": 2
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -635,8 +665,12 @@
           "subject_id": "GPIO_AD_B0_01",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_01",
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
           "value": "5",
-          "value_int": 5
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -656,8 +690,12 @@
           "subject_id": "GPIO_AD_B0_01",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_01",
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
           "value": "0",
-          "value_int": 0
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -677,8 +715,12 @@
           "subject_id": "GPIO_AD_B0_01",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_01",
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
           "value": "2",
-          "value_int": 2
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -698,8 +740,12 @@
           "subject_id": "GPIO_EMC_00",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_00",
+          "target_ref_id": "GPIO_EMC_00",
+          "target_ref_kind": "pin",
           "value": "5",
-          "value_int": 5
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -719,8 +765,12 @@
           "subject_id": "GPIO_EMC_00",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_00",
+          "target_ref_id": "GPIO_EMC_00",
+          "target_ref_kind": "pin",
           "value": "2",
-          "value_int": 2
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -740,8 +790,12 @@
           "subject_id": "GPIO_EMC_01",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_01",
+          "target_ref_id": "GPIO_EMC_01",
+          "target_ref_kind": "pin",
           "value": "5",
-          "value_int": 5
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -761,8 +815,12 @@
           "subject_id": "GPIO_EMC_01",
           "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_01",
+          "target_ref_id": "GPIO_EMC_01",
+          "target_ref_kind": "pin",
           "value": "2",
-          "value_int": 2
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         }
       ],
       "route_requirements": [
@@ -778,7 +836,11 @@
           },
           "requirement_id": "requirement:bonded-pin:bga196:gpio-ad-b0-00",
           "target": "GPIO_AD_B0_00",
-          "value": "bga196"
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
+          "value": "bga196",
+          "value_ref_id": "bga196",
+          "value_ref_kind": "package"
         },
         {
           "kind": "bonded-pin",
@@ -792,7 +854,11 @@
           },
           "requirement_id": "requirement:bonded-pin:bga196:gpio-ad-b0-01",
           "target": "GPIO_AD_B0_01",
-          "value": "bga196"
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
+          "value": "bga196",
+          "value_ref_id": "bga196",
+          "value_ref_kind": "package"
         },
         {
           "kind": "bonded-pin",
@@ -806,7 +872,11 @@
           },
           "requirement_id": "requirement:bonded-pin:bga196:gpio-emc-00",
           "target": "GPIO_EMC_00",
-          "value": "bga196"
+          "target_ref_id": "GPIO_EMC_00",
+          "target_ref_kind": "pin",
+          "value": "bga196",
+          "value_ref_id": "bga196",
+          "value_ref_kind": "package"
         },
         {
           "kind": "bonded-pin",
@@ -820,7 +890,11 @@
           },
           "requirement_id": "requirement:bonded-pin:bga196:gpio-emc-01",
           "target": "GPIO_EMC_01",
-          "value": "bga196"
+          "target_ref_id": "GPIO_EMC_01",
+          "target_ref_kind": "pin",
+          "value": "bga196",
+          "value_ref_id": "bga196",
+          "value_ref_kind": "package"
         },
         {
           "kind": "clock-enable",
@@ -834,7 +908,11 @@
           },
           "requirement_id": "requirement:clock-enable:gpio1",
           "target": "CCM_CCGR1.CG13",
-          "value": "1"
+          "target_ref_id": "gate:gpio1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -848,7 +926,11 @@
           },
           "requirement_id": "requirement:clock-enable:gpio4",
           "target": "CCM_CCGR3.CG13",
-          "value": "1"
+          "target_ref_id": "gate:gpio4",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -862,7 +944,11 @@
           },
           "requirement_id": "requirement:clock-enable:lpi2c1",
           "target": "CCM_CCGR2.CG2",
-          "value": "1"
+          "target_ref_id": "gate:lpi2c1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -876,7 +962,11 @@
           },
           "requirement_id": "requirement:clock-enable:lpspi1",
           "target": "CCM_CCGR1.CG0",
-          "value": "1"
+          "target_ref_id": "gate:lpspi1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -890,7 +980,11 @@
           },
           "requirement_id": "requirement:clock-enable:lpuart1",
           "target": "CCM_CCGR5.CG12",
-          "value": "1"
+          "target_ref_id": "gate:lpuart1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -904,7 +998,11 @@
           },
           "requirement_id": "requirement:clock-enable:lpuart3",
           "target": "CCM_CCGR0.CG6",
-          "value": "1"
+          "target_ref_id": "gate:lpuart3",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "package",
@@ -918,7 +1016,11 @@
           },
           "requirement_id": "requirement:package:bga196",
           "target": "bga196",
-          "value": "selected"
+          "target_ref_id": "bga196",
+          "target_ref_kind": "package",
+          "value": "selected",
+          "value_ref_id": "selected",
+          "value_ref_kind": "state"
         },
         {
           "kind": "source-select",
@@ -932,7 +1034,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-ad-b0-00:gpio1:io00",
           "target": "pinmux.GPIO_AD_B0_00",
-          "value": "selector:5"
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
+          "value": "selector:5",
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -946,7 +1053,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-ad-b0-00:lpi2c1:scl",
           "target": "pinmux.GPIO_AD_B0_00",
-          "value": "selector:0"
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
+          "value": "selector:0",
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -960,7 +1072,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-ad-b0-00:lpuart1:tx",
           "target": "pinmux.GPIO_AD_B0_00",
-          "value": "selector:2"
+          "target_ref_id": "GPIO_AD_B0_00",
+          "target_ref_kind": "pin",
+          "value": "selector:2",
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -974,7 +1091,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-ad-b0-01:gpio1:io01",
           "target": "pinmux.GPIO_AD_B0_01",
-          "value": "selector:5"
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
+          "value": "selector:5",
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -988,7 +1110,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-ad-b0-01:lpi2c1:sda",
           "target": "pinmux.GPIO_AD_B0_01",
-          "value": "selector:0"
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
+          "value": "selector:0",
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -1002,7 +1129,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-ad-b0-01:lpuart1:rx",
           "target": "pinmux.GPIO_AD_B0_01",
-          "value": "selector:2"
+          "target_ref_id": "GPIO_AD_B0_01",
+          "target_ref_kind": "pin",
+          "value": "selector:2",
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -1016,7 +1148,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-emc-00:gpio4:io00",
           "target": "pinmux.GPIO_EMC_00",
-          "value": "selector:5"
+          "target_ref_id": "GPIO_EMC_00",
+          "target_ref_kind": "pin",
+          "value": "selector:5",
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -1030,7 +1167,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-emc-00:lpspi1:sck",
           "target": "pinmux.GPIO_EMC_00",
-          "value": "selector:2"
+          "target_ref_id": "GPIO_EMC_00",
+          "target_ref_kind": "pin",
+          "value": "selector:2",
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -1044,7 +1186,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-emc-01:gpio4:io01",
           "target": "pinmux.GPIO_EMC_01",
-          "value": "selector:5"
+          "target_ref_id": "GPIO_EMC_01",
+          "target_ref_kind": "pin",
+          "value": "selector:5",
+          "value_int": 5,
+          "value_ref_id": "selector:5",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -1058,7 +1205,12 @@
           },
           "requirement_id": "requirement:source-select:gpio-emc-01:lpspi1:pcs0",
           "target": "pinmux.GPIO_EMC_01",
-          "value": "selector:2"
+          "target_ref_id": "GPIO_EMC_01",
+          "target_ref_kind": "pin",
+          "value": "selector:2",
+          "value_int": 2,
+          "value_ref_id": "selector:2",
+          "value_ref_kind": "selector"
         }
       ]
     }

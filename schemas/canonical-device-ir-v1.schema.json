@@ -187,6 +187,32 @@
       },
       "additionalProperties": false
     },
+    "register_field_descriptor": {
+      "type": "object",
+      "required": [
+        "field_id",
+        "register_id",
+        "peripheral",
+        "register_name",
+        "name",
+        "bit_offset",
+        "bit_width",
+        "access",
+        "provenance"
+      ],
+      "properties": {
+        "field_id": { "type": "string" },
+        "register_id": { "type": "string" },
+        "peripheral": { "type": "string" },
+        "register_name": { "type": "string" },
+        "name": { "type": "string" },
+        "bit_offset": { "type": "integer" },
+        "bit_width": { "type": "integer" },
+        "access": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
     "package_pad": {
       "type": "object",
       "required": [
@@ -243,6 +269,11 @@
         "kind": { "type": "string" },
         "target": { "type": ["string", "null"] },
         "value": { "type": ["string", "null"] },
+        "target_ref_kind": { "type": ["string", "null"] },
+        "target_ref_id": { "type": ["string", "null"] },
+        "value_ref_kind": { "type": ["string", "null"] },
+        "value_ref_id": { "type": ["string", "null"] },
+        "value_int": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -274,6 +305,12 @@
         "register_peripheral": { "type": ["string", "null"] },
         "register_name": { "type": ["string", "null"] },
         "register_offset": { "type": ["integer", "null"] },
+        "register_id": { "type": ["string", "null"] },
+        "register_field_id": { "type": ["string", "null"] },
+        "target_ref_kind": { "type": ["string", "null"] },
+        "target_ref_id": { "type": ["string", "null"] },
+        "value_ref_kind": { "type": ["string", "null"] },
+        "value_ref_id": { "type": ["string", "null"] },
         "value_int": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
@@ -346,6 +383,34 @@
       },
       "additionalProperties": false
     },
+    "interrupt_binding_descriptor": {
+      "type": "object",
+      "required": [
+        "binding_id",
+        "peripheral",
+        "interrupt",
+        "line",
+        "vector_slot",
+        "symbol_name",
+        "shared_group",
+        "provenance"
+      ],
+      "properties": {
+        "binding_id": { "type": "string" },
+        "peripheral": { "type": "string" },
+        "interrupt": { "type": "string" },
+        "line": { "type": "integer" },
+        "vector_slot": { "type": ["integer", "null"] },
+        "symbol_name": { "type": ["string", "null"] },
+        "shared_group": { "type": ["string", "null"] },
+        "alias_names": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
     "vector_slot_descriptor": {
       "type": "object",
       "required": ["slot", "symbol_name", "interrupt", "kind", "provenance"],
@@ -400,6 +465,11 @@
           "items": { "type": "string" }
         },
         "register_target": { "type": ["string", "null"] },
+        "register_peripheral": { "type": ["string", "null"] },
+        "register_name": { "type": ["string", "null"] },
+        "register_offset": { "type": ["integer", "null"] },
+        "register_id": { "type": ["string", "null"] },
+        "register_field_id": { "type": ["string", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -412,6 +482,11 @@
         "peripheral": { "type": ["string", "null"] },
         "enable_signal": { "type": "string" },
         "parent_node": { "type": ["string", "null"] },
+        "register_peripheral": { "type": ["string", "null"] },
+        "register_name": { "type": ["string", "null"] },
+        "register_offset": { "type": ["integer", "null"] },
+        "register_id": { "type": ["string", "null"] },
+        "register_field_id": { "type": ["string", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -424,6 +499,11 @@
         "peripheral": { "type": ["string", "null"] },
         "reset_signal": { "type": "string" },
         "active_level": { "type": ["string", "null"] },
+        "register_peripheral": { "type": ["string", "null"] },
+        "register_name": { "type": ["string", "null"] },
+        "register_offset": { "type": ["integer", "null"] },
+        "register_id": { "type": ["string", "null"] },
+        "register_field_id": { "type": ["string", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -448,6 +528,30 @@
         "version": { "type": ["string", "null"] },
         "channel_count": { "type": ["integer", "null"] },
         "request_count": { "type": ["integer", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "dma_binding_descriptor": {
+      "type": "object",
+      "required": [
+        "binding_id",
+        "peripheral",
+        "signal",
+        "controller",
+        "request_line",
+        "route_id",
+        "conflict_group",
+        "provenance"
+      ],
+      "properties": {
+        "binding_id": { "type": "string" },
+        "peripheral": { "type": "string" },
+        "signal": { "type": ["string", "null"] },
+        "controller": { "type": "string" },
+        "request_line": { "type": "string" },
+        "route_id": { "type": "string" },
+        "conflict_group": { "type": ["string", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -576,6 +680,10 @@
       "type": "array",
       "items": { "$ref": "#/$defs/register_descriptor" }
     },
+    "register_fields": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/register_field_descriptor" }
+    },
     "ip_blocks": {
       "type": "array",
       "items": { "$ref": "#/$defs/ip_block_definition" }
@@ -612,6 +720,10 @@
       "type": "array",
       "items": { "$ref": "#/$defs/connection_group" }
     },
+    "interrupt_bindings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/interrupt_binding_descriptor" }
+    },
     "vector_slots": {
       "type": "array",
       "items": { "$ref": "#/$defs/vector_slot_descriptor" }
@@ -643,6 +755,10 @@
     "dma_controllers": {
       "type": "array",
       "items": { "$ref": "#/$defs/dma_controller_descriptor" }
+    },
+    "dma_bindings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dma_binding_descriptor" }
     },
     "dma_routes": {
       "type": "array",

@@ -58,8 +58,17 @@ def test_emit_includes_metadata_artifacts_with_content(
     peripheral_instances_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/peripheral_instances.hpp"
     ]
+    interrupt_bindings_artifact = artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"
+    ]
+    dma_bindings_artifact = artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"
+    ]
     capability_overlays_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
+    ]
+    register_fields_artifact = artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/register_fields.hpp"
     ]
     rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
     dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
@@ -199,6 +208,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert register_map_artifact.content_sha256 is not None
     assert register_map_artifact.materialized_path is not None
     assert Path(register_map_artifact.materialized_path).exists()
+    assert register_fields_artifact.artifact_kind == "generated-cpp"
+    assert register_fields_artifact.content is not None
+    assert register_fields_artifact.content_sha256 is not None
+    assert register_fields_artifact.materialized_path is not None
+    assert Path(register_fields_artifact.materialized_path).exists()
     assert device_descriptor_artifact.artifact_kind == "generated-cpp"
     assert "kDeviceDescriptor" in device_descriptor_artifact.content
     assert pins_artifact.artifact_kind == "generated-cpp"
@@ -206,6 +220,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "kPinSignals" in pins_artifact.content
     assert peripheral_instances_artifact.artifact_kind == "generated-cpp"
     assert "kPeripheralInstances" in peripheral_instances_artifact.content
+    assert interrupt_bindings_artifact.artifact_kind == "generated-cpp"
+    assert "kInterruptBindings" in interrupt_bindings_artifact.content
+    assert "kInterruptBindingAliases" in interrupt_bindings_artifact.content
+    assert dma_bindings_artifact.artifact_kind == "generated-cpp"
+    assert "kDmaBindings" in dma_bindings_artifact.content
     assert capability_overlays_artifact.artifact_kind == "generated-cpp"
     assert "kCapabilityOverlays" in capability_overlays_artifact.content
 
@@ -221,6 +240,10 @@ def test_emit_includes_metadata_artifacts_with_content(
         assert "kCapabilities" in ip_block_artifact.content
 
     assert "kPeripheralBases" in register_map_artifact.content
+    assert "RegisterId" in register_map_artifact.content
+    assert "kRegisters" in register_map_artifact.content
+    assert "FieldId" in register_fields_artifact.content
+    assert "kRegisterFields" in register_fields_artifact.content
 
     assert connector_tables_artifact.artifact_kind == "generated-cpp"
     assert "kConnectionCandidates" in connector_tables_artifact.content
@@ -324,12 +347,23 @@ def test_emit_matches_golden_artifacts(
         fixture_root / "generated" / "devices" / "stm32g071rb" / "peripheral_instances.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts[
+        "st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"
+    ].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "interrupt_bindings.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "dma_bindings.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
     ].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "capability_overlays.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "register_map.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_fields.hpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "register_fields.hpp"
     ).read_text(encoding="utf-8")
     for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
         artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"

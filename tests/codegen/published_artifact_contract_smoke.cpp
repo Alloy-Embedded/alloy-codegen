@@ -9,6 +9,10 @@
     #error "ALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_REGISTER_FIELDS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_REGISTER_FIELDS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_GPIO_HEADER
     #error "ALLOY_CODEGEN_SMOKE_GPIO_HEADER must be defined"
 #endif
@@ -49,6 +53,14 @@
     #error "ALLOY_CODEGEN_SMOKE_PERIPHERAL_INSTANCES_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_INTERRUPT_BINDINGS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_INTERRUPT_BINDINGS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_DMA_BINDINGS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_DMA_BINDINGS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_CAPABILITY_OVERLAYS_HEADER
     #error "ALLOY_CODEGEN_SMOKE_CAPABILITY_OVERLAYS_HEADER must be defined"
 #endif
@@ -72,6 +84,7 @@
 #include "core/result.hpp"
 
 #include ALLOY_CODEGEN_SMOKE_REGISTER_MAP_HEADER
+#include ALLOY_CODEGEN_SMOKE_REGISTER_FIELDS_HEADER
 #include ALLOY_CODEGEN_SMOKE_GPIO_HEADER
 #include ALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER
 #include ALLOY_CODEGEN_SMOKE_INTERRUPT_MAP_HEADER
@@ -82,6 +95,8 @@
 #include ALLOY_CODEGEN_SMOKE_DEVICE_DESCRIPTOR_HEADER
 #include ALLOY_CODEGEN_SMOKE_PINS_HEADER
 #include ALLOY_CODEGEN_SMOKE_PERIPHERAL_INSTANCES_HEADER
+#include ALLOY_CODEGEN_SMOKE_INTERRUPT_BINDINGS_HEADER
+#include ALLOY_CODEGEN_SMOKE_DMA_BINDINGS_HEADER
 #include ALLOY_CODEGEN_SMOKE_CAPABILITY_OVERLAYS_HEADER
 #include ALLOY_CODEGEN_SMOKE_STARTUP_DESCRIPTORS_HEADER
 #ifdef ALLOY_CODEGEN_SMOKE_IP_HEADER
@@ -96,9 +111,11 @@ namespace published_ip = ALLOY_CODEGEN_SMOKE_GENERATED_NAMESPACE::ip;
 #endif
 
 static_assert(published_device::kPeripheralBases[0].address != 0u);
+static_assert(published_device::kRegisters.size() > 0u);
+static_assert(published_device::kRegisterFields.size() > 0u);
 static_assert(published_gpio::kPeripheral.base_address != 0u);
-static_assert(published_generated::kConnectionCandidates[0].candidate_id != nullptr);
-static_assert(published_generated::kConnectionGroups[0].group_id != nullptr);
+static_assert(published_generated::kConnectionCandidates[0].candidate_name != nullptr);
+static_assert(published_generated::kConnectionGroups[0].group_name != nullptr);
 static_assert(published_generated::kInterruptMap[0].interrupt_name != nullptr);
 static_assert(published_generated::kMemoryMap[0].name != nullptr);
 static_assert(published_generated::kPackageMap[0].package_name != nullptr);
@@ -110,6 +127,11 @@ static_assert(published_device::kDeviceDescriptor.device != nullptr);
 static_assert(published_device::kPins.size() > 0u);
 static_assert(published_device::kPinSignals.size() > 0u);
 static_assert(published_device::kPeripheralInstances.size() > 0u);
+static_assert(published_device::kInterruptBindings.size() > 0u);
+static_assert(
+    published_device::kDmaBindings.empty()
+    || published_device::kDmaBindings[0].request_line != nullptr
+);
 static_assert(
     published_device::kCapabilityOverlays.empty()
     || published_device::kCapabilityOverlays[0].capability_id != nullptr

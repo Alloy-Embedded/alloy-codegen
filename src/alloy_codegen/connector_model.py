@@ -10,11 +10,14 @@ from alloy_codegen.ir.model import (
     CapabilityDescriptor,
     ClockGateDescriptor,
     ClockNodeLite,
+    ClockSelectorLite,
     ConnectionCandidate,
     ConnectionGroup,
+    DmaBindingDescriptor,
     DmaConflictGroup,
     DmaControllerDescriptor,
     DmaRouteDescriptor,
+    InterruptBindingDescriptor,
     IpBlockDefinition,
     PeripheralClockBinding,
     ResetDescriptor,
@@ -134,6 +137,9 @@ SYSTEM_VECTOR_BASELINES = {
     ),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
+REGISTER_FIELD_TARGET_PATTERN = re.compile(
+    r"^(?P<lhs>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$"
+)
 
 
 def _sanitize(value: str) -> str:
@@ -216,18 +222,88 @@ def _lookup_register_offset(
     return None
 
 
+def _lookup_register_id(
+    device: CanonicalDeviceIR,
+    *,
+    peripheral_name: str,
+    register_name: str,
+) -> str | None:
+    for register in device.registers:
+        if (
+            register.peripheral == peripheral_name
+            and register.name.upper() == register_name.upper()
+        ):
+            return register.register_id
+    return None
+
+
+def _lookup_register_field_id(
+    device: CanonicalDeviceIR,
+    *,
+    peripheral_name: str,
+    register_name: str,
+    field_name: str,
+) -> str | None:
+    for register_field in device.register_fields:
+        if (
+            register_field.peripheral == peripheral_name
+            and register_field.register_name.upper() == register_name.upper()
+            and register_field.name.upper() == field_name.upper()
+        ):
+            return register_field.field_id
+    return None
+
+
 def _typed_register_ref(
     device: CanonicalDeviceIR,
     target: str,
-) -> tuple[str | None, str | None, int | None]:
+) -> tuple[str | None, str | None, int | None, str | None, str | None]:
     match = ST_RCC_TARGET_PATTERN.match(target)
-    if match is None:
-        return (None, None, None)
-    register_name = match.group("register")
+    if match is not None:
+        register_name = match.group("register")
+        field_name = match.group("field")
+        return (
+            "RCC",
+            register_name,
+            _lookup_register_offset(device, peripheral_name="RCC", register_name=register_name),
+            _lookup_register_id(device, peripheral_name="RCC", register_name=register_name),
+            _lookup_register_field_id(
+                device,
+                peripheral_name="RCC",
+                register_name=register_name,
+                field_name=field_name,
+            ),
+        )
+    generic_match = REGISTER_FIELD_TARGET_PATTERN.match(target)
+    if generic_match is None:
+        return (None, None, None, None, None)
+    lhs = generic_match.group("lhs")
+    field_name = generic_match.group("field")
+    if "_" in lhs:
+        peripheral_name, register_name = lhs.split("_", maxsplit=1)
+    else:
+        peripheral_name, register_name = lhs, None
+    if register_name is None:
+        return (peripheral_name, field_name, None, None, None)
     return (
-        "RCC",
+        peripheral_name,
         register_name,
-        _lookup_register_offset(device, peripheral_name="RCC", register_name=register_name),
+        _lookup_register_offset(
+            device,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+        ),
+        _lookup_register_id(
+            device,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+        ),
+        _lookup_register_field_id(
+            device,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_name=field_name,
+        ),
     )
 
 
@@ -407,6 +483,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     for peripheral in device.peripherals:
         if peripheral.rcc_enable_signal is not None:
             requirement_id = f"requirement:clock-enable:{_sanitize(peripheral.name)}"
+            clock_gate_id = f"gate:{_sanitize(peripheral.name)}"
             requirement_map.setdefault(
                 requirement_id,
                 RouteRequirement(
@@ -414,14 +491,21 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     kind="clock-enable",
                     target=peripheral.rcc_enable_signal,
                     value="1",
+                    target_ref_kind="clock-gate",
+                    target_ref_id=clock_gate_id,
+                    value_ref_kind="int",
+                    value_int=1,
                     provenance=peripheral.provenance,
                 ),
             )
             operation_id = f"operation:clock-enable:{_sanitize(peripheral.name)}"
-            register_peripheral, register_name, register_offset = _typed_register_ref(
-                device,
-                peripheral.rcc_enable_signal,
-            )
+            (
+                register_peripheral,
+                register_name,
+                register_offset,
+                register_id,
+                register_field_id,
+            ) = _typed_register_ref(device, peripheral.rcc_enable_signal)
             operation_map.setdefault(
                 operation_id,
                 RouteOperation(
@@ -435,12 +519,18 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     register_peripheral=register_peripheral,
                     register_name=register_name,
                     register_offset=register_offset,
+                    register_id=register_id,
+                    register_field_id=register_field_id,
+                    target_ref_kind="clock-gate",
+                    target_ref_id=clock_gate_id,
+                    value_ref_kind="int",
                     value_int=1,
                     provenance=peripheral.provenance,
                 ),
             )
         if peripheral.rcc_reset_signal is not None:
             requirement_id = f"requirement:reset-release:{_sanitize(peripheral.name)}"
+            reset_id = f"reset:{_sanitize(peripheral.name)}"
             requirement_map.setdefault(
                 requirement_id,
                 RouteRequirement(
@@ -448,14 +538,21 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     kind="reset-release",
                     target=peripheral.rcc_reset_signal,
                     value="0",
+                    target_ref_kind="reset",
+                    target_ref_id=reset_id,
+                    value_ref_kind="int",
+                    value_int=0,
                     provenance=peripheral.provenance,
                 ),
             )
             operation_id = f"operation:reset-release:{_sanitize(peripheral.name)}"
-            register_peripheral, register_name, register_offset = _typed_register_ref(
-                device,
-                peripheral.rcc_reset_signal,
-            )
+            (
+                register_peripheral,
+                register_name,
+                register_offset,
+                register_id,
+                register_field_id,
+            ) = _typed_register_ref(device, peripheral.rcc_reset_signal)
             operation_map.setdefault(
                 operation_id,
                 RouteOperation(
@@ -469,6 +566,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     register_peripheral=register_peripheral,
                     register_name=register_name,
                     register_offset=register_offset,
+                    register_id=register_id,
+                    register_field_id=register_field_id,
+                    target_ref_kind="reset",
+                    target_ref_id=reset_id,
+                    value_ref_kind="int",
                     value_int=0,
                     provenance=peripheral.provenance,
                 ),
@@ -482,6 +584,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             kind="package",
             target=device.identity.package,
             value="selected",
+            target_ref_kind="package",
+            target_ref_id=device.identity.package,
+            value_ref_kind="state",
+            value_ref_id="selected",
             provenance=device.provenance,
         ),
     )
@@ -530,6 +636,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                         kind="bonded-pin",
                         target=pin.name,
                         value=device.identity.package,
+                        target_ref_kind="pin",
+                        target_ref_id=pin.name,
+                        value_ref_kind="package",
+                        value_ref_id=device.identity.package,
                         provenance=signal.provenance,
                     ),
                 )
@@ -548,6 +658,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                         value=constraint.kind
                         if constraint.value is None
                         else f"{constraint.kind}:{constraint.value}",
+                        target_ref_kind="pin",
+                        target_ref_id=constraint.pin,
+                        value_ref_kind="constraint",
+                        value_ref_id=constraint.constraint_id,
                         provenance=constraint.provenance,
                     ),
                 )
@@ -574,6 +688,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                         kind="source-select",
                         target=f"pinmux.{pin.name}",
                         value=route_selector,
+                        target_ref_kind="pin",
+                        target_ref_id=pin.name,
+                        value_ref_kind="selector",
+                        value_ref_id=route_selector,
+                        value_int=signal.af_number,
                         provenance=signal.provenance,
                     ),
                 )
@@ -595,6 +714,12 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                         register_peripheral=None,
                         register_name=None,
                         register_offset=None,
+                        register_id=None,
+                        register_field_id=None,
+                        target_ref_kind="pin",
+                        target_ref_id=pin.name,
+                        value_ref_kind="selector",
+                        value_ref_id=route_selector,
                         value_int=signal.af_number,
                         provenance=signal.provenance,
                     ),
@@ -793,6 +918,39 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         )
         for interrupt in sorted(interrupts, key=lambda item: item.line)
     )
+    vector_slot_by_interrupt = {
+        vector_slot.interrupt: vector_slot
+        for vector_slot in vector_slots
+        if vector_slot.interrupt is not None
+    }
+    interrupt_bindings = tuple(
+        InterruptBindingDescriptor(
+            binding_id=(
+                f"interrupt-binding:{_sanitize(interrupt.peripheral)}:"
+                f"{_sanitize(interrupt.name)}"
+            ),
+            peripheral=interrupt.peripheral,
+            interrupt=interrupt.name,
+            line=interrupt.line,
+            vector_slot=(
+                None
+                if interrupt.name not in vector_slot_by_interrupt
+                else vector_slot_by_interrupt[interrupt.name].slot
+            ),
+            symbol_name=(
+                None
+                if interrupt.name not in vector_slot_by_interrupt
+                else vector_slot_by_interrupt[interrupt.name].symbol_name
+            ),
+            shared_group=interrupt.shared_group,
+            alias_names=interrupt.alias_names,
+            provenance=interrupt.provenance,
+        )
+        for interrupt in sorted(
+            (entry for entry in interrupts if entry.peripheral is not None),
+            key=lambda item: (item.peripheral or "", item.line, item.name),
+        )
+    )
 
     startup_descriptors = (
         StartupDescriptor(
@@ -870,6 +1028,32 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     )
 
     clock_node_map: dict[str, ClockNodeLite] = {node.node_id: node for node in device.clock_nodes}
+    clock_selector_map = {}
+    for selector in device.clock_selectors:
+        register_peripheral = None
+        register_name = None
+        register_offset = None
+        register_id = None
+        register_field_id = None
+        if selector.register_target is not None:
+            (
+                register_peripheral,
+                register_name,
+                register_offset,
+                register_id,
+                register_field_id,
+            ) = _typed_register_ref(device, selector.register_target)
+        clock_selector_map[selector.selector_id] = ClockSelectorLite(
+            selector_id=selector.selector_id,
+            parent_options=selector.parent_options,
+            register_target=selector.register_target,
+            register_peripheral=register_peripheral,
+            register_name=register_name,
+            register_offset=register_offset,
+            register_id=register_id,
+            register_field_id=register_field_id,
+            provenance=selector.provenance,
+        )
     clock_node_map.setdefault(
         "clock-root",
         ClockNodeLite(
@@ -912,12 +1096,29 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 if explicit_gate is None
                 else explicit_gate.gate_id
             )
+            gate_signal = (
+                peripheral.rcc_enable_signal
+                if explicit_gate is None
+                else explicit_gate.enable_signal
+            )
+            (
+                gate_register_peripheral,
+                gate_register_name,
+                gate_register_offset,
+                gate_register_id,
+                gate_register_field_id,
+            ) = _typed_register_ref(device, gate_signal)
             if explicit_gate is None:
                 clock_gate_map[gate_id] = ClockGateDescriptor(
                     gate_id=gate_id,
                     peripheral=peripheral.name,
-                    enable_signal=peripheral.rcc_enable_signal,
+                    enable_signal=gate_signal,
                     parent_node=inferred_parent_node,
+                    register_peripheral=gate_register_peripheral,
+                    register_name=gate_register_name,
+                    register_offset=gate_register_offset,
+                    register_id=gate_register_id,
+                    register_field_id=gate_register_field_id,
                     provenance=peripheral.provenance,
                 )
                 parent_node = inferred_parent_node
@@ -930,8 +1131,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 clock_gate_map[gate_id] = ClockGateDescriptor(
                     gate_id=explicit_gate.gate_id,
                     peripheral=explicit_gate.peripheral,
-                    enable_signal=explicit_gate.enable_signal,
+                    enable_signal=gate_signal,
                     parent_node=parent_node,
+                    register_peripheral=gate_register_peripheral,
+                    register_name=gate_register_name,
+                    register_offset=gate_register_offset,
+                    register_id=gate_register_id,
+                    register_field_id=gate_register_field_id,
                     provenance=explicit_gate.provenance,
                 )
         else:
@@ -948,15 +1154,45 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 else explicit_reset.reset_id
             )
             if explicit_reset is None:
+                (
+                    reset_register_peripheral,
+                    reset_register_name,
+                    reset_register_offset,
+                    reset_register_id,
+                    reset_register_field_id,
+                ) = _typed_register_ref(device, peripheral.rcc_reset_signal)
                 reset_map[reset_id] = ResetDescriptor(
                     reset_id=reset_id,
                     peripheral=peripheral.name,
                     reset_signal=peripheral.rcc_reset_signal,
                     active_level="high",
+                    register_peripheral=reset_register_peripheral,
+                    register_name=reset_register_name,
+                    register_offset=reset_register_offset,
+                    register_id=reset_register_id,
+                    register_field_id=reset_register_field_id,
                     provenance=peripheral.provenance,
                 )
             else:
-                reset_map[reset_id] = explicit_reset
+                (
+                    reset_register_peripheral,
+                    reset_register_name,
+                    reset_register_offset,
+                    reset_register_id,
+                    reset_register_field_id,
+                ) = _typed_register_ref(device, explicit_reset.reset_signal)
+                reset_map[reset_id] = ResetDescriptor(
+                    reset_id=explicit_reset.reset_id,
+                    peripheral=explicit_reset.peripheral,
+                    reset_signal=explicit_reset.reset_signal,
+                    active_level=explicit_reset.active_level,
+                    register_peripheral=reset_register_peripheral,
+                    register_name=reset_register_name,
+                    register_offset=reset_register_offset,
+                    register_id=reset_register_id,
+                    register_field_id=reset_register_field_id,
+                    provenance=explicit_reset.provenance,
+                )
         else:
             reset_id = None
 
@@ -1058,6 +1294,32 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         )
         for group_id, route_ids in sorted(conflict_group_map.items())
     )
+    dma_bindings = tuple(
+        DmaBindingDescriptor(
+            binding_id=(
+                f"dma-binding:{_sanitize(route.peripheral or 'none')}:"
+                f"{_sanitize(route.signal or 'none')}:"
+                f"{_sanitize(route.controller)}:{_sanitize(route.request_line)}"
+            ),
+            peripheral=route.peripheral or route.controller,
+            signal=route.signal,
+            controller=route.controller,
+            request_line=route.request_line,
+            route_id=route.route_id,
+            conflict_group=route.conflict_group,
+            provenance=route.provenance,
+        )
+        for route in sorted(
+            dma_route_map.values(),
+            key=lambda item: (
+                item.peripheral or "",
+                item.signal or "",
+                item.controller,
+                item.request_line,
+            ),
+        )
+        if route.peripheral is not None
+    )
 
     return CanonicalDeviceIR(
         schema_version=device.schema_version,
@@ -1065,6 +1327,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         memories=memory_regions,
         packages=device.packages,
         registers=device.registers,
+        register_fields=device.register_fields,
         pins=device.pins,
         peripherals=tuple(
             type(peripheral)(
@@ -1106,10 +1369,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             candidate_map[candidate_id] for candidate_id in sorted(candidate_map)
         ),
         connection_groups=connection_groups,
+        interrupt_bindings=interrupt_bindings,
         vector_slots=vector_slots,
         startup_descriptors=startup_descriptors,
         clock_nodes=tuple(clock_node_map[node_id] for node_id in sorted(clock_node_map)),
-        clock_selectors=device.clock_selectors,
+        clock_selectors=tuple(
+            clock_selector_map[selector_id] for selector_id in sorted(clock_selector_map)
+        ),
         clock_gates=tuple(clock_gate_map[gate_id] for gate_id in sorted(clock_gate_map)),
         resets=tuple(reset_map[reset_id] for reset_id in sorted(reset_map)),
         peripheral_clock_bindings=tuple(
@@ -1118,6 +1384,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         dma_controllers=tuple(
             dma_controller_map[controller] for controller in sorted(dma_controller_map)
         ),
+        dma_bindings=dma_bindings,
         dma_routes=tuple(dma_route_map[route_id] for route_id in sorted(dma_route_map)),
         dma_conflict_groups=dma_conflict_groups,
     )
@@ -1129,8 +1396,10 @@ def ensure_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         device.signal_endpoints
         and device.connection_candidates
         and device.connection_groups
+        and device.interrupt_bindings
         and device.vector_slots
         and device.startup_descriptors
+        and (device.dma_bindings or not device.dma_routes)
     ):
         return device
     return enrich_connector_descriptors(device)

@@ -25,7 +25,7 @@
       <description>Low Power UART 1</description>
       <baseAddress>0x40184000</baseAddress>
       <registers>
-        <register><name>BAUD</name><addressOffset>0x10</addressOffset></register>
+        <register><name>BAUD</name><addressOffset>0x10</addressOffset><fields><field><name>SBR</name><bitOffset>0</bitOffset><bitWidth>13</bitWidth></field></fields></register>
         <register><name>STAT</name><addressOffset>0x14</addressOffset></register>
         <register><name>CTRL</name><addressOffset>0x18</addressOffset></register>
         <register><name>DATA</name><addressOffset>0x1C</addressOffset></register>
@@ -40,7 +40,7 @@
       <description>Low Power UART 3</description>
       <baseAddress>0x4018C000</baseAddress>
       <registers>
-        <register><name>BAUD</name><addressOffset>0x10</addressOffset></register>
+        <register><name>BAUD</name><addressOffset>0x10</addressOffset><fields><field><name>SBR</name><bitOffset>0</bitOffset><bitWidth>13</bitWidth></field></fields></register>
         <register><name>STAT</name><addressOffset>0x14</addressOffset></register>
         <register><name>CTRL</name><addressOffset>0x18</addressOffset></register>
         <register><name>DATA</name><addressOffset>0x1C</addressOffset></register>
@@ -73,7 +73,7 @@
       <description>General Purpose I/O 4</description>
       <baseAddress>0x401C4000</baseAddress>
       <registers>
-        <register><name>DR</name><addressOffset>0x00</addressOffset></register>
+        <register><name>DR</name><addressOffset>0x00</addressOffset><fields><field><name>DATA</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth></field></fields></register>
         <register><name>GDIR</name><addressOffset>0x04</addressOffset></register>
         <register><name>PSR</name><addressOffset>0x08</addressOffset></register>
       </registers>
@@ -83,7 +83,7 @@
       <description>General Purpose I/O 1</description>
       <baseAddress>0x401B8000</baseAddress>
       <registers>
-        <register><name>DR</name><addressOffset>0x00</addressOffset></register>
+        <register><name>DR</name><addressOffset>0x00</addressOffset><fields><field><name>DATA</name><bitOffset>0</bitOffset><bitWidth>32</bitWidth></field></fields></register>
         <register><name>GDIR</name><addressOffset>0x04</addressOffset></register>
         <register><name>PSR</name><addressOffset>0x08</addressOffset></register>
       </registers>
