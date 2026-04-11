@@ -12,16 +12,6 @@ on:
         required: false
         default: "main"
         type: string
-      vendor:
-        description: "Vendor scope to publish"
-        required: false
-        default: "st"
-        type: string
-      family:
-        description: "Family scope to publish"
-        required: false
-        default: "stm32g0"
-        type: string
       push_changes:
         description: "Push changed published artifacts to alloy-devices/main"
         required: false
@@ -43,6 +33,10 @@ jobs:
         include:
           - vendor: st
             family: stm32g0
+          - vendor: st
+            family: stm32f4
+          - vendor: microchip
+            family: same70
           - vendor: nxp
             family: imxrt1060
     env:
@@ -64,20 +58,17 @@ jobs:
       - name: Resolve publication settings
         id: settings
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          INPUT_VENDOR: ${{ inputs.vendor }}
-          INPUT_FAMILY: ${{ inputs.family }}
           INPUT_PUSH_CHANGES: ${{ inputs.push_changes }}
           HAS_PUSH_TOKEN: ${{ secrets.ALLOY_DEVICES_PUSH_TOKEN != '' }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -eu
+          vendor="${{ matrix.vendor }}"
+          family="${{ matrix.family }}"
+
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            vendor="${INPUT_VENDOR:-st}"
-            family="${INPUT_FAMILY:-stm32g0}"
             requested_push="${INPUT_PUSH_CHANGES:-false}"
           else
-            vendor="${{ matrix.vendor }}"
-            family="${{ matrix.family }}"
             requested_push="true"
           fi
 
