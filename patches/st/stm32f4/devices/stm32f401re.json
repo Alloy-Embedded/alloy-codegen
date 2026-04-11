@@ -2,7 +2,7 @@
   "patch_id": "st-stm32f4-stm32f401re-bootstrap",
   "device": "stm32f401re",
   "svd_file": "STM32F401.svd",
-  "pin_data_file": "STM32F401R(B-C-D-E)Tx.xml",
+  "pin_data_file": "STM32F401R(B-C)Tx.xml",
   "package": "lqfp64",
   "core": "cortex-m4f",
   "summary": "Representative low-cost entry-level F4 device.",

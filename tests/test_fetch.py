@@ -35,6 +35,19 @@ def test_fetch_uses_fixture_source_root(execution_context: ExecutionContext) -> 
     )
 
 
+def test_fetch_stm32f4_uses_live_pin_data_file_name(execution_context: ExecutionContext) -> None:
+    result = run_fetch(PipelineScope(device="stm32f401re"), execution_context)
+    sources = result.payload.source_manifest.sources
+
+    assert any(
+        source.source_id == "stm32-open-pin-data"
+        and source.local_path.endswith("STM32F401R(B-C)Tx.xml")
+        and source.upstream_path == "mcu/STM32F401R(B-C)Tx.xml"
+        and source.revision.startswith("content-sha256:")
+        for source in sources
+    )
+
+
 def test_fetch_and_patch_are_byte_stable(execution_context: ExecutionContext) -> None:
     scope = PipelineScope()
 

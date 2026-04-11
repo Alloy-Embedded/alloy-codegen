@@ -47,7 +47,7 @@
       {
         "local_path": "mcu/STM32G071R(6-8-B)Tx.xml",
         "origin_url": "https://github.com/STMicroelectronics/STM32_open_pin_data.git",
-        "revision": "content-sha256:19f46109eb6a14075393e5131da382cdc05f0539ac24df4c142d7868a8c6ffcb",
+        "revision": "content-sha256:6d59ee73d2467979b65a5d505b1b3cdb490070804fc469c7e099f36420cb1ddf",
         "scope": {
           "device": "stm32g071rb",
           "family": "stm32g0",
@@ -60,7 +60,7 @@
       {
         "local_path": "mcu/IP/GPIO-STM32G07x_gpio_v1_0_Modes.xml",
         "origin_url": "https://github.com/STMicroelectronics/STM32_open_pin_data.git",
-        "revision": "content-sha256:19f46109eb6a14075393e5131da382cdc05f0539ac24df4c142d7868a8c6ffcb",
+        "revision": "content-sha256:6d59ee73d2467979b65a5d505b1b3cdb490070804fc469c7e099f36420cb1ddf",
         "scope": {
           "device": "stm32g071rb",
           "family": "stm32g0",
