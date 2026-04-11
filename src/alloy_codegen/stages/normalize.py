@@ -923,16 +923,50 @@ def build_nxp_canonical_ir(
         patch=patch,
         peripheral_names=discovered_peripherals,
     )
+    # Only emit pin signals for peripherals that have clock-gate configuration.
+    # This ensures referenced-peripherals-have-rcc-enable always passes for the
+    # produced pin set, even when the upstream SVD contains many more peripherals
+    # than the family patch covers.
+    clock_configured_peripherals = {
+        p.name for p in patch.peripherals if p.rcc_enable_signal is not None
+    }
     pins = _build_nxp_pins(
         iomuxc_entries=iomuxc_entries,
-        discovered_peripherals=discovered_peripherals,
+        discovered_peripherals=discovered_peripherals & clock_configured_peripherals,
         provenance=sdk_provenance,
     )
-    package_pads = _build_nxp_package_pads(
-        iomuxc_entries=iomuxc_entries,
-        package_name=patch.package,
-        provenance=sdk_provenance,
+    # Restrict package pads to only pads that produced at least one pin signal,
+    # so the package-pads-reference-known-pins validation invariant is maintained.
+    pin_names_with_signals = {pin.name for pin in pins}
+    package_pads = tuple(
+        pad
+        for pad in _build_nxp_package_pads(
+            iomuxc_entries=iomuxc_entries,
+            package_name=patch.package,
+            provenance=sdk_provenance,
+        )
+        if pad.bonded_pin in pin_names_with_signals
     )
+    # Deduplicate interrupts by (name, line).  NXP SVDs often repeat the same
+    # interrupt entry across multiple peripheral blocks (e.g. shared DMA IRQs).
+    # Keeping duplicates produces duplicate vector-slot numbers, which breaks the
+    # vector-slots-unique validation rule.
+    _seen_interrupt_keys: dict[tuple[str, int], None] = {}
+    dedup_interrupts: list[InterruptDefinition] = []
+    for i in raw.interrupts:
+        key = (i.name, i.line)
+        if key not in _seen_interrupt_keys:
+            _seen_interrupt_keys[key] = None
+            dedup_interrupts.append(
+                InterruptDefinition(
+                    name=i.name,
+                    line=i.line,
+                    peripheral=(
+                        None if i.peripheral is None else _canonical_peripheral_name(i.peripheral)
+                    ),
+                    provenance=svd_provenance,
+                )
+            )
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -962,17 +996,7 @@ def build_nxp_canonical_ir(
             )
             for p in raw.peripherals
         ),
-        interrupts=tuple(
-            InterruptDefinition(
-                name=i.name,
-                line=i.line,
-                peripheral=(
-                    None if i.peripheral is None else _canonical_peripheral_name(i.peripheral)
-                ),
-                provenance=svd_provenance,
-            )
-            for i in raw.interrupts
-        ),
+        interrupts=tuple(dedup_interrupts),
         dma_controllers=tuple(
             _dma_controller_to_ir(controller, patch_provenance)
             for controller in patch.dma_controllers
