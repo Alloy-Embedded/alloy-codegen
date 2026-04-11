@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 
 from alloy_codegen.ir.model import (
@@ -132,6 +133,7 @@ SYSTEM_VECTOR_BASELINES = {
         (15, "SysTick_Handler", None, "system-exception"),
     ),
 }
+ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
 
 
 def _sanitize(value: str) -> str:
@@ -153,6 +155,80 @@ def _direction_for_signal(signal_name: str) -> str | None:
     if any(token.startswith(prefix) for prefix in INPUT_SIGNALS):
         return "input"
     return None
+
+
+def _runtime_schema_id(
+    *,
+    subsystem: str,
+    vendor: str,
+    ip_name: str | None,
+    ip_version: str | None,
+    fallback: str,
+) -> str:
+    variant = ip_version or ip_name or fallback
+    return f"alloy.{subsystem}.{_sanitize(vendor)}-{_sanitize(variant)}"
+
+
+def _pinmux_backend_schema_id(vendor: str) -> str:
+    match vendor:
+        case "st":
+            return "alloy.pinmux.stm32-af-v1"
+        case "microchip":
+            return "alloy.pinmux.sam-pio-v1"
+        case "nxp":
+            return "alloy.pinmux.imxrt-iomuxc-v1"
+        case _:
+            return f"alloy.pinmux.{_sanitize(vendor)}-generic-v1"
+
+
+def _clock_backend_schema_id(device: CanonicalDeviceIR) -> str:
+    for peripheral in device.peripherals:
+        peripheral_class = canonical_peripheral_class(peripheral.ip_name)
+        if peripheral_class in {"rcc", "pmc", "ccm"}:
+            return _runtime_schema_id(
+                subsystem="clock",
+                vendor=device.identity.vendor,
+                ip_name=peripheral.ip_name,
+                ip_version=peripheral.ip_version,
+                fallback=peripheral_class,
+            )
+    return _runtime_schema_id(
+        subsystem="clock",
+        vendor=device.identity.vendor,
+        ip_name=None,
+        ip_version=None,
+        fallback="generic-clock-v1",
+    )
+
+
+def _lookup_register_offset(
+    device: CanonicalDeviceIR,
+    *,
+    peripheral_name: str,
+    register_name: str,
+) -> int | None:
+    for register in device.registers:
+        if (
+            register.peripheral == peripheral_name
+            and register.name.upper() == register_name.upper()
+        ):
+            return register.offset_bytes
+    return None
+
+
+def _typed_register_ref(
+    device: CanonicalDeviceIR,
+    target: str,
+) -> tuple[str | None, str | None, int | None]:
+    match = ST_RCC_TARGET_PATTERN.match(target)
+    if match is None:
+        return (None, None, None)
+    register_name = match.group("register")
+    return (
+        "RCC",
+        register_name,
+        _lookup_register_offset(device, peripheral_name="RCC", register_name=register_name),
+    )
 
 
 def _domain_node_id(signal: str) -> str:
@@ -326,6 +402,8 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     requirement_map: dict[str, RouteRequirement] = {}
     operation_map: dict[str, RouteOperation] = {}
     candidate_map: dict[str, ConnectionCandidate] = {}
+    clock_schema_id = _clock_backend_schema_id(device)
+    pinmux_schema_id = _pinmux_backend_schema_id(device.identity.vendor)
     for peripheral in device.peripherals:
         if peripheral.rcc_enable_signal is not None:
             requirement_id = f"requirement:clock-enable:{_sanitize(peripheral.name)}"
@@ -340,6 +418,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 ),
             )
             operation_id = f"operation:clock-enable:{_sanitize(peripheral.name)}"
+            register_peripheral, register_name, register_offset = _typed_register_ref(
+                device,
+                peripheral.rcc_enable_signal,
+            )
             operation_map.setdefault(
                 operation_id,
                 RouteOperation(
@@ -347,6 +429,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     kind="set-bit",
                     target=peripheral.rcc_enable_signal,
                     value="1",
+                    schema_id=clock_schema_id,
+                    subject_kind="peripheral",
+                    subject_id=peripheral.name,
+                    register_peripheral=register_peripheral,
+                    register_name=register_name,
+                    register_offset=register_offset,
+                    value_int=1,
                     provenance=peripheral.provenance,
                 ),
             )
@@ -363,6 +452,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 ),
             )
             operation_id = f"operation:reset-release:{_sanitize(peripheral.name)}"
+            register_peripheral, register_name, register_offset = _typed_register_ref(
+                device,
+                peripheral.rcc_reset_signal,
+            )
             operation_map.setdefault(
                 operation_id,
                 RouteOperation(
@@ -370,6 +463,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     kind="clear-bit",
                     target=peripheral.rcc_reset_signal,
                     value="0",
+                    schema_id=clock_schema_id,
+                    subject_kind="peripheral",
+                    subject_id=peripheral.name,
+                    register_peripheral=register_peripheral,
+                    register_name=register_name,
+                    register_offset=register_offset,
+                    value_int=0,
                     provenance=peripheral.provenance,
                 ),
             )
@@ -489,6 +589,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                         kind="write-selector",
                         target=f"pinmux.{pin.name}",
                         value=str(signal.af_number),
+                        schema_id=pinmux_schema_id,
+                        subject_kind="pin",
+                        subject_id=pin.name,
+                        register_peripheral=None,
+                        register_name=None,
+                        register_offset=None,
+                        value_int=signal.af_number,
                         provenance=signal.provenance,
                     ),
                 )
@@ -602,6 +709,13 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             ip_name=ip_name,
             ip_version=ip_version,
             peripheral_class=canonical_peripheral_class(ip_name),
+            backend_schema_id=_runtime_schema_id(
+                subsystem=canonical_peripheral_class(ip_name),
+                vendor=device.identity.vendor,
+                ip_name=ip_name,
+                ip_version=ip_version,
+                fallback=ip_name,
+            ),
             register_profile=f"{ip_name}:{ip_version}",
             signal_roles=tuple(sorted(block_roles[(ip_name, ip_version)])),
             capability_ids=tuple(sorted(block_capabilities[(ip_name, ip_version)])),
@@ -950,8 +1064,28 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         identity=device.identity,
         memories=memory_regions,
         packages=device.packages,
+        registers=device.registers,
         pins=device.pins,
-        peripherals=device.peripherals,
+        peripherals=tuple(
+            type(peripheral)(
+                name=peripheral.name,
+                ip_name=peripheral.ip_name,
+                ip_version=peripheral.ip_version,
+                backend_schema_id=_runtime_schema_id(
+                    subsystem=canonical_peripheral_class(peripheral.ip_name),
+                    vendor=device.identity.vendor,
+                    ip_name=peripheral.ip_name,
+                    ip_version=peripheral.ip_version,
+                    fallback=peripheral.ip_name,
+                ),
+                instance=peripheral.instance,
+                base_address=peripheral.base_address,
+                rcc_enable_signal=peripheral.rcc_enable_signal,
+                rcc_reset_signal=peripheral.rcc_reset_signal,
+                provenance=peripheral.provenance,
+            )
+            for peripheral in device.peripherals
+        ),
         interrupts=interrupts,
         dma_requests=device.dma_requests,
         provenance=device.provenance,

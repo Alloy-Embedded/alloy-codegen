@@ -104,6 +104,7 @@ def test_validation_fails_gate_c_when_pin_gpio_mapping_is_invalid(
         identity=original_device.identity,
         memories=original_device.memories,
         packages=original_device.packages,
+        registers=original_device.registers,
         pins=(broken_pin,),
         peripherals=original_device.peripherals,
         interrupts=original_device.interrupts,
@@ -138,6 +139,7 @@ def test_validation_fails_gate_c_when_referenced_peripheral_lacks_rcc_enable(
             rcc_enable_signal=None if peripheral.name == "USART1" else peripheral.rcc_enable_signal,
             rcc_reset_signal=peripheral.rcc_reset_signal,
             provenance=peripheral.provenance,
+            backend_schema_id=peripheral.backend_schema_id,
         )
         for peripheral in original_device.peripherals
     )
@@ -146,6 +148,7 @@ def test_validation_fails_gate_c_when_referenced_peripheral_lacks_rcc_enable(
         identity=original_device.identity,
         memories=original_device.memories,
         packages=original_device.packages,
+        registers=original_device.registers,
         pins=original_device.pins,
         peripherals=broken_peripherals,
         interrupts=original_device.interrupts,
@@ -184,6 +187,7 @@ def test_validation_fails_gate_c_when_package_pad_references_unknown_pin(
         identity=original_device.identity,
         memories=original_device.memories,
         packages=original_device.packages,
+        registers=original_device.registers,
         pins=original_device.pins,
         peripherals=original_device.peripherals,
         interrupts=original_device.interrupts,
@@ -233,6 +237,7 @@ def test_validation_fails_gate_c_when_bonded_pin_has_no_package_pad(
         identity=original_device.identity,
         memories=original_device.memories,
         packages=original_device.packages,
+        registers=original_device.registers,
         pins=original_device.pins,
         peripherals=original_device.peripherals,
         interrupts=original_device.interrupts,
@@ -673,6 +678,7 @@ def test_validation_fails_gate_c_when_package_pad_bonding_is_inconsistent(
         identity=original_device.identity,
         memories=original_device.memories,
         packages=original_device.packages,
+        registers=original_device.registers,
         pins=original_device.pins,
         peripherals=original_device.peripherals,
         interrupts=original_device.interrupts,

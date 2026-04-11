@@ -56,26 +56,33 @@ struct RouteOperationDescriptor {
   const char* device;
   const char* operation_id;
   const char* kind;
+  const char* schema_id;
+  const char* subject_kind;
+  const char* subject_id;
+  const char* register_peripheral;
+  const char* register_name;
+  int register_offset;
   const char* target;
   const char* value;
+  int value_int;
 };
 inline constexpr RouteOperationDescriptor kRouteOperations[] = {
-  {"mimxrt1062", "operation:clock-enable:gpio1", "set-bit", "CCM_CCGR1.CG13", "1"},
-  {"mimxrt1062", "operation:clock-enable:gpio4", "set-bit", "CCM_CCGR3.CG13", "1"},
-  {"mimxrt1062", "operation:clock-enable:lpi2c1", "set-bit", "CCM_CCGR2.CG2", "1"},
-  {"mimxrt1062", "operation:clock-enable:lpspi1", "set-bit", "CCM_CCGR1.CG0", "1"},
-  {"mimxrt1062", "operation:clock-enable:lpuart1", "set-bit", "CCM_CCGR5.CG12", "1"},
-  {"mimxrt1062", "operation:clock-enable:lpuart3", "set-bit", "CCM_CCGR0.CG6", "1"},
-  {"mimxrt1062", "operation:route:gpio-ad-b0-00:gpio1:io00", "write-selector", "pinmux.GPIO_AD_B0_00", "5"},
-  {"mimxrt1062", "operation:route:gpio-ad-b0-00:lpi2c1:scl", "write-selector", "pinmux.GPIO_AD_B0_00", "0"},
-  {"mimxrt1062", "operation:route:gpio-ad-b0-00:lpuart1:tx", "write-selector", "pinmux.GPIO_AD_B0_00", "2"},
-  {"mimxrt1062", "operation:route:gpio-ad-b0-01:gpio1:io01", "write-selector", "pinmux.GPIO_AD_B0_01", "5"},
-  {"mimxrt1062", "operation:route:gpio-ad-b0-01:lpi2c1:sda", "write-selector", "pinmux.GPIO_AD_B0_01", "0"},
-  {"mimxrt1062", "operation:route:gpio-ad-b0-01:lpuart1:rx", "write-selector", "pinmux.GPIO_AD_B0_01", "2"},
-  {"mimxrt1062", "operation:route:gpio-emc-00:gpio4:io00", "write-selector", "pinmux.GPIO_EMC_00", "5"},
-  {"mimxrt1062", "operation:route:gpio-emc-00:lpspi1:sck", "write-selector", "pinmux.GPIO_EMC_00", "2"},
-  {"mimxrt1062", "operation:route:gpio-emc-01:gpio4:io01", "write-selector", "pinmux.GPIO_EMC_01", "5"},
-  {"mimxrt1062", "operation:route:gpio-emc-01:lpspi1:pcs0", "write-selector", "pinmux.GPIO_EMC_01", "2"},
+  {"mimxrt1062", "operation:clock-enable:gpio1", "set-bit", "alloy.clock.nxp-generic-clock-v1", "peripheral", "GPIO1", nullptr, nullptr, -1, "CCM_CCGR1.CG13", "1", 1},
+  {"mimxrt1062", "operation:clock-enable:gpio4", "set-bit", "alloy.clock.nxp-generic-clock-v1", "peripheral", "GPIO4", nullptr, nullptr, -1, "CCM_CCGR3.CG13", "1", 1},
+  {"mimxrt1062", "operation:clock-enable:lpi2c1", "set-bit", "alloy.clock.nxp-generic-clock-v1", "peripheral", "LPI2C1", nullptr, nullptr, -1, "CCM_CCGR2.CG2", "1", 1},
+  {"mimxrt1062", "operation:clock-enable:lpspi1", "set-bit", "alloy.clock.nxp-generic-clock-v1", "peripheral", "LPSPI1", nullptr, nullptr, -1, "CCM_CCGR1.CG0", "1", 1},
+  {"mimxrt1062", "operation:clock-enable:lpuart1", "set-bit", "alloy.clock.nxp-generic-clock-v1", "peripheral", "LPUART1", nullptr, nullptr, -1, "CCM_CCGR5.CG12", "1", 1},
+  {"mimxrt1062", "operation:clock-enable:lpuart3", "set-bit", "alloy.clock.nxp-generic-clock-v1", "peripheral", "LPUART3", nullptr, nullptr, -1, "CCM_CCGR0.CG6", "1", 1},
+  {"mimxrt1062", "operation:route:gpio-ad-b0-00:gpio1:io00", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_AD_B0_00", nullptr, nullptr, -1, "pinmux.GPIO_AD_B0_00", "5", 5},
+  {"mimxrt1062", "operation:route:gpio-ad-b0-00:lpi2c1:scl", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_AD_B0_00", nullptr, nullptr, -1, "pinmux.GPIO_AD_B0_00", "0", 0},
+  {"mimxrt1062", "operation:route:gpio-ad-b0-00:lpuart1:tx", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_AD_B0_00", nullptr, nullptr, -1, "pinmux.GPIO_AD_B0_00", "2", 2},
+  {"mimxrt1062", "operation:route:gpio-ad-b0-01:gpio1:io01", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_AD_B0_01", nullptr, nullptr, -1, "pinmux.GPIO_AD_B0_01", "5", 5},
+  {"mimxrt1062", "operation:route:gpio-ad-b0-01:lpi2c1:sda", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_AD_B0_01", nullptr, nullptr, -1, "pinmux.GPIO_AD_B0_01", "0", 0},
+  {"mimxrt1062", "operation:route:gpio-ad-b0-01:lpuart1:rx", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_AD_B0_01", nullptr, nullptr, -1, "pinmux.GPIO_AD_B0_01", "2", 2},
+  {"mimxrt1062", "operation:route:gpio-emc-00:gpio4:io00", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_EMC_00", nullptr, nullptr, -1, "pinmux.GPIO_EMC_00", "5", 5},
+  {"mimxrt1062", "operation:route:gpio-emc-00:lpspi1:sck", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_EMC_00", nullptr, nullptr, -1, "pinmux.GPIO_EMC_00", "2", 2},
+  {"mimxrt1062", "operation:route:gpio-emc-01:gpio4:io01", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_EMC_01", nullptr, nullptr, -1, "pinmux.GPIO_EMC_01", "5", 5},
+  {"mimxrt1062", "operation:route:gpio-emc-01:lpspi1:pcs0", "write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "pin", "GPIO_EMC_01", nullptr, nullptr, -1, "pinmux.GPIO_EMC_01", "2", 2},
 };
 
 struct ConnectionCandidateDescriptor {
@@ -92,16 +99,16 @@ struct ConnectionCandidateDescriptor {
   const char* capability_ids;
 };
 inline constexpr ConnectionCandidateDescriptor kConnectionCandidates[] = {
-  {"mimxrt1062", "candidate:gpio-ad-b0-00:gpio1:io00", "GPIO_AD_B0_00", "GPIO1", "io00", "iomuxc-mux", "selector:5", "group:gpio1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-00,requirement:clock-enable:gpio1,requirement:source-select:gpio-ad-b0-00:gpio1:io00", "operation:clock-enable:gpio1,operation:route:gpio-ad-b0-00:gpio1:io00", "capability-instance:gpio1:bga196:io00"},
-  {"mimxrt1062", "candidate:gpio-ad-b0-00:lpi2c1:scl", "GPIO_AD_B0_00", "LPI2C1", "scl", "iomuxc-mux", "selector:0", "group:lpi2c1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-00,requirement:clock-enable:lpi2c1,requirement:source-select:gpio-ad-b0-00:lpi2c1:scl", "operation:clock-enable:lpi2c1,operation:route:gpio-ad-b0-00:lpi2c1:scl", "capability-instance:lpi2c1:bga196:scl"},
-  {"mimxrt1062", "candidate:gpio-ad-b0-00:lpuart1:tx", "GPIO_AD_B0_00", "LPUART1", "tx", "iomuxc-mux", "selector:2", "group:lpuart1:bga196:tx-rx", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-00,requirement:clock-enable:lpuart1,requirement:source-select:gpio-ad-b0-00:lpuart1:tx", "operation:clock-enable:lpuart1,operation:route:gpio-ad-b0-00:lpuart1:tx", "capability-instance:lpuart1:bga196:tx"},
-  {"mimxrt1062", "candidate:gpio-ad-b0-01:gpio1:io01", "GPIO_AD_B0_01", "GPIO1", "io01", "iomuxc-mux", "selector:5", "group:gpio1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-01,requirement:clock-enable:gpio1,requirement:source-select:gpio-ad-b0-01:gpio1:io01", "operation:clock-enable:gpio1,operation:route:gpio-ad-b0-01:gpio1:io01", "capability-instance:gpio1:bga196:io01"},
-  {"mimxrt1062", "candidate:gpio-ad-b0-01:lpi2c1:sda", "GPIO_AD_B0_01", "LPI2C1", "sda", "iomuxc-mux", "selector:0", "group:lpi2c1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-01,requirement:clock-enable:lpi2c1,requirement:source-select:gpio-ad-b0-01:lpi2c1:sda", "operation:clock-enable:lpi2c1,operation:route:gpio-ad-b0-01:lpi2c1:sda", "capability-instance:lpi2c1:bga196:sda"},
-  {"mimxrt1062", "candidate:gpio-ad-b0-01:lpuart1:rx", "GPIO_AD_B0_01", "LPUART1", "rx", "iomuxc-mux", "selector:2", "group:lpuart1:bga196:tx-rx", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-01,requirement:clock-enable:lpuart1,requirement:source-select:gpio-ad-b0-01:lpuart1:rx", "operation:clock-enable:lpuart1,operation:route:gpio-ad-b0-01:lpuart1:rx", "capability-instance:lpuart1:bga196:rx"},
-  {"mimxrt1062", "candidate:gpio-emc-00:gpio4:io00", "GPIO_EMC_00", "GPIO4", "io00", "iomuxc-mux", "selector:5", "group:gpio4:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-00,requirement:clock-enable:gpio4,requirement:source-select:gpio-emc-00:gpio4:io00", "operation:clock-enable:gpio4,operation:route:gpio-emc-00:gpio4:io00", "capability-instance:gpio4:bga196:io00"},
-  {"mimxrt1062", "candidate:gpio-emc-00:lpspi1:sck", "GPIO_EMC_00", "LPSPI1", "sck", "iomuxc-mux", "selector:2", "group:lpspi1:bga196:sck-cs", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-00,requirement:clock-enable:lpspi1,requirement:source-select:gpio-emc-00:lpspi1:sck", "operation:clock-enable:lpspi1,operation:route:gpio-emc-00:lpspi1:sck", "capability-instance:lpspi1:bga196:sck"},
-  {"mimxrt1062", "candidate:gpio-emc-01:gpio4:io01", "GPIO_EMC_01", "GPIO4", "io01", "iomuxc-mux", "selector:5", "group:gpio4:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-01,requirement:clock-enable:gpio4,requirement:source-select:gpio-emc-01:gpio4:io01", "operation:clock-enable:gpio4,operation:route:gpio-emc-01:gpio4:io01", "capability-instance:gpio4:bga196:io01"},
-  {"mimxrt1062", "candidate:gpio-emc-01:lpspi1:pcs0", "GPIO_EMC_01", "LPSPI1", "pcs0", "iomuxc-mux", "selector:2", "group:lpspi1:bga196:sck-cs", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-01,requirement:clock-enable:lpspi1,requirement:source-select:gpio-emc-01:lpspi1:pcs0", "operation:clock-enable:lpspi1,operation:route:gpio-emc-01:lpspi1:pcs0", "capability-instance:lpspi1:bga196:cs"},
+  {"mimxrt1062", "candidate:gpio-ad-b0-00:gpio1:io00", "GPIO_AD_B0_00", "GPIO1", "io00", "iomuxc-mux", "selector:5", "group:gpio1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-00,requirement:clock-enable:gpio1,requirement:source-select:gpio-ad-b0-00:gpio1:io00", "operation:clock-enable:gpio1,operation:route:gpio-ad-b0-00:gpio1:io00", "capability:gpio:imxrt-gpio-v1:io00,capability-instance:gpio1:bga196:io00"},
+  {"mimxrt1062", "candidate:gpio-ad-b0-00:lpi2c1:scl", "GPIO_AD_B0_00", "LPI2C1", "scl", "iomuxc-mux", "selector:0", "group:lpi2c1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-00,requirement:clock-enable:lpi2c1,requirement:source-select:gpio-ad-b0-00:lpi2c1:scl", "operation:clock-enable:lpi2c1,operation:route:gpio-ad-b0-00:lpi2c1:scl", "capability:lpi2c1:lpi2c-v1:scl,capability-instance:lpi2c1:bga196:scl"},
+  {"mimxrt1062", "candidate:gpio-ad-b0-00:lpuart1:tx", "GPIO_AD_B0_00", "LPUART1", "tx", "iomuxc-mux", "selector:2", "group:lpuart1:bga196:tx-rx", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-00,requirement:clock-enable:lpuart1,requirement:source-select:gpio-ad-b0-00:lpuart1:tx", "operation:clock-enable:lpuart1,operation:route:gpio-ad-b0-00:lpuart1:tx", "capability:lpuart:lpuart-v1:tx,capability-instance:lpuart1:bga196:tx"},
+  {"mimxrt1062", "candidate:gpio-ad-b0-01:gpio1:io01", "GPIO_AD_B0_01", "GPIO1", "io01", "iomuxc-mux", "selector:5", "group:gpio1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-01,requirement:clock-enable:gpio1,requirement:source-select:gpio-ad-b0-01:gpio1:io01", "operation:clock-enable:gpio1,operation:route:gpio-ad-b0-01:gpio1:io01", "capability:gpio:imxrt-gpio-v1:io01,capability-instance:gpio1:bga196:io01"},
+  {"mimxrt1062", "candidate:gpio-ad-b0-01:lpi2c1:sda", "GPIO_AD_B0_01", "LPI2C1", "sda", "iomuxc-mux", "selector:0", "group:lpi2c1:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-01,requirement:clock-enable:lpi2c1,requirement:source-select:gpio-ad-b0-01:lpi2c1:sda", "operation:clock-enable:lpi2c1,operation:route:gpio-ad-b0-01:lpi2c1:sda", "capability:lpi2c1:lpi2c-v1:sda,capability-instance:lpi2c1:bga196:sda"},
+  {"mimxrt1062", "candidate:gpio-ad-b0-01:lpuart1:rx", "GPIO_AD_B0_01", "LPUART1", "rx", "iomuxc-mux", "selector:2", "group:lpuart1:bga196:tx-rx", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-ad-b0-01,requirement:clock-enable:lpuart1,requirement:source-select:gpio-ad-b0-01:lpuart1:rx", "operation:clock-enable:lpuart1,operation:route:gpio-ad-b0-01:lpuart1:rx", "capability:lpuart:lpuart-v1:rx,capability-instance:lpuart1:bga196:rx"},
+  {"mimxrt1062", "candidate:gpio-emc-00:gpio4:io00", "GPIO_EMC_00", "GPIO4", "io00", "iomuxc-mux", "selector:5", "group:gpio4:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-00,requirement:clock-enable:gpio4,requirement:source-select:gpio-emc-00:gpio4:io00", "operation:clock-enable:gpio4,operation:route:gpio-emc-00:gpio4:io00", "capability:gpio:imxrt-gpio-v1:io00,capability-instance:gpio4:bga196:io00"},
+  {"mimxrt1062", "candidate:gpio-emc-00:lpspi1:sck", "GPIO_EMC_00", "LPSPI1", "sck", "iomuxc-mux", "selector:2", "group:lpspi1:bga196:sck-cs", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-00,requirement:clock-enable:lpspi1,requirement:source-select:gpio-emc-00:lpspi1:sck", "operation:clock-enable:lpspi1,operation:route:gpio-emc-00:lpspi1:sck", "capability:lpspi:lpspi-v1:sck,capability-instance:lpspi1:bga196:sck"},
+  {"mimxrt1062", "candidate:gpio-emc-01:gpio4:io01", "GPIO_EMC_01", "GPIO4", "io01", "iomuxc-mux", "selector:5", "group:gpio4:bga196:all-signals", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-01,requirement:clock-enable:gpio4,requirement:source-select:gpio-emc-01:gpio4:io01", "operation:clock-enable:gpio4,operation:route:gpio-emc-01:gpio4:io01", "capability:gpio:imxrt-gpio-v1:io01,capability-instance:gpio4:bga196:io01"},
+  {"mimxrt1062", "candidate:gpio-emc-01:lpspi1:pcs0", "GPIO_EMC_01", "LPSPI1", "pcs0", "iomuxc-mux", "selector:2", "group:lpspi1:bga196:sck-cs", "requirement:package:bga196,requirement:bonded-pin:bga196:gpio-emc-01,requirement:clock-enable:lpspi1,requirement:source-select:gpio-emc-01:lpspi1:pcs0", "operation:clock-enable:lpspi1,operation:route:gpio-emc-01:lpspi1:pcs0", "capability:lpspi:lpspi-v1:cs,capability-instance:lpspi1:bga196:cs"},
 };
 
 struct ConnectionGroupDescriptor {

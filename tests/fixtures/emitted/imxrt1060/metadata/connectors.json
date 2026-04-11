@@ -5,6 +5,7 @@
         {
           "candidate_id": "candidate:gpio-ad-b0-00:gpio1:io00",
           "capability_ids": [
+            "capability:gpio:imxrt-gpio-v1:io00",
             "capability-instance:gpio1:bga196:io00"
           ],
           "operation_ids": [
@@ -35,6 +36,7 @@
         {
           "candidate_id": "candidate:gpio-ad-b0-00:lpi2c1:scl",
           "capability_ids": [
+            "capability:lpi2c1:lpi2c-v1:scl",
             "capability-instance:lpi2c1:bga196:scl"
           ],
           "operation_ids": [
@@ -65,6 +67,7 @@
         {
           "candidate_id": "candidate:gpio-ad-b0-00:lpuart1:tx",
           "capability_ids": [
+            "capability:lpuart:lpuart-v1:tx",
             "capability-instance:lpuart1:bga196:tx"
           ],
           "operation_ids": [
@@ -95,6 +98,7 @@
         {
           "candidate_id": "candidate:gpio-ad-b0-01:gpio1:io01",
           "capability_ids": [
+            "capability:gpio:imxrt-gpio-v1:io01",
             "capability-instance:gpio1:bga196:io01"
           ],
           "operation_ids": [
@@ -125,6 +129,7 @@
         {
           "candidate_id": "candidate:gpio-ad-b0-01:lpi2c1:sda",
           "capability_ids": [
+            "capability:lpi2c1:lpi2c-v1:sda",
             "capability-instance:lpi2c1:bga196:sda"
           ],
           "operation_ids": [
@@ -155,6 +160,7 @@
         {
           "candidate_id": "candidate:gpio-ad-b0-01:lpuart1:rx",
           "capability_ids": [
+            "capability:lpuart:lpuart-v1:rx",
             "capability-instance:lpuart1:bga196:rx"
           ],
           "operation_ids": [
@@ -185,6 +191,7 @@
         {
           "candidate_id": "candidate:gpio-emc-00:gpio4:io00",
           "capability_ids": [
+            "capability:gpio:imxrt-gpio-v1:io00",
             "capability-instance:gpio4:bga196:io00"
           ],
           "operation_ids": [
@@ -215,6 +222,7 @@
         {
           "candidate_id": "candidate:gpio-emc-00:lpspi1:sck",
           "capability_ids": [
+            "capability:lpspi:lpspi-v1:sck",
             "capability-instance:lpspi1:bga196:sck"
           ],
           "operation_ids": [
@@ -245,6 +253,7 @@
         {
           "candidate_id": "candidate:gpio-emc-01:gpio4:io01",
           "capability_ids": [
+            "capability:gpio:imxrt-gpio-v1:io01",
             "capability-instance:gpio4:bga196:io01"
           ],
           "operation_ids": [
@@ -275,6 +284,7 @@
         {
           "candidate_id": "candidate:gpio-emc-01:lpspi1:pcs0",
           "capability_ids": [
+            "capability:lpspi:lpspi-v1:cs",
             "capability-instance:lpspi1:bga196:cs"
           ],
           "operation_ids": [
@@ -429,8 +439,15 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.clock.nxp-generic-clock-v1",
+          "subject_id": "GPIO1",
+          "subject_kind": "peripheral",
           "target": "CCM_CCGR1.CG13",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -443,8 +460,15 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.clock.nxp-generic-clock-v1",
+          "subject_id": "GPIO4",
+          "subject_kind": "peripheral",
           "target": "CCM_CCGR3.CG13",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -457,8 +481,15 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.clock.nxp-generic-clock-v1",
+          "subject_id": "LPI2C1",
+          "subject_kind": "peripheral",
           "target": "CCM_CCGR2.CG2",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -471,8 +502,15 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.clock.nxp-generic-clock-v1",
+          "subject_id": "LPSPI1",
+          "subject_kind": "peripheral",
           "target": "CCM_CCGR1.CG0",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -485,8 +523,15 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.clock.nxp-generic-clock-v1",
+          "subject_id": "LPUART1",
+          "subject_kind": "peripheral",
           "target": "CCM_CCGR5.CG12",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -499,8 +544,15 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.clock.nxp-generic-clock-v1",
+          "subject_id": "LPUART3",
+          "subject_kind": "peripheral",
           "target": "CCM_CCGR0.CG6",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "write-selector",
@@ -513,8 +565,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_AD_B0_00",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_00",
-          "value": "5"
+          "value": "5",
+          "value_int": 5
         },
         {
           "kind": "write-selector",
@@ -527,8 +586,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_AD_B0_00",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_00",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "write-selector",
@@ -541,8 +607,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_AD_B0_00",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_00",
-          "value": "2"
+          "value": "2",
+          "value_int": 2
         },
         {
           "kind": "write-selector",
@@ -555,8 +628,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_AD_B0_01",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_01",
-          "value": "5"
+          "value": "5",
+          "value_int": 5
         },
         {
           "kind": "write-selector",
@@ -569,8 +649,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_AD_B0_01",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_01",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "write-selector",
@@ -583,8 +670,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_AD_B0_01",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_AD_B0_01",
-          "value": "2"
+          "value": "2",
+          "value_int": 2
         },
         {
           "kind": "write-selector",
@@ -597,8 +691,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_EMC_00",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_00",
-          "value": "5"
+          "value": "5",
+          "value_int": 5
         },
         {
           "kind": "write-selector",
@@ -611,8 +712,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_EMC_00",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_00",
-          "value": "2"
+          "value": "2",
+          "value_int": 2
         },
         {
           "kind": "write-selector",
@@ -625,8 +733,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_EMC_01",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_01",
-          "value": "5"
+          "value": "5",
+          "value_int": 5
         },
         {
           "kind": "write-selector",
@@ -639,8 +754,15 @@
             "source_id": "nxp-mcux-sdk",
             "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.imxrt-iomuxc-v1",
+          "subject_id": "GPIO_EMC_01",
+          "subject_kind": "pin",
           "target": "pinmux.GPIO_EMC_01",
-          "value": "2"
+          "value": "2",
+          "value_int": 2
         }
       ],
       "route_requirements": [

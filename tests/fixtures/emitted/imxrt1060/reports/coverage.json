@@ -1,9 +1,9 @@
 {
-  "all_devices_publishable": false,
+  "all_devices_publishable": true,
   "devices": [
     {
       "counts": {
-        "capabilities": 10,
+        "capabilities": 18,
         "clock_gates": 6,
         "clock_nodes": 11,
         "clock_selectors": 3,
@@ -13,7 +13,7 @@
         "dma_controllers": 0,
         "dma_routes": 0,
         "interrupts": 4,
-        "ip_blocks": 0,
+        "ip_blocks": 4,
         "memories": 1,
         "package_pads": 4,
         "packages": 1,
@@ -33,15 +33,15 @@
         "capabilities": true,
         "clock-reset": true,
         "connectors": true,
-        "dma": false,
+        "dma": true,
         "interrupt": true,
-        "ip-blocks": false,
+        "ip-blocks": true,
         "memory": true,
         "package": true,
         "startup": true
       },
       "package": "bga196",
-      "publishable": false
+      "publishable": true
     }
   ],
   "draft_system_descriptor_domains": [],

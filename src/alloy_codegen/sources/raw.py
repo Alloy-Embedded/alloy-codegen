@@ -11,6 +11,17 @@ class RawPeripheral:
 
     name: str
     base_address: int
+    registers: tuple[RawRegister, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class RawRegister:
+    """One register extracted from a raw source register block."""
+
+    name: str
+    offset_bytes: int
+    access: str | None
+    size_bits: int | None
 
 
 @dataclass(frozen=True, slots=True)

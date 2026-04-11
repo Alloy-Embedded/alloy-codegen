@@ -107,8 +107,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "AHBENR",
+          "register_offset": 56,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "DMA1",
+          "subject_kind": "peripheral",
           "target": "RCC_AHBENR.DMA1EN",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -121,8 +128,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "AHBENR",
+          "register_offset": 56,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "DMAMUX1",
+          "subject_kind": "peripheral",
           "target": "RCC_AHBENR.DMAMUX1EN",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -135,8 +149,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "IOPENR",
+          "register_offset": 52,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "GPIOA",
+          "subject_kind": "peripheral",
           "target": "RCC_IOPENR.GPIOAEN",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -149,8 +170,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "IOPENR",
+          "register_offset": 52,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "GPIOB",
+          "subject_kind": "peripheral",
           "target": "RCC_IOPENR.GPIOBEN",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "set-bit",
@@ -163,8 +191,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "APBENR2",
+          "register_offset": 64,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "USART1",
+          "subject_kind": "peripheral",
           "target": "RCC_APBENR2.USART1EN",
-          "value": "1"
+          "value": "1",
+          "value_int": 1
         },
         {
           "kind": "clear-bit",
@@ -177,8 +212,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "AHBRSTR",
+          "register_offset": 40,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "DMA1",
+          "subject_kind": "peripheral",
           "target": "RCC_AHBRSTR.DMA1RST",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "clear-bit",
@@ -191,8 +233,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "AHBRSTR",
+          "register_offset": 40,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "DMAMUX1",
+          "subject_kind": "peripheral",
           "target": "RCC_AHBRSTR.DMAMUX1RST",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "clear-bit",
@@ -205,8 +254,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "IOPRSTR",
+          "register_offset": 36,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "GPIOA",
+          "subject_kind": "peripheral",
           "target": "RCC_IOPRSTR.GPIOARST",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "clear-bit",
@@ -219,8 +275,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "IOPRSTR",
+          "register_offset": 36,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "GPIOB",
+          "subject_kind": "peripheral",
           "target": "RCC_IOPRSTR.GPIOBRST",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "clear-bit",
@@ -233,8 +296,15 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_name": "APBRSTR2",
+          "register_offset": 48,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "USART1",
+          "subject_kind": "peripheral",
           "target": "RCC_APBRSTR2.USART1RST",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "write-selector",
@@ -247,8 +317,15 @@
             "source_id": "stm32-open-pin-data",
             "source_path": "STM32G071R(6-8-B)Tx.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.stm32-af-v1",
+          "subject_id": "PB6",
+          "subject_kind": "pin",
           "target": "pinmux.PB6",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         },
         {
           "kind": "write-selector",
@@ -261,8 +338,15 @@
             "source_id": "stm32-open-pin-data",
             "source_path": "STM32G071R(6-8-B)Tx.xml"
           },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.stm32-af-v1",
+          "subject_id": "PB7",
+          "subject_kind": "pin",
           "target": "pinmux.PB7",
-          "value": "0"
+          "value": "0",
+          "value_int": 0
         }
       ],
       "route_requirements": [

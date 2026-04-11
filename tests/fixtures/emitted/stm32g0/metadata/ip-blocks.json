@@ -45,6 +45,7 @@
   "family": "stm32g0",
   "ip_blocks": [
     {
+      "backend_schema_id": "alloy.dma.st-bdma-v1-0",
       "capability_ids": [],
       "ip_name": "dma",
       "ip_version": "bdma_v1_0",
@@ -61,6 +62,7 @@
       "signal_roles": []
     },
     {
+      "backend_schema_id": "alloy.dma-router.st-dmamux-v1-0",
       "capability_ids": [],
       "ip_name": "dmamux",
       "ip_version": "dmamux_v1_0",
@@ -77,6 +79,7 @@
       "signal_roles": []
     },
     {
+      "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0",
       "capability_ids": [],
       "ip_name": "gpio",
       "ip_version": "STM32G07x_gpio_v1_0",
@@ -93,6 +96,7 @@
       "signal_roles": []
     },
     {
+      "backend_schema_id": "alloy.rcc.st-rcc-g0-v1-0",
       "capability_ids": [],
       "ip_name": "rcc",
       "ip_version": "rcc_g0_v1_0",
@@ -109,6 +113,7 @@
       "signal_roles": []
     },
     {
+      "backend_schema_id": "alloy.uart.st-usart-v3-1",
       "capability_ids": [
         "capability:usart:usart-v3-1:rx",
         "capability:usart:usart-v3-1:tx"

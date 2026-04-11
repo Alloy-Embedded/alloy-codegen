@@ -23,6 +23,7 @@ Published `alloy-devices` trees may contain:
   - `generated/peripherals/*.hpp`
   - `generated/ip/*.hpp`
   - `generated/connector_tables.hpp`
+  - `generated/runtime_profiles.hpp`
   - `generated/rcc_map.hpp`
   - `generated/dma_map.hpp`
   - `generated/interrupt_map.hpp`
@@ -55,6 +56,7 @@ The published C++ contract is descriptor-first:
 
 - family-level headers describe shared hardware facts across the family
 - device-level headers describe one target device without requiring JSON-side inference
+- runtime profile headers describe schema/backend dispatch without family parsing in Alloy
 - reports describe whether the emitted contract is complete enough for Alloy to consume directly
 
 ## Alloy-Owned Behavior

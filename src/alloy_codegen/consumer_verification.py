@@ -113,6 +113,7 @@ def verify_alloy_smoke_consumer(
         f'-DALLOY_CODEGEN_SMOKE_MEMORY_MAP_HEADER="{vendor}/{family}/generated/memory_map.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_PACKAGE_MAP_HEADER="{vendor}/{family}/generated/package_map.hpp"',
         f'-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER="{vendor}/{family}/generated/clock_tree_lite.hpp"',
+        f'-DALLOY_CODEGEN_SMOKE_RUNTIME_PROFILES_HEADER="{vendor}/{family}/generated/runtime_profiles.hpp"',
         (
             f"-DALLOY_CODEGEN_SMOKE_DEVICE_DESCRIPTOR_HEADER="
             f'"{vendor}/{family}/generated/devices/{device}/device_descriptor.hpp"'

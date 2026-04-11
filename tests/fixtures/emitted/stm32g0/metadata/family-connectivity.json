@@ -116,6 +116,7 @@
   ],
   "peripherals": [
     {
+      "backend_schema_id": "alloy.dma.st-bdma-v1-0",
       "base_address": 1073872896,
       "instance": 1,
       "ip_name": "dma",
@@ -133,6 +134,7 @@
       "rcc_reset_signal": "RCC_AHBRSTR.DMA1RST"
     },
     {
+      "backend_schema_id": "alloy.dma-router.st-dmamux-v1-0",
       "base_address": 1073874944,
       "instance": 1,
       "ip_name": "dmamux",
@@ -150,6 +152,7 @@
       "rcc_reset_signal": "RCC_AHBRSTR.DMAMUX1RST"
     },
     {
+      "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0",
       "base_address": 1342177280,
       "instance": 0,
       "ip_name": "gpio",
@@ -167,6 +170,7 @@
       "rcc_reset_signal": "RCC_IOPRSTR.GPIOARST"
     },
     {
+      "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0",
       "base_address": 1342178304,
       "instance": 1,
       "ip_name": "gpio",
@@ -184,6 +188,7 @@
       "rcc_reset_signal": "RCC_IOPRSTR.GPIOBRST"
     },
     {
+      "backend_schema_id": "alloy.rcc.st-rcc-g0-v1-0",
       "base_address": 1073876992,
       "instance": 0,
       "ip_name": "rcc",
@@ -201,6 +206,7 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.uart.st-usart-v3-1",
       "base_address": 1073821696,
       "instance": 1,
       "ip_name": "usart",

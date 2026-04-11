@@ -87,6 +87,7 @@ class PeripheralInstance:
     rcc_enable_signal: str | None
     rcc_reset_signal: str | None
     provenance: Provenance
+    backend_schema_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -125,6 +126,20 @@ class IpBlockDefinition:
     register_profile: str | None
     signal_roles: tuple[str, ...]
     capability_ids: tuple[str, ...]
+    provenance: Provenance
+    backend_schema_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RegisterDescriptor:
+    """One normalized register descriptor owned by a peripheral instance."""
+
+    register_id: str
+    peripheral: str
+    name: str
+    offset_bytes: int
+    access: str | None
+    size_bits: int | None
     provenance: Provenance
 
 
@@ -200,6 +215,13 @@ class RouteOperation:
     target: str
     value: str | None
     provenance: Provenance
+    schema_id: str | None = None
+    subject_kind: str | None = None
+    subject_id: str | None = None
+    register_peripheral: str | None = None
+    register_name: str | None = None
+    register_offset: int | None = None
+    value_int: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -355,6 +377,10 @@ class CanonicalDeviceIR:
     interrupts: tuple[InterruptDefinition, ...]
     dma_requests: tuple[DmaRequestDefinition, ...]
     provenance: Provenance
+    registers: tuple[RegisterDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
     ip_blocks: tuple[IpBlockDefinition, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},

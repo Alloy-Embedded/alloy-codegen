@@ -20,6 +20,7 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
 - `<vendor>/<family>/generated/ip/<ip-version>.hpp`
 - `<vendor>/<family>/generated/connector_tables.hpp`
+- `<vendor>/<family>/generated/runtime_profiles.hpp`
 - `<vendor>/<family>/generated/rcc_map.hpp`
 - `<vendor>/<family>/generated/dma_map.hpp`
 - `<vendor>/<family>/generated/interrupt_map.hpp`
@@ -62,6 +63,7 @@ Successful publication writes:
 - `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
 - `<vendor>/<family>/generated/ip/<ip-version>.hpp`
 - `<vendor>/<family>/generated/connector_tables.hpp`
+- `<vendor>/<family>/generated/runtime_profiles.hpp`
 - `<vendor>/<family>/generated/rcc_map.hpp`
 - `<vendor>/<family>/generated/dma_map.hpp`
 - `<vendor>/<family>/generated/interrupt_map.hpp`

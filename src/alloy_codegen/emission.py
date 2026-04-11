@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from alloy_codegen.connector_model import canonical_peripheral_class
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     DmaRequestDefinition,
@@ -51,6 +52,15 @@ def _identifier(value: str) -> str:
     if sanitized and sanitized[0].isdigit():
         return f"_{sanitized}"
     return sanitized
+
+
+def _enum_identifier(value: str) -> str:
+    identifier = _identifier(value)
+    if not identifier:
+        return "Unknown"
+    if identifier[0].isdigit():
+        identifier = f"_{identifier}"
+    return identifier
 
 
 def _namespace_components(device: CanonicalDeviceIR) -> tuple[str, str, str, str, str]:
@@ -785,8 +795,19 @@ def emit_peripheral_instances_header(
             }
         )
     }
+    register_count_by_peripheral: dict[str, int] = {}
+    for register in device.registers:
+        register_count_by_peripheral[register.peripheral] = (
+            register_count_by_peripheral.get(register.peripheral, 0) + 1
+        )
+
+    sorted_peripherals = sorted(device.peripherals, key=lambda item: item.name)
     peripheral_rows: list[str] = []
-    for peripheral in sorted(device.peripherals, key=lambda item: item.name):
+    enum_rows = [
+        f"  {_enum_identifier(peripheral.name)},"
+        for peripheral in sorted_peripherals
+    ]
+    for peripheral in sorted_peripherals:
         binding = bindings_by_peripheral.get(peripheral.name)
         clock_gate_id = None if binding is None else binding.clock_gate_id
         reset_id = None if binding is None else binding.reset_id
@@ -795,9 +816,11 @@ def emit_peripheral_instances_header(
         overlay_ids = ",".join(overlay_ids_by_peripheral.get(peripheral.name, ()))
         peripheral_rows.append(
             "  {"
+            f"PeripheralId::{_enum_identifier(peripheral.name)}, "
             f"{json.dumps(peripheral.name)}, "
             f"{json.dumps(peripheral.ip_name)}, "
             f"{_quoted(peripheral.ip_version)}, "
+            f"{_quoted(peripheral.backend_schema_id)}, "
             f"{peripheral.instance}, "
             f"0x{peripheral.base_address:08X}u, "
             f"{_quoted(peripheral.rcc_enable_signal)}, "
@@ -806,17 +829,24 @@ def emit_peripheral_instances_header(
             f"{_quoted(reset_id)}, "
             f"{_quoted(selector_id)}, "
             f"{json.dumps(interrupt_names)}, "
-            f"{json.dumps(overlay_ids)}"
+            f"{json.dumps(overlay_ids)}, "
+            f"{register_count_by_peripheral.get(peripheral.name, 0)}"
             "},"
         )
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
         "\n".join(
             [
+                "enum class PeripheralId : std::uint16_t {",
+                *enum_rows,
+                "};",
+                "",
                 "struct PeripheralInstanceDescriptor {",
+                "  PeripheralId peripheral_id;",
                 "  const char* name;",
                 "  const char* ip_name;",
                 "  const char* ip_version;",
+                "  const char* backend_schema_id;",
                 "  int instance;",
                 "  std::uintptr_t base_address;",
                 "  const char* rcc_enable_signal;",
@@ -826,6 +856,7 @@ def emit_peripheral_instances_header(
                 "  const char* selector_id;",
                 "  const char* interrupt_names;",
                 "  const char* capability_overlay_ids;",
+                "  int register_count;",
                 "};",
                 *_std_array_lines(
                     type_name="PeripheralInstanceDescriptor",
@@ -902,6 +933,66 @@ def emit_capability_overlays_header(
         ),
         content=content,
     )
+
+
+def emit_runtime_profiles_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    rows: list[tuple[str, str, str, str]] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for device in devices:
+        for peripheral in sorted(device.peripherals, key=lambda item: item.name):
+            if peripheral.backend_schema_id is None:
+                continue
+            row = (
+                canonical_peripheral_class(peripheral.ip_name),
+                peripheral.backend_schema_id,
+                "peripheral",
+                peripheral.name,
+            )
+            if row not in seen:
+                seen.add(row)
+                rows.append(row)
+        for operation in sorted(device.route_operations, key=lambda item: item.operation_id):
+            if operation.schema_id is None:
+                continue
+            row = (
+                operation.kind,
+                operation.schema_id,
+                "route-operation",
+                operation.operation_id,
+            )
+            if row not in seen:
+                seen.add(row)
+                rows.append(row)
+
+    _vendor, _family = family_dir.split("/", 1)
+    namespace_block = _cpp_namespace_block(
+        (_vendor, _family, "generated"),
+        "\n".join(
+            [
+                "struct RuntimeProfileDescriptor {",
+                "  const char* subsystem;",
+                "  const char* schema_id;",
+                "  const char* source_kind;",
+                "  const char* source_id;",
+                "};",
+                *_std_array_lines(
+                    type_name="RuntimeProfileDescriptor",
+                    variable_name="kRuntimeProfiles",
+                    row_lines=[
+                        f"  {{{json.dumps(subsystem)}, {json.dumps(schema_id)}, "
+                        f"{json.dumps(source_kind)}, {json.dumps(source_id)}}},"
+                        for subsystem, schema_id, source_kind, source_id in rows
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(["#pragma once", "", "#include <array>", "", namespace_block, ""])
+    return _cpp_artifact(path=f"{family_dir}/generated/runtime_profiles.hpp", content=content)
 
 
 def emit_family_index(
@@ -989,6 +1080,7 @@ def emit_ip_block_header(
         "  const char* ip_name;",
         "  const char* ip_version;",
         "  const char* peripheral_class;",
+        "  const char* backend_schema_id;",
         "  const char* register_profile;",
         "  const char* signal_roles;",
         "};",
@@ -996,6 +1088,7 @@ def emit_ip_block_header(
         f"  {json.dumps(ip_block.ip_name)},",
         f"  {json.dumps(ip_block.ip_version)},",
         f"  {json.dumps(ip_block.peripheral_class)},",
+        f"  {_quoted(ip_block.backend_schema_id)},",
         f"  {_quoted(ip_block.register_profile)},",
         f"  {json.dumps(','.join(ip_block.signal_roles))},",
         "};",
@@ -1174,21 +1267,67 @@ def emit_system_descriptors_metadata(
 
 
 def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
+    sorted_peripherals = sorted(device.peripherals, key=lambda item: item.name)
+    register_rows = [
+        (
+            register.peripheral,
+            register.name,
+            register.offset_bytes,
+            register.access,
+            register.size_bits,
+        )
+        for register in sorted(
+            device.registers,
+            key=lambda item: (item.peripheral, item.offset_bytes, item.name),
+        )
+    ]
     namespace_block = _cpp_namespace_block(
         _namespace_components(device),
         "\n".join(
             [
                 f"inline constexpr const char* kDevice = {json.dumps(device.identity.device)};",
                 "struct PeripheralBase {",
+                "  PeripheralId peripheral_id;",
                 "  const char* name;",
                 "  std::uintptr_t address;",
                 "};",
-                "inline constexpr PeripheralBase kPeripheralBases[] = {",
-                *[
-                    f"  {{{json.dumps(peripheral.name)}, 0x{peripheral.base_address:08X}u}},"
-                    for peripheral in sorted(device.peripherals, key=lambda item: item.name)
-                ],
+                *_std_array_lines(
+                    type_name="PeripheralBase",
+                    variable_name="kPeripheralBases",
+                    row_lines=[
+                        f"  {{PeripheralId::{_enum_identifier(peripheral.name)}, "
+                        f"{json.dumps(peripheral.name)}, 0x{peripheral.base_address:08X}u}},"
+                        for peripheral in sorted_peripherals
+                    ],
+                ),
+                "",
+                "struct RegisterDescriptor {",
+                "  PeripheralId peripheral_id;",
+                "  const char* peripheral_name;",
+                "  const char* register_name;",
+                "  std::uint32_t offset_bytes;",
+                "  const char* access;",
+                "  int size_bits;",
                 "};",
+                *_std_array_lines(
+                    type_name="RegisterDescriptor",
+                    variable_name="kRegisters",
+                    row_lines=[
+                        (
+                            f"  {{PeripheralId::{_enum_identifier(peripheral_name)}, "
+                            f"{json.dumps(peripheral_name)}, {json.dumps(register_name)}, "
+                            f"{offset_bytes}u, {_quoted(access)}, "
+                            f"{-1 if size_bits is None else size_bits}}},"
+                        )
+                        for (
+                            peripheral_name,
+                            register_name,
+                            offset_bytes,
+                            access,
+                            size_bits,
+                        ) in register_rows
+                    ],
+                ),
             ]
         ),
     )
@@ -1196,7 +1335,9 @@ def emit_register_map_header(*, family_dir: str, device: CanonicalDeviceIR) -> E
         [
             "#pragma once",
             "",
+            "#include <array>",
             "#include <cstdint>",
+            '#include "peripheral_instances.hpp"',
             "",
             namespace_block,
             "",
@@ -1286,8 +1427,15 @@ def emit_connector_tables_header(
             device.identity.device,
             operation.operation_id,
             operation.kind,
+            operation.schema_id,
+            operation.subject_kind,
+            operation.subject_id,
+            operation.register_peripheral,
+            operation.register_name,
+            operation.register_offset,
             operation.target,
             operation.value,
+            operation.value_int,
         )
         for device in devices
         for operation in sorted(device.route_operations, key=lambda item: item.operation_id)
@@ -1358,14 +1506,39 @@ def emit_connector_tables_header(
         "  const char* device;",
         "  const char* operation_id;",
         "  const char* kind;",
+        "  const char* schema_id;",
+        "  const char* subject_kind;",
+        "  const char* subject_id;",
+        "  const char* register_peripheral;",
+        "  const char* register_name;",
+        "  int register_offset;",
         "  const char* target;",
         "  const char* value;",
+        "  int value_int;",
         "};",
         "inline constexpr RouteOperationDescriptor kRouteOperations[] = {",
         *[
             f"  {{{json.dumps(device_name)}, {json.dumps(operation_id)}, "
-            f"{json.dumps(kind)}, {json.dumps(target)}, {_quoted(value)}}},"
-            for device_name, operation_id, kind, target, value in operation_rows
+            f"{json.dumps(kind)}, {_quoted(schema_id)}, {_quoted(subject_kind)}, "
+            f"{_quoted(subject_id)}, {_quoted(register_peripheral)}, "
+            f"{_quoted(register_name)}, "
+            f"{-1 if register_offset is None else register_offset}, "
+            f"{json.dumps(target)}, {_quoted(value)}, "
+            f"{-1 if value_int is None else value_int}}},"
+            for (
+                device_name,
+                operation_id,
+                kind,
+                schema_id,
+                subject_kind,
+                subject_id,
+                register_peripheral,
+                register_name,
+                register_offset,
+                target,
+                value,
+                value_int,
+            ) in operation_rows
         ],
         "};",
         "",

@@ -11,7 +11,7 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.patches import load_device_patch
 from alloy_codegen.scope import PipelineScope
-from alloy_codegen.sources.raw import RawDeviceDocument, RawInterrupt, RawPeripheral
+from alloy_codegen.sources.raw import RawDeviceDocument, RawInterrupt, RawPeripheral, RawRegister
 
 CMSIS_SVD_REMOTE = "https://github.com/cmsis-svd/cmsis-svd-data.git"
 STMICRO_SUBTREE = "data/STMicro"
@@ -128,14 +128,22 @@ def parse_raw_device_document(svd_path: Path) -> RawDeviceDocument:
     interrupts: list[RawInterrupt] = []
 
     if peripheral_nodes is not None:
-        for peripheral in peripheral_nodes.findall("peripheral"):
+        peripheral_elements = tuple(peripheral_nodes.findall("peripheral"))
+        peripheral_index = {
+            name: peripheral
+            for peripheral in peripheral_elements
+            if (name := peripheral.findtext("name")) is not None
+        }
+        for peripheral in peripheral_elements:
             name = peripheral.findtext("name")
             base_address = peripheral.findtext("baseAddress")
             if name and base_address:
+                registers = _parse_registers(peripheral, peripheral_index)
                 peripherals.append(
                     RawPeripheral(
                         name=name,
                         base_address=int(base_address, 16),
+                        registers=registers,
                     )
                 )
             for interrupt in peripheral.findall("interrupt"):
@@ -157,3 +165,45 @@ def parse_raw_device_document(svd_path: Path) -> RawDeviceDocument:
         peripherals=tuple(peripherals),
         interrupts=tuple(interrupts),
     )
+
+
+def _parse_registers(
+    peripheral_node: ET.Element,
+    peripheral_index: dict[str, ET.Element],
+    *,
+    seen: frozenset[str] = frozenset(),
+) -> tuple[RawRegister, ...]:
+    """Parse top-level register descriptors from one SVD peripheral node."""
+    registers_node = peripheral_node.find("registers")
+    if registers_node is None:
+        derived_from = peripheral_node.get("derivedFrom")
+        if derived_from is None:
+            return ()
+        if derived_from in seen:
+            raise StageExecutionError(
+                f"Detected circular SVD derivedFrom register chain involving '{derived_from}'."
+            )
+        base_peripheral = peripheral_index.get(derived_from)
+        if base_peripheral is None:
+            return ()
+        return _parse_registers(base_peripheral, peripheral_index, seen=seen | {derived_from})
+
+    peripheral_default_access = peripheral_node.findtext("access")
+    peripheral_default_size = peripheral_node.findtext("size")
+    registers: list[RawRegister] = []
+    for register_node in registers_node.findall("register"):
+        name = register_node.findtext("name")
+        offset_text = register_node.findtext("addressOffset")
+        if name is None or offset_text is None:
+            continue
+        access = register_node.findtext("access") or peripheral_default_access
+        size_text = register_node.findtext("size") or peripheral_default_size
+        registers.append(
+            RawRegister(
+                name=name,
+                offset_bytes=int(offset_text, 0),
+                access=access,
+                size_bits=None if size_text is None else int(size_text, 0),
+            )
+        )
+    return tuple(registers)

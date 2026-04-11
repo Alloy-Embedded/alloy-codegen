@@ -59,6 +59,7 @@
         "name",
         "ip_name",
         "ip_version",
+        "backend_schema_id",
         "instance",
         "base_address",
         "rcc_enable_signal",
@@ -69,6 +70,7 @@
         "name": { "type": "string" },
         "ip_name": { "type": "string" },
         "ip_version": { "type": ["string", "null"] },
+        "backend_schema_id": { "type": ["string", "null"] },
         "instance": { "type": "integer" },
         "base_address": { "type": "integer" },
         "rcc_enable_signal": { "type": ["string", "null"] },
@@ -111,6 +113,7 @@
         "ip_name",
         "ip_version",
         "peripheral_class",
+        "backend_schema_id",
         "register_profile",
         "signal_roles",
         "capability_ids",
@@ -120,6 +123,7 @@
         "ip_name": { "type": "string" },
         "ip_version": { "type": "string" },
         "peripheral_class": { "type": "string" },
+        "backend_schema_id": { "type": ["string", "null"] },
         "register_profile": { "type": ["string", "null"] },
         "signal_roles": {
           "type": "array",
@@ -157,6 +161,28 @@
         "ip_version": { "type": ["string", "null"] },
         "peripheral": { "type": ["string", "null"] },
         "package": { "type": ["string", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
+    "register_descriptor": {
+      "type": "object",
+      "required": [
+        "register_id",
+        "peripheral",
+        "name",
+        "offset_bytes",
+        "access",
+        "size_bits",
+        "provenance"
+      ],
+      "properties": {
+        "register_id": { "type": "string" },
+        "peripheral": { "type": "string" },
+        "name": { "type": "string" },
+        "offset_bytes": { "type": "integer" },
+        "access": { "type": ["string", "null"] },
+        "size_bits": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -223,12 +249,32 @@
     },
     "route_operation": {
       "type": "object",
-      "required": ["operation_id", "kind", "target", "value", "provenance"],
+      "required": [
+        "operation_id",
+        "kind",
+        "target",
+        "value",
+        "schema_id",
+        "subject_kind",
+        "subject_id",
+        "register_peripheral",
+        "register_name",
+        "register_offset",
+        "value_int",
+        "provenance"
+      ],
       "properties": {
         "operation_id": { "type": "string" },
         "kind": { "type": "string" },
         "target": { "type": "string" },
         "value": { "type": ["string", "null"] },
+        "schema_id": { "type": ["string", "null"] },
+        "subject_kind": { "type": ["string", "null"] },
+        "subject_id": { "type": ["string", "null"] },
+        "register_peripheral": { "type": ["string", "null"] },
+        "register_name": { "type": ["string", "null"] },
+        "register_offset": { "type": ["integer", "null"] },
+        "value_int": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -452,6 +498,7 @@
     "peripherals",
     "interrupts",
     "dma_requests",
+    "registers",
     "provenance"
   ],
   "properties": {
@@ -524,6 +571,10 @@
     "dma_requests": {
       "type": "array",
       "items": { "$ref": "#/$defs/dma_request_definition" }
+    },
+    "registers": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/register_descriptor" }
     },
     "ip_blocks": {
       "type": "array",

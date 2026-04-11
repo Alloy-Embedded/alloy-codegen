@@ -29,7 +29,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 67 rule(s).",
+      "message": "gate-c passed with 72 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -71,6 +71,11 @@
         "stm32g071rb-connection-groups-reference-known-packages",
         "stm32g071rb-multi-signal-connection-groups-present",
         "stm32g071rb-ip-blocks-cover-versioned-instances",
+        "stm32g071rb-peripherals-carry-backend-schema",
+        "stm32g071rb-ip-blocks-carry-backend-schema",
+        "stm32g071rb-runtime-peripherals-have-register-descriptors",
+        "stm32g071rb-route-operations-typed",
+        "stm32g071rb-register-target-operations-resolved",
         "stm32g071rb-interrupts-carry-aliases",
         "stm32g071rb-interrupt-aliases-unique",
         "stm32g071rb-interrupt-shared-groups-consistent",
@@ -439,6 +444,41 @@
       "message": "stm32g071rb IP block descriptors cover versioned instances.",
       "passed": true,
       "rule_id": "stm32g071rb-ip-blocks-cover-versioned-instances",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb runtime-owned peripheral instances carry a backend schema identifier.",
+      "passed": true,
+      "rule_id": "stm32g071rb-peripherals-carry-backend-schema",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb runtime-owned IP blocks carry a backend schema identifier.",
+      "passed": true,
+      "rule_id": "stm32g071rb-ip-blocks-carry-backend-schema",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb runtime-owned peripheral instances expose normalized register descriptors.",
+      "passed": true,
+      "rule_id": "stm32g071rb-runtime-peripherals-have-register-descriptors",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb route operations expose typed runtime fields.",
+      "passed": true,
+      "rule_id": "stm32g071rb-route-operations-typed",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb route operations with register-like targets resolve a normalized register offset.",
+      "passed": true,
+      "rule_id": "stm32g071rb-register-target-operations-resolved",
       "severity": "error"
     },
     {

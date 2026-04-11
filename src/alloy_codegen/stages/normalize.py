@@ -26,6 +26,7 @@ from alloy_codegen.ir.model import (
     PinDefinition,
     PinSignal,
     Provenance,
+    RegisterDescriptor,
     ResetDescriptor,
 )
 from alloy_codegen.patches import (
@@ -92,6 +93,7 @@ from alloy_codegen.sources.raw import (
     RawPackagePadEntry,
     RawPeripheral,
     RawPinDataDocument,
+    RawRegister,
 )
 from alloy_codegen.sources.stm32_open_pin_data import (
     parse_ip_version_table,
@@ -117,6 +119,12 @@ RAW_PERIPHERAL_ALIASES = {
 ANALOG_IP_NAMES = {"adc", "dac", "comp", "opamp"}
 DEBUG_SIGNAL_TOKENS = ("SWD", "JTAG", "TRACE", "TMS", "TCK", "TDI", "TDO", "SWCLK", "SWDIO")
 WAKEUP_SIGNAL_TOKENS = ("WKUP",)
+
+
+def _sanitize_token(value: str) -> str:
+    return "".join(character.lower() if character.isalnum() else "-" for character in value).strip(
+        "-"
+    )
 
 
 def _canonical_peripheral_name(peripheral_name: str) -> str:
@@ -291,6 +299,7 @@ def _deduplicate_raw_peripherals(
         candidate = RawPeripheral(
             name=canonical_name,
             base_address=peripheral.base_address,
+            registers=peripheral.registers,
         )
         existing = selected_by_base.get(candidate.base_address)
         if existing is None:
@@ -534,10 +543,28 @@ def _peripheral_to_ir(
         name=peripheral_name,
         ip_name=ip_name,
         ip_version=effective_ip_version,
+        backend_schema_id=None,
         instance=instance,
         base_address=base_address,
         rcc_enable_signal=None if patch_metadata is None else patch_metadata.rcc_enable_signal,
         rcc_reset_signal=None if patch_metadata is None else patch_metadata.rcc_reset_signal,
+        provenance=provenance,
+    )
+
+
+def _register_to_ir(
+    *,
+    peripheral_name: str,
+    raw_register: RawRegister,
+    provenance: Provenance,
+) -> RegisterDescriptor:
+    return RegisterDescriptor(
+        register_id=f"register:{_sanitize_token(peripheral_name)}:{_sanitize_token(raw_register.name)}",
+        peripheral=peripheral_name,
+        name=raw_register.name,
+        offset_bytes=raw_register.offset_bytes,
+        access=raw_register.access,
+        size_bits=raw_register.size_bits,
         provenance=provenance,
     )
 
@@ -643,6 +670,32 @@ def _build_pins_from_source(
     return tuple(pins)
 
 
+def _registers_from_raw_peripherals(
+    raw_peripherals: tuple[RawPeripheral, ...],
+    *,
+    provenance: Provenance,
+) -> tuple[RegisterDescriptor, ...]:
+    registers: list[RegisterDescriptor] = []
+    for peripheral in raw_peripherals:
+        canonical_peripheral = _canonical_peripheral_name(peripheral.name)
+        seen_offsets: set[int] = set()
+        for raw_register in sorted(
+            peripheral.registers,
+            key=lambda item: (item.offset_bytes, item.name),
+        ):
+            if raw_register.offset_bytes in seen_offsets:
+                continue
+            seen_offsets.add(raw_register.offset_bytes)
+            registers.append(
+                _register_to_ir(
+                    peripheral_name=canonical_peripheral,
+                    raw_register=raw_register,
+                    provenance=provenance,
+                )
+            )
+    return tuple(registers)
+
+
 def build_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -738,6 +791,7 @@ def build_canonical_ir(
                 provenance=pin_provenance,
             ),
         ),
+        registers=_registers_from_raw_peripherals(raw.peripherals, provenance=svd_provenance),
         pins=pins,
         peripherals=tuple(
             _peripheral_to_ir(
@@ -1038,6 +1092,7 @@ def build_nxp_canonical_ir(
                 provenance=sdk_provenance,
             ),
         ),
+        registers=_registers_from_raw_peripherals(dedup_peripherals, provenance=svd_provenance),
         pins=pins,
         peripherals=tuple(
             _peripheral_to_ir(

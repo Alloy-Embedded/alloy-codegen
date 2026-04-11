@@ -29,7 +29,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 67 rule(s).",
+      "message": "gate-c passed with 72 rule(s).",
       "passed": true,
       "rule_ids": [
         "mimxrt1062-package-pin-count-covers-known-pins",
@@ -71,6 +71,11 @@
         "mimxrt1062-connection-groups-reference-known-packages",
         "mimxrt1062-multi-signal-connection-groups-present",
         "mimxrt1062-ip-blocks-cover-versioned-instances",
+        "mimxrt1062-peripherals-carry-backend-schema",
+        "mimxrt1062-ip-blocks-carry-backend-schema",
+        "mimxrt1062-runtime-peripherals-have-register-descriptors",
+        "mimxrt1062-route-operations-typed",
+        "mimxrt1062-register-target-operations-resolved",
         "mimxrt1062-interrupts-carry-aliases",
         "mimxrt1062-interrupt-aliases-unique",
         "mimxrt1062-interrupt-shared-groups-consistent",
@@ -439,6 +444,41 @@
       "message": "mimxrt1062 IP block descriptors cover versioned instances.",
       "passed": true,
       "rule_id": "mimxrt1062-ip-blocks-cover-versioned-instances",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 runtime-owned peripheral instances carry a backend schema identifier.",
+      "passed": true,
+      "rule_id": "mimxrt1062-peripherals-carry-backend-schema",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 runtime-owned IP blocks carry a backend schema identifier.",
+      "passed": true,
+      "rule_id": "mimxrt1062-ip-blocks-carry-backend-schema",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 runtime-owned peripheral instances expose normalized register descriptors.",
+      "passed": true,
+      "rule_id": "mimxrt1062-runtime-peripherals-have-register-descriptors",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 route operations expose typed runtime fields.",
+      "passed": true,
+      "rule_id": "mimxrt1062-route-operations-typed",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "mimxrt1062 route operations with register-like targets resolve a normalized register offset.",
+      "passed": true,
+      "rule_id": "mimxrt1062-register-target-operations-resolved",
       "severity": "error"
     },
     {

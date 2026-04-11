@@ -285,7 +285,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0"
     },
     {
       "name": "GPIOB",
@@ -302,7 +303,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0"
     },
     {
       "name": "RCC",
@@ -319,7 +321,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.rcc.st-rcc-g0-v1-0"
     },
     {
       "name": "DMA1",
@@ -336,7 +339,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.dma.st-bdma-v1-0"
     },
     {
       "name": "DMAMUX1",
@@ -353,7 +357,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.dma-router.st-dmamux-v1-0"
     },
     {
       "name": "USART1",
@@ -370,7 +375,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.uart.st-usart-v3-1"
     }
   ],
   "interrupts": [
@@ -481,6 +487,328 @@
       "st-stm32g0-stm32g071rb-bootstrap"
     ]
   },
+  "registers": [
+    {
+      "register_id": "register:gpioa:moder",
+      "peripheral": "GPIOA",
+      "name": "MODER",
+      "offset_bytes": 0,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:gpioa:afrl",
+      "peripheral": "GPIOA",
+      "name": "AFRL",
+      "offset_bytes": 32,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:gpioa:afrh",
+      "peripheral": "GPIOA",
+      "name": "AFRH",
+      "offset_bytes": 36,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:gpiob:moder",
+      "peripheral": "GPIOB",
+      "name": "MODER",
+      "offset_bytes": 0,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:gpiob:afrl",
+      "peripheral": "GPIOB",
+      "name": "AFRL",
+      "offset_bytes": 32,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:gpiob:afrh",
+      "peripheral": "GPIOB",
+      "name": "AFRH",
+      "offset_bytes": 36,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:ioprstr",
+      "peripheral": "RCC",
+      "name": "IOPRSTR",
+      "offset_bytes": 36,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:ahbrstr",
+      "peripheral": "RCC",
+      "name": "AHBRSTR",
+      "offset_bytes": 40,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:apbrstr1",
+      "peripheral": "RCC",
+      "name": "APBRSTR1",
+      "offset_bytes": 44,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:apbrstr2",
+      "peripheral": "RCC",
+      "name": "APBRSTR2",
+      "offset_bytes": 48,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:iopenr",
+      "peripheral": "RCC",
+      "name": "IOPENR",
+      "offset_bytes": 52,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:ahbenr",
+      "peripheral": "RCC",
+      "name": "AHBENR",
+      "offset_bytes": 56,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:apbenr1",
+      "peripheral": "RCC",
+      "name": "APBENR1",
+      "offset_bytes": 60,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:apbenr2",
+      "peripheral": "RCC",
+      "name": "APBENR2",
+      "offset_bytes": 64,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:cr1",
+      "peripheral": "USART1",
+      "name": "CR1",
+      "offset_bytes": 0,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:cr2",
+      "peripheral": "USART1",
+      "name": "CR2",
+      "offset_bytes": 4,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:brr",
+      "peripheral": "USART1",
+      "name": "BRR",
+      "offset_bytes": 12,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:isr",
+      "peripheral": "USART1",
+      "name": "ISR",
+      "offset_bytes": 28,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:rdr",
+      "peripheral": "USART1",
+      "name": "RDR",
+      "offset_bytes": 36,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:tdr",
+      "peripheral": "USART1",
+      "name": "TDR",
+      "offset_bytes": 40,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    }
+  ],
   "ip_blocks": [
     {
       "ip_name": "dma",
@@ -496,7 +824,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.dma.st-bdma-v1-0"
     },
     {
       "ip_name": "dmamux",
@@ -512,7 +841,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.dma-router.st-dmamux-v1-0"
     },
     {
       "ip_name": "gpio",
@@ -528,7 +858,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0"
     },
     {
       "ip_name": "rcc",
@@ -544,7 +875,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.rcc.st-rcc-g0-v1-0"
     },
     {
       "ip_name": "usart",
@@ -566,7 +898,8 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "backend_schema_id": "alloy.uart.st-usart-v3-1"
     }
   ],
   "capabilities": [
@@ -1090,7 +1423,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "DMA1",
+      "register_peripheral": "RCC",
+      "register_name": "AHBENR",
+      "register_offset": 56,
+      "value_int": 1
     },
     {
       "operation_id": "operation:clock-enable:dmamux1",
@@ -1104,7 +1444,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "DMAMUX1",
+      "register_peripheral": "RCC",
+      "register_name": "AHBENR",
+      "register_offset": 56,
+      "value_int": 1
     },
     {
       "operation_id": "operation:clock-enable:gpioa",
@@ -1118,7 +1465,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "GPIOA",
+      "register_peripheral": "RCC",
+      "register_name": "IOPENR",
+      "register_offset": 52,
+      "value_int": 1
     },
     {
       "operation_id": "operation:clock-enable:gpiob",
@@ -1132,7 +1486,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "GPIOB",
+      "register_peripheral": "RCC",
+      "register_name": "IOPENR",
+      "register_offset": 52,
+      "value_int": 1
     },
     {
       "operation_id": "operation:clock-enable:usart1",
@@ -1146,7 +1507,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "USART1",
+      "register_peripheral": "RCC",
+      "register_name": "APBENR2",
+      "register_offset": 64,
+      "value_int": 1
     },
     {
       "operation_id": "operation:reset-release:dma1",
@@ -1160,7 +1528,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "DMA1",
+      "register_peripheral": "RCC",
+      "register_name": "AHBRSTR",
+      "register_offset": 40,
+      "value_int": 0
     },
     {
       "operation_id": "operation:reset-release:dmamux1",
@@ -1174,7 +1549,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "DMAMUX1",
+      "register_peripheral": "RCC",
+      "register_name": "AHBRSTR",
+      "register_offset": 40,
+      "value_int": 0
     },
     {
       "operation_id": "operation:reset-release:gpioa",
@@ -1188,7 +1570,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "GPIOA",
+      "register_peripheral": "RCC",
+      "register_name": "IOPRSTR",
+      "register_offset": 36,
+      "value_int": 0
     },
     {
       "operation_id": "operation:reset-release:gpiob",
@@ -1202,7 +1591,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "GPIOB",
+      "register_peripheral": "RCC",
+      "register_name": "IOPRSTR",
+      "register_offset": 36,
+      "value_int": 0
     },
     {
       "operation_id": "operation:reset-release:usart1",
@@ -1216,7 +1612,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "USART1",
+      "register_peripheral": "RCC",
+      "register_name": "APBRSTR2",
+      "register_offset": 48,
+      "value_int": 0
     },
     {
       "operation_id": "operation:route:pb6:usart1:tx",
@@ -1230,7 +1633,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.pinmux.stm32-af-v1",
+      "subject_kind": "pin",
+      "subject_id": "PB6",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 0
     },
     {
       "operation_id": "operation:route:pb7:usart1:rx",
@@ -1244,7 +1654,14 @@
           "st-stm32g0-family-bootstrap-v1",
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
-      }
+      },
+      "schema_id": "alloy.pinmux.stm32-af-v1",
+      "subject_kind": "pin",
+      "subject_id": "PB7",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 0
     }
   ],
   "connection_candidates": [

@@ -50,22 +50,29 @@ struct RouteOperationDescriptor {
   const char* device;
   const char* operation_id;
   const char* kind;
+  const char* schema_id;
+  const char* subject_kind;
+  const char* subject_id;
+  const char* register_peripheral;
+  const char* register_name;
+  int register_offset;
   const char* target;
   const char* value;
+  int value_int;
 };
 inline constexpr RouteOperationDescriptor kRouteOperations[] = {
-  {"stm32g071rb", "operation:clock-enable:dma1", "set-bit", "RCC_AHBENR.DMA1EN", "1"},
-  {"stm32g071rb", "operation:clock-enable:dmamux1", "set-bit", "RCC_AHBENR.DMAMUX1EN", "1"},
-  {"stm32g071rb", "operation:clock-enable:gpioa", "set-bit", "RCC_IOPENR.GPIOAEN", "1"},
-  {"stm32g071rb", "operation:clock-enable:gpiob", "set-bit", "RCC_IOPENR.GPIOBEN", "1"},
-  {"stm32g071rb", "operation:clock-enable:usart1", "set-bit", "RCC_APBENR2.USART1EN", "1"},
-  {"stm32g071rb", "operation:reset-release:dma1", "clear-bit", "RCC_AHBRSTR.DMA1RST", "0"},
-  {"stm32g071rb", "operation:reset-release:dmamux1", "clear-bit", "RCC_AHBRSTR.DMAMUX1RST", "0"},
-  {"stm32g071rb", "operation:reset-release:gpioa", "clear-bit", "RCC_IOPRSTR.GPIOARST", "0"},
-  {"stm32g071rb", "operation:reset-release:gpiob", "clear-bit", "RCC_IOPRSTR.GPIOBRST", "0"},
-  {"stm32g071rb", "operation:reset-release:usart1", "clear-bit", "RCC_APBRSTR2.USART1RST", "0"},
-  {"stm32g071rb", "operation:route:pb6:usart1:tx", "write-selector", "pinmux.PB6", "0"},
-  {"stm32g071rb", "operation:route:pb7:usart1:rx", "write-selector", "pinmux.PB7", "0"},
+  {"stm32g071rb", "operation:clock-enable:dma1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", "RCC", "AHBENR", 56, "RCC_AHBENR.DMA1EN", "1", 1},
+  {"stm32g071rb", "operation:clock-enable:dmamux1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", "RCC", "AHBENR", 56, "RCC_AHBENR.DMAMUX1EN", "1", 1},
+  {"stm32g071rb", "operation:clock-enable:gpioa", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", "RCC", "IOPENR", 52, "RCC_IOPENR.GPIOAEN", "1", 1},
+  {"stm32g071rb", "operation:clock-enable:gpiob", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", "RCC", "IOPENR", 52, "RCC_IOPENR.GPIOBEN", "1", 1},
+  {"stm32g071rb", "operation:clock-enable:usart1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", "RCC", "APBENR2", 64, "RCC_APBENR2.USART1EN", "1", 1},
+  {"stm32g071rb", "operation:reset-release:dma1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", "RCC", "AHBRSTR", 40, "RCC_AHBRSTR.DMA1RST", "0", 0},
+  {"stm32g071rb", "operation:reset-release:dmamux1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", "RCC", "AHBRSTR", 40, "RCC_AHBRSTR.DMAMUX1RST", "0", 0},
+  {"stm32g071rb", "operation:reset-release:gpioa", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", "RCC", "IOPRSTR", 36, "RCC_IOPRSTR.GPIOARST", "0", 0},
+  {"stm32g071rb", "operation:reset-release:gpiob", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", "RCC", "IOPRSTR", 36, "RCC_IOPRSTR.GPIOBRST", "0", 0},
+  {"stm32g071rb", "operation:reset-release:usart1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", "RCC", "APBRSTR2", 48, "RCC_APBRSTR2.USART1RST", "0", 0},
+  {"stm32g071rb", "operation:route:pb6:usart1:tx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB6", nullptr, nullptr, -1, "pinmux.PB6", "0", 0},
+  {"stm32g071rb", "operation:route:pb7:usart1:rx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB7", nullptr, nullptr, -1, "pinmux.PB7", "0", 0},
 };
 
 struct ConnectionCandidateDescriptor {

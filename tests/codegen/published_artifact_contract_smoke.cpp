@@ -33,6 +33,10 @@
     #error "ALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_PROFILES_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_PROFILES_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_DEVICE_DESCRIPTOR_HEADER
     #error "ALLOY_CODEGEN_SMOKE_DEVICE_DESCRIPTOR_HEADER must be defined"
 #endif
@@ -74,6 +78,7 @@
 #include ALLOY_CODEGEN_SMOKE_MEMORY_MAP_HEADER
 #include ALLOY_CODEGEN_SMOKE_PACKAGE_MAP_HEADER
 #include ALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_PROFILES_HEADER
 #include ALLOY_CODEGEN_SMOKE_DEVICE_DESCRIPTOR_HEADER
 #include ALLOY_CODEGEN_SMOKE_PINS_HEADER
 #include ALLOY_CODEGEN_SMOKE_PERIPHERAL_INSTANCES_HEADER
@@ -100,6 +105,7 @@ static_assert(published_generated::kPackageMap[0].package_name != nullptr);
 static_assert(published_generated::kClockNodes.size() > 0u);
 static_assert(published_generated::kClockGates.size() > 0u);
 static_assert(published_generated::kPeripheralClockBindings.size() > 0u);
+static_assert(published_generated::kRuntimeProfiles.size() > 0u);
 static_assert(published_device::kDeviceDescriptor.device != nullptr);
 static_assert(published_device::kPins.size() > 0u);
 static_assert(published_device::kPinSignals.size() > 0u);

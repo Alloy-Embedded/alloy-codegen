@@ -7,14 +7,32 @@
     <peripheral>
       <name>GPIOA</name>
       <baseAddress>0x40020000</baseAddress>
+      <registers>
+        <register><name>MODER</name><addressOffset>0x00</addressOffset></register>
+        <register><name>AFRL</name><addressOffset>0x20</addressOffset></register>
+        <register><name>AFRH</name><addressOffset>0x24</addressOffset></register>
+      </registers>
     </peripheral>
     <peripheral>
       <name>GPIOB</name>
       <baseAddress>0x40020400</baseAddress>
+      <registers>
+        <register><name>MODER</name><addressOffset>0x00</addressOffset></register>
+        <register><name>AFRL</name><addressOffset>0x20</addressOffset></register>
+        <register><name>AFRH</name><addressOffset>0x24</addressOffset></register>
+      </registers>
     </peripheral>
     <peripheral>
       <name>RCC</name>
       <baseAddress>0x40023800</baseAddress>
+      <registers>
+        <register><name>AHB1RSTR</name><addressOffset>0x10</addressOffset></register>
+        <register><name>APB1RSTR</name><addressOffset>0x20</addressOffset></register>
+        <register><name>APB2RSTR</name><addressOffset>0x24</addressOffset></register>
+        <register><name>AHB1ENR</name><addressOffset>0x30</addressOffset></register>
+        <register><name>APB1ENR</name><addressOffset>0x40</addressOffset></register>
+        <register><name>APB2ENR</name><addressOffset>0x44</addressOffset></register>
+      </registers>
     </peripheral>
     <peripheral>
       <name>DMA1</name>
@@ -35,6 +53,13 @@
     <peripheral>
       <name>USART1</name>
       <baseAddress>0x40011000</baseAddress>
+      <registers>
+        <register><name>SR</name><addressOffset>0x00</addressOffset></register>
+        <register><name>DR</name><addressOffset>0x04</addressOffset></register>
+        <register><name>BRR</name><addressOffset>0x08</addressOffset></register>
+        <register><name>CR1</name><addressOffset>0x0C</addressOffset></register>
+        <register><name>CR2</name><addressOffset>0x10</addressOffset></register>
+      </registers>
       <interrupt>
         <name>USART1</name>
         <value>37</value>
@@ -43,6 +68,13 @@
     <peripheral>
       <name>USART2</name>
       <baseAddress>0x40004400</baseAddress>
+      <registers>
+        <register><name>SR</name><addressOffset>0x00</addressOffset></register>
+        <register><name>DR</name><addressOffset>0x04</addressOffset></register>
+        <register><name>BRR</name><addressOffset>0x08</addressOffset></register>
+        <register><name>CR1</name><addressOffset>0x0C</addressOffset></register>
+        <register><name>CR2</name><addressOffset>0x10</addressOffset></register>
+      </registers>
       <interrupt>
         <name>USART2</name>
         <value>38</value>

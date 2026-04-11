@@ -76,6 +76,7 @@ SYSTEM_DESCRIPTOR_RULE_SUFFIXES: dict[str, tuple[str, ...]] = {
         "bonded-pins-have-package-pad",
     ),
 }
+RUNTIME_OWNED_PERIPHERAL_CLASSES = {"gpio", "uart"}
 
 
 def _rule(
@@ -652,6 +653,33 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         peripheral.ip_version is None or (peripheral.ip_name, peripheral.ip_version) in ip_block_ids
         for peripheral in device.peripherals
     )
+    peripheral_backend_schema_covered = all(
+        canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or peripheral.backend_schema_id is not None
+        for peripheral in device.peripherals
+    )
+    ip_block_backend_schema_covered = all(
+        ip_block.peripheral_class not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or ip_block.backend_schema_id is not None
+        for ip_block in device.ip_blocks
+    )
+    register_counts_by_peripheral = Counter(register.peripheral for register in device.registers)
+    runtime_peripheral_registers_present = all(
+        canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or register_counts_by_peripheral.get(peripheral.name, 0) > 0
+        for peripheral in device.peripherals
+    )
+    route_operations_typed = all(
+        operation.schema_id is not None
+        and operation.subject_kind is not None
+        and operation.subject_id is not None
+        and (operation.kind != "write-selector" or operation.value_int is not None)
+        for operation in device.route_operations
+    )
+    register_target_operations_resolved = all(
+        operation.target.startswith("RCC_") is False or operation.register_offset is not None
+        for operation in device.route_operations
+    )
     interrupt_aliases_present = all(interrupt.alias_names for interrupt in device.interrupts)
     interrupt_aliases_unique = all(
         len(interrupt.alias_names) == len(set(interrupt.alias_names))
@@ -1030,6 +1058,55 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             severity="error",
             passed=ip_blocks_resolve_instance_versions,
             message=f"{device.identity.device} IP block descriptors cover versioned instances.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-peripherals-carry-backend-schema",
+            category="semantic",
+            severity="error",
+            passed=peripheral_backend_schema_covered,
+            message=(
+                f"{device.identity.device} runtime-owned peripheral instances carry "
+                "a backend schema identifier."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-ip-blocks-carry-backend-schema",
+            category="semantic",
+            severity="error",
+            passed=ip_block_backend_schema_covered,
+            message=(
+                f"{device.identity.device} runtime-owned IP blocks carry "
+                "a backend schema identifier."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-runtime-peripherals-have-register-descriptors",
+            category="semantic",
+            severity="error",
+            passed=runtime_peripheral_registers_present,
+            message=(
+                f"{device.identity.device} runtime-owned peripheral instances expose "
+                "normalized register descriptors."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-route-operations-typed",
+            category="semantic",
+            severity="error",
+            passed=route_operations_typed,
+            message=(
+                f"{device.identity.device} route operations expose typed runtime fields."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-register-target-operations-resolved",
+            category="semantic",
+            severity="error",
+            passed=register_target_operations_resolved,
+            message=(
+                f"{device.identity.device} route operations with register-like targets "
+                "resolve a normalized register offset."
+            ),
         ),
         _rule(
             rule_id=f"{device.identity.device}-interrupts-carry-aliases",

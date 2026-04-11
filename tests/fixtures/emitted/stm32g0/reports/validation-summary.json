@@ -38,7 +38,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 67 rule(s).",
+      "message": "gate-c passed with 72 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -80,6 +80,11 @@
         "stm32g071rb-connection-groups-reference-known-packages",
         "stm32g071rb-multi-signal-connection-groups-present",
         "stm32g071rb-ip-blocks-cover-versioned-instances",
+        "stm32g071rb-peripherals-carry-backend-schema",
+        "stm32g071rb-ip-blocks-carry-backend-schema",
+        "stm32g071rb-runtime-peripherals-have-register-descriptors",
+        "stm32g071rb-route-operations-typed",
+        "stm32g071rb-register-target-operations-resolved",
         "stm32g071rb-interrupts-carry-aliases",
         "stm32g071rb-interrupt-aliases-unique",
         "stm32g071rb-interrupt-shared-groups-consistent",

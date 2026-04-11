@@ -4,7 +4,7 @@
     {
       "device": "mimxrt1062",
       "package": "bga196",
-      "publishable": false
+      "publishable": true
     }
   ],
   "draft_system_descriptor_domains": [],
@@ -38,7 +38,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 67 rule(s).",
+      "message": "gate-c passed with 72 rule(s).",
       "passed": true,
       "rule_ids": [
         "mimxrt1062-package-pin-count-covers-known-pins",
@@ -80,6 +80,11 @@
         "mimxrt1062-connection-groups-reference-known-packages",
         "mimxrt1062-multi-signal-connection-groups-present",
         "mimxrt1062-ip-blocks-cover-versioned-instances",
+        "mimxrt1062-peripherals-carry-backend-schema",
+        "mimxrt1062-ip-blocks-carry-backend-schema",
+        "mimxrt1062-runtime-peripherals-have-register-descriptors",
+        "mimxrt1062-route-operations-typed",
+        "mimxrt1062-register-target-operations-resolved",
         "mimxrt1062-interrupts-carry-aliases",
         "mimxrt1062-interrupt-aliases-unique",
         "mimxrt1062-interrupt-shared-groups-consistent",

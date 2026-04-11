@@ -10,6 +10,7 @@ struct IpBlockDescriptor {
   const char* ip_name;
   const char* ip_version;
   const char* peripheral_class;
+  const char* backend_schema_id;
   const char* register_profile;
   const char* signal_roles;
 };
@@ -17,6 +18,7 @@ inline constexpr IpBlockDescriptor kIpBlock = {
   "rcc",
   "rcc_g0_v1_0",
   "rcc",
+  "alloy.rcc.st-rcc-g0-v1-0",
   "rcc:rcc_g0_v1_0",
   "",
 };

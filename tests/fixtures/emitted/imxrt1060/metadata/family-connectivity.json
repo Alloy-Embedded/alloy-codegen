@@ -87,10 +87,11 @@
   ],
   "peripherals": [
     {
+      "backend_schema_id": "alloy.gpio.nxp-imxrt-gpio-v1",
       "base_address": 1075544064,
       "instance": 1,
       "ip_name": "gpio",
-      "ip_version": null,
+      "ip_version": "imxrt-gpio-v1",
       "name": "GPIO1",
       "provenance": {
         "patch_ids": [
@@ -104,10 +105,11 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.gpio.nxp-imxrt-gpio-v1",
       "base_address": 1075593216,
       "instance": 4,
       "ip_name": "gpio",
-      "ip_version": null,
+      "ip_version": "imxrt-gpio-v1",
       "name": "GPIO4",
       "provenance": {
         "patch_ids": [
@@ -121,10 +123,11 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.lpi2c1.nxp-lpi2c-v1",
       "base_address": 1077870592,
       "instance": 0,
       "ip_name": "lpi2c1",
-      "ip_version": null,
+      "ip_version": "lpi2c-v1",
       "name": "LPI2C1",
       "provenance": {
         "patch_ids": [
@@ -138,10 +141,11 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.spi.nxp-lpspi-v1",
       "base_address": 1077493760,
       "instance": 1,
       "ip_name": "lpspi",
-      "ip_version": null,
+      "ip_version": "lpspi-v1",
       "name": "LPSPI1",
       "provenance": {
         "patch_ids": [
@@ -155,10 +159,11 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.uart.nxp-lpuart-v1",
       "base_address": 1075331072,
       "instance": 1,
       "ip_name": "lpuart",
-      "ip_version": null,
+      "ip_version": "lpuart-v1",
       "name": "LPUART1",
       "provenance": {
         "patch_ids": [
@@ -172,10 +177,11 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.uart.nxp-lpuart-v1",
       "base_address": 1075363840,
       "instance": 3,
       "ip_name": "lpuart",
-      "ip_version": null,
+      "ip_version": "lpuart-v1",
       "name": "LPUART3",
       "provenance": {
         "patch_ids": [
