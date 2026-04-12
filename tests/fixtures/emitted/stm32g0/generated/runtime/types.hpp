@@ -51,6 +51,7 @@ enum class PortId : std::uint16_t {
 
 enum class AccessKindId : std::uint16_t {
   none,
+  access_kind_read_write,
   access_kind_rwx,
   access_kind_rx,
 };

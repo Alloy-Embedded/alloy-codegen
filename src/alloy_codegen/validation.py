@@ -858,20 +858,28 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         for gate in device.clock_gates
     )
     clock_gates_structured = all(
-        gate.register_peripheral is not None
-        and (
-            gate.register_id is not None
-            or gate.register_offset is not None
-            or gate.register_name is not None
+        gate.peripheral is None
+        or gate.peripheral not in peripheral_map
+        or canonical_peripheral_class(peripheral_map[gate.peripheral].ip_name)
+        not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or (
+            gate.register_peripheral is not None
+            and gate.register_name is not None
+            and gate.register_id is not None
+            and gate.register_field_id is not None
         )
         for gate in device.clock_gates
     )
     resets_structured = all(
-        reset.register_peripheral is not None
-        and (
-            reset.register_id is not None
-            or reset.register_offset is not None
-            or reset.register_name is not None
+        reset.peripheral is None
+        or reset.peripheral not in peripheral_map
+        or canonical_peripheral_class(peripheral_map[reset.peripheral].ip_name)
+        not in RUNTIME_OWNED_PERIPHERAL_CLASSES
+        or (
+            reset.register_peripheral is not None
+            and reset.register_name is not None
+            and reset.register_id is not None
+            and reset.register_field_id is not None
         )
         for reset in device.resets
     )

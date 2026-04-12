@@ -37,7 +37,8 @@ enum class CapabilityId : std::uint16_t {
 
 enum class BackendSchemaId : std::uint16_t {
   none,
-  schema_alloy_clock_nxp_generic_clock_v1,
+  schema_alloy_ccm_nxp_ccm,
+  schema_alloy_clock_nxp_ccm,
   schema_alloy_gpio_nxp_imxrt_gpio_v1,
   schema_alloy_lpi2c1_nxp_lpi2c_v1,
   schema_alloy_pinmux_imxrt_iomuxc_v1,
@@ -47,6 +48,7 @@ enum class BackendSchemaId : std::uint16_t {
 
 enum class PeripheralClassId : std::uint16_t {
   none,
+  class_ccm,
   class_gpio,
   class_lpi2c1,
   class_spi,

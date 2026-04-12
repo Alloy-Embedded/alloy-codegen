@@ -137,6 +137,7 @@ SYSTEM_VECTOR_BASELINES = {
     ),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
+MICROCHIP_PMC_PID_TARGET_PATTERN = re.compile(r"^PMC\.PID(?P<pid>\d+)$")
 REGISTER_FIELD_TARGET_PATTERN = re.compile(r"^(?P<lhs>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
 
 
@@ -255,6 +256,8 @@ def _lookup_register_field_id(
 def _typed_register_ref(
     device: CanonicalDeviceIR,
     target: str,
+    *,
+    operation_kind: str | None = None,
 ) -> tuple[str | None, str | None, int | None, str | None, str | None]:
     match = ST_RCC_TARGET_PATTERN.match(target)
     if match is not None:
@@ -268,6 +271,26 @@ def _typed_register_ref(
             _lookup_register_field_id(
                 device,
                 peripheral_name="RCC",
+                register_name=register_name,
+                field_name=field_name,
+            ),
+        )
+    pmc_match = MICROCHIP_PMC_PID_TARGET_PATTERN.match(target)
+    if pmc_match is not None:
+        pid = int(pmc_match.group("pid"))
+        register_suffix = "0" if pid < 32 else "1"
+        normalized_kind = None if operation_kind is None else operation_kind.lower()
+        register_prefix = "PCDR" if normalized_kind == "clear-bit" else "PCER"
+        register_name = f"{register_prefix}{register_suffix}"
+        field_name = f"PID{pid}"
+        return (
+            "PMC",
+            register_name,
+            _lookup_register_offset(device, peripheral_name="PMC", register_name=register_name),
+            _lookup_register_id(device, peripheral_name="PMC", register_name=register_name),
+            _lookup_register_field_id(
+                device,
+                peripheral_name="PMC",
                 register_name=register_name,
                 field_name=field_name,
             ),
@@ -503,7 +526,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 register_offset,
                 register_id,
                 register_field_id,
-            ) = _typed_register_ref(device, peripheral.rcc_enable_signal)
+            ) = _typed_register_ref(
+                device,
+                peripheral.rcc_enable_signal,
+                operation_kind="set-bit",
+            )
             operation_map.setdefault(
                 operation_id,
                 RouteOperation(
@@ -550,7 +577,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 register_offset,
                 register_id,
                 register_field_id,
-            ) = _typed_register_ref(device, peripheral.rcc_reset_signal)
+            ) = _typed_register_ref(
+                device,
+                peripheral.rcc_reset_signal,
+                operation_kind="clear-bit",
+            )
             operation_map.setdefault(
                 operation_id,
                 RouteOperation(
@@ -1104,7 +1135,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                 gate_register_offset,
                 gate_register_id,
                 gate_register_field_id,
-            ) = _typed_register_ref(device, gate_signal)
+            ) = _typed_register_ref(device, gate_signal, operation_kind="set-bit")
             if explicit_gate is None:
                 clock_gate_map[gate_id] = ClockGateDescriptor(
                     gate_id=gate_id,
@@ -1157,7 +1188,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     reset_register_offset,
                     reset_register_id,
                     reset_register_field_id,
-                ) = _typed_register_ref(device, peripheral.rcc_reset_signal)
+                ) = _typed_register_ref(
+                    device,
+                    peripheral.rcc_reset_signal,
+                    operation_kind="clear-bit",
+                )
                 reset_map[reset_id] = ResetDescriptor(
                     reset_id=reset_id,
                     peripheral=peripheral.name,
@@ -1177,7 +1212,11 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     reset_register_offset,
                     reset_register_id,
                     reset_register_field_id,
-                ) = _typed_register_ref(device, explicit_reset.reset_signal)
+                ) = _typed_register_ref(
+                    device,
+                    explicit_reset.reset_signal,
+                    operation_kind="clear-bit",
+                )
                 reset_map[reset_id] = ResetDescriptor(
                     reset_id=explicit_reset.reset_id,
                     peripheral=explicit_reset.peripheral,

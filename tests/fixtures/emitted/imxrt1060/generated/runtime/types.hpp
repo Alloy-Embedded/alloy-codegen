@@ -1,0 +1,93 @@
+#pragma once
+
+#include <cstdint>
+
+namespace nxp {
+namespace imxrt1060 {
+namespace generated {
+namespace runtime {
+enum class BackendSchemaId : std::uint16_t {
+  none,
+  schema_alloy_ccm_nxp_ccm,
+  schema_alloy_clock_nxp_ccm,
+  schema_alloy_gpio_nxp_imxrt_gpio_v1,
+  schema_alloy_lpi2c1_nxp_lpi2c_v1,
+  schema_alloy_pinmux_imxrt_iomuxc_v1,
+  schema_alloy_spi_nxp_lpspi_v1,
+  schema_alloy_uart_nxp_lpuart_v1,
+};
+
+enum class PeripheralClassId : std::uint16_t {
+  none,
+  class_ccm,
+  class_gpio,
+  class_lpi2c1,
+  class_spi,
+  class_uart,
+};
+
+enum class SignalId : std::uint16_t {
+  none,
+  signal_IO00,
+  signal_IO01,
+  signal_PCS0,
+  signal_RX,
+  signal_SCK,
+  signal_SCL,
+  signal_SDA,
+  signal_TX,
+  signal_cs,
+  signal_gpio1_io00,
+  signal_gpio1_io01,
+  signal_gpio4_io00,
+  signal_gpio4_io01,
+  signal_io00,
+  signal_io01,
+  signal_lpi2c1_scl,
+  signal_lpi2c1_sda,
+  signal_lpspi1_pcs0,
+  signal_lpspi1_sck,
+  signal_lpuart1_rx,
+  signal_lpuart1_tx,
+  signal_pcs0,
+  signal_rx,
+  signal_sck,
+  signal_scl,
+  signal_sda,
+  signal_tx,
+};
+
+enum class PortId : std::uint16_t {
+  none,
+};
+
+enum class AccessKindId : std::uint16_t {
+  none,
+  access_kind_read_write,
+};
+
+enum class RouteKindId : std::uint16_t {
+  none,
+  route_kind_iomuxc_mux,
+};
+
+enum class OperationKindId : std::uint16_t {
+  none,
+  operation_kind_set_bit,
+  operation_kind_write_selector,
+};
+
+enum class OperationSubjectKindId : std::uint16_t {
+  none,
+  operation_subject_peripheral,
+  operation_subject_pin,
+};
+
+enum class ActiveLevelId : std::uint16_t {
+  none,
+};
+
+}
+}
+}
+}

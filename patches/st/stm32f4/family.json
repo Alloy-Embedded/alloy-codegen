@@ -129,6 +129,22 @@
       "rcc_reset_signal": "RCC_AHB2RSTR.OTGFSRST"
     }
   ],
+  "register_fields": [
+    {"peripheral": "RCC", "register_name": "AHB1ENR", "name": "DMA1EN", "bit_offset": 21, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1ENR", "name": "DMA2EN", "bit_offset": 22, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1ENR", "name": "GPIOAEN", "bit_offset": 0, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1ENR", "name": "GPIOBEN", "bit_offset": 1, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "APB2ENR", "name": "USART1EN", "bit_offset": 4, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "APB1ENR", "name": "USART2EN", "bit_offset": 17, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB2ENR", "name": "OTGFSEN", "bit_offset": 7, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1RSTR", "name": "DMA1RST", "bit_offset": 21, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1RSTR", "name": "DMA2RST", "bit_offset": 22, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1RSTR", "name": "GPIOARST", "bit_offset": 0, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB1RSTR", "name": "GPIOBRST", "bit_offset": 1, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "APB2RSTR", "name": "USART1RST", "bit_offset": 4, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "APB1RSTR", "name": "USART2RST", "bit_offset": 17, "bit_width": 1, "access": "read-write"},
+    {"peripheral": "RCC", "register_name": "AHB2RSTR", "name": "OTGFSRST", "bit_offset": 7, "bit_width": 1, "access": "read-write"}
+  ],
   "pin_signals": [
     {
       "signal_id": "pa2-usart2-tx",

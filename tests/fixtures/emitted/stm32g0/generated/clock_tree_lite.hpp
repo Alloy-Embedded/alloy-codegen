@@ -90,11 +90,11 @@ struct ClockGateDescriptor {
   RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockGateDescriptor, 5> kClockGates = {{
-  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_dma1, PeripheralRefId::stm32g071rb_DMA1, ClockNodeId::stm32g071rb_clock_node_rcc_ahbenr, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_dmamux1, PeripheralRefId::stm32g071rb_DMAMUX1, ClockNodeId::stm32g071rb_clock_node_rcc_ahbenr, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_gpioa, PeripheralRefId::stm32g071rb_GPIOA, ClockNodeId::stm32g071rb_clock_node_rcc_iopenr, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_gpiob, PeripheralRefId::stm32g071rb_GPIOB, ClockNodeId::stm32g071rb_clock_node_rcc_iopenr, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_usart1, PeripheralRefId::stm32g071rb_USART1, ClockNodeId::stm32g071rb_clock_node_rcc_apbenr2, RegisterRefId::stm32g071rb_register_rcc_apbenr2, RegisterFieldRefId::none},
+  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_dma1, PeripheralRefId::stm32g071rb_DMA1, ClockNodeId::stm32g071rb_clock_node_rcc_ahbenr, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::stm32g071rb_field_rcc_ahbenr_dma1en},
+  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_dmamux1, PeripheralRefId::stm32g071rb_DMAMUX1, ClockNodeId::stm32g071rb_clock_node_rcc_ahbenr, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::stm32g071rb_field_rcc_ahbenr_dma1en},
+  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_gpioa, PeripheralRefId::stm32g071rb_GPIOA, ClockNodeId::stm32g071rb_clock_node_rcc_iopenr, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::stm32g071rb_field_rcc_iopenr_gpioaen},
+  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_gpiob, PeripheralRefId::stm32g071rb_GPIOB, ClockNodeId::stm32g071rb_clock_node_rcc_iopenr, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::stm32g071rb_field_rcc_iopenr_gpioben},
+  {DeviceRefId::stm32g071rb, ClockGateId::stm32g071rb_gate_usart1, PeripheralRefId::stm32g071rb_USART1, ClockNodeId::stm32g071rb_clock_node_rcc_apbenr2, RegisterRefId::stm32g071rb_register_rcc_apbenr2, RegisterFieldRefId::stm32g071rb_field_rcc_apbenr2_usart1en},
 }};
 
 struct ResetDescriptor {
@@ -106,11 +106,11 @@ struct ResetDescriptor {
   RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ResetDescriptor, 5> kResets = {{
-  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_dma1, PeripheralRefId::stm32g071rb_DMA1, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_dmamux1, PeripheralRefId::stm32g071rb_DMAMUX1, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_gpioa, PeripheralRefId::stm32g071rb_GPIOA, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_gpiob, PeripheralRefId::stm32g071rb_GPIOB, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none},
-  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_usart1, PeripheralRefId::stm32g071rb_USART1, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, RegisterFieldRefId::none},
+  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_dma1, PeripheralRefId::stm32g071rb_DMA1, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::stm32g071rb_field_rcc_ahbrstr_dma1rst},
+  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_dmamux1, PeripheralRefId::stm32g071rb_DMAMUX1, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::stm32g071rb_field_rcc_ahbrstr_dma1rst},
+  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_gpioa, PeripheralRefId::stm32g071rb_GPIOA, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::stm32g071rb_field_rcc_ioprstr_gpioarst},
+  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_gpiob, PeripheralRefId::stm32g071rb_GPIOB, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::stm32g071rb_field_rcc_ioprstr_gpiobrst},
+  {DeviceRefId::stm32g071rb, ResetId::stm32g071rb_reset_usart1, PeripheralRefId::stm32g071rb_USART1, ActiveLevelId::active_level_high, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, RegisterFieldRefId::stm32g071rb_field_rcc_apbrstr2_usart1rst},
 }};
 
 struct PeripheralClockBindingDescriptor {

@@ -355,6 +355,75 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "kSpiSemanticPeripherals" in runtime_spi_semantics_artifact.content
 
 
+def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
+    execution_context: ExecutionContext,
+    microchip_execution_context: ExecutionContext,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    stm32g0_artifacts = {
+        artifact.path: artifact
+        for artifact in run(
+            PipelineScope(device="stm32g071rb"),
+            execution_context,
+        ).payload.artifacts
+    }
+    stm32f4_artifacts = {
+        artifact.path: artifact
+        for artifact in run(
+            PipelineScope(device="stm32f401re"),
+            execution_context,
+        ).payload.artifacts
+    }
+    same70_artifacts = {
+        artifact.path: artifact
+        for artifact in run(
+            PipelineScope(device="atsame70q21b"),
+            microchip_execution_context,
+        ).payload.artifacts
+    }
+    nxp_artifacts = {
+        artifact.path: artifact
+        for artifact in run(
+            PipelineScope(device="mimxrt1062"),
+            nxp_execution_context,
+        ).payload.artifacts
+    }
+
+    stm32g0_clock_bindings = stm32g0_artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_bindings.hpp"
+    ].content
+    assert "ClockGateTraits<ClockGateId::gate_gpioa>" in stm32g0_clock_bindings
+    assert "FieldId::field_rcc_iopenr_gpioaen" in stm32g0_clock_bindings
+    assert "ResetTraits<ResetId::reset_gpioa>" in stm32g0_clock_bindings
+    assert "FieldId::field_rcc_ioprstr_gpioarst" in stm32g0_clock_bindings
+
+    stm32f4_clock_bindings = stm32f4_artifacts[
+        "st/stm32f4/generated/runtime/devices/stm32f401re/clock_bindings.hpp"
+    ].content
+    assert "ResetTraits<ResetId::reset_usart2>" in stm32f4_clock_bindings
+    assert "FieldId::field_rcc_apb1rstr_usart2rst" in stm32f4_clock_bindings
+
+    same70_clock_bindings = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/clock_bindings.hpp"
+    ].content
+    same70_routes = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/routes.hpp"
+    ].content
+    assert "ClockGateTraits<ClockGateId::gate_usart0>" in same70_clock_bindings
+    assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
+    assert "RegisterId::register_pmc_pcer0" in same70_routes
+    assert "FieldId::field_pmc_pcer0_pid13" in same70_routes
+
+    nxp_clock_bindings = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
+    ].content
+    assert "ClockGateTraits<ClockGateId::gate_lpuart1>" in nxp_clock_bindings
+    assert "RegisterId::register_ccm_ccgr5" in nxp_clock_bindings
+    assert "FieldId::field_ccm_ccgr5_cg12" in nxp_clock_bindings
+    assert "ClockSelectorTraits<ClockSelectorId::selector_lpuart_root>" in nxp_clock_bindings
+    assert "FieldId::field_ccm_cscdr1_uart_clk_sel" in nxp_clock_bindings
+
+
 def test_emit_matches_golden_artifacts(
     execution_context: ExecutionContext,
     fixture_source_root: Path,

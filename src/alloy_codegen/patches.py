@@ -79,6 +79,30 @@ class PinSignalCatalogEntry:
 
 
 @dataclass(frozen=True, slots=True)
+class RegisterFieldPatch:
+    """Curated register-field metadata used when upstream sources omit bitfields."""
+
+    peripheral: str
+    register_name: str
+    name: str
+    bit_offset: int
+    bit_width: int
+    access: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class RegisterPatch:
+    """Curated register metadata used when upstream sources omit control blocks."""
+
+    peripheral: str
+    name: str
+    offset_bytes: int
+    access: str | None
+    size_bits: int | None
+    base_address: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class DmaControllerPatch:
     """Curated DMA controller metadata supplied by a patch document."""
 
@@ -145,6 +169,8 @@ class FamilyPatchCatalog:
     pins: tuple[PinCatalogEntry, ...]
     peripherals: tuple[PeripheralPatch, ...]
     pin_signals: tuple[PinSignalCatalogEntry, ...]
+    registers: tuple[RegisterPatch, ...]
+    register_fields: tuple[RegisterFieldPatch, ...]
     clock_nodes: tuple[ClockNodePatch, ...]
     clock_selectors: tuple[ClockSelectorPatch, ...]
     clock_gates: tuple[ClockGatePatch, ...]
@@ -187,6 +213,8 @@ class DevicePatch:
     summary: str
     memories: tuple[MemoryPatch, ...]
     peripherals: tuple[PeripheralPatch, ...]
+    registers: tuple[RegisterPatch, ...]
+    register_fields: tuple[RegisterFieldPatch, ...]
     pins: tuple[PinPatch, ...]
     clock_nodes: tuple[ClockNodePatch, ...]
     clock_selectors: tuple[ClockSelectorPatch, ...]
@@ -224,6 +252,28 @@ class DevicePatch:
                     "rcc_reset_signal": peripheral.rcc_reset_signal,
                 }
                 for peripheral in self.peripherals
+            ],
+            "registers": [
+                {
+                    "peripheral": register.peripheral,
+                    "name": register.name,
+                    "offset_bytes": register.offset_bytes,
+                    "access": register.access,
+                    "size_bits": register.size_bits,
+                    "base_address": register.base_address,
+                }
+                for register in self.registers
+            ],
+            "register_fields": [
+                {
+                    "peripheral": field.peripheral,
+                    "register_name": field.register_name,
+                    "name": field.name,
+                    "bit_offset": field.bit_offset,
+                    "bit_width": field.bit_width,
+                    "access": field.access,
+                }
+                for field in self.register_fields
             ],
             "pins": [
                 {
@@ -379,6 +429,30 @@ def _parse_pin_signal_catalog_entry(payload: dict[str, object]) -> PinSignalCata
     )
 
 
+def _parse_register_field_patch(payload: dict[str, object]) -> RegisterFieldPatch:
+    return RegisterFieldPatch(
+        peripheral=str(payload["peripheral"]),
+        register_name=str(payload["register_name"]),
+        name=str(payload["name"]),
+        bit_offset=int(payload["bit_offset"]),
+        bit_width=int(payload.get("bit_width", 1)),
+        access=str(payload["access"]) if payload.get("access") is not None else None,
+    )
+
+
+def _parse_register_patch(payload: dict[str, object]) -> RegisterPatch:
+    return RegisterPatch(
+        peripheral=str(payload["peripheral"]),
+        name=str(payload["name"]),
+        offset_bytes=int(payload["offset_bytes"]),
+        access=str(payload["access"]) if payload.get("access") is not None else None,
+        size_bits=int(payload["size_bits"]) if payload.get("size_bits") is not None else None,
+        base_address=(
+            int(payload["base_address"]) if payload.get("base_address") is not None else None
+        ),
+    )
+
+
 def _parse_dma_request_patch(payload: dict[str, object]) -> DmaRequestPatch:
     return DmaRequestPatch(
         controller=str(payload["controller"]),
@@ -475,6 +549,10 @@ def load_family_patch_catalog(
         peripherals=tuple(_parse_peripheral_patch(item) for item in payload.get("peripherals", ())),
         pin_signals=tuple(
             _parse_pin_signal_catalog_entry(item) for item in payload.get("pin_signals", ())
+        ),
+        registers=tuple(_parse_register_patch(item) for item in payload.get("registers", ())),
+        register_fields=tuple(
+            _parse_register_field_patch(item) for item in payload.get("register_fields", ())
         ),
         clock_nodes=tuple(_parse_clock_node_patch(item) for item in payload.get("clock_nodes", ())),
         clock_selectors=tuple(
@@ -902,6 +980,13 @@ def load_device_patch(
     }
     dma_catalog_by_id = {request.request_id: request for request in family_catalog.dma_requests}
     catalog_by_name = {peripheral.name: peripheral for peripheral in family_catalog.peripherals}
+    register_field_catalog_by_key = {
+        (field.peripheral, field.register_name, field.name): field
+        for field in family_catalog.register_fields
+    }
+    register_catalog_by_key = {
+        (register.peripheral, register.name): register for register in family_catalog.registers
+    }
     payload = json.loads(patch_path.read_text())
     package = _resolve_package_patch(
         package_name=payload["package"],
@@ -937,6 +1022,40 @@ def load_device_patch(
                     *(
                         _resolve_peripheral_patch(item=item, catalog=catalog_by_name)
                         for item in payload.get("peripherals", ())
+                    ),
+                )
+            }.values()
+        ),
+        registers=tuple(
+            {
+                (register.peripheral, register.name): register
+                for register in (
+                    *family_catalog.registers,
+                    *(
+                        register_catalog_by_key.get(
+                            (str(item["peripheral"]), str(item["name"])),
+                            _parse_register_patch(item),
+                        )
+                        for item in payload.get("registers", ())
+                    ),
+                )
+            }.values()
+        ),
+        register_fields=tuple(
+            {
+                (field.peripheral, field.register_name, field.name): field
+                for field in (
+                    *family_catalog.register_fields,
+                    *(
+                        register_field_catalog_by_key.get(
+                            (
+                                str(item["peripheral"]),
+                                str(item["register_name"]),
+                                str(item["name"]),
+                            ),
+                            _parse_register_field_patch(item),
+                        )
+                        for item in payload.get("register_fields", ())
                     ),
                 )
             }.values()

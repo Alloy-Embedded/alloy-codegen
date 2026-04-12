@@ -42,6 +42,8 @@ from alloy_codegen.patches import (
     PeripheralPatch,
     PinPatch,
     PinSignalPatch,
+    RegisterFieldPatch,
+    RegisterPatch,
     ResetPatch,
     load_device_patch,
 )
@@ -724,12 +726,88 @@ def _registers_from_raw_peripherals(
     return tuple(registers)
 
 
+def _merge_patch_registers(
+    raw_peripherals: tuple[RawPeripheral, ...],
+    *,
+    patch_registers: tuple[RegisterPatch, ...] = (),
+) -> tuple[RawPeripheral, ...]:
+    if patch_registers == ():
+        return raw_peripherals
+
+    by_name: dict[str, RawPeripheral] = {}
+    order: list[str] = []
+    for peripheral in raw_peripherals:
+        canonical_name = _canonical_peripheral_name(peripheral.name)
+        if canonical_name in by_name:
+            continue
+        by_name[canonical_name] = RawPeripheral(
+            name=canonical_name,
+            base_address=peripheral.base_address,
+            registers=peripheral.registers,
+        )
+        order.append(canonical_name)
+
+    for patch_register in patch_registers:
+        canonical_name = _canonical_peripheral_name(patch_register.peripheral)
+        raw_register = RawRegister(
+            name=patch_register.name,
+            offset_bytes=patch_register.offset_bytes,
+            access=patch_register.access,
+            size_bits=patch_register.size_bits,
+        )
+        existing = by_name.get(canonical_name)
+        if existing is None:
+            if patch_register.base_address is None:
+                raise StageExecutionError(
+                    "Patch register for missing peripheral requires base_address: "
+                    f"{patch_register.peripheral}.{patch_register.name}"
+                )
+            by_name[canonical_name] = RawPeripheral(
+                name=canonical_name,
+                base_address=patch_register.base_address,
+                registers=(raw_register,),
+            )
+            order.append(canonical_name)
+            continue
+        if (
+            patch_register.base_address is not None
+            and patch_register.base_address != existing.base_address
+        ):
+            raise StageExecutionError(
+                "Patch register base_address mismatch for peripheral "
+                f"{patch_register.peripheral}: "
+                f"{patch_register.base_address:#x} != {existing.base_address:#x}"
+            )
+        if any(
+            register.name.upper() == patch_register.name.upper()
+            or register.offset_bytes == patch_register.offset_bytes
+            for register in existing.registers
+        ):
+            continue
+        by_name[canonical_name] = RawPeripheral(
+            name=existing.name,
+            base_address=existing.base_address,
+            registers=tuple(
+                sorted(
+                    (*existing.registers, raw_register),
+                    key=lambda item: (item.offset_bytes, item.name),
+                )
+            ),
+        )
+
+    return tuple(by_name[name] for name in order)
+
+
 def _register_fields_from_raw_peripherals(
     raw_peripherals: tuple[RawPeripheral, ...],
     *,
     provenance: Provenance,
+    patch_fields: tuple[RegisterFieldPatch, ...] = (),
+    patch_provenance: Provenance | None = None,
 ) -> tuple[RegisterFieldDescriptor, ...]:
     fields: list[RegisterFieldDescriptor] = []
+    seen_keys: set[tuple[str, str, str]] = set()
+    register_keys: set[tuple[str, str]] = set()
     for peripheral in raw_peripherals:
         canonical_peripheral = _canonical_peripheral_name(peripheral.name)
         seen_offsets: set[int] = set()
@@ -745,6 +823,7 @@ def _register_fields_from_raw_peripherals(
                 raw_register=raw_register,
                 provenance=provenance,
             )
+            register_keys.add((canonical_peripheral, raw_register.name))
             seen_field_names: set[str] = set()
             for raw_field in sorted(
                 raw_register.fields,
@@ -753,6 +832,7 @@ def _register_fields_from_raw_peripherals(
                 if raw_field.name in seen_field_names:
                     continue
                 seen_field_names.add(raw_field.name)
+                seen_keys.add((canonical_peripheral, raw_register.name, raw_field.name))
                 fields.append(
                     _register_field_to_ir(
                         peripheral_name=canonical_peripheral,
@@ -762,6 +842,37 @@ def _register_fields_from_raw_peripherals(
                         provenance=provenance,
                     )
                 )
+    effective_patch_provenance = patch_provenance or provenance
+    for patch_field in patch_fields:
+        register_key = (patch_field.peripheral, patch_field.register_name)
+        field_key = (*register_key, patch_field.name)
+        if field_key in seen_keys:
+            continue
+        if register_key not in register_keys:
+            continue
+        seen_keys.add(field_key)
+        fields.append(
+            RegisterFieldDescriptor(
+                field_id=(
+                    "field:"
+                    f"{_sanitize_token(patch_field.peripheral)}:"
+                    f"{_sanitize_token(patch_field.register_name)}:"
+                    f"{_sanitize_token(patch_field.name)}"
+                ),
+                register_id=(
+                    "register:"
+                    f"{_sanitize_token(patch_field.peripheral)}:"
+                    f"{_sanitize_token(patch_field.register_name)}"
+                ),
+                peripheral=patch_field.peripheral,
+                register_name=patch_field.register_name,
+                name=patch_field.name,
+                bit_offset=patch_field.bit_offset,
+                bit_width=patch_field.bit_width,
+                access=patch_field.access,
+                provenance=effective_patch_provenance,
+            )
+        )
     return tuple(fields)
 
 
@@ -809,9 +920,10 @@ def build_canonical_ir(
         source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
+    raw_peripherals = _merge_patch_registers(raw.peripherals, patch_registers=patch.registers)
     peripheral_patches = _peripheral_patch_map(patch)
     discovered_peripherals = {
-        _canonical_peripheral_name(peripheral.name) for peripheral in raw.peripherals
+        _canonical_peripheral_name(peripheral.name) for peripheral in raw_peripherals
     }
     (
         clock_nodes,
@@ -860,10 +972,12 @@ def build_canonical_ir(
                 provenance=pin_provenance,
             ),
         ),
-        registers=_registers_from_raw_peripherals(raw.peripherals, provenance=svd_provenance),
+        registers=_registers_from_raw_peripherals(raw_peripherals, provenance=svd_provenance),
         register_fields=_register_fields_from_raw_peripherals(
-            raw.peripherals,
+            raw_peripherals,
             provenance=svd_provenance,
+            patch_fields=patch.register_fields,
+            patch_provenance=patch_provenance,
         ),
         pins=pins,
         peripherals=tuple(
@@ -876,7 +990,7 @@ def build_canonical_ir(
                 else ip_version_table.get(_canonical_peripheral_name(peripheral.name)),
                 provenance=svd_provenance,
             )
-            for peripheral in raw.peripherals
+            for peripheral in raw_peripherals
         ),
         interrupts=_normalize_interrupts(raw.interrupts, provenance=svd_provenance),
         dma_controllers=tuple(
@@ -1100,8 +1214,9 @@ def build_nxp_canonical_ir(
         source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
+    raw_peripherals = _merge_patch_registers(raw.peripherals, patch_registers=patch.registers)
     peripheral_patches = _peripheral_patch_map(patch)
-    discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw.peripherals}
+    discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw_peripherals}
     (
         clock_nodes,
         clock_selectors,
@@ -1137,7 +1252,7 @@ def build_nxp_canonical_ir(
         if pad.bonded_pin in pin_names_with_signals
     )
     dedup_peripherals, peripheral_aliases = _deduplicate_raw_peripherals(
-        raw.peripherals,
+        raw_peripherals,
         preferred_names={
             *(_canonical_peripheral_name(p.name) for p in patch.peripherals),
             *(
@@ -1169,6 +1284,8 @@ def build_nxp_canonical_ir(
         register_fields=_register_fields_from_raw_peripherals(
             dedup_peripherals,
             provenance=svd_provenance,
+            patch_fields=patch.register_fields,
+            patch_provenance=patch_provenance,
         ),
         pins=pins,
         peripherals=tuple(

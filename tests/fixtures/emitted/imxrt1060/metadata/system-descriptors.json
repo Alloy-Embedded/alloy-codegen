@@ -15,7 +15,10 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_field_id": "field:ccm:ccgr1:cg13",
+          "register_id": "register:ccm:ccgr1",
           "register_name": "CCGR1",
+          "register_offset": 108,
           "register_peripheral": "CCM"
         },
         {
@@ -31,7 +34,10 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_field_id": "field:ccm:ccgr3:cg13",
+          "register_id": "register:ccm:ccgr3",
           "register_name": "CCGR3",
+          "register_offset": 116,
           "register_peripheral": "CCM"
         },
         {
@@ -47,7 +53,10 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_field_id": "field:ccm:ccgr2:cg2",
+          "register_id": "register:ccm:ccgr2",
           "register_name": "CCGR2",
+          "register_offset": 112,
           "register_peripheral": "CCM"
         },
         {
@@ -63,7 +72,10 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_field_id": "field:ccm:ccgr1:cg0",
+          "register_id": "register:ccm:ccgr1",
           "register_name": "CCGR1",
+          "register_offset": 108,
           "register_peripheral": "CCM"
         },
         {
@@ -79,7 +91,10 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_field_id": "field:ccm:ccgr5:cg12",
+          "register_id": "register:ccm:ccgr5",
           "register_name": "CCGR5",
+          "register_offset": 124,
           "register_peripheral": "CCM"
         },
         {
@@ -95,7 +110,10 @@
             "source_id": "nxp-mcux-soc-svd",
             "source_path": "MIMXRT1062/MIMXRT1062.xml"
           },
+          "register_field_id": "field:ccm:ccgr0:cg6",
+          "register_id": "register:ccm:ccgr0",
           "register_name": "CCGR0",
+          "register_offset": 104,
           "register_peripheral": "CCM"
         }
       ],
@@ -269,7 +287,10 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_field_id": "field:ccm:cscdr2:lpi2c-clk-sel",
+          "register_id": "register:ccm:cscdr2",
           "register_name": "CSCDR2",
+          "register_offset": 56,
           "register_peripheral": "CCM",
           "register_target": "CCM_CSCDR2.LPI2C_CLK_SEL",
           "selector_id": "selector:lpi2c-root"
@@ -287,7 +308,10 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_field_id": "field:ccm:cbcmr:lpspi-clk-sel",
+          "register_id": "register:ccm:cbcmr",
           "register_name": "CBCMR",
+          "register_offset": 24,
           "register_peripheral": "CCM",
           "register_target": "CCM_CBCMR.LPSPI_CLK_SEL",
           "selector_id": "selector:lpspi-root"
@@ -305,7 +329,10 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/nxp/imxrt1060/devices/mimxrt1062.json"
           },
+          "register_field_id": "field:ccm:cscdr1:uart-clk-sel",
+          "register_id": "register:ccm:cscdr1",
           "register_name": "CSCDR1",
+          "register_offset": 36,
           "register_peripheral": "CCM",
           "register_target": "CCM_CSCDR1.UART_CLK_SEL",
           "selector_id": "selector:lpuart-root"

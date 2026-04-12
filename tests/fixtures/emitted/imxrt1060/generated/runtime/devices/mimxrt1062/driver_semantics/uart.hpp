@@ -1,0 +1,165 @@
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include "common.hpp"
+
+namespace nxp {
+namespace imxrt1060 {
+namespace generated {
+namespace runtime {
+namespace devices {
+namespace mimxrt1062 {
+namespace driver_semantics {
+template<PeripheralId Id>
+struct UartSemanticTraits {
+  static constexpr bool kPresent = false;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;
+  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kIsrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kRdrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kTdrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kDrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kCrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kMrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kBrgrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kThrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsCrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsMrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsBrgrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsThrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeFieldRef kUeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kReField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kPceField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kPsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kM0Field = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kM1Field = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kMField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTdrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRdrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxeIsrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxneIsrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTcIsrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxeSrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxneSrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTcSrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kDrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRstrxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRsttxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRststaField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kParField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kChmodeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kCdField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxemptyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxchrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxchrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRstrxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRsttxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRststaField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsUsartModeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsUsclksField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsChrlField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsCdField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+};
+
+template<>
+struct UartSemanticTraits<PeripheralId::LPUART1> {
+  static constexpr bool kPresent = true;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_uart_nxp_lpuart_v1;
+  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kIsrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kRdrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kTdrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kDrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kCrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kMrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kBrgrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kThrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsCrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsMrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsBrgrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kUsThrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeFieldRef kUeField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_ctrl, 0x40184000u, 24u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kReField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_ctrl, 0x40184000u, 24u, true}, 18u, 1u, true};
+  static constexpr RuntimeFieldRef kTeField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_ctrl, 0x40184000u, 24u, true}, 19u, 1u, true};
+  static constexpr RuntimeFieldRef kPceField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_ctrl, 0x40184000u, 24u, true}, 1u, 1u, true};
+  static constexpr RuntimeFieldRef kPsField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_ctrl, 0x40184000u, 24u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kM0Field = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kM1Field = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kMField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_ctrl, 0x40184000u, 24u, true}, 4u, 1u, true};
+  static constexpr RuntimeFieldRef kStopField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_baud, 0x40184000u, 16u, true}, 13u, 1u, true};
+  static constexpr RuntimeFieldRef kTdrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_data, 0x40184000u, 28u, true}, 0u, 10u, true};
+  static constexpr RuntimeFieldRef kRdrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_data, 0x40184000u, 28u, true}, 0u, 10u, true};
+  static constexpr RuntimeFieldRef kTxeIsrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_stat, 0x40184000u, 20u, true}, 23u, 1u, true};
+  static constexpr RuntimeFieldRef kRxneIsrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_stat, 0x40184000u, 20u, true}, 21u, 1u, true};
+  static constexpr RuntimeFieldRef kTcIsrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_lpuart1_stat, 0x40184000u, 20u, true}, 22u, 1u, true};
+  static constexpr RuntimeFieldRef kTxeSrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxneSrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTcSrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kDrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRstrxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRsttxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRststaField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kParField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kChmodeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kCdField = RuntimeFieldRef{FieldId::field_lpuart1_baud_sbr, RuntimeRegisterRef{RegisterId::register_lpuart1_baud, 0x40184000u, 16u, true}, 0u, 13u, true};
+  static constexpr RuntimeFieldRef kRxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxemptyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxchrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRxchrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRstrxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRsttxField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRststaField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsUsartModeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsUsclksField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsChrlField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsCdField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxenField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxrdyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+};
+
+inline constexpr std::array<PeripheralId, 1> kUartSemanticPeripherals = {{
+  PeripheralId::LPUART1,
+}};
+}
+}
+}
+}
+}
+}
+}

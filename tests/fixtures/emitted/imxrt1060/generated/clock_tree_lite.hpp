@@ -73,9 +73,9 @@ struct ClockSelectorDescriptor {
   RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockSelectorDescriptor, 3> kClockSelectors = {{
-  {DeviceRefId::mimxrt1062, ClockSelectorId::mimxrt1062_selector_lpi2c_root, 0u, 2u, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockSelectorId::mimxrt1062_selector_lpspi_root, 2u, 2u, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockSelectorId::mimxrt1062_selector_lpuart_root, 4u, 2u, RegisterRefId::none, RegisterFieldRefId::none},
+  {DeviceRefId::mimxrt1062, ClockSelectorId::mimxrt1062_selector_lpi2c_root, 0u, 2u, RegisterRefId::mimxrt1062_register_ccm_cscdr2, RegisterFieldRefId::mimxrt1062_field_ccm_cscdr2_lpi2c_clk_sel},
+  {DeviceRefId::mimxrt1062, ClockSelectorId::mimxrt1062_selector_lpspi_root, 2u, 2u, RegisterRefId::mimxrt1062_register_ccm_cbcmr, RegisterFieldRefId::mimxrt1062_field_ccm_cbcmr_lpspi_clk_sel},
+  {DeviceRefId::mimxrt1062, ClockSelectorId::mimxrt1062_selector_lpuart_root, 4u, 2u, RegisterRefId::mimxrt1062_register_ccm_cscdr1, RegisterFieldRefId::mimxrt1062_field_ccm_cscdr1_uart_clk_sel},
 }};
 
 struct ClockSelectorParentOption {
@@ -100,12 +100,12 @@ struct ClockGateDescriptor {
   RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockGateDescriptor, 6> kClockGates = {{
-  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_gpio1, PeripheralRefId::mimxrt1062_GPIO1, ClockNodeId::mimxrt1062_clock_node_ccm_ccgr1, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_gpio4, PeripheralRefId::mimxrt1062_GPIO4, ClockNodeId::mimxrt1062_clock_node_ccm_ccgr3, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpi2c1, PeripheralRefId::mimxrt1062_LPI2C1, ClockNodeId::mimxrt1062_clock_node_lpi2c_root, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpspi1, PeripheralRefId::mimxrt1062_LPSPI1, ClockNodeId::mimxrt1062_clock_node_lpspi_root, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpuart1, PeripheralRefId::mimxrt1062_LPUART1, ClockNodeId::mimxrt1062_clock_node_lpuart_root, RegisterRefId::none, RegisterFieldRefId::none},
-  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpuart3, PeripheralRefId::mimxrt1062_LPUART3, ClockNodeId::mimxrt1062_clock_node_ccm_ccgr0, RegisterRefId::none, RegisterFieldRefId::none},
+  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_gpio1, PeripheralRefId::mimxrt1062_GPIO1, ClockNodeId::mimxrt1062_clock_node_ccm_ccgr1, RegisterRefId::mimxrt1062_register_ccm_ccgr1, RegisterFieldRefId::mimxrt1062_field_ccm_ccgr1_cg13},
+  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_gpio4, PeripheralRefId::mimxrt1062_GPIO4, ClockNodeId::mimxrt1062_clock_node_ccm_ccgr3, RegisterRefId::mimxrt1062_register_ccm_ccgr3, RegisterFieldRefId::mimxrt1062_field_ccm_ccgr3_cg13},
+  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpi2c1, PeripheralRefId::mimxrt1062_LPI2C1, ClockNodeId::mimxrt1062_clock_node_lpi2c_root, RegisterRefId::mimxrt1062_register_ccm_ccgr2, RegisterFieldRefId::mimxrt1062_field_ccm_ccgr2_cg2},
+  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpspi1, PeripheralRefId::mimxrt1062_LPSPI1, ClockNodeId::mimxrt1062_clock_node_lpspi_root, RegisterRefId::mimxrt1062_register_ccm_ccgr1, RegisterFieldRefId::mimxrt1062_field_ccm_ccgr1_cg0},
+  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpuart1, PeripheralRefId::mimxrt1062_LPUART1, ClockNodeId::mimxrt1062_clock_node_lpuart_root, RegisterRefId::mimxrt1062_register_ccm_ccgr5, RegisterFieldRefId::mimxrt1062_field_ccm_ccgr5_cg12},
+  {DeviceRefId::mimxrt1062, ClockGateId::mimxrt1062_gate_lpuart3, PeripheralRefId::mimxrt1062_LPUART3, ClockNodeId::mimxrt1062_clock_node_ccm_ccgr0, RegisterRefId::mimxrt1062_register_ccm_ccgr0, RegisterFieldRefId::mimxrt1062_field_ccm_ccgr0_cg6},
 }};
 
 struct ResetDescriptor {

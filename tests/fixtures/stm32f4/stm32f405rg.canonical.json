@@ -129,6 +129,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:dma1en",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -147,6 +148,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:dma2en",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -165,6 +167,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:gpioaen",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -183,6 +186,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:gpioben",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -201,6 +205,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb2enr:otgfsen",
       "register_id": "register:rcc:ahb2enr",
       "register_name": "AHB2ENR",
       "register_offset": 52,
@@ -219,6 +224,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb2enr:usart1en",
       "register_id": "register:rcc:apb2enr",
       "register_name": "APB2ENR",
       "register_offset": 68,
@@ -237,6 +243,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb1enr:usart2en",
       "register_id": "register:rcc:apb1enr",
       "register_name": "APB1ENR",
       "register_offset": 64,
@@ -1528,6 +1535,258 @@
       },
       "register_id": "register:usart2:sr",
       "register_name": "SR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 21,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1enr:dma1en",
+      "name": "DMA1EN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 22,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1enr:dma2en",
+      "name": "DMA2EN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1enr:gpioaen",
+      "name": "GPIOAEN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 1,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1enr:gpioben",
+      "name": "GPIOBEN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1enr",
+      "register_name": "AHB1ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 4,
+      "bit_width": 1,
+      "field_id": "field:rcc:apb2enr:usart1en",
+      "name": "USART1EN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:apb2enr",
+      "register_name": "APB2ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 17,
+      "bit_width": 1,
+      "field_id": "field:rcc:apb1enr:usart2en",
+      "name": "USART2EN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:apb1enr",
+      "register_name": "APB1ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb2enr:otgfsen",
+      "name": "OTGFSEN",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb2enr",
+      "register_name": "AHB2ENR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 21,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1rstr:dma1rst",
+      "name": "DMA1RST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 22,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1rstr:dma2rst",
+      "name": "DMA2RST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1rstr:gpioarst",
+      "name": "GPIOARST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 1,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb1rstr:gpiobrst",
+      "name": "GPIOBRST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb1rstr",
+      "register_name": "AHB1RSTR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 4,
+      "bit_width": 1,
+      "field_id": "field:rcc:apb2rstr:usart1rst",
+      "name": "USART1RST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:apb2rstr",
+      "register_name": "APB2RSTR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 17,
+      "bit_width": 1,
+      "field_id": "field:rcc:apb1rstr:usart2rst",
+      "name": "USART2RST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:apb1rstr",
+      "register_name": "APB1RSTR"
+    },
+    {
+      "access": "read-write",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "field_id": "field:rcc:ahb2rstr:otgfsrst",
+      "name": "OTGFSRST",
+      "peripheral": "RCC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f405rg-bootstrap"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f405rg.json"
+      },
+      "register_id": "register:rcc:ahb2rstr",
+      "register_name": "AHB2RSTR"
     }
   ],
   "registers": [
@@ -1928,6 +2187,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:dma1rst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -1946,6 +2206,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:dma2rst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -1964,6 +2225,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:gpioarst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -1982,6 +2244,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:gpiobrst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -2000,6 +2263,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb2rstr:otgfsrst",
       "register_id": "register:rcc:ahb2rstr",
       "register_name": "AHB2RSTR",
       "register_offset": 20,
@@ -2018,6 +2282,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb2rstr:usart1rst",
       "register_id": "register:rcc:apb2rstr",
       "register_name": "APB2RSTR",
       "register_offset": 36,
@@ -2036,6 +2301,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb1rstr:usart2rst",
       "register_id": "register:rcc:apb1rstr",
       "register_name": "APB1RSTR",
       "register_offset": 32,
@@ -2056,6 +2322,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:dma1en",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -2081,6 +2348,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:dma2en",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -2106,6 +2374,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:gpioaen",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -2131,6 +2400,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1enr:gpioben",
       "register_id": "register:rcc:ahb1enr",
       "register_name": "AHB1ENR",
       "register_offset": 48,
@@ -2156,6 +2426,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb2enr:otgfsen",
       "register_id": "register:rcc:ahb2enr",
       "register_name": "AHB2ENR",
       "register_offset": 52,
@@ -2181,6 +2452,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb2enr:usart1en",
       "register_id": "register:rcc:apb2enr",
       "register_name": "APB2ENR",
       "register_offset": 68,
@@ -2206,6 +2478,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb1enr:usart2en",
       "register_id": "register:rcc:apb1enr",
       "register_name": "APB1ENR",
       "register_offset": 64,
@@ -2231,6 +2504,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:dma1rst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -2256,6 +2530,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:dma2rst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -2281,6 +2556,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:gpioarst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -2306,6 +2582,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb1rstr:gpiobrst",
       "register_id": "register:rcc:ahb1rstr",
       "register_name": "AHB1RSTR",
       "register_offset": 16,
@@ -2331,6 +2608,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:ahb2rstr:otgfsrst",
       "register_id": "register:rcc:ahb2rstr",
       "register_name": "AHB2RSTR",
       "register_offset": 20,
@@ -2356,6 +2634,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb2rstr:usart1rst",
       "register_id": "register:rcc:apb2rstr",
       "register_name": "APB2RSTR",
       "register_offset": 36,
@@ -2381,6 +2660,7 @@
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F405.svd"
       },
+      "register_field_id": "field:rcc:apb1rstr:usart2rst",
       "register_id": "register:rcc:apb1rstr",
       "register_name": "APB1RSTR",
       "register_offset": 32,

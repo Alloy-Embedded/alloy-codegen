@@ -147,6 +147,298 @@
       "ip_version": "flexspi-v1"
     }
   ],
+  "registers": [
+    {
+      "peripheral": "CCM",
+      "name": "CBCMR",
+      "offset_bytes": 24,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CSCDR1",
+      "offset_bytes": 36,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CSCDR2",
+      "offset_bytes": 56,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR0",
+      "offset_bytes": 104,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR1",
+      "offset_bytes": 108,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR2",
+      "offset_bytes": 112,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR3",
+      "offset_bytes": 116,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR5",
+      "offset_bytes": 124,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR6",
+      "offset_bytes": 128,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    },
+    {
+      "peripheral": "CCM",
+      "name": "CCGR7",
+      "offset_bytes": 132,
+      "access": "read-write",
+      "size_bits": 32,
+      "base_address": 1074774016
+    }
+  ],
+  "register_fields": [
+    {
+      "peripheral": "CCM",
+      "register_name": "CBCMR",
+      "name": "LPSPI_CLK_SEL",
+      "bit_offset": 4,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CSCDR1",
+      "name": "UART_CLK_SEL",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CSCDR2",
+      "name": "LPI2C_CLK_SEL",
+      "bit_offset": 18,
+      "bit_width": 1,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR0",
+      "name": "CG6",
+      "bit_offset": 12,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR0",
+      "name": "CG14",
+      "bit_offset": 28,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR0",
+      "name": "CG15",
+      "bit_offset": 30,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG0",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG1",
+      "bit_offset": 2,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG2",
+      "bit_offset": 4,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG3",
+      "bit_offset": 6,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG12",
+      "bit_offset": 24,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG13",
+      "bit_offset": 26,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR1",
+      "name": "CG15",
+      "bit_offset": 30,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR2",
+      "name": "CG2",
+      "bit_offset": 4,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR2",
+      "name": "CG3",
+      "bit_offset": 6,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR2",
+      "name": "CG4",
+      "bit_offset": 8,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR2",
+      "name": "CG13",
+      "bit_offset": 26,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR3",
+      "name": "CG1",
+      "bit_offset": 2,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR3",
+      "name": "CG3",
+      "bit_offset": 6,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR3",
+      "name": "CG13",
+      "bit_offset": 26,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR5",
+      "name": "CG12",
+      "bit_offset": 24,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR5",
+      "name": "CG13",
+      "bit_offset": 26,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR6",
+      "name": "CG5",
+      "bit_offset": 10,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR6",
+      "name": "CG7",
+      "bit_offset": 14,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR6",
+      "name": "CG12",
+      "bit_offset": 24,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "CCM",
+      "register_name": "CCGR7",
+      "name": "CG3",
+      "bit_offset": 6,
+      "bit_width": 2,
+      "access": "read-write"
+    }
+  ],
   "clock_nodes": [
     {
       "node_id": "clock-node:osc24m",

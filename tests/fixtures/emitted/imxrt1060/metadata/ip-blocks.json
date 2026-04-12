@@ -4,6 +4,12 @@
       "device": "mimxrt1062",
       "peripherals": [
         {
+          "base_address": 1074774016,
+          "ip_name": "ccm",
+          "ip_version": null,
+          "name": "CCM"
+        },
+        {
           "base_address": 1075544064,
           "ip_name": "gpio",
           "ip_version": "imxrt-gpio-v1",

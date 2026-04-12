@@ -11,6 +11,7 @@ namespace generated {
 namespace devices {
 namespace mimxrt1062 {
 enum class PeripheralId : std::uint16_t {
+  CCM,
   GPIO1,
   GPIO4,
   LPI2C1,
@@ -36,7 +37,8 @@ struct PeripheralInstanceDescriptor {
   std::uint16_t capability_overlay_count;
   int register_count;
 };
-inline constexpr std::array<PeripheralInstanceDescriptor, 6> kPeripheralInstances = {{
+inline constexpr std::array<PeripheralInstanceDescriptor, 7> kPeripheralInstances = {{
+  {PeripheralId::CCM, PeripheralClassId::class_ccm, BackendSchemaId::schema_alloy_ccm_nxp_ccm, 0, 0x400FC000u, ClockGateId::none, ResetId::none, ClockSelectorId::none, 0u, 0u, 0u, 0u, 0u, 0u, 10},
   {PeripheralId::GPIO1, PeripheralClassId::class_gpio, BackendSchemaId::schema_alloy_gpio_nxp_imxrt_gpio_v1, 1, 0x401B8000u, ClockGateId::mimxrt1062_gate_gpio1, ResetId::none, ClockSelectorId::none, 0u, 0u, 0u, 0u, 0u, 2u, 3},
   {PeripheralId::GPIO4, PeripheralClassId::class_gpio, BackendSchemaId::schema_alloy_gpio_nxp_imxrt_gpio_v1, 4, 0x401C4000u, ClockGateId::mimxrt1062_gate_gpio4, ResetId::none, ClockSelectorId::none, 0u, 0u, 0u, 0u, 2u, 2u, 3},
   {PeripheralId::LPI2C1, PeripheralClassId::class_lpi2c1, BackendSchemaId::schema_alloy_lpi2c1_nxp_lpi2c_v1, 0, 0x403F0000u, ClockGateId::mimxrt1062_gate_lpi2c1, ResetId::none, ClockSelectorId::mimxrt1062_selector_lpi2c_root, 0u, 1u, 0u, 0u, 4u, 2u, 0},

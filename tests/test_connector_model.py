@@ -132,6 +132,17 @@ def test_enrich_connector_descriptors_builds_microchip_route_model(
     )
     assert xdmac.channel_count == 24
     assert xdmac.request_count is not None and xdmac.request_count > xdmac.channel_count
+    usart0_gate = next(gate for gate in device.clock_gates if gate.gate_id == "gate:usart0")
+    assert usart0_gate.register_name == "PCER0"
+    assert usart0_gate.register_id == "register:pmc:pcer0"
+    assert usart0_gate.register_field_id == "field:pmc:pcer0:pid13"
+    usart0_enable = next(
+        operation
+        for operation in device.route_operations
+        if operation.operation_id == "operation:clock-enable:usart0"
+    )
+    assert usart0_enable.register_id == "register:pmc:pcer0"
+    assert usart0_enable.register_field_id == "field:pmc:pcer0:pid13"
 
 
 def test_enrich_connector_descriptors_builds_nxp_route_model(

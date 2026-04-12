@@ -107,6 +107,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:ahbenr:dma1en",
           "register_id": "register:rcc:ahbenr",
           "register_name": "AHBENR",
           "register_offset": 56,
@@ -132,6 +133,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:ahbenr:dma1en",
           "register_id": "register:rcc:ahbenr",
           "register_name": "AHBENR",
           "register_offset": 56,
@@ -139,7 +141,7 @@
           "schema_id": "alloy.clock.st-rcc-g0-v1-0",
           "subject_id": "DMAMUX1",
           "subject_kind": "peripheral",
-          "target": "RCC_AHBENR.DMAMUX1EN",
+          "target": "RCC_AHBENR.DMA1EN",
           "target_ref_id": "gate:dmamux1",
           "target_ref_kind": "clock-gate",
           "value": "1",
@@ -157,6 +159,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:iopenr:gpioaen",
           "register_id": "register:rcc:iopenr",
           "register_name": "IOPENR",
           "register_offset": 52,
@@ -182,6 +185,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:iopenr:gpioben",
           "register_id": "register:rcc:iopenr",
           "register_name": "IOPENR",
           "register_offset": 52,
@@ -207,6 +211,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:apbenr2:usart1en",
           "register_id": "register:rcc:apbenr2",
           "register_name": "APBENR2",
           "register_offset": 64,
@@ -232,6 +237,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:ahbrstr:dma1rst",
           "register_id": "register:rcc:ahbrstr",
           "register_name": "AHBRSTR",
           "register_offset": 40,
@@ -257,6 +263,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:ahbrstr:dma1rst",
           "register_id": "register:rcc:ahbrstr",
           "register_name": "AHBRSTR",
           "register_offset": 40,
@@ -264,7 +271,7 @@
           "schema_id": "alloy.clock.st-rcc-g0-v1-0",
           "subject_id": "DMAMUX1",
           "subject_kind": "peripheral",
-          "target": "RCC_AHBRSTR.DMAMUX1RST",
+          "target": "RCC_AHBRSTR.DMA1RST",
           "target_ref_id": "reset:dmamux1",
           "target_ref_kind": "reset",
           "value": "0",
@@ -282,6 +289,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:ioprstr:gpioarst",
           "register_id": "register:rcc:ioprstr",
           "register_name": "IOPRSTR",
           "register_offset": 36,
@@ -307,6 +315,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:ioprstr:gpiobrst",
           "register_id": "register:rcc:ioprstr",
           "register_name": "IOPRSTR",
           "register_offset": 36,
@@ -332,6 +341,7 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "register_field_id": "field:rcc:apbrstr2:usart1rst",
           "register_id": "register:rcc:apbrstr2",
           "register_name": "APBRSTR2",
           "register_offset": 48,
@@ -463,7 +473,7 @@
             "source_path": "STM32G071.svd"
           },
           "requirement_id": "requirement:clock-enable:dmamux1",
-          "target": "RCC_AHBENR.DMAMUX1EN",
+          "target": "RCC_AHBENR.DMA1EN",
           "target_ref_id": "gate:dmamux1",
           "target_ref_kind": "clock-gate",
           "value": "1",
@@ -571,7 +581,7 @@
             "source_path": "STM32G071.svd"
           },
           "requirement_id": "requirement:reset-release:dmamux1",
-          "target": "RCC_AHBRSTR.DMAMUX1RST",
+          "target": "RCC_AHBRSTR.DMA1RST",
           "target_ref_id": "reset:dmamux1",
           "target_ref_kind": "reset",
           "value": "0",
