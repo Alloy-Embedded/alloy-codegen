@@ -38,8 +38,8 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c failed with 85 rule(s).",
-      "passed": false,
+      "message": "gate-c passed with 85 rule(s).",
+      "passed": true,
       "rule_ids": [
         "mimxrt1062-package-pin-count-covers-known-pins",
         "mimxrt1062-pin-port-has-gpio-peripheral",
@@ -129,7 +129,7 @@
       ]
     }
   ],
-  "is_passing": false,
+  "is_passing": true,
   "report_id": "bootstrap-validation-v1",
   "schema_version": "1.1.0",
   "system_descriptor_domains": [

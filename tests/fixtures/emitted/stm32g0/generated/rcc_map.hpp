@@ -1,19 +1,22 @@
 #pragma once
 
+#include "clock_tree_lite.hpp"
+
 namespace st {
 namespace stm32g0 {
 namespace generated {
 struct RccDescriptor {
+  const char* device;
   const char* peripheral;
-  const char* enable_signal;
-  const char* reset_signal;
+  ClockGateId gate_id;
+  ResetId reset_id;
 };
 inline constexpr RccDescriptor kRccMap[] = {
-  {"DMA1", "RCC_AHBENR.DMA1EN", "RCC_AHBRSTR.DMA1RST"},
-  {"DMAMUX1", "RCC_AHBENR.DMAMUX1EN", "RCC_AHBRSTR.DMAMUX1RST"},
-  {"GPIOA", "RCC_IOPENR.GPIOAEN", "RCC_IOPRSTR.GPIOARST"},
-  {"GPIOB", "RCC_IOPENR.GPIOBEN", "RCC_IOPRSTR.GPIOBRST"},
-  {"USART1", "RCC_APBENR2.USART1EN", "RCC_APBRSTR2.USART1RST"},
+  {"stm32g071rb", "DMA1", ClockGateId::stm32g071rb_gate_dma1, ResetId::stm32g071rb_reset_dma1},
+  {"stm32g071rb", "DMAMUX1", ClockGateId::stm32g071rb_gate_dmamux1, ResetId::stm32g071rb_reset_dmamux1},
+  {"stm32g071rb", "GPIOA", ClockGateId::stm32g071rb_gate_gpioa, ResetId::stm32g071rb_reset_gpioa},
+  {"stm32g071rb", "GPIOB", ClockGateId::stm32g071rb_gate_gpiob, ResetId::stm32g071rb_reset_gpiob},
+  {"stm32g071rb", "USART1", ClockGateId::stm32g071rb_gate_usart1, ResetId::stm32g071rb_reset_usart1},
 };
 }
 }

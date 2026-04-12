@@ -29,8 +29,8 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c failed with 85 rule(s).",
-      "passed": false,
+      "message": "gate-c passed with 85 rule(s).",
+      "passed": true,
       "rule_ids": [
         "mimxrt1062-package-pin-count-covers-known-pins",
         "mimxrt1062-pin-port-has-gpio-peripheral",
@@ -120,7 +120,7 @@
       ]
     }
   ],
-  "is_passing": false,
+  "is_passing": true,
   "report_id": "bootstrap-validation-v1",
   "results": [
     {
@@ -504,7 +504,7 @@
     {
       "category": "semantic",
       "message": "mimxrt1062 route operations with register-like targets resolve a normalized register offset.",
-      "passed": false,
+      "passed": true,
       "rule_id": "mimxrt1062-register-target-operations-resolved",
       "severity": "error"
     },

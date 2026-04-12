@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include "runtime_refs.hpp"
 
 namespace nxp {
 namespace imxrt1060 {
@@ -20,12 +21,14 @@ enum class ClockNodeId : std::uint16_t {
 };
 
 enum class ClockSelectorId : std::uint16_t {
+  none,
   mimxrt1062_selector_lpi2c_root,
   mimxrt1062_selector_lpspi_root,
   mimxrt1062_selector_lpuart_root,
 };
 
 enum class ClockGateId : std::uint16_t {
+  none,
   mimxrt1062_gate_gpio1,
   mimxrt1062_gate_gpio4,
   mimxrt1062_gate_lpi2c1,
@@ -70,13 +73,13 @@ struct ClockSelectorDescriptor {
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockSelectorDescriptor, 3> kClockSelectors = {{
-  {"mimxrt1062", ClockSelectorId::mimxrt1062_selector_lpi2c_root, "selector:lpi2c-root", 0u, 2u, "CCM_CSCDR2.LPI2C_CLK_SEL", "CCM", "CSCDR2", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockSelectorId::mimxrt1062_selector_lpspi_root, "selector:lpspi-root", 2u, 2u, "CCM_CBCMR.LPSPI_CLK_SEL", "CCM", "CBCMR", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockSelectorId::mimxrt1062_selector_lpuart_root, "selector:lpuart-root", 4u, 2u, "CCM_CSCDR1.UART_CLK_SEL", "CCM", "CSCDR1", -1, nullptr, nullptr},
+  {"mimxrt1062", ClockSelectorId::mimxrt1062_selector_lpi2c_root, "selector:lpi2c-root", 0u, 2u, "CCM_CSCDR2.LPI2C_CLK_SEL", "CCM", "CSCDR2", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockSelectorId::mimxrt1062_selector_lpspi_root, "selector:lpspi-root", 2u, 2u, "CCM_CBCMR.LPSPI_CLK_SEL", "CCM", "CBCMR", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockSelectorId::mimxrt1062_selector_lpuart_root, "selector:lpuart-root", 4u, 2u, "CCM_CSCDR1.UART_CLK_SEL", "CCM", "CSCDR1", -1, RegisterRefId::none, RegisterFieldRefId::none},
 }};
 
 struct ClockSelectorParentOption {
@@ -102,16 +105,16 @@ struct ClockGateDescriptor {
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockGateDescriptor, 6> kClockGates = {{
-  {"mimxrt1062", ClockGateId::mimxrt1062_gate_gpio1, "gate:gpio1", "GPIO1", 1, "CCM_CCGR1.CG13", "CCM", "CCGR1", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockGateId::mimxrt1062_gate_gpio4, "gate:gpio4", "GPIO4", 3, "CCM_CCGR3.CG13", "CCM", "CCGR3", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpi2c1, "gate:lpi2c1", "LPI2C1", 5, "CCM_CCGR2.CG2", "CCM", "CCGR2", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpspi1, "gate:lpspi1", "LPSPI1", 6, "CCM_CCGR1.CG0", "CCM", "CCGR1", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpuart1, "gate:lpuart1", "LPUART1", 7, "CCM_CCGR5.CG12", "CCM", "CCGR5", -1, nullptr, nullptr},
-  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpuart3, "gate:lpuart3", "LPUART3", 0, "CCM_CCGR0.CG6", "CCM", "CCGR0", -1, nullptr, nullptr},
+  {"mimxrt1062", ClockGateId::mimxrt1062_gate_gpio1, "gate:gpio1", "GPIO1", 1, "CCM_CCGR1.CG13", "CCM", "CCGR1", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockGateId::mimxrt1062_gate_gpio4, "gate:gpio4", "GPIO4", 3, "CCM_CCGR3.CG13", "CCM", "CCGR3", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpi2c1, "gate:lpi2c1", "LPI2C1", 5, "CCM_CCGR2.CG2", "CCM", "CCGR2", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpspi1, "gate:lpspi1", "LPSPI1", 6, "CCM_CCGR1.CG0", "CCM", "CCGR1", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpuart1, "gate:lpuart1", "LPUART1", 7, "CCM_CCGR5.CG12", "CCM", "CCGR5", -1, RegisterRefId::none, RegisterFieldRefId::none},
+  {"mimxrt1062", ClockGateId::mimxrt1062_gate_lpuart3, "gate:lpuart3", "LPUART3", 0, "CCM_CCGR0.CG6", "CCM", "CCGR0", -1, RegisterRefId::none, RegisterFieldRefId::none},
 }};
 
 struct ResetDescriptor {
@@ -124,25 +127,25 @@ struct ResetDescriptor {
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ResetDescriptor, 0> kResets = {};
 
 struct PeripheralClockBindingDescriptor {
   const char* device;
   const char* peripheral;
-  int clock_gate_index;
-  int reset_index;
-  int selector_index;
+  ClockGateId clock_gate_id;
+  ResetId reset_id;
+  ClockSelectorId selector_id;
 };
 inline constexpr std::array<PeripheralClockBindingDescriptor, 6> kPeripheralClockBindings = {{
-  {"mimxrt1062", "GPIO1", 0, -1, -1},
-  {"mimxrt1062", "GPIO4", 1, -1, -1},
-  {"mimxrt1062", "LPI2C1", 2, -1, 0},
-  {"mimxrt1062", "LPSPI1", 3, -1, 1},
-  {"mimxrt1062", "LPUART1", 4, -1, 2},
-  {"mimxrt1062", "LPUART3", 5, -1, -1},
+  {"mimxrt1062", "GPIO1", ClockGateId::mimxrt1062_gate_gpio1, ResetId::none, ClockSelectorId::none},
+  {"mimxrt1062", "GPIO4", ClockGateId::mimxrt1062_gate_gpio4, ResetId::none, ClockSelectorId::none},
+  {"mimxrt1062", "LPI2C1", ClockGateId::mimxrt1062_gate_lpi2c1, ResetId::none, ClockSelectorId::mimxrt1062_selector_lpi2c_root},
+  {"mimxrt1062", "LPSPI1", ClockGateId::mimxrt1062_gate_lpspi1, ResetId::none, ClockSelectorId::mimxrt1062_selector_lpspi_root},
+  {"mimxrt1062", "LPUART1", ClockGateId::mimxrt1062_gate_lpuart1, ResetId::none, ClockSelectorId::mimxrt1062_selector_lpuart_root},
+  {"mimxrt1062", "LPUART3", ClockGateId::mimxrt1062_gate_lpuart3, ResetId::none, ClockSelectorId::none},
 }};
 }
 }

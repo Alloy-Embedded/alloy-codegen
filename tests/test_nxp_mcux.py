@@ -400,7 +400,7 @@ def test_emit_nxp_imxrt1060_artifact_content(
 
     rcc_map = artifacts[f"{family_dir}/generated/rcc_map.hpp"]
     assert "kRccMap" in rcc_map.content
-    assert "CCM_CCGR" in rcc_map.content  # NXP CCM gate signals appear in the map
+    assert "ClockGateId::mimxrt1062_gate_gpio1" in rcc_map.content
 
     startup_descriptors = artifacts[
         f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp"
@@ -413,7 +413,7 @@ def test_emit_nxp_imxrt1060_artifact_content(
     ]
     for gpio_art in gpio_headers:
         assert "kPeripheral" in gpio_art.content
-        assert "CCM_CCGR" in gpio_art.content  # CCM gate for every GPIO peripheral
+        assert "ClockGateId::" in gpio_art.content
 
 
 def test_emit_nxp_imxrt1060_reports_publishable_descriptor_coverage(

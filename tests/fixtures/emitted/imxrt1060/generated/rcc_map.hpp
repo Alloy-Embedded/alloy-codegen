@@ -1,20 +1,23 @@
 #pragma once
 
+#include "clock_tree_lite.hpp"
+
 namespace nxp {
 namespace imxrt1060 {
 namespace generated {
 struct RccDescriptor {
+  const char* device;
   const char* peripheral;
-  const char* enable_signal;
-  const char* reset_signal;
+  ClockGateId gate_id;
+  ResetId reset_id;
 };
 inline constexpr RccDescriptor kRccMap[] = {
-  {"GPIO1", "CCM_CCGR1.CG13", ""},
-  {"GPIO4", "CCM_CCGR3.CG13", ""},
-  {"LPI2C1", "CCM_CCGR2.CG2", ""},
-  {"LPSPI1", "CCM_CCGR1.CG0", ""},
-  {"LPUART1", "CCM_CCGR5.CG12", ""},
-  {"LPUART3", "CCM_CCGR0.CG6", ""},
+  {"mimxrt1062", "GPIO1", ClockGateId::mimxrt1062_gate_gpio1, ResetId::none},
+  {"mimxrt1062", "GPIO4", ClockGateId::mimxrt1062_gate_gpio4, ResetId::none},
+  {"mimxrt1062", "LPI2C1", ClockGateId::mimxrt1062_gate_lpi2c1, ResetId::none},
+  {"mimxrt1062", "LPSPI1", ClockGateId::mimxrt1062_gate_lpspi1, ResetId::none},
+  {"mimxrt1062", "LPUART1", ClockGateId::mimxrt1062_gate_lpuart1, ResetId::none},
+  {"mimxrt1062", "LPUART3", ClockGateId::mimxrt1062_gate_lpuart3, ResetId::none},
 };
 }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include "runtime_refs.hpp"
 
 namespace st {
 namespace stm32g0 {
@@ -16,10 +17,12 @@ enum class ClockNodeId : std::uint16_t {
 };
 
 enum class ClockSelectorId : std::uint16_t {
+  none,
   stm32g071rb_selector_usart1_kernel,
 };
 
 enum class ClockGateId : std::uint16_t {
+  none,
   stm32g071rb_gate_dma1,
   stm32g071rb_gate_dmamux1,
   stm32g071rb_gate_gpioa,
@@ -28,6 +31,7 @@ enum class ClockGateId : std::uint16_t {
 };
 
 enum class ResetId : std::uint16_t {
+  none,
   stm32g071rb_reset_dma1,
   stm32g071rb_reset_dmamux1,
   stm32g071rb_reset_gpioa,
@@ -63,11 +67,11 @@ struct ClockSelectorDescriptor {
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockSelectorDescriptor, 1> kClockSelectors = {{
-  {"stm32g071rb", ClockSelectorId::stm32g071rb_selector_usart1_kernel, "selector:usart1-kernel", 0u, 4u, "RCC_CCIPR.USART1SEL", "RCC", "CCIPR", -1, nullptr, nullptr},
+  {"stm32g071rb", ClockSelectorId::stm32g071rb_selector_usart1_kernel, "selector:usart1-kernel", 0u, 4u, "RCC_CCIPR.USART1SEL", "RCC", "CCIPR", -1, RegisterRefId::none, RegisterFieldRefId::none},
 }};
 
 struct ClockSelectorParentOption {
@@ -91,15 +95,15 @@ struct ClockGateDescriptor {
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ClockGateDescriptor, 5> kClockGates = {{
-  {"stm32g071rb", ClockGateId::stm32g071rb_gate_dma1, "gate:dma1", "DMA1", 2, "RCC_AHBENR.DMA1EN", "RCC", "AHBENR", 56, "register:rcc:ahbenr", nullptr},
-  {"stm32g071rb", ClockGateId::stm32g071rb_gate_dmamux1, "gate:dmamux1", "DMAMUX1", 2, "RCC_AHBENR.DMAMUX1EN", "RCC", "AHBENR", 56, "register:rcc:ahbenr", nullptr},
-  {"stm32g071rb", ClockGateId::stm32g071rb_gate_gpioa, "gate:gpioa", "GPIOA", 4, "RCC_IOPENR.GPIOAEN", "RCC", "IOPENR", 52, "register:rcc:iopenr", nullptr},
-  {"stm32g071rb", ClockGateId::stm32g071rb_gate_gpiob, "gate:gpiob", "GPIOB", 4, "RCC_IOPENR.GPIOBEN", "RCC", "IOPENR", 52, "register:rcc:iopenr", nullptr},
-  {"stm32g071rb", ClockGateId::stm32g071rb_gate_usart1, "gate:usart1", "USART1", 3, "RCC_APBENR2.USART1EN", "RCC", "APBENR2", 64, "register:rcc:apbenr2", nullptr},
+  {"stm32g071rb", ClockGateId::stm32g071rb_gate_dma1, "gate:dma1", "DMA1", 2, "RCC_AHBENR.DMA1EN", "RCC", "AHBENR", 56, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none},
+  {"stm32g071rb", ClockGateId::stm32g071rb_gate_dmamux1, "gate:dmamux1", "DMAMUX1", 2, "RCC_AHBENR.DMAMUX1EN", "RCC", "AHBENR", 56, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none},
+  {"stm32g071rb", ClockGateId::stm32g071rb_gate_gpioa, "gate:gpioa", "GPIOA", 4, "RCC_IOPENR.GPIOAEN", "RCC", "IOPENR", 52, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none},
+  {"stm32g071rb", ClockGateId::stm32g071rb_gate_gpiob, "gate:gpiob", "GPIOB", 4, "RCC_IOPENR.GPIOBEN", "RCC", "IOPENR", 52, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none},
+  {"stm32g071rb", ClockGateId::stm32g071rb_gate_usart1, "gate:usart1", "USART1", 3, "RCC_APBENR2.USART1EN", "RCC", "APBENR2", 64, RegisterRefId::stm32g071rb_register_rcc_apbenr2, RegisterFieldRefId::none},
 }};
 
 struct ResetDescriptor {
@@ -112,30 +116,30 @@ struct ResetDescriptor {
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
 };
 inline constexpr std::array<ResetDescriptor, 5> kResets = {{
-  {"stm32g071rb", ResetId::stm32g071rb_reset_dma1, "reset:dma1", "DMA1", "RCC_AHBRSTR.DMA1RST", "high", "RCC", "AHBRSTR", 40, "register:rcc:ahbrstr", nullptr},
-  {"stm32g071rb", ResetId::stm32g071rb_reset_dmamux1, "reset:dmamux1", "DMAMUX1", "RCC_AHBRSTR.DMAMUX1RST", "high", "RCC", "AHBRSTR", 40, "register:rcc:ahbrstr", nullptr},
-  {"stm32g071rb", ResetId::stm32g071rb_reset_gpioa, "reset:gpioa", "GPIOA", "RCC_IOPRSTR.GPIOARST", "high", "RCC", "IOPRSTR", 36, "register:rcc:ioprstr", nullptr},
-  {"stm32g071rb", ResetId::stm32g071rb_reset_gpiob, "reset:gpiob", "GPIOB", "RCC_IOPRSTR.GPIOBRST", "high", "RCC", "IOPRSTR", 36, "register:rcc:ioprstr", nullptr},
-  {"stm32g071rb", ResetId::stm32g071rb_reset_usart1, "reset:usart1", "USART1", "RCC_APBRSTR2.USART1RST", "high", "RCC", "APBRSTR2", 48, "register:rcc:apbrstr2", nullptr},
+  {"stm32g071rb", ResetId::stm32g071rb_reset_dma1, "reset:dma1", "DMA1", "RCC_AHBRSTR.DMA1RST", "high", "RCC", "AHBRSTR", 40, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none},
+  {"stm32g071rb", ResetId::stm32g071rb_reset_dmamux1, "reset:dmamux1", "DMAMUX1", "RCC_AHBRSTR.DMAMUX1RST", "high", "RCC", "AHBRSTR", 40, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none},
+  {"stm32g071rb", ResetId::stm32g071rb_reset_gpioa, "reset:gpioa", "GPIOA", "RCC_IOPRSTR.GPIOARST", "high", "RCC", "IOPRSTR", 36, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none},
+  {"stm32g071rb", ResetId::stm32g071rb_reset_gpiob, "reset:gpiob", "GPIOB", "RCC_IOPRSTR.GPIOBRST", "high", "RCC", "IOPRSTR", 36, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none},
+  {"stm32g071rb", ResetId::stm32g071rb_reset_usart1, "reset:usart1", "USART1", "RCC_APBRSTR2.USART1RST", "high", "RCC", "APBRSTR2", 48, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, RegisterFieldRefId::none},
 }};
 
 struct PeripheralClockBindingDescriptor {
   const char* device;
   const char* peripheral;
-  int clock_gate_index;
-  int reset_index;
-  int selector_index;
+  ClockGateId clock_gate_id;
+  ResetId reset_id;
+  ClockSelectorId selector_id;
 };
 inline constexpr std::array<PeripheralClockBindingDescriptor, 5> kPeripheralClockBindings = {{
-  {"stm32g071rb", "DMA1", 0, 0, -1},
-  {"stm32g071rb", "DMAMUX1", 1, 1, -1},
-  {"stm32g071rb", "GPIOA", 2, 2, -1},
-  {"stm32g071rb", "GPIOB", 3, 3, -1},
-  {"stm32g071rb", "USART1", 4, 4, 0},
+  {"stm32g071rb", "DMA1", ClockGateId::stm32g071rb_gate_dma1, ResetId::stm32g071rb_reset_dma1, ClockSelectorId::none},
+  {"stm32g071rb", "DMAMUX1", ClockGateId::stm32g071rb_gate_dmamux1, ResetId::stm32g071rb_reset_dmamux1, ClockSelectorId::none},
+  {"stm32g071rb", "GPIOA", ClockGateId::stm32g071rb_gate_gpioa, ResetId::stm32g071rb_reset_gpioa, ClockSelectorId::none},
+  {"stm32g071rb", "GPIOB", ClockGateId::stm32g071rb_gate_gpiob, ResetId::stm32g071rb_reset_gpiob, ClockSelectorId::none},
+  {"stm32g071rb", "USART1", ClockGateId::stm32g071rb_gate_usart1, ResetId::stm32g071rb_reset_usart1, ClockSelectorId::stm32g071rb_selector_usart1_kernel},
 }};
 }
 }

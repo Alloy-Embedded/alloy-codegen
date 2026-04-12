@@ -94,9 +94,29 @@ def _runtime_ref_kind_enum(kind: str | None) -> str:
         "selector": "selector",
         "clock-gate": "clock_gate",
         "reset": "reset",
+        "register": "register_ref",
+        "register-field": "register_field_ref",
         "int": "integer",
     }
-    return f"RuntimeRefKind::{mapping.get(kind, 'other')}"
+    return f"RuntimeRefDomain::{mapping.get(kind, 'other')}"
+
+
+def _clock_gate_enum_ref(device_name: str, gate_id: str | None) -> str:
+    if gate_id is None:
+        return "ClockGateId::none"
+    return f"ClockGateId::{_enum_identifier(f'{device_name}_{gate_id}')}"
+
+
+def _reset_enum_ref(device_name: str, reset_id: str | None) -> str:
+    if reset_id is None:
+        return "ResetId::none"
+    return f"ResetId::{_enum_identifier(f'{device_name}_{reset_id}')}"
+
+
+def _selector_enum_ref(device_name: str, selector_id: str | None) -> str:
+    if selector_id is None:
+        return "ClockSelectorId::none"
+    return f"ClockSelectorId::{_enum_identifier(f'{device_name}_{selector_id}')}"
 
 
 def _file_component(value: str) -> str:
@@ -138,9 +158,276 @@ def _std_array_lines(
     ]
 
 
-def _enum_rows(enum_map: dict[object, str]) -> list[str]:
+def _enum_rows(
+    enum_map: dict[object, str],
+    *,
+    empty_identifier: str | None = "none",
+) -> list[str]:
     rows = [f"  {identifier}," for identifier in enum_map.values()]
-    return rows if rows else ["  none,"]
+    if rows:
+        return rows
+    if empty_identifier is None:
+        return []
+    return [f"  {empty_identifier},"]
+
+
+def _enum_index_map(enum_map: dict[object, str], *, start: int = 1) -> dict[object, int]:
+    return {key: index for index, key in enumerate(enum_map.keys(), start=start)}
+
+
+def _enum_ref(enum_name: str, enum_map: dict[object, str], key: object | None) -> str:
+    if key is None:
+        return f"{enum_name}::none"
+    return f"{enum_name}::{enum_map[key]}"
+
+
+def _device_ref_key(device_name: str, ref_id: str | None) -> tuple[str, str] | None:
+    if ref_id is None:
+        return None
+    return (device_name, ref_id)
+
+
+def _device_enum_ref(
+    enum_name: str,
+    enum_map: dict[object, str],
+    device_name: str,
+    ref_id: str | None,
+) -> str:
+    return _enum_ref(enum_name, enum_map, _device_ref_key(device_name, ref_id))
+
+
+def _selector_numeric_value(selector_id: str | None) -> int:
+    if selector_id is None or not selector_id.startswith("selector:"):
+        return -1
+    raw_value = selector_id.split(":", 1)[1]
+    try:
+        return int(raw_value, 0)
+    except ValueError:
+        return -1
+
+
+def _collect_runtime_ref_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict[str, object]:
+    package_rows = sorted(
+        {
+            (device.identity.device, package.name)
+            for device in devices
+            for package in device.packages
+        }
+    )
+    pin_rows = sorted(
+        {
+            (device.identity.device, pin.name, pin.port, pin.number)
+            for device in devices
+            for pin in device.pins
+        }
+    )
+    constraint_rows = sorted(
+        {
+            (
+                device.identity.device,
+                constraint.constraint_id,
+                constraint.pin,
+                constraint.kind,
+                constraint.value,
+            )
+            for device in devices
+            for constraint in device.pin_constraints
+        }
+    )
+    selector_rows = sorted(
+        {
+            (device.identity.device, selector_id, _selector_numeric_value(selector_id))
+            for device in devices
+            for selector_id in (
+                [candidate.route_selector for candidate in device.connection_candidates]
+                + [
+                    requirement.target_ref_id
+                    for requirement in device.route_requirements
+                    if requirement.target_ref_kind == "selector"
+                ]
+                + [
+                    requirement.value_ref_id
+                    for requirement in device.route_requirements
+                    if requirement.value_ref_kind == "selector"
+                ]
+                + [
+                    operation.target_ref_id
+                    for operation in device.route_operations
+                    if operation.target_ref_kind == "selector"
+                ]
+                + [
+                    operation.value_ref_id
+                    for operation in device.route_operations
+                    if operation.value_ref_kind == "selector"
+                ]
+            )
+            if selector_id is not None
+        }
+    )
+    register_rows = sorted(
+        {
+            (
+                device.identity.device,
+                register.register_id,
+                register.peripheral,
+                register.name,
+                register.offset_bytes,
+            )
+            for device in devices
+            for register in device.registers
+        }
+    )
+    register_field_rows = sorted(
+        {
+            (
+                device.identity.device,
+                register_field.field_id,
+                register_field.register_id,
+                register_field.peripheral,
+                register_field.name,
+                register_field.bit_offset,
+                register_field.bit_width,
+            )
+            for device in devices
+            for register_field in device.register_fields
+        }
+    )
+    package_enum_map = {
+        (device_name, package_name): _enum_identifier(f"{device_name}_{package_name}")
+        for device_name, package_name in package_rows
+    }
+    pin_enum_map = {
+        (device_name, pin_name): _enum_identifier(f"{device_name}_{pin_name}")
+        for device_name, pin_name, _port, _number in pin_rows
+    }
+    constraint_enum_map = {
+        (device_name, constraint_id): _enum_identifier(f"{device_name}_{constraint_id}")
+        for device_name, constraint_id, _pin, _kind, _value in constraint_rows
+    }
+    selector_enum_map = {
+        (device_name, selector_id): _enum_identifier(f"{device_name}_{selector_id}")
+        for device_name, selector_id, _selector_value in selector_rows
+    }
+    register_enum_map = {
+        (device_name, register_id): _enum_identifier(f"{device_name}_{register_id}")
+        for device_name, register_id, _peripheral, _name, _offset in register_rows
+    }
+    register_field_enum_map = {
+        (device_name, field_id): _enum_identifier(f"{device_name}_{field_id}")
+        for (
+            device_name,
+            field_id,
+            _register_id,
+            _peripheral,
+            _name,
+            _bit_offset,
+            _bit_width,
+        ) in register_field_rows
+    }
+    return {
+        "package_rows": package_rows,
+        "pin_rows": pin_rows,
+        "constraint_rows": constraint_rows,
+        "selector_rows": selector_rows,
+        "register_rows": register_rows,
+        "register_field_rows": register_field_rows,
+        "package_enum_map": package_enum_map,
+        "pin_enum_map": pin_enum_map,
+        "constraint_enum_map": constraint_enum_map,
+        "selector_enum_map": selector_enum_map,
+        "register_enum_map": register_enum_map,
+        "register_field_enum_map": register_field_enum_map,
+        "package_index_map": _enum_index_map(package_enum_map),
+        "state_index_map": {"selected": 1},
+        "pin_index_map": _enum_index_map(pin_enum_map),
+        "constraint_index_map": _enum_index_map(constraint_enum_map),
+        "selector_index_map": _enum_index_map(selector_enum_map),
+        "register_index_map": _enum_index_map(register_enum_map),
+        "register_field_index_map": _enum_index_map(register_field_enum_map),
+    }
+
+
+def _runtime_ref_index(
+    device_name: str,
+    ref_kind: str | None,
+    ref_id: str | None,
+    ref_catalog: dict[str, object],
+    clock_gate_index_map: dict[tuple[str, str], int] | None = None,
+    reset_index_map: dict[tuple[str, str], int] | None = None,
+) -> int:
+    if ref_kind is None or ref_id is None:
+        return 0
+    if ref_kind == "package":
+        return ref_catalog["package_index_map"][(device_name, ref_id)]
+    if ref_kind == "state":
+        return ref_catalog["state_index_map"][ref_id]
+    if ref_kind == "pin":
+        return ref_catalog["pin_index_map"][(device_name, ref_id)]
+    if ref_kind == "constraint":
+        return ref_catalog["constraint_index_map"][(device_name, ref_id)]
+    if ref_kind == "selector":
+        return ref_catalog["selector_index_map"][(device_name, ref_id)]
+    if ref_kind == "clock-gate":
+        if clock_gate_index_map is None:
+            raise KeyError("clock gate index map is required for clock-gate refs")
+        return clock_gate_index_map[(device_name, ref_id)]
+    if ref_kind == "reset":
+        if reset_index_map is None:
+            raise KeyError("reset index map is required for reset refs")
+        return reset_index_map[(device_name, ref_id)]
+    if ref_kind == "register":
+        return ref_catalog["register_index_map"][(device_name, ref_id)]
+    if ref_kind == "register-field":
+        return ref_catalog["register_field_index_map"][(device_name, ref_id)]
+    if ref_kind == "int":
+        return 0
+    return 0
+
+
+def _runtime_ref_index_expr(
+    device_name: str,
+    ref_kind: str | None,
+    ref_id: str | None,
+    ref_catalog: dict[str, object],
+    clock_gate_index_map: dict[tuple[str, str], int] | None = None,
+    reset_index_map: dict[tuple[str, str], int] | None = None,
+) -> str:
+    value = _runtime_ref_index(
+        device_name,
+        ref_kind,
+        ref_id,
+        ref_catalog,
+        clock_gate_index_map,
+        reset_index_map,
+    )
+    return f"{value}u"
+
+
+def _eref(
+    enum_name: str,
+    enum_map: dict[object, str],
+    device_name: str,
+    ref_id: str | None,
+) -> str:
+    return _device_enum_ref(enum_name, enum_map, device_name, ref_id)
+
+
+def _ridx(
+    device_name: str,
+    ref_kind: str | None,
+    ref_id: str | None,
+    ref_catalog: dict[str, object],
+    clock_gate_index_map: dict[tuple[str, str], int] | None = None,
+    reset_index_map: dict[tuple[str, str], int] | None = None,
+) -> str:
+    return _runtime_ref_index_expr(
+        device_name,
+        ref_kind,
+        ref_id,
+        ref_catalog,
+        clock_gate_index_map,
+        reset_index_map,
+    )
 
 
 def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
@@ -832,7 +1119,6 @@ def emit_peripheral_instances_header(
     family_dir: str,
     device: CanonicalDeviceIR,
 ) -> EmittedArtifact:
-    interrupts_by_peripheral = _interrupt_names_by_peripheral(device)
     bindings_by_peripheral = _binding_by_peripheral(device)
     overlay_ids_by_peripheral = {
         peripheral_name: tuple(
@@ -867,8 +1153,6 @@ def emit_peripheral_instances_header(
         clock_gate_id = None if binding is None else binding.clock_gate_id
         reset_id = None if binding is None else binding.reset_id
         selector_id = None if binding is None else binding.selector_id
-        interrupt_names = ",".join(interrupts_by_peripheral.get(peripheral.name, ()))
-        overlay_ids = ",".join(overlay_ids_by_peripheral.get(peripheral.name, ()))
         peripheral_rows.append(
             "  {"
             f"PeripheralId::{_enum_identifier(peripheral.name)}, "
@@ -878,19 +1162,15 @@ def emit_peripheral_instances_header(
             f"{_quoted(peripheral.backend_schema_id)}, "
             f"{peripheral.instance}, "
             f"0x{peripheral.base_address:08X}u, "
-            f"{_quoted(peripheral.rcc_enable_signal)}, "
-            f"{_quoted(peripheral.rcc_reset_signal)}, "
-            f"{_quoted(clock_gate_id)}, "
-            f"{_quoted(reset_id)}, "
-            f"{_quoted(selector_id)}, "
+            f"{_clock_gate_enum_ref(device.identity.device, clock_gate_id)}, "
+            f"{_reset_enum_ref(device.identity.device, reset_id)}, "
+            f"{_selector_enum_ref(device.identity.device, selector_id)}, "
             f"{interrupt_offsets.get(peripheral.name, 0)}u, "
             f"{interrupt_counts.get(peripheral.name, 0)}u, "
             f"{dma_offsets.get(peripheral.name, 0)}u, "
             f"{dma_counts.get(peripheral.name, 0)}u, "
             f"{overlay_offsets.get(peripheral.name, 0)}u, "
             f"{overlay_counts.get(peripheral.name, 0)}u, "
-            f"{json.dumps(interrupt_names)}, "
-            f"{json.dumps(overlay_ids)}, "
             f"{register_count_by_peripheral.get(peripheral.name, 0)}"
             "},"
         )
@@ -910,19 +1190,15 @@ def emit_peripheral_instances_header(
                 "  const char* backend_schema_id;",
                 "  int instance;",
                 "  std::uintptr_t base_address;",
-                "  const char* rcc_enable_signal;",
-                "  const char* rcc_reset_signal;",
-                "  const char* clock_gate_id;",
-                "  const char* reset_id;",
-                "  const char* selector_id;",
+                "  ClockGateId clock_gate_id;",
+                "  ResetId reset_id;",
+                "  ClockSelectorId selector_id;",
                 "  std::uint16_t interrupt_binding_offset;",
                 "  std::uint16_t interrupt_binding_count;",
                 "  std::uint16_t dma_binding_offset;",
                 "  std::uint16_t dma_binding_count;",
                 "  std::uint16_t capability_overlay_offset;",
                 "  std::uint16_t capability_overlay_count;",
-                "  const char* interrupt_names;",
-                "  const char* capability_overlay_ids;",
                 "  int register_count;",
                 "};",
                 *_std_array_lines(
@@ -934,7 +1210,16 @@ def emit_peripheral_instances_header(
         ),
     )
     content = "\n".join(
-        ["#pragma once", "", "#include <array>", "#include <cstdint>", "", namespace_block, ""]
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "../../clock_tree_lite.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
     )
     return _cpp_artifact(
         path=_device_generated_path(
@@ -1060,6 +1345,261 @@ def emit_runtime_profiles_header(
     )
     content = "\n".join(["#pragma once", "", "#include <array>", "", namespace_block, ""])
     return _cpp_artifact(path=f"{family_dir}/generated/runtime_profiles.hpp", content=content)
+
+
+def emit_runtime_refs_header(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    _vendor, _family = family_dir.split("/", 1)
+    ref_catalog = _collect_runtime_ref_catalog(devices)
+    package_rows = ref_catalog["package_rows"]
+    pin_rows = ref_catalog["pin_rows"]
+    constraint_rows = ref_catalog["constraint_rows"]
+    selector_rows = ref_catalog["selector_rows"]
+    register_rows = ref_catalog["register_rows"]
+    register_field_rows = ref_catalog["register_field_rows"]
+    package_enum_map = ref_catalog["package_enum_map"]
+    pin_enum_map = ref_catalog["pin_enum_map"]
+    constraint_enum_map = ref_catalog["constraint_enum_map"]
+    selector_enum_map = ref_catalog["selector_enum_map"]
+    register_enum_map = ref_catalog["register_enum_map"]
+    register_field_enum_map = ref_catalog["register_field_enum_map"]
+
+    namespace_block = _cpp_namespace_block(
+        (_vendor, _family, "generated"),
+        "\n".join(
+            [
+                "enum class PackageRefId : std::uint16_t {",
+                "  none,",
+                *_enum_rows(package_enum_map, empty_identifier=None),
+                "};",
+                "",
+                "enum class StateRefId : std::uint16_t {",
+                "  none,",
+                "  selected,",
+                "};",
+                "",
+                "enum class PinRefId : std::uint16_t {",
+                "  none,",
+                *_enum_rows(pin_enum_map, empty_identifier=None),
+                "};",
+                "",
+                "enum class ConstraintRefId : std::uint16_t {",
+                "  none,",
+                *_enum_rows(constraint_enum_map, empty_identifier=None),
+                "};",
+                "",
+                "enum class SelectorRefId : std::uint16_t {",
+                "  none,",
+                *_enum_rows(selector_enum_map, empty_identifier=None),
+                "};",
+                "",
+                "enum class RegisterRefId : std::uint16_t {",
+                "  none,",
+                *_enum_rows(register_enum_map, empty_identifier=None),
+                "};",
+                "",
+                "enum class RegisterFieldRefId : std::uint16_t {",
+                "  none,",
+                *_enum_rows(register_field_enum_map, empty_identifier=None),
+                "};",
+                "",
+                "struct PackageRefDescriptor {",
+                "  PackageRefId package_id;",
+                "  const char* device;",
+                "  const char* package_name;",
+                "};",
+                *_std_array_lines(
+                    type_name="PackageRefDescriptor",
+                    variable_name="kPackageRefs",
+                    row_lines=[
+                        "  {PackageRefId::none, nullptr, nullptr},",
+                        *[
+                            "  {"
+                            f"{_eref('PackageRefId', package_enum_map, device_name, package_name)}, "  # noqa: E501
+                            f"{json.dumps(device_name)}, "
+                            f"{json.dumps(package_name)}"
+                            "},"
+                            for device_name, package_name in package_rows
+                        ],
+                    ],
+                ),
+                "",
+                "struct StateRefDescriptor {",
+                "  StateRefId state_id;",
+                "  const char* state_name;",
+                "};",
+                *_std_array_lines(
+                    type_name="StateRefDescriptor",
+                    variable_name="kStateRefs",
+                    row_lines=[
+                        "  {StateRefId::none, nullptr},",
+                        '  {StateRefId::selected, "selected"},',
+                    ],
+                ),
+                "",
+                "struct PinRefDescriptor {",
+                "  PinRefId pin_id;",
+                "  const char* device;",
+                "  const char* pin_name;",
+                "  const char* port;",
+                "  int pin_number;",
+                "};",
+                *_std_array_lines(
+                    type_name="PinRefDescriptor",
+                    variable_name="kPinRefs",
+                    row_lines=[
+                        "  {PinRefId::none, nullptr, nullptr, nullptr, -1},",
+                        *[
+                            "  {"
+                            f"{_enum_ref('PinRefId', pin_enum_map, (device_name, pin_name))}, "
+                            f"{json.dumps(device_name)}, "
+                            f"{json.dumps(pin_name)}, "
+                            f"{_quoted(port)}, "
+                            f"{pin_number}"
+                            "},"
+                            for device_name, pin_name, port, pin_number in pin_rows
+                        ],
+                    ],
+                ),
+                "",
+                "struct ConstraintRefDescriptor {",
+                "  ConstraintRefId constraint_id;",
+                "  const char* device;",
+                "  PinRefId pin_id;",
+                "  const char* kind;",
+                "  const char* value;",
+                "};",
+                *_std_array_lines(
+                    type_name="ConstraintRefDescriptor",
+                    variable_name="kConstraintRefs",
+                    row_lines=[
+                        ("  {ConstraintRefId::none, nullptr, PinRefId::none, nullptr, nullptr},"),
+                        *[
+                            "  {"
+                            f"{_eref('ConstraintRefId', constraint_enum_map, device_name, constraint_id)}, "  # noqa: E501
+                            f"{json.dumps(device_name)}, "
+                            f"{_eref('PinRefId', pin_enum_map, device_name, pin_name)}, "  # noqa: E501
+                            f"{json.dumps(kind)}, "
+                            f"{_quoted(value)}"
+                            "},"
+                            for device_name, constraint_id, pin_name, kind, value in constraint_rows
+                        ],
+                    ],
+                ),
+                "",
+                "struct SelectorRefDescriptor {",
+                "  SelectorRefId selector_id;",
+                "  const char* device;",
+                "  const char* selector_name;",
+                "  int selector_value;",
+                "};",
+                *_std_array_lines(
+                    type_name="SelectorRefDescriptor",
+                    variable_name="kSelectorRefs",
+                    row_lines=[
+                        "  {SelectorRefId::none, nullptr, nullptr, -1},",
+                        *[
+                            "  {"
+                            f"{_eref('SelectorRefId', selector_enum_map, device_name, selector_id)}, "  # noqa: E501
+                            f"{json.dumps(device_name)}, "
+                            f"{json.dumps(selector_id)}, "
+                            f"{selector_value}"
+                            "},"
+                            for device_name, selector_id, selector_value in selector_rows
+                        ],
+                    ],
+                ),
+                "",
+                "struct RegisterRefDescriptor {",
+                "  RegisterRefId register_id;",
+                "  const char* device;",
+                "  const char* peripheral_name;",
+                "  const char* register_name;",
+                "  std::uint32_t offset_bytes;",
+                "};",
+                *_std_array_lines(
+                    type_name="RegisterRefDescriptor",
+                    variable_name="kRegisterRefs",
+                    row_lines=[
+                        "  {RegisterRefId::none, nullptr, nullptr, nullptr, 0u},",
+                        *[
+                            "  {"
+                            f"{_eref('RegisterRefId', register_enum_map, device_name, register_id)}, "  # noqa: E501
+                            f"{json.dumps(device_name)}, "
+                            f"{json.dumps(peripheral_name)}, "
+                            f"{json.dumps(register_name)}, "
+                            f"{offset_bytes}u"
+                            "},"
+                            for (
+                                device_name,
+                                register_id,
+                                peripheral_name,
+                                register_name,
+                                offset_bytes,
+                            ) in register_rows
+                        ],
+                    ],
+                ),
+                "",
+                "struct RegisterFieldRefDescriptor {",
+                "  RegisterFieldRefId field_id;",
+                "  const char* device;",
+                "  RegisterRefId register_id;",
+                "  const char* peripheral_name;",
+                "  const char* field_name;",
+                "  std::uint16_t bit_offset;",
+                "  std::uint16_t bit_width;",
+                "};",
+                *_std_array_lines(
+                    type_name="RegisterFieldRefDescriptor",
+                    variable_name="kRegisterFieldRefs",
+                    row_lines=[
+                        (
+                            "  {RegisterFieldRefId::none, nullptr, RegisterRefId::none, "
+                            "nullptr, nullptr, 0u, 0u},"
+                        ),
+                        *[
+                            "  {"
+                            f"{_eref('RegisterFieldRefId', register_field_enum_map, device_name, field_id)}, "  # noqa: E501
+                            f"{json.dumps(device_name)}, "
+                            f"{_eref('RegisterRefId', register_enum_map, device_name, register_id)}, "  # noqa: E501
+                            f"{json.dumps(peripheral_name)}, "
+                            f"{json.dumps(field_name)}, "
+                            f"{bit_offset}u, "
+                            f"{bit_width}u"
+                            "},"
+                            for (
+                                device_name,
+                                field_id,
+                                register_id,
+                                peripheral_name,
+                                field_name,
+                                bit_offset,
+                                bit_width,
+                            ) in register_field_rows
+                        ],
+                    ],
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "clock_tree_lite.hpp"',
+            '#include "runtime_refs.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(path=f"{family_dir}/generated/runtime_refs.hpp", content=content)
 
 
 def emit_family_index(
@@ -1737,25 +2277,44 @@ def emit_gpio_header(
     devices: tuple[CanonicalDeviceIR, ...],
     peripheral_name: str,
 ) -> EmittedArtifact:
-    peripheral = _find_family_peripheral(devices, peripheral_name)
-    if peripheral is None:
+    peripheral: PeripheralInstance | None = None
+    peripheral_device_name: str | None = None
+    peripheral_binding = None
+    for device in devices:
+        candidate = next(
+            (item for item in device.peripherals if item.name == peripheral_name),
+            None,
+        )
+        if candidate is None:
+            continue
+        peripheral = candidate
+        peripheral_device_name = device.identity.device
+        peripheral_binding = _binding_by_peripheral(device).get(peripheral_name)
+        break
+    if peripheral is None or peripheral_device_name is None:
         raise ValueError(f"Family GPIO emission requires peripheral {peripheral_name}.")
     _vendor, _family = family_dir.split("/", 1)
+    clock_gate_id = None if peripheral_binding is None else peripheral_binding.clock_gate_id
+    reset_id = None if peripheral_binding is None else peripheral_binding.reset_id
     namespace_block = _cpp_namespace_block(
         (_vendor, _family, "generated", "peripherals"),
         "\n".join(
             [
                 "struct PeripheralDescriptor {",
+                "  const char* device;",
                 "  const char* name;",
+                "  const char* backend_schema_id;",
                 "  std::uintptr_t base_address;",
-                "  const char* rcc_enable_signal;",
-                "  const char* rcc_reset_signal;",
+                "  ClockGateId clock_gate_id;",
+                "  ResetId reset_id;",
                 "};",
                 "inline constexpr PeripheralDescriptor kPeripheral = {",
+                f"  {json.dumps(peripheral_device_name)},",
                 f"  {json.dumps(peripheral.name)},",
+                f"  {_quoted(peripheral.backend_schema_id)},",
                 f"  0x{peripheral.base_address:08X}u,",
-                f"  {_quoted(peripheral.rcc_enable_signal)},",
-                f"  {_quoted(peripheral.rcc_reset_signal)},",
+                f"  {_clock_gate_enum_ref(peripheral_device_name, clock_gate_id)},",
+                f"  {_reset_enum_ref(peripheral_device_name, reset_id)},",
                 "};",
             ]
         ),
@@ -1765,6 +2324,7 @@ def emit_gpio_header(
             "#pragma once",
             "",
             "#include <cstdint>",
+            '#include "../clock_tree_lite.hpp"',
             "",
             namespace_block,
             "",
@@ -1782,6 +2342,10 @@ def emit_connector_tables_header(
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> EmittedArtifact:
     _vendor, _family = family_dir.split("/", 1)
+    ref_catalog = _collect_runtime_ref_catalog(devices)
+    pin_enum_map = ref_catalog["pin_enum_map"]
+    package_enum_map = ref_catalog["package_enum_map"]
+    selector_enum_map = ref_catalog["selector_enum_map"]
     requirement_rows = [
         (
             device.identity.device,
@@ -1863,6 +2427,22 @@ def emit_connector_tables_header(
         for device in devices
         for endpoint in sorted(device.signal_endpoints, key=lambda item: item.endpoint_id)
     ]
+    clock_gate_enum_map = {
+        (device.identity.device, gate.gate_id): _enum_identifier(
+            f"{device.identity.device}_{gate.gate_id}"
+        )
+        for device in devices
+        for gate in sorted(device.clock_gates, key=lambda item: item.gate_id)
+    }
+    reset_enum_map = {
+        (device.identity.device, reset.reset_id): _enum_identifier(
+            f"{device.identity.device}_{reset.reset_id}"
+        )
+        for device in devices
+        for reset in sorted(device.resets, key=lambda item: item.reset_id)
+    }
+    clock_gate_index_map = _enum_index_map(clock_gate_enum_map)
+    reset_index_map = _enum_index_map(reset_enum_map)
     requirement_enum_map = {
         (device_name, requirement_id): _enum_identifier(f"{device_name}_{requirement_id}")
         for device_name, requirement_id, *_rest in requirement_rows
@@ -2032,10 +2612,12 @@ def emit_connector_tables_header(
             f"{json.dumps(device_name)}, "
             f"ConnectionCandidateId::{candidate_enum_map[(device_name, candidate_id)]}, "
             f"{json.dumps(candidate_id)}, "
+            f"{_enum_ref('PinRefId', pin_enum_map, (device_name, pin))}, "
             f"{json.dumps(pin)}, "
             f"{json.dumps(peripheral)}, "
             f"{json.dumps(signal)}, "
             f"{json.dumps(route_kind)}, "
+            f"{_eref('SelectorRefId', selector_enum_map, device_name, route_selector)}, "
             f"{_quoted(route_selector)}, "
             f"{route_group_index}, "
             f"{candidate_requirement_offsets.get((device_name, candidate_id), 0)}u, "
@@ -2048,7 +2630,7 @@ def emit_connector_tables_header(
         )
 
     body_lines = [
-        "enum class RuntimeRefKind : std::uint8_t {",
+        "enum class RuntimeRefDomain : std::uint8_t {",
         "  none,",
         "  package,",
         "  state,",
@@ -2057,6 +2639,8 @@ def emit_connector_tables_header(
         "  selector,",
         "  clock_gate,",
         "  reset,",
+        "  register_ref,",
+        "  register_field_ref,",
         "  integer,",
         "  other,",
         "};",
@@ -2089,10 +2673,10 @@ def emit_connector_tables_header(
         "  RouteRequirementId requirement_id;",
         "  const char* requirement_name;",
         "  const char* kind;",
-        "  RuntimeRefKind target_ref_kind;",
-        "  const char* target_ref_id;",
-        "  RuntimeRefKind value_ref_kind;",
-        "  const char* value_ref_id;",
+        "  RuntimeRefDomain target_ref_domain;",
+        "  std::uint16_t target_ref_index;",
+        "  RuntimeRefDomain value_ref_domain;",
+        "  std::uint16_t value_ref_index;",
         "  int value_int;",
         "  const char* diagnostic_target;",
         "  const char* diagnostic_value;",
@@ -2107,9 +2691,9 @@ def emit_connector_tables_header(
                 f"{json.dumps(requirement_id)}, "
                 f"{json.dumps(kind)}, "
                 f"{_runtime_ref_kind_enum(target_ref_kind)}, "
-                f"{_quoted(target_ref_id)}, "
+                f"{_ridx(device_name, target_ref_kind, target_ref_id, ref_catalog, clock_gate_index_map, reset_index_map)}, "  # noqa: E501
                 f"{_runtime_ref_kind_enum(value_ref_kind)}, "
-                f"{_quoted(value_ref_id)}, "
+                f"{_ridx(device_name, value_ref_kind, value_ref_id, ref_catalog, clock_gate_index_map, reset_index_map)}, "  # noqa: E501
                 f"{-1 if value_int is None else value_int}, "
                 f"{_quoted(target)}, "
                 f"{_quoted(value)}"
@@ -2145,15 +2729,15 @@ def emit_connector_tables_header(
         "  const char* schema_id;",
         "  const char* subject_kind;",
         "  const char* subject_id;",
-        "  RuntimeRefKind target_ref_kind;",
-        "  const char* target_ref_id;",
-        "  RuntimeRefKind value_ref_kind;",
-        "  const char* value_ref_id;",
+        "  RuntimeRefDomain target_ref_domain;",
+        "  std::uint16_t target_ref_index;",
+        "  RuntimeRefDomain value_ref_domain;",
+        "  std::uint16_t value_ref_index;",
         "  const char* register_peripheral;",
         "  const char* register_name;",
         "  int register_offset;",
-        "  const char* register_id;",
-        "  const char* register_field_id;",
+        "  RegisterRefId register_id;",
+        "  RegisterFieldRefId register_field_id;",
         "  int value_int;",
         "  const char* diagnostic_target;",
         "  const char* diagnostic_value;",
@@ -2171,14 +2755,14 @@ def emit_connector_tables_header(
                 f"{_quoted(subject_kind)}, "
                 f"{_quoted(subject_id)}, "
                 f"{_runtime_ref_kind_enum(target_ref_kind)}, "
-                f"{_quoted(target_ref_id)}, "
+                f"{_ridx(device_name, target_ref_kind, target_ref_id, ref_catalog, clock_gate_index_map, reset_index_map)}, "  # noqa: E501
                 f"{_runtime_ref_kind_enum(value_ref_kind)}, "
-                f"{_quoted(value_ref_id)}, "
+                f"{_ridx(device_name, value_ref_kind, value_ref_id, ref_catalog, clock_gate_index_map, reset_index_map)}, "  # noqa: E501
                 f"{_quoted(register_peripheral)}, "
                 f"{_quoted(register_name)}, "
                 f"{-1 if register_offset is None else register_offset}, "
-                f"{_quoted(register_id)}, "
-                f"{_quoted(register_field_id)}, "
+                f"{_eref('RegisterRefId', ref_catalog['register_enum_map'], device_name, register_id)}, "  # noqa: E501
+                f"{_eref('RegisterFieldRefId', ref_catalog['register_field_enum_map'], device_name, register_field_id)}, "  # noqa: E501
                 f"{-1 if value_int is None else value_int}, "
                 f"{_quoted(target)}, "
                 f"{_quoted(value)}"
@@ -2214,11 +2798,13 @@ def emit_connector_tables_header(
         "  const char* device;",
         "  ConnectionCandidateId candidate_id;",
         "  const char* candidate_name;",
+        "  PinRefId pin_id;",
         "  const char* pin;",
         "  const char* peripheral;",
         "  const char* signal;",
         "  const char* route_kind;",
-        "  const char* route_selector;",
+        "  SelectorRefId route_selector_id;",
+        "  const char* diagnostic_route_selector;",
         "  int route_group_index;",
         "  std::uint16_t requirement_offset;",
         "  std::uint16_t requirement_count;",
@@ -2294,7 +2880,8 @@ def emit_connector_tables_header(
         "  ConnectionGroupId group_id;",
         "  const char* group_name;",
         "  const char* peripheral;",
-        "  const char* package_name;",
+        "  PackageRefId package_id;",
+        "  const char* diagnostic_package_name;",
         "  const char* conflict_group;",
         "  std::uint16_t signal_offset;",
         "  std::uint16_t signal_count;",
@@ -2310,6 +2897,7 @@ def emit_connector_tables_header(
                 f"ConnectionGroupId::{group_enum_map[(device_name, group_id)]}, "
                 f"{json.dumps(group_id)}, "
                 f"{json.dumps(peripheral)}, "
+                f"{_eref('PackageRefId', package_enum_map, device_name, package_name)}, "
                 f"{_quoted(package_name)}, "
                 f"{_quoted(conflict_group)}, "
                 f"{group_signal_offsets.get((device_name, group_id), 0)}u, "
@@ -2660,6 +3248,9 @@ def emit_clock_tree_lite_header(
     family_dir: str,
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> EmittedArtifact:
+    ref_catalog = _collect_runtime_ref_catalog(devices)
+    register_enum_map = ref_catalog["register_enum_map"]
+    register_field_enum_map = ref_catalog["register_field_enum_map"]
     node_rows = [
         (
             device.identity.device,
@@ -2753,14 +3344,6 @@ def emit_clock_tree_lite_header(
         (device_name, selector_id): index
         for index, (device_name, selector_id, *_rest) in enumerate(selector_rows)
     }
-    gate_index_map = {
-        (device_name, gate_id): index
-        for index, (device_name, gate_id, *_rest) in enumerate(gate_rows)
-    }
-    reset_index_map = {
-        (device_name, reset_id): index
-        for index, (device_name, reset_id, *_rest) in enumerate(reset_rows)
-    }
     selector_parent_options_by_selector = {
         (device_name, selector_id): tuple(parent_options)
         for (
@@ -2793,15 +3376,18 @@ def emit_clock_tree_lite_header(
         "};",
         "",
         "enum class ClockSelectorId : std::uint16_t {",
-        *_enum_rows(selector_enum_map),
+        "  none,",
+        *_enum_rows(selector_enum_map, empty_identifier=None),
         "};",
         "",
         "enum class ClockGateId : std::uint16_t {",
-        *_enum_rows(gate_enum_map),
+        "  none,",
+        *_enum_rows(gate_enum_map, empty_identifier=None),
         "};",
         "",
         "enum class ResetId : std::uint16_t {",
-        *_enum_rows(reset_enum_map),
+        "  none,",
+        *_enum_rows(reset_enum_map, empty_identifier=None),
         "};",
         "",
         "struct ClockNodeDescriptor {",
@@ -2838,8 +3424,8 @@ def emit_clock_tree_lite_header(
         "  const char* register_peripheral;",
         "  const char* register_name;",
         "  int register_offset;",
-        "  const char* register_id;",
-        "  const char* register_field_id;",
+        "  RegisterRefId register_id;",
+        "  RegisterFieldRefId register_field_id;",
         "};",
         *_std_array_lines(
             type_name="ClockSelectorDescriptor",
@@ -2855,8 +3441,8 @@ def emit_clock_tree_lite_header(
                 f"{_quoted(register_peripheral)}, "
                 f"{_quoted(register_name)}, "
                 f"{-1 if register_offset is None else register_offset}, "
-                f"{_quoted(register_id)}, "
-                f"{_quoted(register_field_id)}"
+                f"{_eref('RegisterRefId', register_enum_map, device_name, register_id)}, "
+                f"{_eref('RegisterFieldRefId', register_field_enum_map, device_name, register_field_id)}"  # noqa: E501
                 "},"
                 for (
                     device_name,
@@ -2898,8 +3484,8 @@ def emit_clock_tree_lite_header(
         "  const char* register_peripheral;",
         "  const char* register_name;",
         "  int register_offset;",
-        "  const char* register_id;",
-        "  const char* register_field_id;",
+        "  RegisterRefId register_id;",
+        "  RegisterFieldRefId register_field_id;",
         "};",
         *_std_array_lines(
             type_name="ClockGateDescriptor",
@@ -2915,8 +3501,8 @@ def emit_clock_tree_lite_header(
                 f"{_quoted(register_peripheral)}, "
                 f"{_quoted(register_name)}, "
                 f"{-1 if register_offset is None else register_offset}, "
-                f"{_quoted(register_id)}, "
-                f"{_quoted(register_field_id)}"
+                f"{_eref('RegisterRefId', register_enum_map, device_name, register_id)}, "
+                f"{_eref('RegisterFieldRefId', register_field_enum_map, device_name, register_field_id)}"  # noqa: E501
                 "},"
                 for (
                     device_name,
@@ -2943,8 +3529,8 @@ def emit_clock_tree_lite_header(
         "  const char* register_peripheral;",
         "  const char* register_name;",
         "  int register_offset;",
-        "  const char* register_id;",
-        "  const char* register_field_id;",
+        "  RegisterRefId register_id;",
+        "  RegisterFieldRefId register_field_id;",
         "};",
         *_std_array_lines(
             type_name="ResetDescriptor",
@@ -2960,8 +3546,8 @@ def emit_clock_tree_lite_header(
                 f"{_quoted(register_peripheral)}, "
                 f"{_quoted(register_name)}, "
                 f"{-1 if register_offset is None else register_offset}, "
-                f"{_quoted(register_id)}, "
-                f"{_quoted(register_field_id)}"
+                f"{_eref('RegisterRefId', register_enum_map, device_name, register_id)}, "
+                f"{_eref('RegisterFieldRefId', register_field_enum_map, device_name, register_field_id)}"  # noqa: E501
                 "},"
                 for (
                     device_name,
@@ -2981,9 +3567,9 @@ def emit_clock_tree_lite_header(
         "struct PeripheralClockBindingDescriptor {",
         "  const char* device;",
         "  const char* peripheral;",
-        "  int clock_gate_index;",
-        "  int reset_index;",
-        "  int selector_index;",
+        "  ClockGateId clock_gate_id;",
+        "  ResetId reset_id;",
+        "  ClockSelectorId selector_id;",
         "};",
         *_std_array_lines(
             type_name="PeripheralClockBindingDescriptor",
@@ -2992,9 +3578,9 @@ def emit_clock_tree_lite_header(
                 "  {"
                 f"{json.dumps(device_name)}, "
                 f"{json.dumps(peripheral)}, "
-                f"{-1 if clock_gate_id is None else gate_index_map[(device_name, clock_gate_id)]}, "
-                f"{-1 if reset_id is None else reset_index_map[(device_name, reset_id)]}, "
-                f"{-1 if selector_id is None else selector_index_map[(device_name, selector_id)]}"
+                f"{_clock_gate_enum_ref(device_name, clock_gate_id)}, "
+                f"{_reset_enum_ref(device_name, reset_id)}, "
+                f"{_selector_enum_ref(device_name, selector_id)}"
                 "},"
                 for device_name, peripheral, clock_gate_id, reset_id, selector_id in binding_rows
             ],
@@ -3006,6 +3592,7 @@ def emit_clock_tree_lite_header(
             "#pragma once",
             "",
             "#include <array>",
+            '#include "runtime_refs.hpp"',
             "",
             namespace_block,
             "",
@@ -3124,37 +3711,46 @@ def emit_rcc_map_header(
     family_dir: str,
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> EmittedArtifact:
-    """Emit a family-level C++ header mapping peripheral → (rcc_enable_signal, rcc_reset_signal)."""
-    # Collect unique (peripheral, enable_signal, reset_signal) triples across every device.
-    seen: set[str] = set()
-    rows: list[tuple[str, str, str]] = []
+    """Emit a family-level typed mapping from peripheral → clock/reset bindings."""
+    binding_by_device_peripheral = {
+        (device.identity.device, binding.peripheral): binding
+        for device in devices
+        for binding in device.peripheral_clock_bindings
+    }
+    rows: list[tuple[str, str, str | None, str | None]] = []
     for device in devices:
         for peripheral in device.peripherals:
-            if peripheral.rcc_enable_signal is None and peripheral.rcc_reset_signal is None:
+            binding = binding_by_device_peripheral.get((device.identity.device, peripheral.name))
+            if binding is None or (binding.clock_gate_id is None and binding.reset_id is None):
                 continue
-            if peripheral.name in seen:
-                continue
-            seen.add(peripheral.name)
             rows.append(
                 (
+                    device.identity.device,
                     peripheral.name,
-                    peripheral.rcc_enable_signal or "",
-                    peripheral.rcc_reset_signal or "",
+                    binding.clock_gate_id,
+                    binding.reset_id,
                 )
             )
-    rows.sort(key=lambda r: r[0])
+    rows.sort(key=lambda r: (r[0], r[1]))
 
     _vendor, _family = family_dir.split("/", 1)
     body_lines = [
         "struct RccDescriptor {",
+        "  const char* device;",
         "  const char* peripheral;",
-        "  const char* enable_signal;",
-        "  const char* reset_signal;",
+        "  ClockGateId gate_id;",
+        "  ResetId reset_id;",
         "};",
         "inline constexpr RccDescriptor kRccMap[] = {",
         *[
-            f"  {{{json.dumps(peripheral)}, {json.dumps(enable)}, {json.dumps(reset)}}},"
-            for peripheral, enable, reset in rows
+            (
+                "  {"
+                f"{json.dumps(device_name)}, "
+                f"{json.dumps(peripheral)}, "
+                f"{_clock_gate_enum_ref(device_name, gate_id)}, "
+                f"{_reset_enum_ref(device_name, reset_id)}}},"
+            )
+            for device_name, peripheral, gate_id, reset_id in rows
         ],
         "};",
     ]
@@ -3165,6 +3761,8 @@ def emit_rcc_map_header(
     content = "\n".join(
         [
             "#pragma once",
+            "",
+            '#include "clock_tree_lite.hpp"',
             "",
             namespace_block,
             "",

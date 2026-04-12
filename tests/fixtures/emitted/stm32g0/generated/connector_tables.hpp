@@ -6,7 +6,7 @@
 namespace st {
 namespace stm32g0 {
 namespace generated {
-enum class RuntimeRefKind : std::uint8_t {
+enum class RuntimeRefDomain : std::uint8_t {
   none,
   package,
   state,
@@ -15,6 +15,8 @@ enum class RuntimeRefKind : std::uint8_t {
   selector,
   clock_gate,
   reset,
+  register_ref,
+  register_field_ref,
   integer,
   other,
 };
@@ -60,30 +62,30 @@ struct RouteRequirementDescriptor {
   RouteRequirementId requirement_id;
   const char* requirement_name;
   const char* kind;
-  RuntimeRefKind target_ref_kind;
-  const char* target_ref_id;
-  RuntimeRefKind value_ref_kind;
-  const char* value_ref_id;
+  RuntimeRefDomain target_ref_domain;
+  std::uint16_t target_ref_index;
+  RuntimeRefDomain value_ref_domain;
+  std::uint16_t value_ref_index;
   int value_int;
   const char* diagnostic_target;
   const char* diagnostic_value;
 };
 inline constexpr std::array<RouteRequirementDescriptor, 15> kRouteRequirements = {{
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb6, "requirement:bonded-pin:lqfp64:pb6", "bonded-pin", RuntimeRefKind::pin, "PB6", RuntimeRefKind::package, "lqfp64", -1, "PB6", "lqfp64"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb7, "requirement:bonded-pin:lqfp64:pb7", "bonded-pin", RuntimeRefKind::pin, "PB7", RuntimeRefKind::package, "lqfp64", -1, "PB7", "lqfp64"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_dma1, "requirement:clock-enable:dma1", "clock-enable", RuntimeRefKind::clock_gate, "gate:dma1", RuntimeRefKind::integer, nullptr, 1, "RCC_AHBENR.DMA1EN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_dmamux1, "requirement:clock-enable:dmamux1", "clock-enable", RuntimeRefKind::clock_gate, "gate:dmamux1", RuntimeRefKind::integer, nullptr, 1, "RCC_AHBENR.DMAMUX1EN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_gpioa, "requirement:clock-enable:gpioa", "clock-enable", RuntimeRefKind::clock_gate, "gate:gpioa", RuntimeRefKind::integer, nullptr, 1, "RCC_IOPENR.GPIOAEN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_gpiob, "requirement:clock-enable:gpiob", "clock-enable", RuntimeRefKind::clock_gate, "gate:gpiob", RuntimeRefKind::integer, nullptr, 1, "RCC_IOPENR.GPIOBEN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_usart1, "requirement:clock-enable:usart1", "clock-enable", RuntimeRefKind::clock_gate, "gate:usart1", RuntimeRefKind::integer, nullptr, 1, "RCC_APBENR2.USART1EN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_package_lqfp64, "requirement:package:lqfp64", "package", RuntimeRefKind::package, "lqfp64", RuntimeRefKind::state, "selected", -1, "lqfp64", "selected"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_dma1, "requirement:reset-release:dma1", "reset-release", RuntimeRefKind::reset, "reset:dma1", RuntimeRefKind::integer, nullptr, 0, "RCC_AHBRSTR.DMA1RST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_dmamux1, "requirement:reset-release:dmamux1", "reset-release", RuntimeRefKind::reset, "reset:dmamux1", RuntimeRefKind::integer, nullptr, 0, "RCC_AHBRSTR.DMAMUX1RST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_gpioa, "requirement:reset-release:gpioa", "reset-release", RuntimeRefKind::reset, "reset:gpioa", RuntimeRefKind::integer, nullptr, 0, "RCC_IOPRSTR.GPIOARST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_gpiob, "requirement:reset-release:gpiob", "reset-release", RuntimeRefKind::reset, "reset:gpiob", RuntimeRefKind::integer, nullptr, 0, "RCC_IOPRSTR.GPIOBRST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_usart1, "requirement:reset-release:usart1", "reset-release", RuntimeRefKind::reset, "reset:usart1", RuntimeRefKind::integer, nullptr, 0, "RCC_APBRSTR2.USART1RST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_source_select_pb6_usart1_tx, "requirement:source-select:pb6:usart1:tx", "source-select", RuntimeRefKind::pin, "PB6", RuntimeRefKind::selector, "selector:0", 0, "pinmux.PB6", "selector:0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_source_select_pb7_usart1_rx, "requirement:source-select:pb7:usart1:rx", "source-select", RuntimeRefKind::pin, "PB7", RuntimeRefKind::selector, "selector:0", 0, "pinmux.PB7", "selector:0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb6, "requirement:bonded-pin:lqfp64:pb6", "bonded-pin", RuntimeRefDomain::pin, 5u, RuntimeRefDomain::package, 1u, -1, "PB6", "lqfp64"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb7, "requirement:bonded-pin:lqfp64:pb7", "bonded-pin", RuntimeRefDomain::pin, 6u, RuntimeRefDomain::package, 1u, -1, "PB7", "lqfp64"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_dma1, "requirement:clock-enable:dma1", "clock-enable", RuntimeRefDomain::clock_gate, 1u, RuntimeRefDomain::integer, 0u, 1, "RCC_AHBENR.DMA1EN", "1"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_dmamux1, "requirement:clock-enable:dmamux1", "clock-enable", RuntimeRefDomain::clock_gate, 2u, RuntimeRefDomain::integer, 0u, 1, "RCC_AHBENR.DMAMUX1EN", "1"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_gpioa, "requirement:clock-enable:gpioa", "clock-enable", RuntimeRefDomain::clock_gate, 3u, RuntimeRefDomain::integer, 0u, 1, "RCC_IOPENR.GPIOAEN", "1"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_gpiob, "requirement:clock-enable:gpiob", "clock-enable", RuntimeRefDomain::clock_gate, 4u, RuntimeRefDomain::integer, 0u, 1, "RCC_IOPENR.GPIOBEN", "1"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_usart1, "requirement:clock-enable:usart1", "clock-enable", RuntimeRefDomain::clock_gate, 5u, RuntimeRefDomain::integer, 0u, 1, "RCC_APBENR2.USART1EN", "1"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_package_lqfp64, "requirement:package:lqfp64", "package", RuntimeRefDomain::package, 1u, RuntimeRefDomain::state, 1u, -1, "lqfp64", "selected"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_dma1, "requirement:reset-release:dma1", "reset-release", RuntimeRefDomain::reset, 1u, RuntimeRefDomain::integer, 0u, 0, "RCC_AHBRSTR.DMA1RST", "0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_dmamux1, "requirement:reset-release:dmamux1", "reset-release", RuntimeRefDomain::reset, 2u, RuntimeRefDomain::integer, 0u, 0, "RCC_AHBRSTR.DMAMUX1RST", "0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_gpioa, "requirement:reset-release:gpioa", "reset-release", RuntimeRefDomain::reset, 3u, RuntimeRefDomain::integer, 0u, 0, "RCC_IOPRSTR.GPIOARST", "0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_gpiob, "requirement:reset-release:gpiob", "reset-release", RuntimeRefDomain::reset, 4u, RuntimeRefDomain::integer, 0u, 0, "RCC_IOPRSTR.GPIOBRST", "0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_usart1, "requirement:reset-release:usart1", "reset-release", RuntimeRefDomain::reset, 5u, RuntimeRefDomain::integer, 0u, 0, "RCC_APBRSTR2.USART1RST", "0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_source_select_pb6_usart1_tx, "requirement:source-select:pb6:usart1:tx", "source-select", RuntimeRefDomain::pin, 5u, RuntimeRefDomain::selector, 1u, 0, "pinmux.PB6", "selector:0"},
+  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_source_select_pb7_usart1_rx, "requirement:source-select:pb7:usart1:rx", "source-select", RuntimeRefDomain::pin, 6u, RuntimeRefDomain::selector, 1u, 0, "pinmux.PB7", "selector:0"},
 }};
 
 enum class RouteOperationId : std::uint16_t {
@@ -109,32 +111,32 @@ struct RouteOperationDescriptor {
   const char* schema_id;
   const char* subject_kind;
   const char* subject_id;
-  RuntimeRefKind target_ref_kind;
-  const char* target_ref_id;
-  RuntimeRefKind value_ref_kind;
-  const char* value_ref_id;
+  RuntimeRefDomain target_ref_domain;
+  std::uint16_t target_ref_index;
+  RuntimeRefDomain value_ref_domain;
+  std::uint16_t value_ref_index;
   const char* register_peripheral;
   const char* register_name;
   int register_offset;
-  const char* register_id;
-  const char* register_field_id;
+  RegisterRefId register_id;
+  RegisterFieldRefId register_field_id;
   int value_int;
   const char* diagnostic_target;
   const char* diagnostic_value;
 };
 inline constexpr std::array<RouteOperationDescriptor, 12> kRouteOperations = {{
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_dma1, "operation:clock-enable:dma1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", RuntimeRefKind::clock_gate, "gate:dma1", RuntimeRefKind::integer, nullptr, "RCC", "AHBENR", 56, "register:rcc:ahbenr", nullptr, 1, "RCC_AHBENR.DMA1EN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_dmamux1, "operation:clock-enable:dmamux1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", RuntimeRefKind::clock_gate, "gate:dmamux1", RuntimeRefKind::integer, nullptr, "RCC", "AHBENR", 56, "register:rcc:ahbenr", nullptr, 1, "RCC_AHBENR.DMAMUX1EN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_gpioa, "operation:clock-enable:gpioa", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", RuntimeRefKind::clock_gate, "gate:gpioa", RuntimeRefKind::integer, nullptr, "RCC", "IOPENR", 52, "register:rcc:iopenr", nullptr, 1, "RCC_IOPENR.GPIOAEN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_gpiob, "operation:clock-enable:gpiob", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", RuntimeRefKind::clock_gate, "gate:gpiob", RuntimeRefKind::integer, nullptr, "RCC", "IOPENR", 52, "register:rcc:iopenr", nullptr, 1, "RCC_IOPENR.GPIOBEN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_usart1, "operation:clock-enable:usart1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", RuntimeRefKind::clock_gate, "gate:usart1", RuntimeRefKind::integer, nullptr, "RCC", "APBENR2", 64, "register:rcc:apbenr2", nullptr, 1, "RCC_APBENR2.USART1EN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_dma1, "operation:reset-release:dma1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", RuntimeRefKind::reset, "reset:dma1", RuntimeRefKind::integer, nullptr, "RCC", "AHBRSTR", 40, "register:rcc:ahbrstr", nullptr, 0, "RCC_AHBRSTR.DMA1RST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_dmamux1, "operation:reset-release:dmamux1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", RuntimeRefKind::reset, "reset:dmamux1", RuntimeRefKind::integer, nullptr, "RCC", "AHBRSTR", 40, "register:rcc:ahbrstr", nullptr, 0, "RCC_AHBRSTR.DMAMUX1RST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_gpioa, "operation:reset-release:gpioa", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", RuntimeRefKind::reset, "reset:gpioa", RuntimeRefKind::integer, nullptr, "RCC", "IOPRSTR", 36, "register:rcc:ioprstr", nullptr, 0, "RCC_IOPRSTR.GPIOARST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_gpiob, "operation:reset-release:gpiob", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", RuntimeRefKind::reset, "reset:gpiob", RuntimeRefKind::integer, nullptr, "RCC", "IOPRSTR", 36, "register:rcc:ioprstr", nullptr, 0, "RCC_IOPRSTR.GPIOBRST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_usart1, "operation:reset-release:usart1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", RuntimeRefKind::reset, "reset:usart1", RuntimeRefKind::integer, nullptr, "RCC", "APBRSTR2", 48, "register:rcc:apbrstr2", nullptr, 0, "RCC_APBRSTR2.USART1RST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_route_pb6_usart1_tx, "operation:route:pb6:usart1:tx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB6", RuntimeRefKind::pin, "PB6", RuntimeRefKind::selector, "selector:0", nullptr, nullptr, -1, nullptr, nullptr, 0, "pinmux.PB6", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_route_pb7_usart1_rx, "operation:route:pb7:usart1:rx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB7", RuntimeRefKind::pin, "PB7", RuntimeRefKind::selector, "selector:0", nullptr, nullptr, -1, nullptr, nullptr, 0, "pinmux.PB7", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_dma1, "operation:clock-enable:dma1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", RuntimeRefDomain::clock_gate, 1u, RuntimeRefDomain::integer, 0u, "RCC", "AHBENR", 56, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none, 1, "RCC_AHBENR.DMA1EN", "1"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_dmamux1, "operation:clock-enable:dmamux1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", RuntimeRefDomain::clock_gate, 2u, RuntimeRefDomain::integer, 0u, "RCC", "AHBENR", 56, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none, 1, "RCC_AHBENR.DMAMUX1EN", "1"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_gpioa, "operation:clock-enable:gpioa", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", RuntimeRefDomain::clock_gate, 3u, RuntimeRefDomain::integer, 0u, "RCC", "IOPENR", 52, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none, 1, "RCC_IOPENR.GPIOAEN", "1"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_gpiob, "operation:clock-enable:gpiob", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", RuntimeRefDomain::clock_gate, 4u, RuntimeRefDomain::integer, 0u, "RCC", "IOPENR", 52, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none, 1, "RCC_IOPENR.GPIOBEN", "1"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_usart1, "operation:clock-enable:usart1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", RuntimeRefDomain::clock_gate, 5u, RuntimeRefDomain::integer, 0u, "RCC", "APBENR2", 64, RegisterRefId::stm32g071rb_register_rcc_apbenr2, RegisterFieldRefId::none, 1, "RCC_APBENR2.USART1EN", "1"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_dma1, "operation:reset-release:dma1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", RuntimeRefDomain::reset, 1u, RuntimeRefDomain::integer, 0u, "RCC", "AHBRSTR", 40, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none, 0, "RCC_AHBRSTR.DMA1RST", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_dmamux1, "operation:reset-release:dmamux1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", RuntimeRefDomain::reset, 2u, RuntimeRefDomain::integer, 0u, "RCC", "AHBRSTR", 40, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none, 0, "RCC_AHBRSTR.DMAMUX1RST", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_gpioa, "operation:reset-release:gpioa", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", RuntimeRefDomain::reset, 3u, RuntimeRefDomain::integer, 0u, "RCC", "IOPRSTR", 36, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none, 0, "RCC_IOPRSTR.GPIOARST", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_gpiob, "operation:reset-release:gpiob", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", RuntimeRefDomain::reset, 4u, RuntimeRefDomain::integer, 0u, "RCC", "IOPRSTR", 36, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none, 0, "RCC_IOPRSTR.GPIOBRST", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_usart1, "operation:reset-release:usart1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", RuntimeRefDomain::reset, 5u, RuntimeRefDomain::integer, 0u, "RCC", "APBRSTR2", 48, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, RegisterFieldRefId::none, 0, "RCC_APBRSTR2.USART1RST", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_route_pb6_usart1_tx, "operation:route:pb6:usart1:tx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB6", RuntimeRefDomain::pin, 5u, RuntimeRefDomain::selector, 1u, nullptr, nullptr, -1, RegisterRefId::none, RegisterFieldRefId::none, 0, "pinmux.PB6", "0"},
+  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_route_pb7_usart1_rx, "operation:route:pb7:usart1:rx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB7", RuntimeRefDomain::pin, 6u, RuntimeRefDomain::selector, 1u, nullptr, nullptr, -1, RegisterRefId::none, RegisterFieldRefId::none, 0, "pinmux.PB7", "0"},
 }};
 
 enum class ConnectionCandidateId : std::uint16_t {
@@ -146,11 +148,13 @@ struct ConnectionCandidateDescriptor {
   const char* device;
   ConnectionCandidateId candidate_id;
   const char* candidate_name;
+  PinRefId pin_id;
   const char* pin;
   const char* peripheral;
   const char* signal;
   const char* route_kind;
-  const char* route_selector;
+  SelectorRefId route_selector_id;
+  const char* diagnostic_route_selector;
   int route_group_index;
   std::uint16_t requirement_offset;
   std::uint16_t requirement_count;
@@ -160,8 +164,8 @@ struct ConnectionCandidateDescriptor {
   std::uint16_t capability_count;
 };
 inline constexpr std::array<ConnectionCandidateDescriptor, 2> kConnectionCandidates = {{
-  {"stm32g071rb", ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, "candidate:pb6:usart1:tx", "PB6", "USART1", "tx", "alternate-function", "selector:0", 0, 0u, 5u, 0u, 3u, 0u, 2u},
-  {"stm32g071rb", ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, "candidate:pb7:usart1:rx", "PB7", "USART1", "rx", "alternate-function", "selector:0", 0, 5u, 5u, 3u, 3u, 2u, 2u},
+  {"stm32g071rb", ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, "candidate:pb6:usart1:tx", PinRefId::stm32g071rb_PB6, "PB6", "USART1", "tx", "alternate-function", SelectorRefId::stm32g071rb_selector_0, "selector:0", 0, 0u, 5u, 0u, 3u, 0u, 2u},
+  {"stm32g071rb", ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, "candidate:pb7:usart1:rx", PinRefId::stm32g071rb_PB7, "PB7", "USART1", "rx", "alternate-function", SelectorRefId::stm32g071rb_selector_0, "selector:0", 0, 5u, 5u, 3u, 3u, 2u, 2u},
 }};
 
 struct CandidateRequirementRef {
@@ -214,7 +218,8 @@ struct ConnectionGroupDescriptor {
   ConnectionGroupId group_id;
   const char* group_name;
   const char* peripheral;
-  const char* package_name;
+  PackageRefId package_id;
+  const char* diagnostic_package_name;
   const char* conflict_group;
   std::uint16_t signal_offset;
   std::uint16_t signal_count;
@@ -222,7 +227,7 @@ struct ConnectionGroupDescriptor {
   std::uint16_t candidate_count;
 };
 inline constexpr std::array<ConnectionGroupDescriptor, 1> kConnectionGroups = {{
-  {"stm32g071rb", ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, "group:usart1:lqfp64:tx-rx", "USART1", "lqfp64", "conflict:usart1:lqfp64:tx-rx", 0u, 2u, 0u, 2u},
+  {"stm32g071rb", ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, "group:usart1:lqfp64:tx-rx", "USART1", PackageRefId::stm32g071rb_lqfp64, "lqfp64", "conflict:usart1:lqfp64:tx-rx", 0u, 2u, 0u, 2u},
 }};
 
 struct ConnectionGroupSignalRef {
