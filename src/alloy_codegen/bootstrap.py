@@ -1,6 +1,8 @@
-"""Bootstrap family configuration and device registry."""
+"""Supported target configuration and device registry."""
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 
 from alloy_codegen.errors import UnsupportedScopeError
 
@@ -33,6 +35,69 @@ _DEVICE_TO_FAMILY: dict[str, tuple[str, str]] = {
     for (vendor, family), devices in DEVICE_REGISTRY.items()
     for device in devices
 }
+
+
+@dataclass(frozen=True, slots=True)
+class SupportedFamily:
+    """Stable description of one supported vendor/family target."""
+
+    vendor: str
+    family: str
+    devices: tuple[str, ...]
+    source_bundles: tuple[str, ...]
+    is_default: bool = False
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-friendly representation."""
+        return {
+            "vendor": self.vendor,
+            "family": self.family,
+            "devices": list(self.devices),
+            "source_bundles": list(self.source_bundles),
+            "is_default": self.is_default,
+        }
+
+
+def registered_family_keys() -> tuple[tuple[str, str], ...]:
+    """Return supported vendor/family keys in stable order."""
+    return tuple(sorted(DEVICE_REGISTRY))
+
+
+def supported_families(
+    *,
+    vendor: str | None = None,
+    family: str | None = None,
+) -> tuple[SupportedFamily, ...]:
+    """Return supported families, optionally filtered by vendor and/or family."""
+    normalized_vendor = vendor.lower() if vendor is not None else None
+    normalized_family = family.lower() if family is not None else None
+    matches: list[SupportedFamily] = []
+
+    for key_vendor, key_family in registered_family_keys():
+        if normalized_vendor is not None and key_vendor != normalized_vendor:
+            continue
+        if normalized_family is not None and key_family != normalized_family:
+            continue
+        matches.append(
+            SupportedFamily(
+                vendor=key_vendor,
+                family=key_family,
+                devices=registered_device_names(key_vendor, key_family),
+                source_bundles=source_bundle_for(key_vendor, key_family),
+                is_default=(key_vendor, key_family) == (BOOTSTRAP_VENDOR, BOOTSTRAP_FAMILY),
+            )
+        )
+
+    if matches:
+        return tuple(matches)
+
+    supported = ", ".join(
+        f"{entry_vendor}/{entry_family}" for entry_vendor, entry_family in registered_family_keys()
+    )
+    raise UnsupportedScopeError(
+        f"Unsupported vendor/family filter '{vendor or '*'}'/'{family or '*'}'. "
+        f"Supported: {supported}."
+    )
 
 
 def registered_device_names(vendor: str, family: str) -> tuple[str, ...]:

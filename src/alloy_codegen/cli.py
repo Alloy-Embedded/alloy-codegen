@@ -7,6 +7,7 @@ import json
 import sys
 from collections.abc import Sequence
 
+from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, supported_families
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import AlloyCodegenError
 from alloy_codegen.scope import PipelineScope
@@ -31,6 +32,18 @@ def build_parser() -> argparse.ArgumentParser:
     """Create the top-level CLI parser."""
     parser = argparse.ArgumentParser(prog="alloy-codegen", description="Alloy codegen pipeline.")
     subparsers = parser.add_subparsers(dest="stage", required=True)
+
+    targets_parser = subparsers.add_parser(
+        "targets",
+        help="List supported vendor/family/device targets and their source bundles.",
+    )
+    targets_parser.add_argument("--vendor", default=None, help="Optional vendor filter.")
+    targets_parser.add_argument("--family", default=None, help="Optional family filter.")
+    targets_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON instead of human-readable text.",
+    )
 
     for stage_name in STAGE_RUNNERS:
         stage_parser = subparsers.add_parser(stage_name, help=f"Run the {stage_name} stage.")
@@ -89,10 +102,59 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def build_targets_payload(
+    *,
+    vendor: str | None = None,
+    family: str | None = None,
+) -> dict[str, object]:
+    """Return the supported target matrix as a stable payload."""
+    entries = supported_families(vendor=vendor, family=family)
+    return {
+        "default_scope": {
+            "vendor": BOOTSTRAP_VENDOR,
+            "family": BOOTSTRAP_FAMILY,
+        },
+        "targets": [entry.to_dict() for entry in entries],
+    }
+
+
+def format_targets_payload(payload: dict[str, object]) -> str:
+    """Render the supported target matrix in a readable plain-text form."""
+    lines = [
+        "default target: "
+        f"{payload['default_scope']['vendor']}/{payload['default_scope']['family']}",
+        "supported targets:",
+    ]
+    for entry in payload["targets"]:
+        default_suffix = " (default)" if entry["is_default"] else ""
+        devices = ", ".join(entry["devices"])
+        sources = ", ".join(entry["source_bundles"])
+        lines.append(
+            f"- {entry['vendor']}/{entry['family']}{default_suffix}: "
+            f"devices=[{devices}] sources=[{sources}]"
+        )
+    return "\n".join(lines)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entrypoint."""
     parser = build_parser()
     args = parser.parse_args(list(argv) if argv is not None else None)
+    if args.stage == "targets":
+        try:
+            payload = build_targets_payload(vendor=args.vendor, family=args.family)
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(format_targets_payload(payload))
+        return 0
+
     scope = PipelineScope(vendor=args.vendor, family=args.family, device=args.device)
     source_overrides = parse_source_overrides(args.source)
     context = ExecutionContext.default().with_overrides(
