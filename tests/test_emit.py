@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
+from alloy_codegen.runtime_driver_semantics import emit_runtime_driver_uart_semantics_header
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run
+from alloy_codegen.stages.normalize import run as run_normalize
 
 
 def _load_json_fixture(path: Path) -> dict[str, object]:
@@ -491,6 +494,49 @@ def test_emit_matches_golden_artifacts(
     for ip_fixture in sorted((fixture_root / "generated" / "ip").iterdir()):
         artifact_path = f"st/stm32g0/generated/ip/{ip_fixture.name}"
         assert artifacts[artifact_path].content == ip_fixture.read_text(encoding="utf-8")
+
+
+def test_emit_uart_semantics_accepts_live_st_schema_ids(
+    execution_context: ExecutionContext,
+) -> None:
+    cases = (
+        (
+            "stm32g071rb",
+            "st/stm32g0",
+            {
+                "usart": ("sci3_v2_1_Cube", "alloy.uart.st-sci3-v2-1-cube"),
+                "lpuart": ("sci3_v1_2_Cube", "alloy.uart.st-sci3-v1-2-cube"),
+            },
+        ),
+        (
+            "stm32f401re",
+            "st/stm32f4",
+            {
+                "usart": ("sci2_v1_2_Cube", "alloy.uart.st-sci2-v1-2-cube"),
+            },
+        ),
+    )
+
+    for device_name, family_dir, schema_overrides in cases:
+        normalized = run_normalize(PipelineScope(device=device_name), execution_context)
+        device = normalized.payload.devices[0]
+        mutated_peripherals = []
+        for peripheral in device.peripherals:
+            override = schema_overrides.get(peripheral.ip_name.lower())
+            if override is None:
+                mutated_peripherals.append(peripheral)
+                continue
+            ip_version, schema_id = override
+            mutated_peripherals.append(
+                replace(peripheral, ip_version=ip_version, backend_schema_id=schema_id)
+            )
+        artifact = emit_runtime_driver_uart_semantics_header(
+            family_dir=family_dir,
+            device=replace(device, peripherals=tuple(mutated_peripherals)),
+        )
+
+        assert "UartSemanticTraits<PeripheralId::" in artifact.content
+        assert "static constexpr bool kPresent = true;" in artifact.content
 
 
 def test_emit_connector_metadata_supports_microchip_family(

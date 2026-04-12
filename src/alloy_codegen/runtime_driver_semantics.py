@@ -1111,21 +1111,40 @@ def _nxp_uart_row(
 
 
 def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
+    def _has_register(peripheral_name: str, register_name: str) -> bool:
+        return (peripheral_name, register_name.upper()) in context.register_by_key
+
+    def _st_uart_uses_f4_layout(peripheral: PeripheralInstance) -> bool:
+        schema_id = (peripheral.backend_schema_id or "").lower()
+        ip_version = (peripheral.ip_version or "").lower()
+        tokens = (schema_id, ip_version)
+        if any("sci2" in token or "usart-f4" in token or "usart_f4" in token for token in tokens):
+            return True
+        if any("sci3" in token or "usart-v3" in token or "usart_v3" in token for token in tokens):
+            return False
+        has_isr_style = any(
+            _has_register(peripheral.name, register_name)
+            for register_name in ("ISR", "RDR", "TDR")
+        )
+        if has_isr_style:
+            return False
+        has_sr_style = _has_register(peripheral.name, "SR") and _has_register(peripheral.name, "DR")
+        if has_sr_style:
+            return True
+        return False
+
     rows: list[UartSemanticRow] = []
     for peripheral in context.candidate_peripherals_by_class.get("uart", ()):
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
-        if schema_id == "alloy.uart.st-usart-v3-1":
+        if schema_id.startswith("alloy.uart.st-"):
             rows.append(
                 _st_uart_row(
-                    context, peripheral_name=peripheral.name, schema_id=schema_id, f4_layout=False
-                )
-            )
-        elif schema_id == "alloy.uart.st-usart-f4-v1-0":
-            rows.append(
-                _st_uart_row(
-                    context, peripheral_name=peripheral.name, schema_id=schema_id, f4_layout=True
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    f4_layout=_st_uart_uses_f4_layout(peripheral),
                 )
             )
         elif schema_id == "alloy.uart.microchip-uart-r":
