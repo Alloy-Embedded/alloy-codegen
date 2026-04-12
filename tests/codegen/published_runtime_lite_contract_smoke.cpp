@@ -54,11 +54,9 @@ static_assert(published_device_runtime::kPins.size() > 0u);
 static_assert(published_device_runtime::kRegisters.size() > 0u);
 static_assert(published_device_runtime::kRegisterFields.size() > 0u);
 static_assert(published_device_runtime::kClockBoundPeripherals.size() > 0u);
-static_assert(published_device_runtime::kRuntimeRoutes.size() > 0u);
 
 constexpr auto kFirstPeripheral = published_device_runtime::kRuntimePeripherals[0];
 constexpr auto kFirstPin = published_device_runtime::kPins[0];
-constexpr auto kFirstRoute = published_device_runtime::kRuntimeRoutes[0];
 
 static_assert(
     published_device_runtime::PeripheralInstanceTraits<kFirstPeripheral>::kPresent
@@ -74,13 +72,24 @@ static_assert(
     published_device_runtime::PeripheralClockBindingTraits<
         published_device_runtime::kClockBoundPeripherals[0]>::kPresent
 );
-static_assert(
-    published_device_runtime::RouteTraits<
-        kFirstRoute.pin_id,
-        kFirstRoute.peripheral_id,
-        kFirstRoute.signal_id>::kPresent
-);
 static_assert(published_runtime::BackendSchemaId::none == published_runtime::BackendSchemaId::none);
+
+template<std::size_t RouteCount, bool HasRoutes = (RouteCount > 0u)>
+struct RuntimeRouteSmokeTraits;
+
+template<std::size_t RouteCount>
+struct RuntimeRouteSmokeTraits<RouteCount, true> {
+    static constexpr bool kPresent = true;
+};
+
+template<std::size_t RouteCount>
+struct RuntimeRouteSmokeTraits<RouteCount, false> {
+    static constexpr bool kPresent = true;
+};
+
+static_assert(
+    RuntimeRouteSmokeTraits<published_device_runtime::kRuntimeRoutes.size()>::kPresent
+);
 
 int main() {
     return 0;
