@@ -262,47 +262,40 @@ def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -
         for ip_block in device.ip_blocks
     }
     capability_id_values = {
-        capability.capability_id
-        for device in devices
-        for capability in device.capabilities
+        capability.capability_id for device in devices for capability in device.capabilities
     }
-    backend_schema_values = {
-        peripheral.backend_schema_id
-        for device in devices
-        for peripheral in device.peripherals
-        if peripheral.backend_schema_id is not None
-    } | {
-        operation.schema_id
-        for device in devices
-        for operation in device.route_operations
-        if operation.schema_id is not None
-    } | {
-        ip_block.backend_schema_id
-        for device in devices
-        for ip_block in device.ip_blocks
-        if ip_block.backend_schema_id is not None
-    }
-    peripheral_class_values = {
-        canonical_peripheral_class(peripheral.ip_name)
-        for device in devices
-        for peripheral in device.peripherals
-    } | {
-        ip_block.peripheral_class
-        for device in devices
-        for ip_block in device.ip_blocks
-    } | {
-        capability.peripheral_class
-        for device in devices
-        for capability in device.capabilities
-    } | {
-        endpoint.peripheral_class
-        for device in devices
-        for endpoint in device.signal_endpoints
-    }
+    backend_schema_values = (
+        {
+            peripheral.backend_schema_id
+            for device in devices
+            for peripheral in device.peripherals
+            if peripheral.backend_schema_id is not None
+        }
+        | {
+            operation.schema_id
+            for device in devices
+            for operation in device.route_operations
+            if operation.schema_id is not None
+        }
+        | {
+            ip_block.backend_schema_id
+            for device in devices
+            for ip_block in device.ip_blocks
+            if ip_block.backend_schema_id is not None
+        }
+    )
+    peripheral_class_values = (
+        {
+            canonical_peripheral_class(peripheral.ip_name)
+            for device in devices
+            for peripheral in device.peripherals
+        }
+        | {ip_block.peripheral_class for device in devices for ip_block in device.ip_blocks}
+        | {capability.peripheral_class for device in devices for capability in device.capabilities}
+        | {endpoint.peripheral_class for device in devices for endpoint in device.signal_endpoints}
+    )
     capability_scope_values = {
-        capability.scope
-        for device in devices
-        for capability in device.capabilities
+        capability.scope for device in devices for capability in device.capabilities
     }
     capability_key_values = {
         f"{capability.name}={capability.value}"
@@ -310,19 +303,13 @@ def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -
         for capability in device.capabilities
     }
     route_kind_values = {
-        candidate.route_kind
-        for device in devices
-        for candidate in device.connection_candidates
+        candidate.route_kind for device in devices for candidate in device.connection_candidates
     }
     requirement_kind_values = {
-        requirement.kind
-        for device in devices
-        for requirement in device.route_requirements
+        requirement.kind for device in devices for requirement in device.route_requirements
     }
     operation_kind_values = {
-        operation.kind
-        for device in devices
-        for operation in device.route_operations
+        operation.kind for device in devices for operation in device.route_operations
     }
     operation_subject_kind_values = {
         operation.subject_kind
@@ -330,56 +317,27 @@ def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -
         for operation in device.route_operations
         if operation.subject_kind is not None
     }
-    memory_kind_values = {
-        memory.kind
-        for device in devices
-        for memory in device.memories
-    }
+    memory_kind_values = {memory.kind for device in devices for memory in device.memories}
     startup_kind_values = {
-        descriptor.kind
-        for device in devices
-        for descriptor in device.startup_descriptors
+        descriptor.kind for device in devices for descriptor in device.startup_descriptors
     }
     vector_kind_values = {
-        vector_slot.kind
-        for device in devices
-        for vector_slot in device.vector_slots
+        vector_slot.kind for device in devices for vector_slot in device.vector_slots
     }
     package_pad_kind_values = {
-        package_pad.pad_kind
-        for device in devices
-        for package_pad in device.package_pads
+        package_pad.pad_kind for device in devices for package_pad in device.package_pads
     }
     bonding_state_values = {
-        package_pad.bonding_state
-        for device in devices
-        for package_pad in device.package_pads
+        package_pad.bonding_state for device in devices for package_pad in device.package_pads
     }
     constraint_kind_values = {
-        constraint.kind
-        for device in devices
-        for constraint in device.pin_constraints
+        constraint.kind for device in devices for constraint in device.pin_constraints
     }
-    active_level_values = {
-        reset.active_level
-        for device in devices
-        for reset in device.resets
-    }
-    core_values = {
-        device.identity.core
-        for device in devices
-    }
-    port_values = {
-        pin.port
-        for device in devices
-        for pin in device.pins
-        if pin.port is not None
-    }
+    active_level_values = {reset.active_level for device in devices for reset in device.resets}
+    core_values = {device.identity.core for device in devices}
+    port_values = {pin.port for device in devices for pin in device.pins if pin.port is not None}
     pin_function_values = {
-        signal.function
-        for device in devices
-        for pin in device.pins
-        for signal in pin.signals
+        signal.function for device in devices for pin in device.pins for signal in pin.signals
     }
     signal_values = _runtime_signal_values(devices)
     signal_role_values = _runtime_signal_role_values(devices)
@@ -395,17 +353,10 @@ def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -
         for ip_block in device.ip_blocks
         if ip_block.register_profile is not None
     }
-    clock_node_kind_values = {
-        node.kind
-        for device in devices
-        for node in device.clock_nodes
-    }
+    clock_node_kind_values = {node.kind for device in devices for node in device.clock_nodes}
     runtime_profile_source_kind_values = {"peripheral", "route-operation"}
     startup_role_values = {
-        role
-        for device in devices
-        for memory in device.memories
-        for role in memory.startup_roles
+        role for device in devices for memory in device.memories for role in memory.startup_roles
     }
     access_kind_values = {
         access
@@ -628,10 +579,7 @@ def _collect_runtime_ref_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict
             for register_field in device.register_fields
         }
     )
-    device_enum_map = {
-        device_name: _enum_identifier(device_name)
-        for device_name in device_rows
-    }
+    device_enum_map = {device_name: _enum_identifier(device_name) for device_name in device_rows}
     peripheral_enum_map = {
         (device_name, peripheral_name): _enum_identifier(f"{device_name}_{peripheral_name}")
         for device_name, peripheral_name in peripheral_rows
@@ -799,7 +747,7 @@ def _ridx(
     ref_catalog: dict[str, object],
     clock_gate_index_map: dict[tuple[str, str], int] | None = None,
     reset_index_map: dict[tuple[str, str], int] | None = None,
-    ) -> str:
+) -> str:
     return _runtime_ref_index_expr(
         device_name,
         ref_kind,
@@ -826,12 +774,7 @@ def _runtime_ref_literal(
         clock_gate_index_map,
         reset_index_map,
     )
-    return (
-        "{"
-        f"{_runtime_ref_kind_enum(ref_kind)}, "
-        f"{ref_index}"
-        "}"
-    )
+    return f"{{{_runtime_ref_kind_enum(ref_kind)}, {ref_index}}}"
 
 
 def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
@@ -1478,8 +1421,7 @@ def emit_pins_header(
         for constraint_id in constraint_ids
     ]
     pin_package_pad_map = {
-        pin_name: tuple(pad_ids)
-        for pin_name, _port, _number, pad_ids, _constraint_ids in pin_rows
+        pin_name: tuple(pad_ids) for pin_name, _port, _number, pad_ids, _constraint_ids in pin_rows
     }
     pin_constraint_map = {
         pin_name: tuple(constraint_ids)
@@ -2115,9 +2057,7 @@ def emit_runtime_refs_header(
             semantics_catalog["core_enum_map"],
             device.identity.core,
         )
-        device_descriptor_lines.append(
-            f"  {{{device_id}, {package_ref}, {core_ref}}},"
-        )
+        device_descriptor_lines.append(f"  {{{device_id}, {package_ref}, {core_ref}}},")
 
     peripheral_class_by_ref = {
         (device.identity.device, peripheral.name): canonical_peripheral_class(peripheral.ip_name)
@@ -2630,10 +2570,7 @@ def emit_runtime_refs_header(
                     type_name="RegisterRefDescriptor",
                     variable_name="kRegisterRefs",
                     row_lines=[
-                        (
-                            "  {RegisterRefId::none, DeviceRefId::none, "
-                            "PeripheralRefId::none, 0u},"
-                        ),
+                        ("  {RegisterRefId::none, DeviceRefId::none, PeripheralRefId::none, 0u},"),
                         *register_descriptor_lines,
                     ],
                 ),
@@ -3270,8 +3207,7 @@ def emit_interrupt_bindings_header(
         if shared_group is not None
     }
     alias_enum_map = {
-        alias_name: _enum_identifier(alias_name)
-        for _binding_id, alias_name in alias_rows
+        alias_name: _enum_identifier(alias_name) for _binding_id, alias_name in alias_rows
     }
     interrupt_binding_lines = []
     for (
@@ -4670,10 +4606,7 @@ def emit_memory_map_header(
             startup_role,
         )
         startup_role_ref_lines.append(
-            "  {"
-            f"MemoryRegionId::{region_enum_map[(device_name, name)]}, "
-            f"{startup_role_ref}"
-            "},"
+            f"  {{MemoryRegionId::{region_enum_map[(device_name, name)]}, {startup_role_ref}}},"
         )
     body_lines = [
         "enum class MemoryRegionId : std::uint16_t {",
@@ -5313,21 +5246,16 @@ def emit_startup_descriptors_header(
         descriptor.descriptor_id: _enum_identifier(descriptor.descriptor_id)
         for descriptor in sorted(device.startup_descriptors, key=lambda item: item.descriptor_id)
     }
-    startup_symbol_names = {
-        vector_slot.symbol_name
-        for vector_slot in device.vector_slots
-    } | {
+    startup_symbol_names = {vector_slot.symbol_name for vector_slot in device.vector_slots} | {
         descriptor.symbol
         for descriptor in device.startup_descriptors
         if descriptor.symbol is not None
     }
     startup_symbol_enum_map = {
-        symbol_name: _enum_identifier(symbol_name)
-        for symbol_name in sorted(startup_symbol_names)
+        symbol_name: _enum_identifier(symbol_name) for symbol_name in sorted(startup_symbol_names)
     }
     interrupt_binding_ids = {
-        binding.interrupt: binding.binding_id
-        for binding in device.interrupt_bindings
+        binding.interrupt: binding.binding_id for binding in device.interrupt_bindings
     }
     interrupt_binding_enum_map = {
         binding.binding_id: _enum_identifier(binding.binding_id)
@@ -5351,12 +5279,7 @@ def emit_startup_descriptors_header(
             vector_slot.kind,
         )
         vector_slot_row_lines.append(
-            "  {"
-            f"{vector_slot.slot}, "
-            f"{symbol_ref}, "
-            f"{binding_ref}, "
-            f"{kind_ref}"
-            "},"
+            f"  {{{vector_slot.slot}, {symbol_ref}, {binding_ref}, {kind_ref}}},"
         )
     startup_descriptor_row_lines = []
     for descriptor in sorted(device.startup_descriptors, key=lambda item: item.descriptor_id):
@@ -5424,7 +5347,7 @@ def emit_startup_descriptors_header(
                 ),
                 "",
                 "struct StartupDescriptor {",
-                    "  StartupDescriptorId descriptor_id;",
+                "  StartupDescriptorId descriptor_id;",
                 "  StartupKindId kind_id;",
                 "  StartupMemoryRegionId source_region_id;",
                 "  StartupMemoryRegionId target_region_id;",
