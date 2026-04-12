@@ -341,8 +341,7 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/devices/mimxrt1062/startup_vectors.cpp" in artifacts
     assert f"{family_dir}/generated/runtime/types.hpp" in artifacts
     assert (
-        f"{family_dir}/generated/runtime/devices/mimxrt1062/peripheral_instances.hpp"
-        in artifacts
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/peripheral_instances.hpp" in artifacts
     )
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/pins.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/registers.hpp" in artifacts

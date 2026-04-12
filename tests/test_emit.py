@@ -85,9 +85,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_peripheral_instances_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/peripheral_instances.hpp"
     ]
-    runtime_pins_artifact = artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/pins.hpp"
-    ]
+    runtime_pins_artifact = artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/pins.hpp"]
     runtime_registers_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/registers.hpp"
     ]
@@ -311,8 +309,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "enum class BackendSchemaId" in runtime_types_artifact.content
     assert runtime_peripheral_instances_artifact.artifact_kind == "generated-cpp"
     assert (
-        "PeripheralInstanceTraits<PeripheralId::"
-        in runtime_peripheral_instances_artifact.content
+        "PeripheralInstanceTraits<PeripheralId::" in runtime_peripheral_instances_artifact.content
     )
     assert runtime_pins_artifact.artifact_kind == "generated-cpp"
     assert "PinTraits<PinId::" in runtime_pins_artifact.content
@@ -439,30 +436,18 @@ def test_emit_matches_golden_artifacts(
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/pins.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "pins.hpp"
     ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/registers.hpp"
-    ].content == (
+    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/registers.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "registers.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/register_fields.hpp"
     ].content == (
-        fixture_root
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "stm32g071rb"
-        / "register_fields.hpp"
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "register_fields.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_bindings.hpp"
     ].content == (
-        fixture_root
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "stm32g071rb"
-        / "clock_bindings.hpp"
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_bindings.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "routes.hpp"
