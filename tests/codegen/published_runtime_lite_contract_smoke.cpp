@@ -30,6 +30,22 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_UART_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_UART_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE must be defined"
 #endif
@@ -45,9 +61,16 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_REGISTER_FIELDS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_BINDINGS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_UART_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER
+
+#include <type_traits>
 
 namespace published_runtime = ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE;
 namespace published_device_runtime = ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE;
+namespace published_driver = ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE::driver_semantics;
 
 static_assert(published_device_runtime::kRuntimePeripherals.size() > 0u);
 static_assert(published_device_runtime::kPins.size() > 0u);
@@ -74,22 +97,50 @@ static_assert(
 );
 static_assert(published_runtime::BackendSchemaId::none == published_runtime::BackendSchemaId::none);
 
-template<std::size_t RouteCount, bool HasRoutes = (RouteCount > 0u)>
-struct RuntimeRouteSmokeTraits;
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstGpioSemanticSmoke {
+    static constexpr bool kPresent = published_driver::GpioSemanticTraits<Values[0]>::kPresent;
+};
 
-template<std::size_t RouteCount>
-struct RuntimeRouteSmokeTraits<RouteCount, true> {
+template<const auto& Values>
+struct FirstGpioSemanticSmoke<Values, 0u> {
     static constexpr bool kPresent = true;
 };
 
-template<std::size_t RouteCount>
-struct RuntimeRouteSmokeTraits<RouteCount, false> {
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstUartSemanticSmoke {
+    static constexpr bool kPresent = published_driver::UartSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstUartSemanticSmoke<Values, 0u> {
     static constexpr bool kPresent = true;
 };
 
-static_assert(
-    RuntimeRouteSmokeTraits<published_device_runtime::kRuntimeRoutes.size()>::kPresent
-);
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstI2cSemanticSmoke {
+    static constexpr bool kPresent = published_driver::I2cSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstI2cSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstSpiSemanticSmoke {
+    static constexpr bool kPresent = published_driver::SpiSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstSpiSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+static_assert(FirstGpioSemanticSmoke<published_driver::kGpioSemanticPins>::kPresent);
+static_assert(FirstUartSemanticSmoke<published_driver::kUartSemanticPeripherals>::kPresent);
+static_assert(FirstI2cSemanticSmoke<published_driver::kI2cSemanticPeripherals>::kPresent);
+static_assert(FirstSpiSemanticSmoke<published_driver::kSpiSemanticPeripherals>::kPresent);
 
 int main() {
     return 0;

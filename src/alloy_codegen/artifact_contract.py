@@ -5,6 +5,9 @@ from __future__ import annotations
 from alloy_codegen.connector_model import canonical_peripheral_class
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
+from alloy_codegen.runtime_driver_semantics import (
+    runtime_driver_semantics_required_paths,
+)
 from alloy_codegen.runtime_lite_emission import (
     RUNTIME_LITE_PERIPHERAL_CLASSES,
     runtime_lite_required_paths,
@@ -46,6 +49,10 @@ def find_runtime_lite_contract_violations(
     artifacts_by_path = {artifact.path: artifact for artifact in artifacts}
     violations: list[str] = []
     required_paths = runtime_lite_required_paths(family_dir=family_dir, devices=devices)
+    required_paths = required_paths + runtime_driver_semantics_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
     for path in required_paths:
         if path not in artifacts_by_path:
             violations.append(f"missing runtime-lite artifact: {path}")
@@ -109,6 +116,11 @@ def find_runtime_lite_contract_violations(
             "register_fields": f"{device_runtime_root}/register_fields.hpp",
             "clock_bindings": f"{device_runtime_root}/clock_bindings.hpp",
             "routes": f"{device_runtime_root}/routes.hpp",
+            "driver_common": f"{device_runtime_root}/driver_semantics/common.hpp",
+            "gpio_semantics": f"{device_runtime_root}/driver_semantics/gpio.hpp",
+            "uart_semantics": f"{device_runtime_root}/driver_semantics/uart.hpp",
+            "i2c_semantics": f"{device_runtime_root}/driver_semantics/i2c.hpp",
+            "spi_semantics": f"{device_runtime_root}/driver_semantics/spi.hpp",
         }
         content_by_key = {
             key: artifacts_by_path[path].content if path in artifacts_by_path else None
@@ -154,4 +166,59 @@ def find_runtime_lite_contract_violations(
                 )
             elif "RouteTraits<" not in routes_content:
                 violations.append(f"{device_runtime_paths['routes']} does not emit route traits")
+
+        if (
+            content_by_key["driver_common"]
+            and "struct RuntimeRegisterRef" not in content_by_key["driver_common"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['driver_common']} does not emit runtime register refs"
+            )
+
+        gpio_candidates = tuple(
+            candidate
+            for candidate in runtime_candidates
+            if canonical_peripheral_class(
+                next(
+                    peripheral.ip_name
+                    for peripheral in runtime_peripherals
+                    if peripheral.name == candidate.peripheral
+                )
+            )
+            == "gpio"
+        )
+        if gpio_candidates:
+            gpio_content = content_by_key["gpio_semantics"]
+            if gpio_content is None:
+                violations.append(
+                    "missing GPIO driver semantics header: "
+                    f"{device_runtime_paths['gpio_semantics']}"
+                )
+            elif "GpioSemanticTraits<PinId::" not in gpio_content:
+                violations.append(
+                    f"{device_runtime_paths['gpio_semantics']} does not emit GPIO semantic traits"
+                )
+
+        for class_name, key, token in (
+            ("uart", "uart_semantics", "UartSemanticTraits<PeripheralId::"),
+            ("i2c", "i2c_semantics", "I2cSemanticTraits<PeripheralId::"),
+            ("spi", "spi_semantics", "SpiSemanticTraits<PeripheralId::"),
+        ):
+            class_candidates = tuple(
+                peripheral
+                for peripheral in runtime_peripherals
+                if canonical_peripheral_class(peripheral.ip_name) == class_name
+                and any(candidate.peripheral == peripheral.name for candidate in runtime_candidates)
+            )
+            if not class_candidates:
+                continue
+            content = content_by_key[key]
+            if content is None:
+                violations.append(
+                    f"missing {class_name} driver semantics header: {device_runtime_paths[key]}"
+                )
+            elif token not in content:
+                violations.append(
+                    f"{device_runtime_paths[key]} does not emit {class_name} semantic traits"
+                )
     return tuple(violations)

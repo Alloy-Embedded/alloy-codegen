@@ -97,6 +97,18 @@ Successful publication writes:
 - `<vendor>/<family>/generated/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
+- `<vendor>/<family>/generated/runtime/types.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/i2c.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/spi.hpp`
 - `<vendor>/<family>/reports/validation-report.json`
 - `<vendor>/<family>/reports/validation-summary.json`
 - `<vendor>/<family>/reports/coverage.json`
@@ -105,6 +117,8 @@ Successful publication writes:
 ## Contract Notes
 
 - `generated/runtime/` is the runtime-lite contract intended for Alloy's hot path.
+- `generated/runtime/devices/<device>/driver_semantics/*.hpp` is the semantic layer that maps
+  runtime-lite facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, and `spi`.
 - `generated/*.hpp` family tables remain the reflection contract used for validation, smoke, and
   inspection.
 - Published artifacts are written only when validation passes for the requested scope.

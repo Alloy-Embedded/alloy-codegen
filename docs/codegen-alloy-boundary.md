@@ -65,6 +65,9 @@ Those files may describe:
 The published C++ contract is descriptor-first:
 
 - runtime-lite headers under `generated/runtime/` are the preferred hot-path boundary for Alloy
+- runtime-lite driver semantic headers under
+  `generated/runtime/devices/<device>/driver_semantics/` are the required hot-path layer for
+  foundational drivers
 - family-level headers describe shared hardware facts across the family
 - device-level headers describe one target device without requiring JSON-side inference
 - reflection headers under `generated/*.hpp` remain available for tooling, smoke, and inspection

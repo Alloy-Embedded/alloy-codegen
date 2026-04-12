@@ -274,6 +274,22 @@ def verify_runtime_lite_smoke_consumer(
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/routes.hpp"'
         ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/gpio.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_UART_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/uart.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/i2c.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/spi.hpp"'
+        ),
         f"-DALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE={vendor}::{family}::generated::runtime",
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE="

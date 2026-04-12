@@ -74,6 +74,11 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/common.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/gpio.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/uart.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/i2c.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/spi.hpp",
             )
         )
     return tuple(paths)
@@ -258,6 +263,56 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "routes.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "driver_semantics"
+                / "common.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "driver_semantics"
+                / "gpio.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "driver_semantics"
+                / "uart.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "driver_semantics"
+                / "i2c.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "driver_semantics"
+                / "spi.hpp"
             ).exists()
 
 

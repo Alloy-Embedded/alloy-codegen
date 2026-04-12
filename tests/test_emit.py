@@ -98,6 +98,21 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_routes_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"
     ]
+    runtime_driver_common_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/common.hpp"
+    ]
+    runtime_gpio_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/gpio.hpp"
+    ]
+    runtime_uart_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/uart.hpp"
+    ]
+    runtime_i2c_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/i2c.hpp"
+    ]
+    runtime_spi_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/spi.hpp"
+    ]
     ip_block_artifacts = [
         artifact
         for path, artifact in artifacts.items()
@@ -322,6 +337,19 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_routes_artifact.artifact_kind == "generated-cpp"
     assert "RouteTraits<" in runtime_routes_artifact.content
     assert "ConnectionGroupTraits<" in runtime_routes_artifact.content
+    assert runtime_driver_common_artifact.artifact_kind == "generated-cpp"
+    assert "struct RuntimeRegisterRef" in runtime_driver_common_artifact.content
+    assert runtime_gpio_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct GpioSemanticTraits" in runtime_gpio_semantics_artifact.content
+    assert "kGpioSemanticPins" in runtime_gpio_semantics_artifact.content
+    assert runtime_uart_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "UartSemanticTraits<PeripheralId::" in runtime_uart_semantics_artifact.content
+    assert runtime_i2c_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct I2cSemanticTraits" in runtime_i2c_semantics_artifact.content
+    assert "kI2cSemanticPeripherals" in runtime_i2c_semantics_artifact.content
+    assert runtime_spi_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct SpiSemanticTraits" in runtime_spi_semantics_artifact.content
+    assert "kSpiSemanticPeripherals" in runtime_spi_semantics_artifact.content
 
 
 def test_emit_matches_golden_artifacts(
