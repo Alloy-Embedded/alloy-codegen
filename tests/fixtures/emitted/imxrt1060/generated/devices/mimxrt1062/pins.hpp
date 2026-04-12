@@ -1,6 +1,9 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
+#include "../../runtime_refs.hpp"
+#include "../../runtime_semantics.hpp"
 
 namespace nxp {
 namespace imxrt1060 {
@@ -8,37 +11,56 @@ namespace generated {
 namespace devices {
 namespace mimxrt1062 {
 struct PinDescriptor {
-  const char* pin_name;
-  const char* port;
+  PinRefId pin_id;
+  PortId port_id;
   int number;
-  const char* package_pad_ids;
-  const char* constraint_ids;
+  std::uint16_t package_pad_offset;
+  std::uint16_t package_pad_count;
+  std::uint16_t constraint_offset;
+  std::uint16_t constraint_count;
 };
 inline constexpr std::array<PinDescriptor, 4> kPins = {{
-  {"GPIO_AD_B0_00", nullptr, 0, "GPIO_AD_B0_00", ""},
-  {"GPIO_AD_B0_01", nullptr, 1, "GPIO_AD_B0_01", ""},
-  {"GPIO_EMC_00", nullptr, 0, "GPIO_EMC_00", ""},
-  {"GPIO_EMC_01", nullptr, 1, "GPIO_EMC_01", ""},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_00, PortId::none, 0, 0u, 1u, 0u, 0u},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_01, PortId::none, 1, 1u, 1u, 0u, 0u},
+  {PinRefId::mimxrt1062_GPIO_EMC_00, PortId::none, 0, 2u, 1u, 0u, 0u},
+  {PinRefId::mimxrt1062_GPIO_EMC_01, PortId::none, 1, 3u, 1u, 0u, 0u},
 }};
 
+struct PinPackagePadRef {
+  PinRefId pin_id;
+  PackagePadRefId package_pad_id;
+};
+inline constexpr std::array<PinPackagePadRef, 4> kPinPackagePadRefs = {{
+  {PinRefId::mimxrt1062_GPIO_AD_B0_00, PackagePadRefId::mimxrt1062_GPIO_AD_B0_00},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_01, PackagePadRefId::mimxrt1062_GPIO_AD_B0_01},
+  {PinRefId::mimxrt1062_GPIO_EMC_00, PackagePadRefId::mimxrt1062_GPIO_EMC_00},
+  {PinRefId::mimxrt1062_GPIO_EMC_01, PackagePadRefId::mimxrt1062_GPIO_EMC_01},
+}};
+
+struct PinConstraintRef {
+  PinRefId pin_id;
+  ConstraintRefId constraint_id;
+};
+inline constexpr std::array<PinConstraintRef, 0> kPinConstraintRefs = {};
+
 struct PinSignalDescriptor {
-  const char* pin_name;
-  const char* function;
-  const char* peripheral;
-  const char* signal;
+  PinRefId pin_id;
+  PinFunctionId function_id;
+  PeripheralRefId peripheral_id;
+  SignalId signal_id;
   int af_number;
 };
 inline constexpr std::array<PinSignalDescriptor, 10> kPinSignals = {{
-  {"GPIO_AD_B0_00", "gpio1_io00", "GPIO1", "IO00", 5},
-  {"GPIO_AD_B0_00", "lpi2c1_scl", "LPI2C1", "SCL", 0},
-  {"GPIO_AD_B0_00", "lpuart1_tx", "LPUART1", "TX", 2},
-  {"GPIO_AD_B0_01", "gpio1_io01", "GPIO1", "IO01", 5},
-  {"GPIO_AD_B0_01", "lpi2c1_sda", "LPI2C1", "SDA", 0},
-  {"GPIO_AD_B0_01", "lpuart1_rx", "LPUART1", "RX", 2},
-  {"GPIO_EMC_00", "gpio4_io00", "GPIO4", "IO00", 5},
-  {"GPIO_EMC_00", "lpspi1_sck", "LPSPI1", "SCK", 2},
-  {"GPIO_EMC_01", "gpio4_io01", "GPIO4", "IO01", 5},
-  {"GPIO_EMC_01", "lpspi1_pcs0", "LPSPI1", "PCS0", 2},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_00, PinFunctionId::pin_function_gpio1_io00, PeripheralRefId::mimxrt1062_GPIO1, SignalId::signal_IO00, 5},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_00, PinFunctionId::pin_function_lpi2c1_scl, PeripheralRefId::mimxrt1062_LPI2C1, SignalId::signal_SCL, 0},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_00, PinFunctionId::pin_function_lpuart1_tx, PeripheralRefId::mimxrt1062_LPUART1, SignalId::signal_TX, 2},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_01, PinFunctionId::pin_function_gpio1_io01, PeripheralRefId::mimxrt1062_GPIO1, SignalId::signal_IO01, 5},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_01, PinFunctionId::pin_function_lpi2c1_sda, PeripheralRefId::mimxrt1062_LPI2C1, SignalId::signal_SDA, 0},
+  {PinRefId::mimxrt1062_GPIO_AD_B0_01, PinFunctionId::pin_function_lpuart1_rx, PeripheralRefId::mimxrt1062_LPUART1, SignalId::signal_RX, 2},
+  {PinRefId::mimxrt1062_GPIO_EMC_00, PinFunctionId::pin_function_gpio4_io00, PeripheralRefId::mimxrt1062_GPIO4, SignalId::signal_IO00, 5},
+  {PinRefId::mimxrt1062_GPIO_EMC_00, PinFunctionId::pin_function_lpspi1_sck, PeripheralRefId::mimxrt1062_LPSPI1, SignalId::signal_SCK, 2},
+  {PinRefId::mimxrt1062_GPIO_EMC_01, PinFunctionId::pin_function_gpio4_io01, PeripheralRefId::mimxrt1062_GPIO4, SignalId::signal_IO01, 5},
+  {PinRefId::mimxrt1062_GPIO_EMC_01, PinFunctionId::pin_function_lpspi1_pcs0, PeripheralRefId::mimxrt1062_LPSPI1, SignalId::signal_PCS0, 2},
 }};
 }
 }

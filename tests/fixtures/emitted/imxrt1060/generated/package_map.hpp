@@ -1,41 +1,43 @@
 #pragma once
 
 #include <array>
+#include "runtime_refs.hpp"
+#include "runtime_semantics.hpp"
 
 namespace nxp {
 namespace imxrt1060 {
 namespace generated {
 struct PackageDescriptor {
-  const char* device;
-  const char* package_name;
+  DeviceRefId device_id;
+  PackageRefId package_id;
   int pin_count;
 };
 inline constexpr PackageDescriptor kPackageMap[] = {
-  {"mimxrt1062", "bga196", 196},
+  {DeviceRefId::mimxrt1062, PackageRefId::mimxrt1062_bga196, 196},
 };
 
 struct PackagePadDescriptor {
-  const char* device;
-  const char* package_name;
-  const char* pad_id;
-  const char* position_label;
+  DeviceRefId device_id;
+  PackageRefId package_id;
+  PackagePadRefId pad_id;
+  PinRefId pin_id;
+  PackagePadKindId pad_kind_id;
+  BondingStateId bonding_state_id;
   int physical_index;
-  const char* pad_kind;
-  const char* bonded_pin;
-  const char* bonding_state;
 };
 inline constexpr PackagePadDescriptor kPackagePads[] = {
-  {"mimxrt1062", "bga196", "GPIO_AD_B0_00", "GPIO_AD_B0_00", -1, "io", "GPIO_AD_B0_00", "bonded"},
-  {"mimxrt1062", "bga196", "GPIO_AD_B0_01", "GPIO_AD_B0_01", -1, "io", "GPIO_AD_B0_01", "bonded"},
-  {"mimxrt1062", "bga196", "GPIO_EMC_00", "GPIO_EMC_00", -1, "io", "GPIO_EMC_00", "bonded"},
-  {"mimxrt1062", "bga196", "GPIO_EMC_01", "GPIO_EMC_01", -1, "io", "GPIO_EMC_01", "bonded"},
+  {DeviceRefId::mimxrt1062, PackageRefId::mimxrt1062_bga196, PackagePadRefId::mimxrt1062_GPIO_AD_B0_00, PinRefId::mimxrt1062_GPIO_AD_B0_00, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, -1},
+  {DeviceRefId::mimxrt1062, PackageRefId::mimxrt1062_bga196, PackagePadRefId::mimxrt1062_GPIO_AD_B0_01, PinRefId::mimxrt1062_GPIO_AD_B0_01, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, -1},
+  {DeviceRefId::mimxrt1062, PackageRefId::mimxrt1062_bga196, PackagePadRefId::mimxrt1062_GPIO_EMC_00, PinRefId::mimxrt1062_GPIO_EMC_00, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, -1},
+  {DeviceRefId::mimxrt1062, PackageRefId::mimxrt1062_bga196, PackagePadRefId::mimxrt1062_GPIO_EMC_01, PinRefId::mimxrt1062_GPIO_EMC_01, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, -1},
 };
 
 struct PinConstraintDescriptor {
-  const char* device;
-  const char* pin_name;
-  const char* kind;
-  const char* value;
+  DeviceRefId device_id;
+  PinRefId pin_id;
+  ConstraintRefId constraint_id;
+  ConstraintKindId kind_id;
+  ConstraintValueId value_id;
 };
 inline constexpr std::array<PinConstraintDescriptor, 0> kPinConstraints = {};
 }

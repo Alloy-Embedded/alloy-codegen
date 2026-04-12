@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstdint>
+#include "runtime_refs.hpp"
+#include "runtime_semantics.hpp"
 
 namespace st {
 namespace stm32g0 {
@@ -9,10 +11,14 @@ namespace generated {
 enum class RuntimeRefDomain : std::uint8_t {
   none,
   package,
+  package_pad,
+  peripheral,
   state,
   pin,
   constraint,
   selector,
+  ip_block,
+  capability,
   clock_gate,
   reset,
   register_ref,
@@ -21,25 +27,43 @@ enum class RuntimeRefDomain : std::uint8_t {
   other,
 };
 
-struct SignalEndpointDescriptor {
-  const char* device;
-  const char* endpoint_id;
-  const char* peripheral_class;
-  const char* signal;
-  const char* direction;
-};
-inline constexpr SignalEndpointDescriptor kSignalEndpoints[] = {
-  {"stm32g071rb", "endpoint:gpio:in0", "gpio", "IN0", nullptr},
-  {"stm32g071rb", "endpoint:gpio:in1", "gpio", "IN1", nullptr},
-  {"stm32g071rb", "endpoint:gpio:in2", "gpio", "IN2", nullptr},
-  {"stm32g071rb", "endpoint:gpio:in3", "gpio", "IN3", nullptr},
-  {"stm32g071rb", "endpoint:gpio:in6", "gpio", "IN6", nullptr},
-  {"stm32g071rb", "endpoint:gpio:in7", "gpio", "IN7", nullptr},
-  {"stm32g071rb", "endpoint:uart:rx", "uart", "RX", "input"},
-  {"stm32g071rb", "endpoint:uart:tx", "uart", "TX", "output"},
+struct RuntimeRef {
+  RuntimeRefDomain domain;
+  std::uint16_t index;
 };
 
+enum class SignalEndpointId : std::uint16_t {
+  none,
+  stm32g071rb_endpoint_gpio_in0,
+  stm32g071rb_endpoint_gpio_in1,
+  stm32g071rb_endpoint_gpio_in2,
+  stm32g071rb_endpoint_gpio_in3,
+  stm32g071rb_endpoint_gpio_in6,
+  stm32g071rb_endpoint_gpio_in7,
+  stm32g071rb_endpoint_uart_rx,
+  stm32g071rb_endpoint_uart_tx,
+};
+
+struct SignalEndpointDescriptor {
+  DeviceRefId device_id;
+  SignalEndpointId endpoint_id;
+  PeripheralClassId peripheral_class_id;
+  SignalId signal_id;
+  DirectionId direction_id;
+};
+inline constexpr std::array<SignalEndpointDescriptor, 8> kSignalEndpoints = {{
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_gpio_in0, PeripheralClassId::class_gpio, SignalId::signal_IN0, DirectionId::none},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_gpio_in1, PeripheralClassId::class_gpio, SignalId::signal_IN1, DirectionId::none},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_gpio_in2, PeripheralClassId::class_gpio, SignalId::signal_IN2, DirectionId::none},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_gpio_in3, PeripheralClassId::class_gpio, SignalId::signal_IN3, DirectionId::none},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_gpio_in6, PeripheralClassId::class_gpio, SignalId::signal_IN6, DirectionId::none},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_gpio_in7, PeripheralClassId::class_gpio, SignalId::signal_IN7, DirectionId::none},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_uart_rx, PeripheralClassId::class_uart, SignalId::signal_RX, DirectionId::direction_input},
+  {DeviceRefId::stm32g071rb, SignalEndpointId::stm32g071rb_endpoint_uart_tx, PeripheralClassId::class_uart, SignalId::signal_TX, DirectionId::direction_output},
+}};
+
 enum class RouteRequirementId : std::uint16_t {
+  none,
   stm32g071rb_requirement_bonded_pin_lqfp64_pb6,
   stm32g071rb_requirement_bonded_pin_lqfp64_pb7,
   stm32g071rb_requirement_clock_enable_dma1,
@@ -58,37 +82,33 @@ enum class RouteRequirementId : std::uint16_t {
 };
 
 struct RouteRequirementDescriptor {
-  const char* device;
+  DeviceRefId device_id;
   RouteRequirementId requirement_id;
-  const char* requirement_name;
-  const char* kind;
-  RuntimeRefDomain target_ref_domain;
-  std::uint16_t target_ref_index;
-  RuntimeRefDomain value_ref_domain;
-  std::uint16_t value_ref_index;
+  RequirementKindId kind_id;
+  RuntimeRef target_ref;
+  RuntimeRef value_ref;
   int value_int;
-  const char* diagnostic_target;
-  const char* diagnostic_value;
 };
 inline constexpr std::array<RouteRequirementDescriptor, 15> kRouteRequirements = {{
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb6, "requirement:bonded-pin:lqfp64:pb6", "bonded-pin", RuntimeRefDomain::pin, 5u, RuntimeRefDomain::package, 1u, -1, "PB6", "lqfp64"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb7, "requirement:bonded-pin:lqfp64:pb7", "bonded-pin", RuntimeRefDomain::pin, 6u, RuntimeRefDomain::package, 1u, -1, "PB7", "lqfp64"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_dma1, "requirement:clock-enable:dma1", "clock-enable", RuntimeRefDomain::clock_gate, 1u, RuntimeRefDomain::integer, 0u, 1, "RCC_AHBENR.DMA1EN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_dmamux1, "requirement:clock-enable:dmamux1", "clock-enable", RuntimeRefDomain::clock_gate, 2u, RuntimeRefDomain::integer, 0u, 1, "RCC_AHBENR.DMAMUX1EN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_gpioa, "requirement:clock-enable:gpioa", "clock-enable", RuntimeRefDomain::clock_gate, 3u, RuntimeRefDomain::integer, 0u, 1, "RCC_IOPENR.GPIOAEN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_gpiob, "requirement:clock-enable:gpiob", "clock-enable", RuntimeRefDomain::clock_gate, 4u, RuntimeRefDomain::integer, 0u, 1, "RCC_IOPENR.GPIOBEN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_clock_enable_usart1, "requirement:clock-enable:usart1", "clock-enable", RuntimeRefDomain::clock_gate, 5u, RuntimeRefDomain::integer, 0u, 1, "RCC_APBENR2.USART1EN", "1"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_package_lqfp64, "requirement:package:lqfp64", "package", RuntimeRefDomain::package, 1u, RuntimeRefDomain::state, 1u, -1, "lqfp64", "selected"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_dma1, "requirement:reset-release:dma1", "reset-release", RuntimeRefDomain::reset, 1u, RuntimeRefDomain::integer, 0u, 0, "RCC_AHBRSTR.DMA1RST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_dmamux1, "requirement:reset-release:dmamux1", "reset-release", RuntimeRefDomain::reset, 2u, RuntimeRefDomain::integer, 0u, 0, "RCC_AHBRSTR.DMAMUX1RST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_gpioa, "requirement:reset-release:gpioa", "reset-release", RuntimeRefDomain::reset, 3u, RuntimeRefDomain::integer, 0u, 0, "RCC_IOPRSTR.GPIOARST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_gpiob, "requirement:reset-release:gpiob", "reset-release", RuntimeRefDomain::reset, 4u, RuntimeRefDomain::integer, 0u, 0, "RCC_IOPRSTR.GPIOBRST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_reset_release_usart1, "requirement:reset-release:usart1", "reset-release", RuntimeRefDomain::reset, 5u, RuntimeRefDomain::integer, 0u, 0, "RCC_APBRSTR2.USART1RST", "0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_source_select_pb6_usart1_tx, "requirement:source-select:pb6:usart1:tx", "source-select", RuntimeRefDomain::pin, 5u, RuntimeRefDomain::selector, 1u, 0, "pinmux.PB6", "selector:0"},
-  {"stm32g071rb", RouteRequirementId::stm32g071rb_requirement_source_select_pb7_usart1_rx, "requirement:source-select:pb7:usart1:rx", "source-select", RuntimeRefDomain::pin, 6u, RuntimeRefDomain::selector, 1u, 0, "pinmux.PB7", "selector:0"},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb6, RequirementKindId::requirement_kind_bonded_pin, {RuntimeRefDomain::pin, 5u}, {RuntimeRefDomain::package, 1u}, -1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_bonded_pin_lqfp64_pb7, RequirementKindId::requirement_kind_bonded_pin, {RuntimeRefDomain::pin, 6u}, {RuntimeRefDomain::package, 1u}, -1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_clock_enable_dma1, RequirementKindId::requirement_kind_clock_enable, {RuntimeRefDomain::clock_gate, 1u}, {RuntimeRefDomain::integer, 0u}, 1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_clock_enable_dmamux1, RequirementKindId::requirement_kind_clock_enable, {RuntimeRefDomain::clock_gate, 2u}, {RuntimeRefDomain::integer, 0u}, 1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_clock_enable_gpioa, RequirementKindId::requirement_kind_clock_enable, {RuntimeRefDomain::clock_gate, 3u}, {RuntimeRefDomain::integer, 0u}, 1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_clock_enable_gpiob, RequirementKindId::requirement_kind_clock_enable, {RuntimeRefDomain::clock_gate, 4u}, {RuntimeRefDomain::integer, 0u}, 1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_clock_enable_usart1, RequirementKindId::requirement_kind_clock_enable, {RuntimeRefDomain::clock_gate, 5u}, {RuntimeRefDomain::integer, 0u}, 1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_package_lqfp64, RequirementKindId::requirement_kind_package, {RuntimeRefDomain::package, 1u}, {RuntimeRefDomain::state, 1u}, -1},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_reset_release_dma1, RequirementKindId::requirement_kind_reset_release, {RuntimeRefDomain::reset, 1u}, {RuntimeRefDomain::integer, 0u}, 0},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_reset_release_dmamux1, RequirementKindId::requirement_kind_reset_release, {RuntimeRefDomain::reset, 2u}, {RuntimeRefDomain::integer, 0u}, 0},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_reset_release_gpioa, RequirementKindId::requirement_kind_reset_release, {RuntimeRefDomain::reset, 3u}, {RuntimeRefDomain::integer, 0u}, 0},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_reset_release_gpiob, RequirementKindId::requirement_kind_reset_release, {RuntimeRefDomain::reset, 4u}, {RuntimeRefDomain::integer, 0u}, 0},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_reset_release_usart1, RequirementKindId::requirement_kind_reset_release, {RuntimeRefDomain::reset, 5u}, {RuntimeRefDomain::integer, 0u}, 0},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_source_select_pb6_usart1_tx, RequirementKindId::requirement_kind_source_select, {RuntimeRefDomain::pin, 5u}, {RuntimeRefDomain::selector, 1u}, 0},
+  {DeviceRefId::stm32g071rb, RouteRequirementId::stm32g071rb_requirement_source_select_pb7_usart1_rx, RequirementKindId::requirement_kind_source_select, {RuntimeRefDomain::pin, 6u}, {RuntimeRefDomain::selector, 1u}, 0},
 }};
 
 enum class RouteOperationId : std::uint16_t {
+  none,
   stm32g071rb_operation_clock_enable_dma1,
   stm32g071rb_operation_clock_enable_dmamux1,
   stm32g071rb_operation_clock_enable_gpioa,
@@ -104,58 +124,57 @@ enum class RouteOperationId : std::uint16_t {
 };
 
 struct RouteOperationDescriptor {
-  const char* device;
+  DeviceRefId device_id;
   RouteOperationId operation_id;
-  const char* operation_name;
-  const char* kind;
-  const char* schema_id;
-  const char* subject_kind;
-  const char* subject_id;
-  RuntimeRefDomain target_ref_domain;
-  std::uint16_t target_ref_index;
-  RuntimeRefDomain value_ref_domain;
-  std::uint16_t value_ref_index;
-  const char* register_peripheral;
-  const char* register_name;
-  int register_offset;
+  OperationKindId kind_id;
+  BackendSchemaId schema_id;
+  RuntimeRef subject_ref;
+  RuntimeRef target_ref;
+  RuntimeRef value_ref;
   RegisterRefId register_id;
   RegisterFieldRefId register_field_id;
   int value_int;
-  const char* diagnostic_target;
-  const char* diagnostic_value;
 };
 inline constexpr std::array<RouteOperationDescriptor, 12> kRouteOperations = {{
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_dma1, "operation:clock-enable:dma1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", RuntimeRefDomain::clock_gate, 1u, RuntimeRefDomain::integer, 0u, "RCC", "AHBENR", 56, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none, 1, "RCC_AHBENR.DMA1EN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_dmamux1, "operation:clock-enable:dmamux1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", RuntimeRefDomain::clock_gate, 2u, RuntimeRefDomain::integer, 0u, "RCC", "AHBENR", 56, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none, 1, "RCC_AHBENR.DMAMUX1EN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_gpioa, "operation:clock-enable:gpioa", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", RuntimeRefDomain::clock_gate, 3u, RuntimeRefDomain::integer, 0u, "RCC", "IOPENR", 52, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none, 1, "RCC_IOPENR.GPIOAEN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_gpiob, "operation:clock-enable:gpiob", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", RuntimeRefDomain::clock_gate, 4u, RuntimeRefDomain::integer, 0u, "RCC", "IOPENR", 52, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none, 1, "RCC_IOPENR.GPIOBEN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_clock_enable_usart1, "operation:clock-enable:usart1", "set-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", RuntimeRefDomain::clock_gate, 5u, RuntimeRefDomain::integer, 0u, "RCC", "APBENR2", 64, RegisterRefId::stm32g071rb_register_rcc_apbenr2, RegisterFieldRefId::none, 1, "RCC_APBENR2.USART1EN", "1"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_dma1, "operation:reset-release:dma1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMA1", RuntimeRefDomain::reset, 1u, RuntimeRefDomain::integer, 0u, "RCC", "AHBRSTR", 40, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none, 0, "RCC_AHBRSTR.DMA1RST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_dmamux1, "operation:reset-release:dmamux1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "DMAMUX1", RuntimeRefDomain::reset, 2u, RuntimeRefDomain::integer, 0u, "RCC", "AHBRSTR", 40, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none, 0, "RCC_AHBRSTR.DMAMUX1RST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_gpioa, "operation:reset-release:gpioa", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOA", RuntimeRefDomain::reset, 3u, RuntimeRefDomain::integer, 0u, "RCC", "IOPRSTR", 36, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none, 0, "RCC_IOPRSTR.GPIOARST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_gpiob, "operation:reset-release:gpiob", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "GPIOB", RuntimeRefDomain::reset, 4u, RuntimeRefDomain::integer, 0u, "RCC", "IOPRSTR", 36, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none, 0, "RCC_IOPRSTR.GPIOBRST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_reset_release_usart1, "operation:reset-release:usart1", "clear-bit", "alloy.clock.st-rcc-g0-v1-0", "peripheral", "USART1", RuntimeRefDomain::reset, 5u, RuntimeRefDomain::integer, 0u, "RCC", "APBRSTR2", 48, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, RegisterFieldRefId::none, 0, "RCC_APBRSTR2.USART1RST", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_route_pb6_usart1_tx, "operation:route:pb6:usart1:tx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB6", RuntimeRefDomain::pin, 5u, RuntimeRefDomain::selector, 1u, nullptr, nullptr, -1, RegisterRefId::none, RegisterFieldRefId::none, 0, "pinmux.PB6", "0"},
-  {"stm32g071rb", RouteOperationId::stm32g071rb_operation_route_pb7_usart1_rx, "operation:route:pb7:usart1:rx", "write-selector", "alloy.pinmux.stm32-af-v1", "pin", "PB7", RuntimeRefDomain::pin, 6u, RuntimeRefDomain::selector, 1u, nullptr, nullptr, -1, RegisterRefId::none, RegisterFieldRefId::none, 0, "pinmux.PB7", "0"},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_clock_enable_dma1, OperationKindId::operation_kind_set_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 1u}, {RuntimeRefDomain::clock_gate, 1u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none, 1},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_clock_enable_dmamux1, OperationKindId::operation_kind_set_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 2u}, {RuntimeRefDomain::clock_gate, 2u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_ahbenr, RegisterFieldRefId::none, 1},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_clock_enable_gpioa, OperationKindId::operation_kind_set_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 3u}, {RuntimeRefDomain::clock_gate, 3u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none, 1},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_clock_enable_gpiob, OperationKindId::operation_kind_set_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 4u}, {RuntimeRefDomain::clock_gate, 4u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_iopenr, RegisterFieldRefId::none, 1},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_clock_enable_usart1, OperationKindId::operation_kind_set_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 6u}, {RuntimeRefDomain::clock_gate, 5u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_apbenr2, RegisterFieldRefId::none, 1},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_reset_release_dma1, OperationKindId::operation_kind_clear_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 1u}, {RuntimeRefDomain::reset, 1u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none, 0},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_reset_release_dmamux1, OperationKindId::operation_kind_clear_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 2u}, {RuntimeRefDomain::reset, 2u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_ahbrstr, RegisterFieldRefId::none, 0},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_reset_release_gpioa, OperationKindId::operation_kind_clear_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 3u}, {RuntimeRefDomain::reset, 3u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none, 0},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_reset_release_gpiob, OperationKindId::operation_kind_clear_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 4u}, {RuntimeRefDomain::reset, 4u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_ioprstr, RegisterFieldRefId::none, 0},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_reset_release_usart1, OperationKindId::operation_kind_clear_bit, BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, {RuntimeRefDomain::peripheral, 6u}, {RuntimeRefDomain::reset, 5u}, {RuntimeRefDomain::integer, 0u}, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, RegisterFieldRefId::none, 0},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_route_pb6_usart1_tx, OperationKindId::operation_kind_write_selector, BackendSchemaId::schema_alloy_pinmux_stm32_af_v1, {RuntimeRefDomain::pin, 5u}, {RuntimeRefDomain::pin, 5u}, {RuntimeRefDomain::selector, 1u}, RegisterRefId::none, RegisterFieldRefId::none, 0},
+  {DeviceRefId::stm32g071rb, RouteOperationId::stm32g071rb_operation_route_pb7_usart1_rx, OperationKindId::operation_kind_write_selector, BackendSchemaId::schema_alloy_pinmux_stm32_af_v1, {RuntimeRefDomain::pin, 6u}, {RuntimeRefDomain::pin, 6u}, {RuntimeRefDomain::selector, 1u}, RegisterRefId::none, RegisterFieldRefId::none, 0},
 }};
 
 enum class ConnectionCandidateId : std::uint16_t {
+  none,
   stm32g071rb_candidate_pb6_usart1_tx,
   stm32g071rb_candidate_pb7_usart1_rx,
 };
 
+enum class ConnectionConflictGroupId : std::uint16_t {
+  none,
+  conflict_usart1_lqfp64_tx_rx,
+};
+
+enum class ConnectionGroupId : std::uint16_t {
+  none,
+  stm32g071rb_group_usart1_lqfp64_tx_rx,
+};
+
 struct ConnectionCandidateDescriptor {
-  const char* device;
+  DeviceRefId device_id;
   ConnectionCandidateId candidate_id;
-  const char* candidate_name;
   PinRefId pin_id;
-  const char* pin;
-  const char* peripheral;
-  const char* signal;
-  const char* route_kind;
+  PeripheralRefId peripheral_id;
+  SignalId signal_id;
+  RouteKindId route_kind_id;
   SelectorRefId route_selector_id;
-  const char* diagnostic_route_selector;
-  int route_group_index;
+  ConnectionGroupId route_group_id;
   std::uint16_t requirement_offset;
   std::uint16_t requirement_count;
   std::uint16_t operation_offset;
@@ -164,8 +183,8 @@ struct ConnectionCandidateDescriptor {
   std::uint16_t capability_count;
 };
 inline constexpr std::array<ConnectionCandidateDescriptor, 2> kConnectionCandidates = {{
-  {"stm32g071rb", ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, "candidate:pb6:usart1:tx", PinRefId::stm32g071rb_PB6, "PB6", "USART1", "tx", "alternate-function", SelectorRefId::stm32g071rb_selector_0, "selector:0", 0, 0u, 5u, 0u, 3u, 0u, 2u},
-  {"stm32g071rb", ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, "candidate:pb7:usart1:rx", PinRefId::stm32g071rb_PB7, "PB7", "USART1", "rx", "alternate-function", SelectorRefId::stm32g071rb_selector_0, "selector:0", 0, 5u, 5u, 3u, 3u, 2u, 2u},
+  {DeviceRefId::stm32g071rb, ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, PinRefId::stm32g071rb_PB6, PeripheralRefId::stm32g071rb_USART1, SignalId::signal_tx, RouteKindId::route_kind_alternate_function, SelectorRefId::stm32g071rb_selector_0, ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, 0u, 5u, 0u, 3u, 0u, 2u},
+  {DeviceRefId::stm32g071rb, ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, PinRefId::stm32g071rb_PB7, PeripheralRefId::stm32g071rb_USART1, SignalId::signal_rx, RouteKindId::route_kind_alternate_function, SelectorRefId::stm32g071rb_selector_0, ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, 5u, 5u, 3u, 3u, 2u, 2u},
 }};
 
 struct CandidateRequirementRef {
@@ -200,43 +219,37 @@ inline constexpr std::array<CandidateOperationRef, 6> kCandidateOperationRefs = 
 
 struct CandidateCapabilityRef {
   ConnectionCandidateId candidate_id;
-  const char* capability_id;
+  CapabilityRefId capability_id;
 };
 inline constexpr std::array<CandidateCapabilityRef, 4> kCandidateCapabilityRefs = {{
-  {ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, "capability:usart:usart-v3-1:tx"},
-  {ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, "capability-instance:usart1:lqfp64:tx"},
-  {ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, "capability:usart:usart-v3-1:rx"},
-  {ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, "capability-instance:usart1:lqfp64:rx"},
+  {ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, CapabilityRefId::stm32g071rb_capability_usart_usart_v3_1_tx},
+  {ConnectionCandidateId::stm32g071rb_candidate_pb6_usart1_tx, CapabilityRefId::stm32g071rb_capability_instance_usart1_lqfp64_tx},
+  {ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, CapabilityRefId::stm32g071rb_capability_usart_usart_v3_1_rx},
+  {ConnectionCandidateId::stm32g071rb_candidate_pb7_usart1_rx, CapabilityRefId::stm32g071rb_capability_instance_usart1_lqfp64_rx},
 }};
 
-enum class ConnectionGroupId : std::uint16_t {
-  stm32g071rb_group_usart1_lqfp64_tx_rx,
-};
-
 struct ConnectionGroupDescriptor {
-  const char* device;
+  DeviceRefId device_id;
   ConnectionGroupId group_id;
-  const char* group_name;
-  const char* peripheral;
+  PeripheralRefId peripheral_id;
   PackageRefId package_id;
-  const char* diagnostic_package_name;
-  const char* conflict_group;
+  ConnectionConflictGroupId conflict_group_id;
   std::uint16_t signal_offset;
   std::uint16_t signal_count;
   std::uint16_t candidate_offset;
   std::uint16_t candidate_count;
 };
 inline constexpr std::array<ConnectionGroupDescriptor, 1> kConnectionGroups = {{
-  {"stm32g071rb", ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, "group:usart1:lqfp64:tx-rx", "USART1", PackageRefId::stm32g071rb_lqfp64, "lqfp64", "conflict:usart1:lqfp64:tx-rx", 0u, 2u, 0u, 2u},
+  {DeviceRefId::stm32g071rb, ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, PeripheralRefId::stm32g071rb_USART1, PackageRefId::stm32g071rb_lqfp64, ConnectionConflictGroupId::conflict_usart1_lqfp64_tx_rx, 0u, 2u, 0u, 2u},
 }};
 
 struct ConnectionGroupSignalRef {
   ConnectionGroupId group_id;
-  const char* signal_name;
+  SignalId signal_id;
 };
 inline constexpr std::array<ConnectionGroupSignalRef, 2> kConnectionGroupSignals = {{
-  {ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, "tx"},
-  {ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, "rx"},
+  {ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, SignalId::signal_tx},
+  {ConnectionGroupId::stm32g071rb_group_usart1_lqfp64_tx_rx, SignalId::signal_rx},
 }};
 
 struct ConnectionGroupCandidateRef {

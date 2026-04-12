@@ -1,17 +1,16 @@
 #pragma once
 
+#include "../../runtime_refs.hpp"
+#include "../../runtime_semantics.hpp"
+
 namespace nxp {
 namespace imxrt1060 {
 namespace generated {
 namespace devices {
 namespace mimxrt1062 {
 struct DeviceDescriptor {
-  const char* vendor;
-  const char* family;
-  const char* device;
-  const char* package_name;
-  const char* core;
-  const char* summary;
+  PackageRefId package_id;
+  CoreId core_id;
   int pin_count;
   int peripheral_count;
   int interrupt_count;
@@ -20,12 +19,8 @@ struct DeviceDescriptor {
   int startup_descriptor_count;
 };
 inline constexpr DeviceDescriptor kDeviceDescriptor = {
-  "nxp",
-  "imxrt1060",
-  "mimxrt1062",
-  "bga196",
-  "cortex-m7f",
-  "NXP MIMXRT1062DVL6B i.MX RT1060 Crossover MCU with 1 MB OCRAM.",
+  PackageRefId::mimxrt1062_bga196,
+  CoreId::core_cortex_m7f,
   4,
   6,
   4,

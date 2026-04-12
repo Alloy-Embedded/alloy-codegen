@@ -1,52 +1,95 @@
 #pragma once
 
+#include <array>
+#include <cstdint>
+#include "../../runtime_semantics.hpp"
+#include "interrupt_bindings.hpp"
+
 namespace nxp {
 namespace imxrt1060 {
 namespace generated {
 namespace devices {
 namespace mimxrt1062 {
-struct VectorSlotDescriptor {
-  int slot;
-  const char* symbol_name;
-  const char* interrupt_name;
-  const char* kind;
-};
-inline constexpr VectorSlotDescriptor kVectorSlots[] = {
-  {0, "__stack_top", nullptr, "initial-stack-pointer"},
-  {1, "Reset_Handler", nullptr, "reset-handler"},
-  {2, "NMI_Handler", nullptr, "system-exception"},
-  {3, "HardFault_Handler", nullptr, "system-exception"},
-  {4, "MemManage_Handler", nullptr, "system-exception"},
-  {5, "BusFault_Handler", nullptr, "system-exception"},
-  {6, "UsageFault_Handler", nullptr, "system-exception"},
-  {7, "Reserved_Handler_7", nullptr, "reserved"},
-  {8, "Reserved_Handler_8", nullptr, "reserved"},
-  {9, "Reserved_Handler_9", nullptr, "reserved"},
-  {10, "Reserved_Handler_10", nullptr, "reserved"},
-  {11, "SVCall_Handler", nullptr, "system-exception"},
-  {12, "DebugMon_Handler", nullptr, "system-exception"},
-  {13, "Reserved_Handler_13", nullptr, "reserved"},
-  {14, "PendSV_Handler", nullptr, "system-exception"},
-  {15, "SysTick_Handler", nullptr, "system-exception"},
-  {36, "LPUART1_IRQHandler", "LPUART1", "external-interrupt"},
-  {38, "LPUART3_IRQHandler", "LPUART3", "external-interrupt"},
-  {44, "LPI2C1_IRQHandler", "LPI2C1", "external-interrupt"},
-  {48, "LPSPI1_IRQHandler", "LPSPI1", "external-interrupt"},
+enum class StartupMemoryRegionId : std::uint16_t {
+  none,
+  OCRAM,
 };
 
+enum class StartupSymbolId : std::uint16_t {
+  none,
+  BusFault_Handler,
+  DebugMon_Handler,
+  HardFault_Handler,
+  LPI2C1_IRQHandler,
+  LPSPI1_IRQHandler,
+  LPUART1_IRQHandler,
+  LPUART3_IRQHandler,
+  MemManage_Handler,
+  NMI_Handler,
+  PendSV_Handler,
+  Reserved_Handler_10,
+  Reserved_Handler_13,
+  Reserved_Handler_7,
+  Reserved_Handler_8,
+  Reserved_Handler_9,
+  Reset_Handler,
+  SVCall_Handler,
+  SysTick_Handler,
+  UsageFault_Handler,
+  __stack_top,
+  _vectors,
+};
+
+enum class StartupDescriptorId : std::uint16_t {
+  none,
+  startup_copy_target_ocram,
+  startup_stack_top,
+  startup_vectors,
+  startup_zero_target_ocram,
+};
+
+struct VectorSlotDescriptor {
+  int slot;
+  StartupSymbolId symbol_id;
+  InterruptBindingId interrupt_binding_id;
+  VectorKindId kind_id;
+};
+inline constexpr std::array<VectorSlotDescriptor, 20> kVectorSlots = {{
+  {0, StartupSymbolId::__stack_top, InterruptBindingId::none, VectorKindId::vector_kind_initial_stack_pointer},
+  {1, StartupSymbolId::Reset_Handler, InterruptBindingId::none, VectorKindId::vector_kind_reset_handler},
+  {2, StartupSymbolId::NMI_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {3, StartupSymbolId::HardFault_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {4, StartupSymbolId::MemManage_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {5, StartupSymbolId::BusFault_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {6, StartupSymbolId::UsageFault_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {7, StartupSymbolId::Reserved_Handler_7, InterruptBindingId::none, VectorKindId::vector_kind_reserved},
+  {8, StartupSymbolId::Reserved_Handler_8, InterruptBindingId::none, VectorKindId::vector_kind_reserved},
+  {9, StartupSymbolId::Reserved_Handler_9, InterruptBindingId::none, VectorKindId::vector_kind_reserved},
+  {10, StartupSymbolId::Reserved_Handler_10, InterruptBindingId::none, VectorKindId::vector_kind_reserved},
+  {11, StartupSymbolId::SVCall_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {12, StartupSymbolId::DebugMon_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {13, StartupSymbolId::Reserved_Handler_13, InterruptBindingId::none, VectorKindId::vector_kind_reserved},
+  {14, StartupSymbolId::PendSV_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {15, StartupSymbolId::SysTick_Handler, InterruptBindingId::none, VectorKindId::vector_kind_system_exception},
+  {36, StartupSymbolId::LPUART1_IRQHandler, InterruptBindingId::interrupt_binding_lpuart1_lpuart1, VectorKindId::vector_kind_external_interrupt},
+  {38, StartupSymbolId::LPUART3_IRQHandler, InterruptBindingId::interrupt_binding_lpuart3_lpuart3, VectorKindId::vector_kind_external_interrupt},
+  {44, StartupSymbolId::LPI2C1_IRQHandler, InterruptBindingId::interrupt_binding_lpi2c1_lpi2c1, VectorKindId::vector_kind_external_interrupt},
+  {48, StartupSymbolId::LPSPI1_IRQHandler, InterruptBindingId::interrupt_binding_lpspi1_lpspi1, VectorKindId::vector_kind_external_interrupt},
+}};
+
 struct StartupDescriptor {
-  const char* descriptor_id;
-  const char* kind;
-  const char* source_region;
-  const char* target_region;
-  const char* symbol;
+  StartupDescriptorId descriptor_id;
+  StartupKindId kind_id;
+  StartupMemoryRegionId source_region_id;
+  StartupMemoryRegionId target_region_id;
+  StartupSymbolId symbol_id;
 };
-inline constexpr StartupDescriptor kStartupDescriptors[] = {
-  {"startup:copy-target:ocram", "copy-target-region", nullptr, "OCRAM", nullptr},
-  {"startup:stack-top", "initial-stack-pointer", nullptr, nullptr, "__stack_top"},
-  {"startup:vectors", "vector-table", nullptr, nullptr, "_vectors"},
-  {"startup:zero-target:ocram", "zero-target-region", nullptr, "OCRAM", nullptr},
-};
+inline constexpr std::array<StartupDescriptor, 4> kStartupDescriptors = {{
+  {StartupDescriptorId::startup_copy_target_ocram, StartupKindId::startup_kind_copy_target_region, StartupMemoryRegionId::none, StartupMemoryRegionId::OCRAM, StartupSymbolId::none},
+  {StartupDescriptorId::startup_stack_top, StartupKindId::startup_kind_initial_stack_pointer, StartupMemoryRegionId::none, StartupMemoryRegionId::none, StartupSymbolId::__stack_top},
+  {StartupDescriptorId::startup_vectors, StartupKindId::startup_kind_vector_table, StartupMemoryRegionId::none, StartupMemoryRegionId::none, StartupSymbolId::_vectors},
+  {StartupDescriptorId::startup_zero_target_ocram, StartupKindId::startup_kind_zero_target_region, StartupMemoryRegionId::none, StartupMemoryRegionId::OCRAM, StartupSymbolId::none},
+}};
 }
 }
 }

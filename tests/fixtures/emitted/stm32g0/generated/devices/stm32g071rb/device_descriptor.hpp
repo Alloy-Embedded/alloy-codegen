@@ -1,17 +1,16 @@
 #pragma once
 
+#include "../../runtime_refs.hpp"
+#include "../../runtime_semantics.hpp"
+
 namespace st {
 namespace stm32g0 {
 namespace generated {
 namespace devices {
 namespace stm32g071rb {
 struct DeviceDescriptor {
-  const char* vendor;
-  const char* family;
-  const char* device;
-  const char* package_name;
-  const char* core;
-  const char* summary;
+  PackageRefId package_id;
+  CoreId core_id;
   int pin_count;
   int peripheral_count;
   int interrupt_count;
@@ -20,12 +19,8 @@ struct DeviceDescriptor {
   int startup_descriptor_count;
 };
 inline constexpr DeviceDescriptor kDeviceDescriptor = {
-  "st",
-  "stm32g0",
-  "stm32g071rb",
-  "lqfp64",
-  "cortex-m0plus",
-  "Representative mid-range bootstrap device.",
+  PackageRefId::stm32g071rb_lqfp64,
+  CoreId::core_cortex_m0plus,
   6,
   6,
   4,

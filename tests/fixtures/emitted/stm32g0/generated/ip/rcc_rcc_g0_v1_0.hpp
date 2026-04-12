@@ -1,38 +1,42 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
+#include "../runtime_semantics.hpp"
 
 namespace st {
 namespace stm32g0 {
 namespace generated {
 namespace ip {
 struct IpBlockDescriptor {
-  const char* ip_name;
-  const char* ip_version;
-  const char* peripheral_class;
-  const char* backend_schema_id;
-  const char* register_profile;
-  const char* signal_roles;
+  IpBlockId ip_block_id;
+  PeripheralClassId peripheral_class_id;
+  BackendSchemaId schema_id;
+  RegisterProfileId register_profile_id;
+  std::uint16_t signal_role_offset;
+  std::uint16_t signal_role_count;
 };
 inline constexpr IpBlockDescriptor kIpBlock = {
-  "rcc",
-  "rcc_g0_v1_0",
-  "rcc",
-  "alloy.rcc.st-rcc-g0-v1-0",
-  "rcc:rcc_g0_v1_0",
-  "",
+  IpBlockId::ip_block_rcc_rcc_g0_v1_0,
+  PeripheralClassId::class_rcc,
+  BackendSchemaId::schema_alloy_rcc_st_rcc_g0_v1_0,
+  RegisterProfileId::register_profile_rcc_rcc_g0_v1_0,
+  0u,
+  0u,
 };
 
+struct IpBlockSignalRoleRef {
+  IpBlockId ip_block_id;
+  SignalRoleId signal_role_id;
+};
+inline constexpr std::array<IpBlockSignalRoleRef, 0> kSignalRoles = {};
+
 struct CapabilityDescriptor {
-  const char* capability_id;
-  const char* scope;
-  const char* peripheral_class;
-  const char* name;
-  const char* value;
-  const char* ip_name;
-  const char* ip_version;
-  const char* peripheral;
-  const char* package;
+  CapabilityId capability_id;
+  CapabilityScopeId scope_id;
+  PeripheralClassId peripheral_class_id;
+  CapabilityKeyId capability_key_id;
+  IpBlockId ip_block_id;
 };
 inline constexpr std::array<CapabilityDescriptor, 0> kCapabilities = {};
 }

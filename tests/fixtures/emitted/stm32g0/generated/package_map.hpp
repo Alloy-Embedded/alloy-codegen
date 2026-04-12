@@ -1,43 +1,45 @@
 #pragma once
 
 #include <array>
+#include "runtime_refs.hpp"
+#include "runtime_semantics.hpp"
 
 namespace st {
 namespace stm32g0 {
 namespace generated {
 struct PackageDescriptor {
-  const char* device;
-  const char* package_name;
+  DeviceRefId device_id;
+  PackageRefId package_id;
   int pin_count;
 };
 inline constexpr PackageDescriptor kPackageMap[] = {
-  {"stm32g071rb", "lqfp64", 64},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, 64},
 };
 
 struct PackagePadDescriptor {
-  const char* device;
-  const char* package_name;
-  const char* pad_id;
-  const char* position_label;
+  DeviceRefId device_id;
+  PackageRefId package_id;
+  PackagePadRefId pad_id;
+  PinRefId pin_id;
+  PackagePadKindId pad_kind_id;
+  BondingStateId bonding_state_id;
   int physical_index;
-  const char* pad_kind;
-  const char* bonded_pin;
-  const char* bonding_state;
 };
 inline constexpr PackagePadDescriptor kPackagePads[] = {
-  {"stm32g071rb", "lqfp64", "17", "17", 17, "io", "PA0", "bonded"},
-  {"stm32g071rb", "lqfp64", "18", "18", 18, "io", "PA1", "bonded"},
-  {"stm32g071rb", "lqfp64", "19", "19", 19, "io", "PA2", "bonded"},
-  {"stm32g071rb", "lqfp64", "20", "20", 20, "io", "PA3", "bonded"},
-  {"stm32g071rb", "lqfp64", "29", "29", 29, "io", "PB6", "bonded"},
-  {"stm32g071rb", "lqfp64", "30", "30", 30, "io", "PB7", "bonded"},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, PackagePadRefId::stm32g071rb_17, PinRefId::stm32g071rb_PA0, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, 17},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, PackagePadRefId::stm32g071rb_18, PinRefId::stm32g071rb_PA1, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, 18},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, PackagePadRefId::stm32g071rb_19, PinRefId::stm32g071rb_PA2, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, 19},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, PackagePadRefId::stm32g071rb_20, PinRefId::stm32g071rb_PA3, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, 20},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, PackagePadRefId::stm32g071rb_29, PinRefId::stm32g071rb_PB6, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, 29},
+  {DeviceRefId::stm32g071rb, PackageRefId::stm32g071rb_lqfp64, PackagePadRefId::stm32g071rb_30, PinRefId::stm32g071rb_PB7, PackagePadKindId::package_pad_kind_io, BondingStateId::bonding_state_bonded, 30},
 };
 
 struct PinConstraintDescriptor {
-  const char* device;
-  const char* pin_name;
-  const char* kind;
-  const char* value;
+  DeviceRefId device_id;
+  PinRefId pin_id;
+  ConstraintRefId constraint_id;
+  ConstraintKindId kind_id;
+  ConstraintValueId value_id;
 };
 inline constexpr std::array<PinConstraintDescriptor, 0> kPinConstraints = {};
 }

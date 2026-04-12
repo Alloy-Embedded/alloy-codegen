@@ -39,6 +39,7 @@ from alloy_codegen.emission import (
     emit_register_map_header,
     emit_runtime_profiles_header,
     emit_runtime_refs_header,
+    emit_runtime_semantics_header,
     emit_startup_descriptors_header,
     emit_startup_vectors_source,
     emit_system_descriptors_metadata,
@@ -148,6 +149,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 ip_version=ip_version,
             )
         )
+    artifacts.append(emit_runtime_semantics_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_runtime_profiles_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_runtime_refs_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_connector_tables_header(family_dir=family_dir, devices=devices))

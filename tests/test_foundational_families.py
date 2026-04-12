@@ -4,6 +4,7 @@ import json
 import shutil
 from collections.abc import Iterable
 
+from alloy_codegen.artifact_contract import find_runtime_cpp_string_violations
 from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
@@ -107,6 +108,7 @@ def test_foundational_families_emit_same_descriptor_contract(
         assert coverage["all_devices_publishable"] == all(
             bool(device["publishable"]) for device in coverage["devices"]
         )
+        assert find_runtime_cpp_string_violations(result.payload.artifacts) == ()
 
 
 def test_foundational_families_publish_with_same_generic_workflow(

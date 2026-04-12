@@ -1,42 +1,49 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
+#include "../runtime_semantics.hpp"
 
 namespace nxp {
 namespace imxrt1060 {
 namespace generated {
 namespace ip {
 struct IpBlockDescriptor {
-  const char* ip_name;
-  const char* ip_version;
-  const char* peripheral_class;
-  const char* backend_schema_id;
-  const char* register_profile;
-  const char* signal_roles;
+  IpBlockId ip_block_id;
+  PeripheralClassId peripheral_class_id;
+  BackendSchemaId schema_id;
+  RegisterProfileId register_profile_id;
+  std::uint16_t signal_role_offset;
+  std::uint16_t signal_role_count;
 };
 inline constexpr IpBlockDescriptor kIpBlock = {
-  "lpspi",
-  "lpspi-v1",
-  "spi",
-  "alloy.spi.nxp-lpspi-v1",
-  "lpspi:lpspi-v1",
-  "cs,sck",
+  IpBlockId::ip_block_lpspi_lpspi_v1,
+  PeripheralClassId::class_spi,
+  BackendSchemaId::schema_alloy_spi_nxp_lpspi_v1,
+  RegisterProfileId::register_profile_lpspi_lpspi_v1,
+  0u,
+  2u,
 };
 
+struct IpBlockSignalRoleRef {
+  IpBlockId ip_block_id;
+  SignalRoleId signal_role_id;
+};
+inline constexpr std::array<IpBlockSignalRoleRef, 2> kSignalRoles = {{
+  {IpBlockId::ip_block_lpspi_lpspi_v1, SignalRoleId::signal_role_cs},
+  {IpBlockId::ip_block_lpspi_lpspi_v1, SignalRoleId::signal_role_sck},
+}};
+
 struct CapabilityDescriptor {
-  const char* capability_id;
-  const char* scope;
-  const char* peripheral_class;
-  const char* name;
-  const char* value;
-  const char* ip_name;
-  const char* ip_version;
-  const char* peripheral;
-  const char* package;
+  CapabilityId capability_id;
+  CapabilityScopeId scope_id;
+  PeripheralClassId peripheral_class_id;
+  CapabilityKeyId capability_key_id;
+  IpBlockId ip_block_id;
 };
 inline constexpr std::array<CapabilityDescriptor, 2> kCapabilities = {{
-  {"capability:lpspi:lpspi-v1:cs", "ip-block", "spi", "signal-role", "cs", "lpspi", "lpspi-v1", nullptr, nullptr},
-  {"capability:lpspi:lpspi-v1:sck", "ip-block", "spi", "signal-role", "sck", "lpspi", "lpspi-v1", nullptr, nullptr},
+  {CapabilityId::capability_id_capability_lpspi_lpspi_v1_cs, CapabilityScopeId::capability_scope_ip_block, PeripheralClassId::class_spi, CapabilityKeyId::capability_signal_role_cs, IpBlockId::ip_block_lpspi_lpspi_v1},
+  {CapabilityId::capability_id_capability_lpspi_lpspi_v1_sck, CapabilityScopeId::capability_scope_ip_block, PeripheralClassId::class_spi, CapabilityKeyId::capability_signal_role_sck, IpBlockId::ip_block_lpspi_lpspi_v1},
 }};
 }
 }

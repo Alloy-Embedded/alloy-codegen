@@ -388,7 +388,7 @@ def test_emit_nxp_imxrt1060_artifact_content(
 
     connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
     assert "kConnectionCandidates" in connector_tables.content
-    assert "iomuxc-mux" in connector_tables.content
+    assert "RouteKindId::route_kind_iomuxc_mux" in connector_tables.content
 
     ip_header_paths = sorted(
         path for path in artifacts if path.startswith(f"{family_dir}/generated/ip/")

@@ -264,13 +264,13 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert interrupt_map_artifact.artifact_kind == "generated-cpp"
     assert "kInterruptMap" in interrupt_map_artifact.content
     assert "InterruptDescriptor" in interrupt_map_artifact.content
-    assert "shared_group" in interrupt_map_artifact.content
-    assert "alias_names" in interrupt_map_artifact.content
+    assert "shared_group_id" in interrupt_map_artifact.content
+    assert "kInterruptAliases" in interrupt_map_artifact.content
 
     assert memory_map_artifact.artifact_kind == "generated-cpp"
     assert "kMemoryMap" in memory_map_artifact.content
     assert "MemoryDescriptor" in memory_map_artifact.content
-    assert "startup_roles" in memory_map_artifact.content
+    assert "kMemoryStartupRoles" in memory_map_artifact.content
 
     assert package_map_artifact.artifact_kind == "generated-cpp"
     assert "kPackageMap" in package_map_artifact.content
@@ -283,10 +283,11 @@ def test_emit_includes_metadata_artifacts_with_content(
 
     assert startup_descriptors_artifact.artifact_kind == "generated-cpp"
     assert "kVectorSlots" in startup_descriptors_artifact.content
+    assert "StartupSymbolId" in startup_descriptors_artifact.content
     assert "kStartupDescriptors" in startup_descriptors_artifact.content
 
     assert startup_vectors_artifact.artifact_kind == "generated-cpp"
-    assert "kStartupVectorTable" in startup_vectors_artifact.content
+    assert '#include "startup_descriptors.hpp"' in startup_vectors_artifact.content
 
 
 def test_emit_matches_golden_artifacts(

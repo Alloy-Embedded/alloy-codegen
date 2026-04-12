@@ -114,33 +114,59 @@ static_assert(published_device::kPeripheralBases[0].address != 0u);
 static_assert(published_device::kRegisters.size() > 0u);
 static_assert(published_device::kRegisterFields.size() > 0u);
 static_assert(published_gpio::kPeripheral.base_address != 0u);
-static_assert(published_generated::kConnectionCandidates[0].candidate_name != nullptr);
-static_assert(published_generated::kConnectionGroups[0].group_name != nullptr);
-static_assert(published_generated::kInterruptMap[0].interrupt_name != nullptr);
-static_assert(published_generated::kMemoryMap[0].name != nullptr);
-static_assert(published_generated::kPackageMap[0].package_name != nullptr);
+static_assert(
+    published_generated::kConnectionCandidates[0].candidate_id
+    != published_generated::ConnectionCandidateId::none
+);
+static_assert(
+    published_generated::kConnectionGroups[0].group_id
+    != published_generated::ConnectionGroupId::none
+);
+static_assert(
+    published_generated::kInterruptMap[0].interrupt_id
+    != published_generated::InterruptMapId::none
+);
+static_assert(
+    published_generated::kMemoryMap[0].region_id
+    != published_generated::MemoryRegionId::none
+);
+static_assert(
+    published_generated::kPackageMap[0].package_id
+    != published_generated::PackageRefId::none
+);
 static_assert(published_generated::kClockNodes.size() > 0u);
 static_assert(published_generated::kClockGates.size() > 0u);
 static_assert(published_generated::kPeripheralClockBindings.size() > 0u);
 static_assert(published_generated::kRuntimeProfiles.size() > 0u);
-static_assert(published_device::kDeviceDescriptor.device != nullptr);
+static_assert(published_device::kDeviceDescriptor.package_id != published_generated::PackageRefId::none);
 static_assert(published_device::kPins.size() > 0u);
 static_assert(published_device::kPinSignals.size() > 0u);
 static_assert(published_device::kPeripheralInstances.size() > 0u);
 static_assert(published_device::kInterruptBindings.size() > 0u);
 static_assert(
     published_device::kDmaBindings.empty()
-    || published_device::kDmaBindings[0].request_line != nullptr
+    || published_device::kDmaBindings[0].request_line_id
+        != published_device::DmaRequestLineId::none
 );
 static_assert(
     published_device::kCapabilityOverlays.empty()
-    || published_device::kCapabilityOverlays[0].capability_id != nullptr
+    || published_device::kCapabilityOverlays[0].capability_id
+        != published_generated::CapabilityId::none
 );
-static_assert(published_device::kVectorSlots[0].symbol_name != nullptr);
-static_assert(published_device::kStartupDescriptors[0].descriptor_id != nullptr);
+static_assert(
+    published_device::kVectorSlots[0].symbol_id
+    != published_device::StartupSymbolId::none
+);
+static_assert(
+    published_device::kStartupDescriptors[0].descriptor_id
+    != published_device::StartupDescriptorId::none
+);
 #ifdef ALLOY_CODEGEN_SMOKE_IP_HEADER
-static_assert(published_ip::kIpBlock.ip_name != nullptr);
-static_assert(published_ip::kCapabilities.size() > 0u);
+static_assert(published_ip::kIpBlock.ip_block_id != published_generated::IpBlockId::none);
+static_assert(
+    published_ip::kCapabilities.empty()
+    || published_ip::kCapabilities[0].capability_id != published_generated::CapabilityId::none
+);
 #endif
 
 constexpr auto build_ok_result() -> alloy::core::Result<int, int> {

@@ -9,6 +9,8 @@ from pathlib import Path
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.publication import compute_materialized_tree_revision
 from alloy_codegen.reporting import (
+    EmissionPlan,
+    EmittedArtifact,
     SystemDescriptorDomainStatus,
     ValidationBundle,
     ValidationGateStatus,
@@ -16,6 +18,7 @@ from alloy_codegen.reporting import (
 )
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.common import StageResult
+from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.normalize import run as run_normalize
 from alloy_codegen.stages.publish import run
 
@@ -299,6 +302,51 @@ def test_publish_blocks_when_requested_scope_is_not_fully_publishable(
     assert result.warnings == (
         "Publication is blocked because the requested scope is not fully publishable: stm32g071rb.",
     )
+    assert not execution_context.publication_root.exists()
+
+
+def test_publish_blocks_when_runtime_generated_cpp_contains_string_literals(
+    execution_context: ExecutionContext,
+    monkeypatch,
+) -> None:
+    emit_result = run_emit(PipelineScope(device="stm32g071rb"), execution_context)
+    bad_artifact = EmittedArtifact(
+        path="st/stm32g0/generated/runtime_contract_bad.hpp",
+        artifact_kind="generated-cpp",
+        content='#pragma once\nconstexpr auto kBad = "semantic-string";\n',
+    )
+
+    def fake_emit(scope: PipelineScope, context: ExecutionContext) -> StageResult:
+        return StageResult(
+            stage="emit",
+            scope=scope,
+            status="completed",
+            payload=EmissionPlan(
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=(*emit_result.payload.artifacts, bad_artifact),
+            ),
+        )
+
+    def fail_consumer(*_args, **_kwargs):  # type: ignore[no-untyped-def]
+        raise AssertionError("publish should stop before consumer verification")
+
+    monkeypatch.setattr("alloy_codegen.stages.publish.run_emit", fake_emit)
+    monkeypatch.setattr("alloy_codegen.stages.publish.verify_alloy_smoke_consumer", fail_consumer)
+
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+
+    assert result.status == "failed"
+    assert result.payload.publication_mode == "blocked"
+    assert result.payload.artifact_manifest is not None
+    assert result.payload.publication_record is None
+    assert result.payload.publication_summary is None
+    assert result.payload.published_artifacts == ()
+    assert result.warnings
+    assert (
+        "runtime-generated C++ artifacts still contain semantic string literals"
+        in result.warnings[0]
+    )
+    assert "runtime_contract_bad.hpp:2" in result.warnings[0]
     assert not execution_context.publication_root.exists()
 
 

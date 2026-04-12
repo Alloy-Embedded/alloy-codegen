@@ -1,39 +1,41 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
+#include "runtime_semantics.hpp"
 
 namespace nxp {
 namespace imxrt1060 {
 namespace generated {
 struct RuntimeProfileDescriptor {
-  const char* subsystem;
-  const char* schema_id;
-  const char* source_kind;
-  const char* source_id;
+  PeripheralClassId peripheral_class_id;
+  BackendSchemaId schema_id;
+  RuntimeProfileSourceKind source_kind;
+  std::uint16_t source_index;
 };
 inline constexpr std::array<RuntimeProfileDescriptor, 22> kRuntimeProfiles = {{
-  {"gpio", "alloy.gpio.nxp-imxrt-gpio-v1", "peripheral", "GPIO1"},
-  {"gpio", "alloy.gpio.nxp-imxrt-gpio-v1", "peripheral", "GPIO4"},
-  {"lpi2c1", "alloy.lpi2c1.nxp-lpi2c-v1", "peripheral", "LPI2C1"},
-  {"spi", "alloy.spi.nxp-lpspi-v1", "peripheral", "LPSPI1"},
-  {"uart", "alloy.uart.nxp-lpuart-v1", "peripheral", "LPUART1"},
-  {"uart", "alloy.uart.nxp-lpuart-v1", "peripheral", "LPUART3"},
-  {"set-bit", "alloy.clock.nxp-generic-clock-v1", "route-operation", "operation:clock-enable:gpio1"},
-  {"set-bit", "alloy.clock.nxp-generic-clock-v1", "route-operation", "operation:clock-enable:gpio4"},
-  {"set-bit", "alloy.clock.nxp-generic-clock-v1", "route-operation", "operation:clock-enable:lpi2c1"},
-  {"set-bit", "alloy.clock.nxp-generic-clock-v1", "route-operation", "operation:clock-enable:lpspi1"},
-  {"set-bit", "alloy.clock.nxp-generic-clock-v1", "route-operation", "operation:clock-enable:lpuart1"},
-  {"set-bit", "alloy.clock.nxp-generic-clock-v1", "route-operation", "operation:clock-enable:lpuart3"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-ad-b0-00:gpio1:io00"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-ad-b0-00:lpi2c1:scl"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-ad-b0-00:lpuart1:tx"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-ad-b0-01:gpio1:io01"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-ad-b0-01:lpi2c1:sda"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-ad-b0-01:lpuart1:rx"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-emc-00:gpio4:io00"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-emc-00:lpspi1:sck"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-emc-01:gpio4:io01"},
-  {"write-selector", "alloy.pinmux.imxrt-iomuxc-v1", "route-operation", "operation:route:gpio-emc-01:lpspi1:pcs0"},
+  {PeripheralClassId::class_gpio, BackendSchemaId::schema_alloy_gpio_nxp_imxrt_gpio_v1, RuntimeProfileSourceKind::runtime_profile_source_peripheral, 0u},
+  {PeripheralClassId::class_gpio, BackendSchemaId::schema_alloy_gpio_nxp_imxrt_gpio_v1, RuntimeProfileSourceKind::runtime_profile_source_peripheral, 1u},
+  {PeripheralClassId::class_lpi2c1, BackendSchemaId::schema_alloy_lpi2c1_nxp_lpi2c_v1, RuntimeProfileSourceKind::runtime_profile_source_peripheral, 2u},
+  {PeripheralClassId::class_spi, BackendSchemaId::schema_alloy_spi_nxp_lpspi_v1, RuntimeProfileSourceKind::runtime_profile_source_peripheral, 3u},
+  {PeripheralClassId::class_uart, BackendSchemaId::schema_alloy_uart_nxp_lpuart_v1, RuntimeProfileSourceKind::runtime_profile_source_peripheral, 4u},
+  {PeripheralClassId::class_uart, BackendSchemaId::schema_alloy_uart_nxp_lpuart_v1, RuntimeProfileSourceKind::runtime_profile_source_peripheral, 5u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_clock_nxp_generic_clock_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 6u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_clock_nxp_generic_clock_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 7u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_clock_nxp_generic_clock_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 8u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_clock_nxp_generic_clock_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 9u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_clock_nxp_generic_clock_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 10u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_clock_nxp_generic_clock_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 11u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 12u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 13u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 14u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 15u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 16u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 17u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 18u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 19u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 20u},
+  {PeripheralClassId::none, BackendSchemaId::schema_alloy_pinmux_imxrt_iomuxc_v1, RuntimeProfileSourceKind::runtime_profile_source_route_operation, 21u},
 }};
 }
 }

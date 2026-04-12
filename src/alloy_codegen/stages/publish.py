@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from alloy_codegen.artifact_contract import find_runtime_cpp_string_violations
 from alloy_codegen.bootstrap import PUBLICATION_TARGET_REPOSITORY
 from alloy_codegen.consumer_verification import verify_alloy_smoke_consumer
 from alloy_codegen.context import ExecutionContext
@@ -83,6 +84,29 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         )
 
     emit_result = run_emit(scope, execution_context)
+    runtime_contract_violations = find_runtime_cpp_string_violations(emit_result.payload.artifacts)
+    if runtime_contract_violations:
+        sample = "; ".join(runtime_contract_violations[:3])
+        if len(runtime_contract_violations) > 3:
+            sample = f"{sample}; ..."
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(
+                "Publication is blocked because runtime-generated C++ artifacts still contain "
+                f"semantic string literals: {sample}",
+            ),
+        )
     staging_root = prepare_staging_root(execution_context.publication_root)
     staged_artifacts = materialize_artifacts(
         artifact_root=staging_root,
