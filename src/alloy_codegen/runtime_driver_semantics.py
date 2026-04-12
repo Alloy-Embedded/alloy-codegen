@@ -1123,8 +1123,7 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
         if any("sci3" in token or "usart-v3" in token or "usart_v3" in token for token in tokens):
             return False
         has_isr_style = any(
-            _has_register(peripheral.name, register_name)
-            for register_name in ("ISR", "RDR", "TDR")
+            _has_register(peripheral.name, register_name) for register_name in ("ISR", "RDR", "TDR")
         )
         if has_isr_style:
             return False
