@@ -339,6 +339,16 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/clock_tree_lite.hpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup_vectors.cpp" in artifacts
+    assert f"{family_dir}/generated/runtime/types.hpp" in artifacts
+    assert (
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/peripheral_instances.hpp"
+        in artifacts
+    )
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/pins.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/registers.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/register_fields.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
 
     gpio_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/peripherals/")]
     ip_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/ip/")]
@@ -372,6 +382,21 @@ def test_emit_nxp_imxrt1060_artifact_content(
     capability_overlays = artifacts[
         f"{family_dir}/generated/devices/mimxrt1062/capability_overlays.hpp"
     ]
+    runtime_types = artifacts[f"{family_dir}/generated/runtime/types.hpp"]
+    runtime_peripherals = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/peripheral_instances.hpp"
+    ]
+    runtime_pins = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/pins.hpp"]
+    runtime_registers = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/registers.hpp"
+    ]
+    runtime_register_fields = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/register_fields.hpp"
+    ]
+    runtime_clock_bindings = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
+    ]
+    runtime_routes = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp"]
     assert "kPeripheralBases" in register_map.content
     assert "nxp" in register_map.content
     assert "imxrt1060" in register_map.content
@@ -385,6 +410,13 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "kDmaBindings" in dma_bindings.content
     assert "kRegisterFields" in register_fields.content
     assert "kCapabilityOverlays" in capability_overlays.content
+    assert "enum class BackendSchemaId" in runtime_types.content
+    assert "PeripheralInstanceTraits<PeripheralId::" in runtime_peripherals.content
+    assert "PinTraits<PinId::" in runtime_pins.content
+    assert "RegisterTraits<RegisterId::" in runtime_registers.content
+    assert "RegisterFieldTraits<FieldId::" in runtime_register_fields.content
+    assert "PeripheralClockBindingTraits<PeripheralId::" in runtime_clock_bindings.content
+    assert "RouteTraits<" in runtime_routes.content
 
     connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
     assert "kConnectionCandidates" in connector_tables.content

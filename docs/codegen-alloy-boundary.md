@@ -20,6 +20,13 @@ Published `alloy-devices` trees may contain:
   - `metadata/system-descriptors.json`
   - `metadata/devices/<device>.json`
 - generated descriptor headers and translation units:
+  - `generated/runtime/types.hpp`
+  - `generated/runtime/devices/<device>/peripheral_instances.hpp`
+  - `generated/runtime/devices/<device>/pins.hpp`
+  - `generated/runtime/devices/<device>/registers.hpp`
+  - `generated/runtime/devices/<device>/register_fields.hpp`
+  - `generated/runtime/devices/<device>/clock_bindings.hpp`
+  - `generated/runtime/devices/<device>/routes.hpp`
   - `generated/peripherals/*.hpp`
   - `generated/ip/*.hpp`
   - `generated/connector_tables.hpp`
@@ -57,8 +64,10 @@ Those files may describe:
 
 The published C++ contract is descriptor-first:
 
+- runtime-lite headers under `generated/runtime/` are the preferred hot-path boundary for Alloy
 - family-level headers describe shared hardware facts across the family
 - device-level headers describe one target device without requiring JSON-side inference
+- reflection headers under `generated/*.hpp` remain available for tooling, smoke, and inspection
 - runtime profile headers describe schema/backend dispatch without family parsing in Alloy
 - reports describe whether the emitted contract is complete enough for Alloy to consume directly
 

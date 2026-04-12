@@ -19,6 +19,13 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/metadata/devices/<device>.json`
 - `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
 - `<vendor>/<family>/generated/ip/<ip-version>.hpp`
+- `<vendor>/<family>/generated/runtime/types.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
 - `<vendor>/<family>/generated/connector_tables.hpp`
 - `<vendor>/<family>/generated/runtime_profiles.hpp`
 - `<vendor>/<family>/generated/rcc_map.hpp`
@@ -65,6 +72,13 @@ Successful publication writes:
 - `<vendor>/<family>/metadata/devices/<device>.json`
 - `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
 - `<vendor>/<family>/generated/ip/<ip-version>.hpp`
+- `<vendor>/<family>/generated/runtime/types.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
 - `<vendor>/<family>/generated/connector_tables.hpp`
 - `<vendor>/<family>/generated/runtime_profiles.hpp`
 - `<vendor>/<family>/generated/rcc_map.hpp`
@@ -90,6 +104,9 @@ Successful publication writes:
 
 ## Contract Notes
 
+- `generated/runtime/` is the runtime-lite contract intended for Alloy's hot path.
+- `generated/*.hpp` family tables remain the reflection contract used for validation, smoke, and
+  inspection.
 - Published artifacts are written only when validation passes for the requested scope.
 - Published artifacts are staged and verified against an Alloy smoke consumer before
   promotion to the final publication root.

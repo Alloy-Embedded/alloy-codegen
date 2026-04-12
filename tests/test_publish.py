@@ -350,6 +350,46 @@ def test_publish_blocks_when_runtime_generated_cpp_contains_string_literals(
     assert not execution_context.publication_root.exists()
 
 
+def test_publish_blocks_when_runtime_lite_artifact_is_missing(
+    execution_context: ExecutionContext,
+    monkeypatch,
+) -> None:
+    emit_result = run_emit(PipelineScope(device="stm32g071rb"), execution_context)
+    missing_path = "st/stm32g0/generated/runtime/types.hpp"
+    filtered_artifacts = tuple(
+        artifact for artifact in emit_result.payload.artifacts if artifact.path != missing_path
+    )
+
+    def fake_emit(scope: PipelineScope, context: ExecutionContext) -> StageResult:
+        return StageResult(
+            stage="emit",
+            scope=scope,
+            status="completed",
+            payload=EmissionPlan(
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=filtered_artifacts,
+            ),
+        )
+
+    def fail_runtime_lite_consumer(*_args, **_kwargs):  # type: ignore[no-untyped-def]
+        raise AssertionError("publish should stop before runtime-lite consumer verification")
+
+    monkeypatch.setattr("alloy_codegen.stages.publish.run_emit", fake_emit)
+    monkeypatch.setattr(
+        "alloy_codegen.stages.publish.verify_runtime_lite_smoke_consumer",
+        fail_runtime_lite_consumer,
+    )
+
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+
+    assert result.status == "failed"
+    assert result.payload.publication_mode == "blocked"
+    assert result.warnings
+    assert "runtime-lite artifacts are incomplete" in result.warnings[0]
+    assert "generated/runtime/types.hpp" in result.warnings[0]
+    assert not execution_context.publication_root.exists()
+
+
 def test_publish_does_not_modify_publication_root_when_consumer_verification_fails(
     execution_context: ExecutionContext,
     monkeypatch,

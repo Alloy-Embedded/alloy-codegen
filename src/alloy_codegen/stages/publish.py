@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
-from alloy_codegen.artifact_contract import find_runtime_cpp_string_violations
+from alloy_codegen.artifact_contract import (
+    find_runtime_cpp_string_violations,
+    find_runtime_lite_contract_violations,
+)
 from alloy_codegen.bootstrap import PUBLICATION_TARGET_REPOSITORY
-from alloy_codegen.consumer_verification import verify_alloy_smoke_consumer
+from alloy_codegen.consumer_verification import (
+    verify_alloy_smoke_consumer,
+    verify_runtime_lite_smoke_consumer,
+)
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     build_coverage_payload,
@@ -107,11 +113,61 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 f"semantic string literals: {sample}",
             ),
         )
+    runtime_lite_violations = find_runtime_lite_contract_violations(
+        family_dir=f"{emit_result.scope.resolved_vendor()}/{emit_result.scope.resolved_family()}",
+        devices=validate_result.payload.devices,
+        artifacts=emit_result.payload.artifacts,
+    )
+    if runtime_lite_violations:
+        sample = "; ".join(runtime_lite_violations[:3])
+        if len(runtime_lite_violations) > 3:
+            sample = f"{sample}; ..."
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(
+                "Publication is blocked because runtime-lite artifacts are incomplete or still "
+                f"depend on reflection payloads: {sample}",
+            ),
+        )
     staging_root = prepare_staging_root(execution_context.publication_root)
     staged_artifacts = materialize_artifacts(
         artifact_root=staging_root,
         artifacts=emit_result.payload.artifacts,
     )
+    runtime_lite_consumer_verification = verify_runtime_lite_smoke_consumer(
+        scope=emit_result.scope,
+        alloy_root=execution_context.alloy_root,
+        publication_root=staging_root,
+        build_root=execution_context.artifact_root,
+    )
+    if not runtime_lite_consumer_verification.succeeded:
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                consumer_verification=runtime_lite_consumer_verification,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=("Alloy runtime-lite smoke consumer failed to build from staged artifacts.",),
+        )
     consumer_verification = verify_alloy_smoke_consumer(
         scope=emit_result.scope,
         alloy_root=execution_context.alloy_root,

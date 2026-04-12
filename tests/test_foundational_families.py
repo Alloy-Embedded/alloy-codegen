@@ -45,6 +45,7 @@ def _common_family_artifact_paths(family_dir: str) -> tuple[str, ...]:
         f"{family_dir}/generated/clock_tree_lite.hpp",
         f"{family_dir}/generated/dma_map.hpp",
         f"{family_dir}/generated/rcc_map.hpp",
+        f"{family_dir}/generated/runtime/types.hpp",
     )
 
 
@@ -67,6 +68,12 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_descriptors.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/peripheral_instances.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/pins.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/registers.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/register_fields.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/clock_bindings.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
             )
         )
     return tuple(paths)
@@ -137,6 +144,7 @@ def test_foundational_families_publish_with_same_generic_workflow(
         assert (publication_root / family_dir / "reports" / "validation-report.json").exists()
         assert (publication_root / family_dir / "reports" / "validation-summary.json").exists()
         assert (publication_root / family_dir / "reports" / "coverage.json").exists()
+        assert (publication_root / family_dir / "generated" / "runtime" / "types.hpp").exists()
         for device_name in device_names:
             assert (
                 publication_root
@@ -196,6 +204,60 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "register_fields.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "peripheral_instances.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "pins.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "registers.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "register_fields.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "clock_bindings.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "routes.hpp"
             ).exists()
 
 
