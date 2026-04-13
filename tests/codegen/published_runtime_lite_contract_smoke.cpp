@@ -26,6 +26,10 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_BINDINGS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_BINDINGS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_BINDINGS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER must be defined"
 #endif
@@ -46,6 +50,10 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE must be defined"
 #endif
@@ -60,11 +68,13 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_REGISTERS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_REGISTER_FIELDS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_BINDINGS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_BINDINGS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_UART_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER
 
 #include <type_traits>
 
@@ -95,6 +105,7 @@ static_assert(
     published_device_runtime::PeripheralClockBindingTraits<
         published_device_runtime::kClockBoundPeripherals[0]>::kPresent
 );
+static_assert(published_device_runtime::kDmaBindings.size() >= 0u);
 static_assert(published_runtime::BackendSchemaId::none == published_runtime::BackendSchemaId::none);
 
 template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
@@ -137,10 +148,27 @@ struct FirstSpiSemanticSmoke<Values, 0u> {
     static constexpr bool kPresent = true;
 };
 
+template<const auto& Values, const auto& Bindings>
+consteval bool first_dma_semantic_present() {
+    constexpr auto kPeripheralCount = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>;
+    constexpr auto kBindingCount = std::tuple_size_v<std::remove_cvref_t<decltype(Bindings)>>;
+    if constexpr (kPeripheralCount == 0u || kBindingCount == 0u) {
+        return true;
+    } else {
+        constexpr auto kSignalId = std::get<0>(Bindings).signal_id;
+        return published_driver::DmaSemanticTraits<
+            Values[0], kSignalId>::kPresent;
+    }
+}
+
 static_assert(FirstGpioSemanticSmoke<published_driver::kGpioSemanticPins>::kPresent);
 static_assert(FirstUartSemanticSmoke<published_driver::kUartSemanticPeripherals>::kPresent);
 static_assert(FirstI2cSemanticSmoke<published_driver::kI2cSemanticPeripherals>::kPresent);
 static_assert(FirstSpiSemanticSmoke<published_driver::kSpiSemanticPeripherals>::kPresent);
+static_assert(
+    first_dma_semantic_present<
+        published_driver::kDmaSemanticPeripherals,
+        published_device_runtime::kDmaBindings>());
 
 int main() {
     return 0;

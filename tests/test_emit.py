@@ -98,6 +98,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_clock_bindings_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_bindings.hpp"
     ]
+    runtime_dma_bindings_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/dma_bindings.hpp"
+    ]
     runtime_routes_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"
     ]
@@ -115,6 +118,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     ]
     runtime_spi_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/spi.hpp"
+    ]
+    runtime_dma_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/dma.hpp"
     ]
     ip_block_artifacts = [
         artifact
@@ -337,6 +343,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "RegisterFieldTraits<FieldId::" in runtime_register_fields_artifact.content
     assert runtime_clock_bindings_artifact.artifact_kind == "generated-cpp"
     assert "PeripheralClockBindingTraits<PeripheralId::" in runtime_clock_bindings_artifact.content
+    assert runtime_dma_bindings_artifact.artifact_kind == "generated-cpp"
+    assert "BindingTraits<PeripheralId" in runtime_dma_bindings_artifact.content
+    assert "ControllerTraits<DmaControllerId" in runtime_dma_bindings_artifact.content
     assert runtime_routes_artifact.artifact_kind == "generated-cpp"
     assert "RouteTraits<" in runtime_routes_artifact.content
     assert "ConnectionGroupTraits<" in runtime_routes_artifact.content
@@ -353,6 +362,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_spi_semantics_artifact.artifact_kind == "generated-cpp"
     assert "struct SpiSemanticTraits" in runtime_spi_semantics_artifact.content
     assert "kSpiSemanticPeripherals" in runtime_spi_semantics_artifact.content
+    assert runtime_dma_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "DmaSemanticTraits<PeripheralId" in runtime_dma_semantics_artifact.content
+    assert "kDmaSemanticPeripherals" in runtime_dma_semantics_artifact.content
 
 
 def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
@@ -549,9 +561,33 @@ def test_emit_matches_golden_artifacts(
     ].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_bindings.hpp"
     ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/dma_bindings.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "dma_bindings.hpp"
+    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "routes.hpp"
     ).read_text(encoding="utf-8")
+    for name in (
+        "common.hpp",
+        "gpio.hpp",
+        "uart.hpp",
+        "i2c.hpp",
+        "spi.hpp",
+        "dma.hpp",
+    ):
+        assert artifacts[
+            f"st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/{name}"
+        ].content == (
+            fixture_root
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "stm32g071rb"
+            / "driver_semantics"
+            / name
+        ).read_text(encoding="utf-8")
     assert artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/startup_descriptors.hpp"
     ].content == (

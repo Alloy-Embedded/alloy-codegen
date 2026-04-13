@@ -661,6 +661,7 @@ def parse_dma_request_patches(atdf_path: Path) -> tuple[DmaRequestPatch, ...]:
                     request_line=f"PERID_{value}",
                     peripheral=canonical_instance,
                     signal=match.group("signal"),
+                    request_value=int(value),
                 )
                 requests.setdefault((request.controller, request.request_line), request)
     return tuple(

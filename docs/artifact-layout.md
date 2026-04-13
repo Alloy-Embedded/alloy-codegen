@@ -25,7 +25,14 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/i2c.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/spi.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dma.hpp`
 - `<vendor>/<family>/generated/connector_tables.hpp`
 - `<vendor>/<family>/generated/runtime_profiles.hpp`
 - `<vendor>/<family>/generated/rcc_map.hpp`
@@ -103,12 +110,14 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/i2c.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/spi.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dma.hpp`
 - `<vendor>/<family>/reports/validation-report.json`
 - `<vendor>/<family>/reports/validation-summary.json`
 - `<vendor>/<family>/reports/coverage.json`
@@ -118,7 +127,8 @@ Successful publication writes:
 
 - `generated/runtime/` is the runtime-lite contract intended for Alloy's hot path.
 - `generated/runtime/devices/<device>/driver_semantics/*.hpp` is the semantic layer that maps
-  runtime-lite facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, and `spi`.
+  runtime-lite facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, and
+  `dma`.
 - `generated/*.hpp` family tables remain the reflection contract used for validation, smoke, and
   inspection.
 - Published artifacts are written only when validation passes for the requested scope.

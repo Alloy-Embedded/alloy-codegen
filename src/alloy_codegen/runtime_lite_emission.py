@@ -9,7 +9,12 @@ hot path.
 from __future__ import annotations
 
 from alloy_codegen.connector_model import canonical_peripheral_class
-from alloy_codegen.ir.model import CanonicalDeviceIR, ConnectionCandidate
+from alloy_codegen.ir.model import (
+    CanonicalDeviceIR,
+    ConnectionCandidate,
+    DmaBindingDescriptor,
+    DmaControllerDescriptor,
+)
 from alloy_codegen.reporting import EmittedArtifact
 
 from .emission import (
@@ -22,7 +27,9 @@ from .emission import (
     _std_array_lines,
 )
 
-RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset({"gpio", "uart", "spi", "i2c"})
+RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset(
+    {"gpio", "uart", "spi", "i2c", "dma", "dma-router"}
+)
 
 
 def _runtime_generated_path(family_dir: str, name: str) -> str:
@@ -91,6 +98,32 @@ def _runtime_lite_groups(device: CanonicalDeviceIR):
         for group in sorted(device.connection_groups, key=lambda item: item.group_id)
         if group.peripheral in runtime_peripherals
         and set(group.candidate_ids).issubset(runtime_candidate_ids)
+    )
+
+
+def _runtime_lite_dma_bindings(device: CanonicalDeviceIR) -> tuple[DmaBindingDescriptor, ...]:
+    runtime_peripherals = _runtime_lite_peripheral_names(device)
+    return tuple(
+        binding
+        for binding in sorted(
+            device.dma_bindings,
+            key=lambda item: (
+                item.peripheral,
+                item.signal or "",
+                item.controller,
+                item.request_line,
+            ),
+        )
+        if binding.peripheral in runtime_peripherals
+    )
+
+
+def _runtime_lite_dma_controllers(device: CanonicalDeviceIR) -> tuple[DmaControllerDescriptor, ...]:
+    controller_names = {binding.controller for binding in _runtime_lite_dma_bindings(device)}
+    return tuple(
+        controller
+        for controller in sorted(device.dma_controllers, key=lambda item: item.controller)
+        if controller.controller in controller_names
     )
 
 
@@ -259,6 +292,7 @@ def _runtime_lite_required_paths(
                 _device_runtime_generated_path(family_dir, device_name, "registers.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "register_fields.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "clock_bindings.hpp"),
+                _device_runtime_generated_path(family_dir, device_name, "dma_bindings.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "routes.hpp"),
             )
         )
@@ -907,6 +941,230 @@ def emit_runtime_lite_clock_bindings_header(
     )
 
 
+def emit_runtime_lite_dma_bindings_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    semantics_catalog = _collect_runtime_semantics_catalog((device,))
+    bindings = _runtime_lite_dma_bindings(device)
+    controllers = _runtime_lite_dma_controllers(device)
+    peripherals_by_name = {peripheral.name: peripheral for peripheral in device.peripherals}
+    binding_enum_rows = [f"  {_enum_identifier(binding.binding_id)}," for binding in bindings]
+    controller_enum_map = {
+        controller.controller: _enum_identifier(controller.controller) for controller in controllers
+    }
+    request_line_enum_map = {
+        binding.request_line: _enum_identifier(binding.request_line) for binding in bindings
+    }
+    route_enum_map = {binding.route_id: _enum_identifier(binding.route_id) for binding in bindings}
+    conflict_enum_map = {
+        binding.conflict_group: _enum_identifier(binding.conflict_group)
+        for binding in bindings
+        if binding.conflict_group is not None
+    }
+    controller_trait_lines: list[str] = [
+        "template<DmaControllerId Id>",
+        "struct ControllerTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr PeripheralId kPeripheralId = PeripheralId::none;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr int kChannelCount = -1;",
+        "  static constexpr int kRequestCount = -1;",
+        "};",
+        "",
+    ]
+    for controller in controllers:
+        peripheral = peripherals_by_name.get(controller.controller)
+        schema_id = None if peripheral is None else peripheral.backend_schema_id
+        controller_id = controller_enum_map[controller.controller]
+        channel_count = controller.channel_count if controller.channel_count is not None else -1
+        request_count = controller.request_count if controller.request_count is not None else -1
+        controller_trait_lines.extend(
+            [
+                "template<>",
+                f"struct ControllerTraits<DmaControllerId::{controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                "  static constexpr PeripheralId kPeripheralId = "
+                + (
+                    "PeripheralId::none"
+                    if peripheral is None
+                    else f"PeripheralId::{_enum_identifier(peripheral.name)}"
+                )
+                + ";",
+                "  static constexpr BackendSchemaId kSchemaId = "
+                + _semantic_enum_ref(
+                    "BackendSchemaId",
+                    semantics_catalog["backend_schema_enum_map"],
+                    schema_id,
+                )
+                + ";",
+                f"  static constexpr int kChannelCount = {channel_count};",
+                f"  static constexpr int kRequestCount = {request_count};",
+                "};",
+                "",
+            ]
+        )
+
+    binding_trait_lines: list[str] = [
+        "template<PeripheralId Peripheral, SignalId Signal>",
+        "struct BindingTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr DmaBindingId kBindingId = DmaBindingId::none;",
+        "  static constexpr DmaControllerId kControllerId = DmaControllerId::none;",
+        "  static constexpr DmaRequestLineId kRequestLineId = DmaRequestLineId::none;",
+        "  static constexpr DmaRouteId kRouteId = DmaRouteId::none;",
+        "  static constexpr DmaConflictGroupId kConflictGroupId = DmaConflictGroupId::none;",
+        "  static constexpr int kChannelIndex = -1;",
+        "  static constexpr int kRequestValue = -1;",
+        "  static constexpr int kChannelSelector = -1;",
+        "};",
+        "",
+    ]
+    binding_rows: list[str] = []
+    for binding in bindings:
+        signal_ref = _semantic_enum_ref(
+            "SignalId",
+            semantics_catalog["signal_enum_map"],
+            binding.signal,
+        )
+        binding_id = _enum_identifier(binding.binding_id)
+        channel_index = binding.channel_index if binding.channel_index is not None else -1
+        request_value = binding.request_value if binding.request_value is not None else -1
+        channel_selector = (
+            binding.channel_selector if binding.channel_selector is not None else -1
+        )
+        binding_trait_lines.extend(
+            [
+                "template<>",
+                "struct BindingTraits<"
+                f"PeripheralId::{_enum_identifier(binding.peripheral)}, {signal_ref}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr DmaBindingId kBindingId = DmaBindingId::{binding_id};",
+                "  static constexpr DmaControllerId kControllerId = "
+                f"DmaControllerId::{controller_enum_map[binding.controller]};",
+                "  static constexpr DmaRequestLineId kRequestLineId = "
+                f"DmaRequestLineId::{request_line_enum_map[binding.request_line]};",
+                "  static constexpr DmaRouteId kRouteId = "
+                f"DmaRouteId::{route_enum_map[binding.route_id]};",
+                "  static constexpr DmaConflictGroupId kConflictGroupId = "
+                + (
+                    "DmaConflictGroupId::none"
+                    if binding.conflict_group is None
+                    else f"DmaConflictGroupId::{conflict_enum_map[binding.conflict_group]}"
+                )
+                + ";",
+                f"  static constexpr int kChannelIndex = {channel_index};",
+                f"  static constexpr int kRequestValue = {request_value};",
+                f"  static constexpr int kChannelSelector = {channel_selector};",
+                "};",
+                "",
+            ]
+        )
+        binding_rows.append(
+            "  {"
+            f"DmaBindingId::{binding_id}, "
+            f"PeripheralId::{_enum_identifier(binding.peripheral)}, "
+            f"{signal_ref}, "
+            f"DmaControllerId::{controller_enum_map[binding.controller]}, "
+            f"DmaRequestLineId::{request_line_enum_map[binding.request_line]}, "
+            f"DmaRouteId::{route_enum_map[binding.route_id]}, "
+            + (
+                "DmaConflictGroupId::none"
+                if binding.conflict_group is None
+                else f"DmaConflictGroupId::{conflict_enum_map[binding.conflict_group]}"
+            )
+            + ", "
+            f"{channel_index}, "
+            f"{request_value}, "
+            f"{channel_selector}"
+            "},"
+        )
+
+    controller_rows = [
+        f"  DmaControllerId::{controller_enum_map[controller.controller]},"
+        for controller in controllers
+    ]
+    body_lines = [
+        "enum class DmaBindingId : std::uint16_t {",
+        "  none,",
+        *binding_enum_rows,
+        "};",
+        "",
+        "enum class DmaControllerId : std::uint16_t {",
+        "  none,",
+        *_enum_rows(controller_enum_map, empty_identifier=None),
+        "};",
+        "",
+        "enum class DmaRequestLineId : std::uint16_t {",
+        "  none,",
+        *_enum_rows(request_line_enum_map, empty_identifier=None),
+        "};",
+        "",
+        "enum class DmaRouteId : std::uint16_t {",
+        "  none,",
+        *_enum_rows(route_enum_map, empty_identifier=None),
+        "};",
+        "",
+        "enum class DmaConflictGroupId : std::uint16_t {",
+        "  none,",
+        *_enum_rows(conflict_enum_map, empty_identifier=None),
+        "};",
+        "",
+        "struct DmaBindingDescriptor {",
+        "  DmaBindingId binding_id;",
+        "  PeripheralId peripheral_id;",
+        "  SignalId signal_id;",
+        "  DmaControllerId controller_id;",
+        "  DmaRequestLineId request_line_id;",
+        "  DmaRouteId route_id;",
+        "  DmaConflictGroupId conflict_group_id;",
+        "  std::int32_t channel_index;",
+        "  std::int32_t request_value;",
+        "  std::int32_t channel_selector;",
+        "};",
+        "",
+        *binding_trait_lines,
+        *controller_trait_lines,
+        *_std_array_lines(
+            type_name="DmaBindingDescriptor",
+            variable_name="kDmaBindings",
+            row_lines=binding_rows,
+        ),
+        "",
+        *_std_array_lines(
+            type_name="DmaControllerId",
+            variable_name="kDmaControllers",
+            row_lines=controller_rows,
+        ),
+    ]
+    namespace_block = _cpp_namespace_block(
+        _runtime_device_namespace_components(device),
+        "\n".join(body_lines),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "../../types.hpp"',
+            '#include "peripheral_instances.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_runtime_generated_path(
+            family_dir,
+            device.identity.device,
+            "dma_bindings.hpp",
+        ),
+        content=content,
+    )
+
+
 def emit_runtime_lite_routes_header(
     *,
     family_dir: str,
@@ -1159,6 +1417,7 @@ def emit_runtime_lite_routes_header(
 __all__ = [
     "RUNTIME_LITE_PERIPHERAL_CLASSES",
     "emit_runtime_lite_clock_bindings_header",
+    "emit_runtime_lite_dma_bindings_header",
     "emit_runtime_lite_peripheral_instances_header",
     "emit_runtime_lite_pins_header",
     "emit_runtime_lite_register_fields_header",

@@ -26,7 +26,14 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/registers.hpp`
   - `generated/runtime/devices/<device>/register_fields.hpp`
   - `generated/runtime/devices/<device>/clock_bindings.hpp`
+  - `generated/runtime/devices/<device>/dma_bindings.hpp`
   - `generated/runtime/devices/<device>/routes.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/common.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/uart.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/i2c.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/spi.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/dma.hpp`
   - `generated/peripherals/*.hpp`
   - `generated/ip/*.hpp`
   - `generated/connector_tables.hpp`
@@ -67,7 +74,7 @@ The published C++ contract is descriptor-first:
 - runtime-lite headers under `generated/runtime/` are the preferred hot-path boundary for Alloy
 - runtime-lite driver semantic headers under
   `generated/runtime/devices/<device>/driver_semantics/` are the required hot-path layer for
-  foundational drivers
+  foundational drivers, including DMA
 - family-level headers describe shared hardware facts across the family
 - device-level headers describe one target device without requiring JSON-side inference
 - reflection headers under `generated/*.hpp` remain available for tooling, smoke, and inspection

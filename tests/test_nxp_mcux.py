@@ -484,6 +484,44 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
             fixture_root / "generated" / "devices" / "mimxrt1062" / name
         ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"
 
+    for name in (
+        "peripheral_instances.hpp",
+        "pins.hpp",
+        "registers.hpp",
+        "register_fields.hpp",
+        "clock_bindings.hpp",
+        "dma_bindings.hpp",
+        "routes.hpp",
+    ):
+        assert artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/{name}"].content == (
+            fixture_root / "generated" / "runtime" / "devices" / "mimxrt1062" / name
+        ).read_text(encoding="utf-8"), (
+            f"generated/runtime/devices/mimxrt1062/{name} does not match golden fixture"
+        )
+
+    for name in (
+        "common.hpp",
+        "gpio.hpp",
+        "uart.hpp",
+        "i2c.hpp",
+        "spi.hpp",
+        "dma.hpp",
+    ):
+        assert artifacts[
+            f"{family_dir}/generated/runtime/devices/mimxrt1062/driver_semantics/{name}"
+        ].content == (
+            fixture_root
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "mimxrt1062"
+            / "driver_semantics"
+            / name
+        ).read_text(encoding="utf-8"), (
+            "generated/runtime/devices/mimxrt1062/driver_semantics/"
+            f"{name} does not match golden fixture"
+        )
+
     for gpio_fixture in sorted((fixture_root / "generated" / "peripherals").iterdir()):
         artifact_path = f"{family_dir}/generated/peripherals/{gpio_fixture.name}"
         assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8"), (

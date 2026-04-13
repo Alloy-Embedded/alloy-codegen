@@ -271,6 +271,10 @@ def verify_runtime_lite_smoke_consumer(
             f'"{vendor}/{family}/generated/runtime/devices/{device}/clock_bindings.hpp"'
         ),
         (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_BINDINGS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/dma_bindings.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/routes.hpp"'
         ),
@@ -289,6 +293,10 @@ def verify_runtime_lite_smoke_consumer(
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/spi.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/dma.hpp"'
         ),
         f"-DALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE={vendor}::{family}::generated::runtime",
         (

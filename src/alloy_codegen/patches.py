@@ -188,6 +188,9 @@ class DmaRequestPatch:
     request_line: str
     peripheral: str | None
     signal: str | None
+    channel_index: int | None = None
+    request_value: int | None = None
+    channel_selector: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -350,6 +353,9 @@ class DevicePatch:
                     "request_line": request.request_line,
                     "peripheral": request.peripheral,
                     "signal": request.signal,
+                    "channel_index": request.channel_index,
+                    "request_value": request.request_value,
+                    "channel_selector": request.channel_selector,
                 }
                 for request in self.dma_requests
             ],
@@ -459,6 +465,17 @@ def _parse_dma_request_patch(payload: dict[str, object]) -> DmaRequestPatch:
         request_line=str(payload["request_line"]),
         peripheral=str(payload["peripheral"]) if payload.get("peripheral") is not None else None,
         signal=str(payload["signal"]) if payload.get("signal") is not None else None,
+        channel_index=(
+            int(payload["channel_index"]) if payload.get("channel_index") is not None else None
+        ),
+        request_value=(
+            int(payload["request_value"]) if payload.get("request_value") is not None else None
+        ),
+        channel_selector=(
+            int(payload["channel_selector"])
+            if payload.get("channel_selector") is not None
+            else None
+        ),
     )
 
 

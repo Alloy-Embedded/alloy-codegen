@@ -114,6 +114,9 @@ class DmaRequestDefinition:
     peripheral: str | None
     signal: str | None
     provenance: Provenance
+    channel_index: int | None = field(default=None, metadata={"omit_if_empty": True})
+    request_value: int | None = field(default=None, metadata={"omit_if_empty": True})
+    channel_selector: int | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -402,6 +405,9 @@ class DmaBindingDescriptor:
     route_id: str
     conflict_group: str | None
     provenance: Provenance
+    channel_index: int | None = field(default=None, metadata={"omit_if_empty": True})
+    request_value: int | None = field(default=None, metadata={"omit_if_empty": True})
+    channel_selector: int | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -426,6 +432,9 @@ class DmaRouteDescriptor:
     signal: str | None
     conflict_group: str | None
     provenance: Provenance
+    channel_index: int | None = field(default=None, metadata={"omit_if_empty": True})
+    request_value: int | None = field(default=None, metadata={"omit_if_empty": True})
+    channel_selector: int | None = field(default=None, metadata={"omit_if_empty": True})
 
 
 @dataclass(frozen=True, slots=True)

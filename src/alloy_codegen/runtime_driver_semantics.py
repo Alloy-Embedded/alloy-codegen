@@ -34,12 +34,14 @@ from .emission import (
 from .runtime_lite_emission import (
     _device_runtime_generated_path,
     _runtime_device_namespace_components,
+    _runtime_lite_dma_bindings,
 )
 
 GPIO_DRIVER_HEADER = "driver_semantics/gpio.hpp"
 I2C_DRIVER_HEADER = "driver_semantics/i2c.hpp"
 SPI_DRIVER_HEADER = "driver_semantics/spi.hpp"
 UART_DRIVER_HEADER = "driver_semantics/uart.hpp"
+DMA_DRIVER_HEADER = "driver_semantics/dma.hpp"
 COMMON_DRIVER_HEADER = "driver_semantics/common.hpp"
 
 _IO_SIGNAL_PATTERN = re.compile(r"^io(?P<index>\d+)$", re.IGNORECASE)
@@ -61,6 +63,18 @@ class RuntimeFieldRef:
 
     field_id: str | None
     register: RuntimeRegisterRef
+    bit_offset: int
+    bit_width: int
+    valid: bool
+
+
+@dataclass(frozen=True, slots=True)
+class RuntimeIndexedFieldRef:
+    """One indexed runtime field reference pattern."""
+
+    base_address: int
+    base_offset_bytes: int
+    stride_bytes: int
     bit_offset: int
     bit_width: int
     valid: bool
@@ -296,6 +310,26 @@ class SpiSemanticRow:
 
 
 @dataclass(frozen=True, slots=True)
+class DmaSemanticRow:
+    """DMA semantic trait payload keyed by binding peripheral/signal."""
+
+    peripheral_name: str
+    signal_name: str
+    binding_id: str
+    controller_name: str
+    request_line: str
+    route_id: str
+    conflict_group: str | None
+    controller_schema_id: str | None
+    router_name: str | None
+    router_schema_id: str | None
+    channel_index: int | None
+    request_value: int | None
+    channel_selector: int | None
+    route_selector_field: RuntimeIndexedFieldRef
+
+
+@dataclass(frozen=True, slots=True)
 class _SemanticContext:
     device: CanonicalDeviceIR
     semantics_catalog: dict[str, dict[str, str]]
@@ -322,6 +356,7 @@ def _driver_semantics_paths(
                 _device_runtime_generated_path(family_dir, device_name, UART_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, I2C_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, SPI_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, DMA_DRIVER_HEADER),
             )
         )
     return tuple(paths)
@@ -403,6 +438,35 @@ def _invalid_field_ref(base_address: int = 0) -> RuntimeFieldRef:
         bit_offset=0,
         bit_width=0,
         valid=False,
+    )
+
+
+def _invalid_indexed_field_ref(base_address: int = 0) -> RuntimeIndexedFieldRef:
+    return RuntimeIndexedFieldRef(
+        base_address=base_address,
+        base_offset_bytes=0,
+        stride_bytes=0,
+        bit_offset=0,
+        bit_width=0,
+        valid=False,
+    )
+
+
+def _indexed_field_ref(
+    *,
+    base_address: int,
+    base_offset_bytes: int,
+    stride_bytes: int,
+    bit_offset: int,
+    bit_width: int,
+) -> RuntimeIndexedFieldRef:
+    return RuntimeIndexedFieldRef(
+        base_address=base_address,
+        base_offset_bytes=base_offset_bytes,
+        stride_bytes=stride_bytes,
+        bit_offset=bit_offset,
+        bit_width=bit_width,
+        valid=True,
     )
 
 
@@ -492,6 +556,20 @@ def _field_ref_expr(field_ref: RuntimeFieldRef) -> str:
     return (
         f"RuntimeFieldRef{{{field_id}, {register_expr}, "
         f"{field_ref.bit_offset}u, {field_ref.bit_width}u, true}}"
+    )
+
+
+def _indexed_field_ref_expr(field_ref: RuntimeIndexedFieldRef) -> str:
+    if not field_ref.valid:
+        return "kInvalidIndexedFieldRef"
+    return (
+        "RuntimeIndexedFieldRef{"
+        f"0x{field_ref.base_address:08X}u, "
+        f"{field_ref.base_offset_bytes}u, "
+        f"{field_ref.stride_bytes}u, "
+        f"{field_ref.bit_offset}u, "
+        f"{field_ref.bit_width}u, "
+        "true}"
     )
 
 
@@ -1830,6 +1908,84 @@ def _build_spi_rows(context: _SemanticContext) -> tuple[SpiSemanticRow, ...]:
     return tuple(rows)
 
 
+def _resolve_dma_router_peripheral(context: _SemanticContext) -> PeripheralInstance | None:
+    routers = tuple(
+        peripheral
+        for peripheral in sorted(context.peripheral_by_name.values(), key=lambda item: item.name)
+        if canonical_peripheral_class(peripheral.ip_name) == "dma-router"
+    )
+    if not routers:
+        return None
+    return routers[0]
+
+
+def _build_dma_rows(context: _SemanticContext) -> tuple[DmaSemanticRow, ...]:
+    runtime_peripheral_names = {
+        peripheral.name
+        for peripheral in context.peripheral_by_name.values()
+        if canonical_peripheral_class(peripheral.ip_name)
+        in {"gpio", "uart", "i2c", "spi", "dma", "dma-router"}
+    }
+    router = _resolve_dma_router_peripheral(context)
+    rows: list[DmaSemanticRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral not in runtime_peripheral_names or binding.signal is None:
+            continue
+        controller = context.peripheral_by_name.get(binding.controller)
+        if controller is None:
+            continue
+        controller_schema_id = controller.backend_schema_id
+        route_selector_field = _invalid_indexed_field_ref(controller.base_address)
+        router_name: str | None = None
+        router_schema_id: str | None = None
+        if controller_schema_id == "alloy.dma.st-bdma-v1-0":
+            if router is not None:
+                router_name = router.name
+                router_schema_id = router.backend_schema_id
+                route_selector_field = _indexed_field_ref(
+                    base_address=router.base_address,
+                    base_offset_bytes=0x00,
+                    stride_bytes=0x04,
+                    bit_offset=0,
+                    bit_width=8,
+                )
+        elif controller_schema_id == "alloy.dma.st-bdma-f4-v1-0":
+            route_selector_field = _indexed_field_ref(
+                base_address=controller.base_address,
+                base_offset_bytes=0x10,
+                stride_bytes=0x18,
+                bit_offset=25,
+                bit_width=3,
+            )
+        elif controller_schema_id == "alloy.dma.microchip-xdmac-k":
+            route_selector_field = _indexed_field_ref(
+                base_address=controller.base_address,
+                base_offset_bytes=0x78,
+                stride_bytes=0x40,
+                bit_offset=24,
+                bit_width=7,
+            )
+        rows.append(
+            DmaSemanticRow(
+                peripheral_name=binding.peripheral,
+                signal_name=binding.signal,
+                binding_id=binding.binding_id,
+                controller_name=binding.controller,
+                request_line=binding.request_line,
+                route_id=binding.route_id,
+                conflict_group=binding.conflict_group,
+                controller_schema_id=controller_schema_id,
+                router_name=router_name,
+                router_schema_id=router_schema_id,
+                channel_index=binding.channel_index,
+                request_value=binding.request_value,
+                channel_selector=binding.channel_selector,
+                route_selector_field=route_selector_field,
+            )
+        )
+    return tuple(rows)
+
+
 def _emit_driver_semantics_common_header(
     *,
     family_dir: str,
@@ -1852,8 +2008,18 @@ def _emit_driver_semantics_common_header(
             "  bool valid = false;",
             "};",
             "",
+            "struct RuntimeIndexedFieldRef {",
+            "  std::uintptr_t base_address = 0u;",
+            "  std::uint32_t base_offset_bytes = 0u;",
+            "  std::uint32_t stride_bytes = 0u;",
+            "  std::uint16_t bit_offset = 0u;",
+            "  std::uint16_t bit_width = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
             "inline constexpr RuntimeRegisterRef kInvalidRegisterRef{};",
             "inline constexpr RuntimeFieldRef kInvalidFieldRef{};",
+            "inline constexpr RuntimeIndexedFieldRef kInvalidIndexedFieldRef{};",
         ]
     )
     namespace_block = _cpp_namespace_block(
@@ -2537,7 +2703,122 @@ def emit_runtime_driver_spi_semantics_header(
     )
 
 
+def emit_runtime_driver_dma_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    rows = _build_dma_rows(context)
+    trait_lines = [
+        "template<PeripheralId Peripheral, SignalId Signal>",
+        "struct DmaSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr DmaBindingId kBindingId = DmaBindingId::none;",
+        "  static constexpr DmaControllerId kControllerId = DmaControllerId::none;",
+        "  static constexpr DmaRequestLineId kRequestLineId = DmaRequestLineId::none;",
+        "  static constexpr DmaRouteId kRouteId = DmaRouteId::none;",
+        "  static constexpr DmaConflictGroupId kConflictGroupId = DmaConflictGroupId::none;",
+        "  static constexpr PeripheralId kControllerPeripheralId = PeripheralId::none;",
+        "  static constexpr PeripheralId kRouterPeripheralId = PeripheralId::none;",
+        "  static constexpr BackendSchemaId kControllerSchemaId = BackendSchemaId::none;",
+        "  static constexpr BackendSchemaId kRouterSchemaId = BackendSchemaId::none;",
+        "  static constexpr int kChannelIndex = -1;",
+        "  static constexpr int kRequestValue = -1;",
+        "  static constexpr int kChannelSelector = -1;",
+        "  static constexpr RuntimeIndexedFieldRef kRouteSelectorField = kInvalidIndexedFieldRef;",
+        "};",
+        "",
+    ]
+    row_lines: list[str] = []
+    for row in rows:
+        signal_ref = _semantic_enum_ref(
+            "SignalId",
+            context.semantics_catalog["signal_enum_map"],
+            row.signal_name,
+        )
+        trait_lines.extend(
+            [
+                "template<>",
+                f"struct DmaSemanticTraits<PeripheralId::{_enum_identifier(row.peripheral_name)}, {signal_ref}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr DmaBindingId kBindingId = DmaBindingId::{_enum_identifier(row.binding_id)};",
+                f"  static constexpr DmaControllerId kControllerId = DmaControllerId::{_enum_identifier(row.controller_name)};",
+                f"  static constexpr DmaRequestLineId kRequestLineId = DmaRequestLineId::{_enum_identifier(row.request_line)};",
+                f"  static constexpr DmaRouteId kRouteId = DmaRouteId::{_enum_identifier(row.route_id)};",
+                "  static constexpr DmaConflictGroupId kConflictGroupId = "
+                + (
+                    "DmaConflictGroupId::none"
+                    if row.conflict_group is None
+                    else f"DmaConflictGroupId::{_enum_identifier(row.conflict_group)}"
+                )
+                + ";",
+                f"  static constexpr PeripheralId kControllerPeripheralId = PeripheralId::{_enum_identifier(row.controller_name)};",
+                "  static constexpr PeripheralId kRouterPeripheralId = "
+                + (
+                    "PeripheralId::none"
+                    if row.router_name is None
+                    else f"PeripheralId::{_enum_identifier(row.router_name)}"
+                )
+                + ";",
+                "  static constexpr BackendSchemaId kControllerSchemaId = "
+                + _schema_ref_expr(context, row.controller_schema_id)
+                + ";",
+                "  static constexpr BackendSchemaId kRouterSchemaId = "
+                + _schema_ref_expr(context, row.router_schema_id)
+                + ";",
+                f"  static constexpr int kChannelIndex = {row.channel_index if row.channel_index is not None else -1};",
+                f"  static constexpr int kRequestValue = {row.request_value if row.request_value is not None else -1};",
+                f"  static constexpr int kChannelSelector = {row.channel_selector if row.channel_selector is not None else -1};",
+                "  static constexpr RuntimeIndexedFieldRef kRouteSelectorField = "
+                + _indexed_field_ref_expr(row.route_selector_field)
+                + ";",
+                "};",
+                "",
+            ]
+        )
+        row_lines.append(
+            f"  PeripheralId::{_enum_identifier(row.peripheral_name)},"
+        )
+
+    namespace_block = _cpp_namespace_block(
+        (*_runtime_device_namespace_components(device), "driver_semantics"),
+        "\n".join(
+            [
+                *trait_lines,
+                *_std_array_lines(
+                    type_name="PeripheralId",
+                    variable_name="kDmaSemanticPeripherals",
+                    row_lines=row_lines,
+                ),
+            ]
+        ),
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "common.hpp"',
+            '#include "../dma_bindings.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_runtime_generated_path(
+            family_dir,
+            device.identity.device,
+            DMA_DRIVER_HEADER,
+        ),
+        content=content,
+    )
+
+
 __all__ = [
+    "emit_runtime_driver_dma_semantics_header",
     "emit_runtime_driver_gpio_semantics_header",
     "emit_runtime_driver_i2c_semantics_header",
     "emit_runtime_driver_semantics_common_header",

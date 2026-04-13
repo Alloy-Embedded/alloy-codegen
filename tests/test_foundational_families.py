@@ -73,12 +73,14 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/registers.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_bindings.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/common.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/gpio.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/uart.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/i2c.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/spi.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/dma.hpp",
             )
         )
     return tuple(paths)
@@ -262,6 +264,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "runtime"
                 / "devices"
                 / device_name
+                / "dma_bindings.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
                 / "routes.hpp"
             ).exists()
             assert (
@@ -313,6 +324,16 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / device_name
                 / "driver_semantics"
                 / "spi.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "driver_semantics"
+                / "dma.hpp"
             ).exists()
 
 

@@ -50,6 +50,7 @@ from alloy_codegen.emission import (
 from alloy_codegen.manifests import ArtifactManifest
 from alloy_codegen.reporting import EmissionPlan, EmittedArtifact
 from alloy_codegen.runtime_driver_semantics import (
+    emit_runtime_driver_dma_semantics_header,
     emit_runtime_driver_gpio_semantics_header,
     emit_runtime_driver_i2c_semantics_header,
     emit_runtime_driver_semantics_common_header,
@@ -58,6 +59,7 @@ from alloy_codegen.runtime_driver_semantics import (
 )
 from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_clock_bindings_header,
+    emit_runtime_lite_dma_bindings_header,
     emit_runtime_lite_peripheral_instances_header,
     emit_runtime_lite_pins_header,
     emit_runtime_lite_register_fields_header,
@@ -146,6 +148,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     family_dir=family_dir,
                     device=device,
                 ),
+                emit_runtime_lite_dma_bindings_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
                 emit_runtime_lite_routes_header(family_dir=family_dir, device=device),
                 emit_runtime_driver_semantics_common_header(
                     family_dir=family_dir,
@@ -164,6 +170,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_driver_spi_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_dma_semantics_header(
                     family_dir=family_dir,
                     device=device,
                 ),

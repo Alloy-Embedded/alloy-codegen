@@ -103,6 +103,9 @@
         "request_line": { "type": "string" },
         "peripheral": { "type": ["string", "null"] },
         "signal": { "type": ["string", "null"] },
+        "channel_index": { "type": ["integer", "null"] },
+        "request_value": { "type": ["integer", "null"] },
+        "channel_selector": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -552,6 +555,9 @@
         "request_line": { "type": "string" },
         "route_id": { "type": "string" },
         "conflict_group": { "type": ["string", "null"] },
+        "channel_index": { "type": ["integer", "null"] },
+        "request_value": { "type": ["integer", "null"] },
+        "channel_selector": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
@@ -574,6 +580,9 @@
         "peripheral": { "type": ["string", "null"] },
         "signal": { "type": ["string", "null"] },
         "conflict_group": { "type": ["string", "null"] },
+        "channel_index": { "type": ["integer", "null"] },
+        "request_value": { "type": ["integer", "null"] },
+        "channel_selector": { "type": ["integer", "null"] },
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false

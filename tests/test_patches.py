@@ -60,3 +60,5 @@ def test_device_patch_resolves_dma_requests_from_family_catalog(execution_contex
 
     assert [request.request_line for request in patch.dma_requests] == ["DMA1_CH1", "DMA1_CH2"]
     assert [request.signal for request in patch.dma_requests] == ["RX", "TX"]
+    assert [request.channel_index for request in patch.dma_requests] == [0, 1]
+    assert [request.request_value for request in patch.dma_requests] == [50, 51]

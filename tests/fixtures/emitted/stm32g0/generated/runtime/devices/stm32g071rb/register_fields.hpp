@@ -15,6 +15,8 @@ enum class FieldId : std::uint16_t {
   none,
   field_gpioa_moder_mode2,
   field_gpiob_moder_mode6,
+  field_rcc_ahbenr_dma1en,
+  field_rcc_ahbrstr_dma1rst,
   field_rcc_apbenr2_usart1en,
   field_rcc_apbrstr2_usart1rst,
   field_rcc_iopenr_gpioaen,
@@ -49,6 +51,24 @@ struct RegisterFieldTraits<FieldId::field_gpiob_moder_mode6> {
   static constexpr std::uint16_t kBitOffset = 12u;
   static constexpr std::uint16_t kBitWidth = 2u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
+};
+
+template<>
+struct RegisterFieldTraits<FieldId::field_rcc_ahbenr_dma1en> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_rcc_ahbenr;
+  static constexpr std::uint16_t kBitOffset = 0u;
+  static constexpr std::uint16_t kBitWidth = 1u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+};
+
+template<>
+struct RegisterFieldTraits<FieldId::field_rcc_ahbrstr_dma1rst> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_rcc_ahbrstr;
+  static constexpr std::uint16_t kBitOffset = 0u;
+  static constexpr std::uint16_t kBitWidth = 1u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
 };
 
 template<>
@@ -114,9 +134,11 @@ struct RegisterFieldTraits<FieldId::field_usart1_cr1_ue> {
   static constexpr AccessKindId kAccessId = AccessKindId::none;
 };
 
-inline constexpr std::array<FieldId, 9> kRegisterFields = {{
+inline constexpr std::array<FieldId, 11> kRegisterFields = {{
   FieldId::field_gpioa_moder_mode2,
   FieldId::field_gpiob_moder_mode6,
+  FieldId::field_rcc_ahbenr_dma1en,
+  FieldId::field_rcc_ahbrstr_dma1rst,
   FieldId::field_rcc_apbenr2_usart1en,
   FieldId::field_rcc_apbrstr2_usart1rst,
   FieldId::field_rcc_iopenr_gpioaen,

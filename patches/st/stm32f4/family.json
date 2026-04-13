@@ -197,28 +197,36 @@
       "controller": "DMA1",
       "request_line": "DMA1_STREAM6",
       "peripheral": "USART2",
-      "signal": "TX"
+      "signal": "TX",
+      "channel_index": 6,
+      "channel_selector": 4
     },
     {
       "request_id": "dma1-usart2-rx",
       "controller": "DMA1",
       "request_line": "DMA1_STREAM5",
       "peripheral": "USART2",
-      "signal": "RX"
+      "signal": "RX",
+      "channel_index": 5,
+      "channel_selector": 4
     },
     {
       "request_id": "dma2-usart1-tx",
       "controller": "DMA2",
       "request_line": "DMA2_STREAM7",
       "peripheral": "USART1",
-      "signal": "TX"
+      "signal": "TX",
+      "channel_index": 7,
+      "channel_selector": 4
     },
     {
       "request_id": "dma2-usart1-rx",
       "controller": "DMA2",
       "request_line": "DMA2_STREAM2",
       "peripheral": "USART1",
-      "signal": "RX"
+      "signal": "RX",
+      "channel_index": 2,
+      "channel_selector": 4
     }
   ]
 }

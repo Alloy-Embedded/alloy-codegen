@@ -27,8 +27,18 @@ struct RuntimeFieldRef {
   bool valid = false;
 };
 
+struct RuntimeIndexedFieldRef {
+  std::uintptr_t base_address = 0u;
+  std::uint32_t base_offset_bytes = 0u;
+  std::uint32_t stride_bytes = 0u;
+  std::uint16_t bit_offset = 0u;
+  std::uint16_t bit_width = 0u;
+  bool valid = false;
+};
+
 inline constexpr RuntimeRegisterRef kInvalidRegisterRef{};
 inline constexpr RuntimeFieldRef kInvalidFieldRef{};
+inline constexpr RuntimeIndexedFieldRef kInvalidIndexedFieldRef{};
 }
 }
 }

@@ -1275,6 +1275,9 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             signal=request.signal,
             conflict_group=None,
             provenance=request.provenance,
+            channel_index=request.channel_index,
+            request_value=request.request_value,
+            channel_selector=request.channel_selector,
         )
         dma_conflict_accumulator[
             f"dma-conflict:{_sanitize(request.controller)}:{_sanitize(request.request_line)}"
@@ -1319,6 +1322,9 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
                     None,
                 ),
                 provenance=route.provenance,
+                channel_index=route.channel_index,
+                request_value=route.request_value,
+                channel_selector=route.channel_selector,
             )
             for route_id, route in dma_route_map.items()
         }
@@ -1344,6 +1350,9 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             route_id=route.route_id,
             conflict_group=route.conflict_group,
             provenance=route.provenance,
+            channel_index=route.channel_index,
+            request_value=route.request_value,
+            channel_selector=route.channel_selector,
         )
         for route in sorted(
             dma_route_map.values(),

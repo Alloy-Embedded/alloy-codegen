@@ -115,12 +115,14 @@ def find_runtime_lite_contract_violations(
             "registers": f"{device_runtime_root}/registers.hpp",
             "register_fields": f"{device_runtime_root}/register_fields.hpp",
             "clock_bindings": f"{device_runtime_root}/clock_bindings.hpp",
+            "dma_bindings": f"{device_runtime_root}/dma_bindings.hpp",
             "routes": f"{device_runtime_root}/routes.hpp",
             "driver_common": f"{device_runtime_root}/driver_semantics/common.hpp",
             "gpio_semantics": f"{device_runtime_root}/driver_semantics/gpio.hpp",
             "uart_semantics": f"{device_runtime_root}/driver_semantics/uart.hpp",
             "i2c_semantics": f"{device_runtime_root}/driver_semantics/i2c.hpp",
             "spi_semantics": f"{device_runtime_root}/driver_semantics/spi.hpp",
+            "dma_semantics": f"{device_runtime_root}/driver_semantics/dma.hpp",
         }
         content_by_key = {
             key: artifacts_by_path[path].content if path in artifacts_by_path else None
@@ -157,6 +159,22 @@ def find_runtime_lite_contract_violations(
             violations.append(
                 f"{device_runtime_paths['clock_bindings']} does not emit "
                 "peripheral clock binding traits"
+            )
+        if (
+            content_by_key["dma_bindings"]
+            and "BindingTraits<PeripheralId" not in content_by_key["dma_bindings"]
+            and "struct BindingTraits {" not in content_by_key["dma_bindings"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['dma_bindings']} does not emit DMA binding traits"
+            )
+        if (
+            content_by_key["dma_bindings"]
+            and "ControllerTraits<DmaControllerId::" not in content_by_key["dma_bindings"]
+            and "kDmaControllers" not in content_by_key["dma_bindings"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['dma_bindings']} does not emit DMA controller traits"
             )
         if runtime_candidates:
             routes_content = content_by_key["routes"]
@@ -221,4 +239,49 @@ def find_runtime_lite_contract_violations(
                 violations.append(
                     f"{device_runtime_paths[key]} does not emit {class_name} semantic traits"
                 )
+
+        runtime_peripheral_names = {peripheral.name for peripheral in runtime_peripherals}
+        runtime_dma_bindings = tuple(
+            binding
+            for binding in device.dma_bindings
+            if binding.peripheral in runtime_peripheral_names
+        )
+        dma_content = content_by_key["dma_semantics"]
+        if dma_content is None:
+            violations.append(
+                f"missing dma driver semantics header: {device_runtime_paths['dma_semantics']}"
+            )
+        elif (
+            "DmaSemanticTraits<PeripheralId" not in dma_content
+            and "struct DmaSemanticTraits {" not in dma_content
+        ):
+            violations.append(
+                f"{device_runtime_paths['dma_semantics']} does not emit dma semantic traits"
+            )
+        if runtime_dma_bindings and "kDmaSemanticPeripherals" not in (dma_content or ""):
+            violations.append(
+                f"{device_runtime_paths['dma_semantics']} does not publish DMA semantic rows"
+            )
+
+        if device.identity.vendor == "st" and device.identity.family == "stm32g0":
+            for binding in runtime_dma_bindings:
+                if binding.channel_index is None or binding.request_value is None:
+                    violations.append(
+                        f"{device.identity.device} DMA binding {binding.binding_id} "
+                        "is missing channel_index/request_value"
+                    )
+        if device.identity.vendor == "st" and device.identity.family == "stm32f4":
+            for binding in runtime_dma_bindings:
+                if binding.channel_index is None or binding.channel_selector is None:
+                    violations.append(
+                        f"{device.identity.device} DMA binding {binding.binding_id} "
+                        "is missing channel_index/channel_selector"
+                    )
+        if device.identity.vendor == "microchip" and device.identity.family == "same70":
+            for binding in runtime_dma_bindings:
+                if binding.request_value is None:
+                    violations.append(
+                        f"{device.identity.device} DMA binding {binding.binding_id} "
+                        "is missing request_value"
+                    )
     return tuple(violations)

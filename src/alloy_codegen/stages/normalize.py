@@ -609,6 +609,9 @@ def _dma_request_to_ir(
         peripheral=request.peripheral,
         signal=request.signal,
         provenance=provenance,
+        channel_index=request.channel_index,
+        request_value=request.request_value,
+        channel_selector=request.channel_selector,
     )
 
 

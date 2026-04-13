@@ -19,8 +19,10 @@ enum class RegisterId : std::uint16_t {
   register_gpiob_afrl,
   register_gpiob_afrh,
   register_rcc_ioprstr,
+  register_rcc_ahbrstr,
   register_rcc_apbrstr2,
   register_rcc_iopenr,
+  register_rcc_ahbenr,
   register_rcc_apbenr2,
   register_usart1_cr1,
   register_usart1_cr2,
@@ -103,6 +105,15 @@ struct RegisterTraits<RegisterId::register_rcc_ioprstr> {
 };
 
 template<>
+struct RegisterTraits<RegisterId::register_rcc_ahbrstr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
+  static constexpr std::uint32_t kOffsetBytes = 40u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+};
+
+template<>
 struct RegisterTraits<RegisterId::register_rcc_apbrstr2> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
@@ -116,6 +127,15 @@ struct RegisterTraits<RegisterId::register_rcc_iopenr> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
   static constexpr std::uint32_t kOffsetBytes = 52u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_rcc_ahbenr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
+  static constexpr std::uint32_t kOffsetBytes = 56u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
 };
@@ -183,7 +203,7 @@ struct RegisterTraits<RegisterId::register_usart1_tdr> {
   static constexpr int kSizeBits = -1;
 };
 
-inline constexpr std::array<RegisterId, 16> kRegisters = {{
+inline constexpr std::array<RegisterId, 18> kRegisters = {{
   RegisterId::register_gpioa_moder,
   RegisterId::register_gpioa_afrl,
   RegisterId::register_gpioa_afrh,
@@ -191,8 +211,10 @@ inline constexpr std::array<RegisterId, 16> kRegisters = {{
   RegisterId::register_gpiob_afrl,
   RegisterId::register_gpiob_afrh,
   RegisterId::register_rcc_ioprstr,
+  RegisterId::register_rcc_ahbrstr,
   RegisterId::register_rcc_apbrstr2,
   RegisterId::register_rcc_iopenr,
+  RegisterId::register_rcc_ahbenr,
   RegisterId::register_rcc_apbenr2,
   RegisterId::register_usart1_cr1,
   RegisterId::register_usart1_cr2,
