@@ -105,7 +105,6 @@ static_assert(
     published_device_runtime::PeripheralClockBindingTraits<
         published_device_runtime::kClockBoundPeripherals[0]>::kPresent
 );
-static_assert(published_device_runtime::kDmaBindings.size() >= 0u);
 static_assert(published_runtime::BackendSchemaId::none == published_runtime::BackendSchemaId::none);
 
 template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
