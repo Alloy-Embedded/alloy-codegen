@@ -27,9 +27,7 @@ from .emission import (
     _std_array_lines,
 )
 
-RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset(
-    {"gpio", "uart", "spi", "i2c", "dma", "dma-router"}
-)
+RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset({"gpio", "uart", "spi", "i2c", "dma", "dma-router"})
 
 
 def _runtime_generated_path(family_dir: str, name: str) -> str:
@@ -1031,9 +1029,7 @@ def emit_runtime_lite_dma_bindings_header(
         binding_id = _enum_identifier(binding.binding_id)
         channel_index = binding.channel_index if binding.channel_index is not None else -1
         request_value = binding.request_value if binding.request_value is not None else -1
-        channel_selector = (
-            binding.channel_selector if binding.channel_selector is not None else -1
-        )
+        channel_selector = binding.channel_selector if binding.channel_selector is not None else -1
         binding_trait_lines.extend(
             [
                 "template<>",

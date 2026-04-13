@@ -2777,9 +2777,7 @@ def emit_runtime_driver_dma_semantics_header(
                 "",
             ]
         )
-        row_lines.append(
-            f"  PeripheralId::{_enum_identifier(row.peripheral_name)},"
-        )
+        row_lines.append(f"  PeripheralId::{_enum_identifier(row.peripheral_name)},")
 
     namespace_block = _cpp_namespace_block(
         (*_runtime_device_namespace_components(device), "driver_semantics"),
