@@ -16,9 +16,10 @@ struct PeripheralBase {
   PeripheralId peripheral_id;
   std::uintptr_t address;
 };
-inline constexpr std::array<PeripheralBase, 6> kPeripheralBases = {{
+inline constexpr std::array<PeripheralBase, 7> kPeripheralBases = {{
   {PeripheralId::DMA1, 0x40020000u},
   {PeripheralId::DMAMUX1, 0x40020800u},
+  {PeripheralId::FLASH, 0x40022000u},
   {PeripheralId::GPIOA, 0x50000000u},
   {PeripheralId::GPIOB, 0x50000400u},
   {PeripheralId::RCC, 0x40021000u},
@@ -26,12 +27,16 @@ inline constexpr std::array<PeripheralBase, 6> kPeripheralBases = {{
 }};
 
 enum class RegisterId : std::uint16_t {
+  register_flash_acr,
   register_gpioa_moder,
   register_gpioa_afrl,
   register_gpioa_afrh,
   register_gpiob_moder,
   register_gpiob_afrl,
   register_gpiob_afrh,
+  register_rcc_cr,
+  register_rcc_cfgr,
+  register_rcc_pllcfgr,
   register_rcc_ioprstr,
   register_rcc_ahbrstr,
   register_rcc_apbrstr1,
@@ -55,13 +60,17 @@ struct RegisterDescriptor {
   AccessKindId access_id;
   int size_bits;
 };
-inline constexpr std::array<RegisterDescriptor, 20> kRegisters = {{
+inline constexpr std::array<RegisterDescriptor, 24> kRegisters = {{
+  {RegisterId::register_flash_acr, PeripheralId::FLASH, 0u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_gpioa_moder, PeripheralId::GPIOA, 0u, AccessKindId::none, -1},
   {RegisterId::register_gpioa_afrl, PeripheralId::GPIOA, 32u, AccessKindId::none, -1},
   {RegisterId::register_gpioa_afrh, PeripheralId::GPIOA, 36u, AccessKindId::none, -1},
   {RegisterId::register_gpiob_moder, PeripheralId::GPIOB, 0u, AccessKindId::none, -1},
   {RegisterId::register_gpiob_afrl, PeripheralId::GPIOB, 32u, AccessKindId::none, -1},
   {RegisterId::register_gpiob_afrh, PeripheralId::GPIOB, 36u, AccessKindId::none, -1},
+  {RegisterId::register_rcc_cr, PeripheralId::RCC, 0u, AccessKindId::access_kind_read_write, 32},
+  {RegisterId::register_rcc_cfgr, PeripheralId::RCC, 8u, AccessKindId::access_kind_read_write, 32},
+  {RegisterId::register_rcc_pllcfgr, PeripheralId::RCC, 12u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_rcc_ioprstr, PeripheralId::RCC, 36u, AccessKindId::none, -1},
   {RegisterId::register_rcc_ahbrstr, PeripheralId::RCC, 40u, AccessKindId::none, -1},
   {RegisterId::register_rcc_apbrstr1, PeripheralId::RCC, 44u, AccessKindId::none, -1},

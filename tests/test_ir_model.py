@@ -31,6 +31,7 @@ from alloy_codegen.ir.model import (
     RouteRequirement,
     SignalEndpoint,
     StartupDescriptor,
+    SystemClockProfile,
     VectorSlotDescriptor,
 )
 
@@ -133,6 +134,7 @@ def test_canonical_device_ir_omits_empty_transitional_domains() -> None:
     assert "connection_candidates" not in payload
     assert "interrupt_bindings" not in payload
     assert "startup_descriptors" not in payload
+    assert "system_clock_profiles" not in payload
     assert "clock_nodes" not in payload
     assert "dma_bindings" not in payload
     assert "dma_routes" not in payload
@@ -294,6 +296,25 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
                 provenance=provenance,
             ),
         ),
+        system_clock_profiles=(
+            SystemClockProfile(
+                profile_id="default-pll",
+                kind="default",
+                source_kind="pll-external",
+                sysclk_hz=84_000_000,
+                hclk_hz=84_000_000,
+                apb1_hz=42_000_000,
+                apb2_hz=84_000_000,
+                source_hz=8_000_000,
+                oscillator_startup_cycles=255,
+                pll_m=4,
+                pll_n=168,
+                pll_p=4,
+                pll_q=7,
+                flash_latency=2,
+                provenance=provenance,
+            ),
+        ),
         clock_nodes=(
             ClockNodeLite(
                 node_id="pclk2",
@@ -404,6 +425,8 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
         "vector-source",
     ]
     assert payload["startup_descriptors"][0]["descriptor_id"] == "startup-copy-data"
+    assert payload["system_clock_profiles"][0]["profile_id"] == "default-pll"
+    assert payload["system_clock_profiles"][0]["oscillator_startup_cycles"] == 255
     assert payload["clock_nodes"][0]["node_id"] == "pclk2"
     assert payload["clock_gates"][0]["gate_id"] == "gate-usart1"
     assert payload["resets"][0]["reset_id"] == "reset-usart1"

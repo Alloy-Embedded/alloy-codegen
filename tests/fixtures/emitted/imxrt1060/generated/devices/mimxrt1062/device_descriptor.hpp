@@ -22,7 +22,7 @@ inline constexpr DeviceDescriptor kDeviceDescriptor = {
   PackageRefId::mimxrt1062_bga196,
   CoreId::core_cortex_m7f,
   4,
-  7,
+  9,
   4,
   1,
   10,

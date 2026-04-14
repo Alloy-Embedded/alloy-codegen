@@ -156,6 +156,24 @@
       "rcc_reset_signal": "RCC_AHBRSTR.DMA1RST"
     },
     {
+      "backend_schema_id": "alloy.flash.st-flash",
+      "base_address": 1073881088,
+      "instance": 0,
+      "ip_name": "flash",
+      "ip_version": null,
+      "name": "FLASH",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
       "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0",
       "base_address": 1342177280,
       "instance": 0,

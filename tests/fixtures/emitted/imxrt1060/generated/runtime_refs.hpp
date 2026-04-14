@@ -15,6 +15,8 @@ enum class DeviceRefId : std::uint16_t {
 enum class PeripheralRefId : std::uint16_t {
   none,
   mimxrt1062_CCM,
+  mimxrt1062_CCM_ANALOG,
+  mimxrt1062_DCDC,
   mimxrt1062_GPIO1,
   mimxrt1062_GPIO4,
   mimxrt1062_LPI2C1,
@@ -92,6 +94,9 @@ enum class CapabilityRefId : std::uint16_t {
 
 enum class RegisterRefId : std::uint16_t {
   none,
+  mimxrt1062_register_ccm_analog_pll_arm,
+  mimxrt1062_register_ccm_cacrr,
+  mimxrt1062_register_ccm_cbcdr,
   mimxrt1062_register_ccm_cbcmr,
   mimxrt1062_register_ccm_ccgr0,
   mimxrt1062_register_ccm_ccgr1,
@@ -100,8 +105,11 @@ enum class RegisterRefId : std::uint16_t {
   mimxrt1062_register_ccm_ccgr5,
   mimxrt1062_register_ccm_ccgr6,
   mimxrt1062_register_ccm_ccgr7,
+  mimxrt1062_register_ccm_cdhipr,
   mimxrt1062_register_ccm_cscdr1,
   mimxrt1062_register_ccm_cscdr2,
+  mimxrt1062_register_dcdc_reg0,
+  mimxrt1062_register_dcdc_reg3,
   mimxrt1062_register_gpio1_dr,
   mimxrt1062_register_gpio1_gdir,
   mimxrt1062_register_gpio1_psr,
@@ -120,7 +128,19 @@ enum class RegisterRefId : std::uint16_t {
 
 enum class RegisterFieldRefId : std::uint16_t {
   none,
+  mimxrt1062_field_ccm_analog_pll_arm_bypass,
+  mimxrt1062_field_ccm_analog_pll_arm_div_select,
+  mimxrt1062_field_ccm_analog_pll_arm_enable,
+  mimxrt1062_field_ccm_analog_pll_arm_lock,
+  mimxrt1062_field_ccm_analog_pll_arm_powerdown,
+  mimxrt1062_field_ccm_cacrr_arm_podf,
+  mimxrt1062_field_ccm_cbcdr_ahb_podf,
+  mimxrt1062_field_ccm_cbcdr_ipg_podf,
+  mimxrt1062_field_ccm_cbcdr_periph_clk_sel,
+  mimxrt1062_field_ccm_cbcdr_periph_clk2_podf,
   mimxrt1062_field_ccm_cbcmr_lpspi_clk_sel,
+  mimxrt1062_field_ccm_cbcmr_periph_clk2_sel,
+  mimxrt1062_field_ccm_cbcmr_pre_periph_clk_sel,
   mimxrt1062_field_ccm_ccgr0_cg14,
   mimxrt1062_field_ccm_ccgr0_cg15,
   mimxrt1062_field_ccm_ccgr0_cg6,
@@ -144,8 +164,14 @@ enum class RegisterFieldRefId : std::uint16_t {
   mimxrt1062_field_ccm_ccgr6_cg5,
   mimxrt1062_field_ccm_ccgr6_cg7,
   mimxrt1062_field_ccm_ccgr7_cg3,
+  mimxrt1062_field_ccm_cdhipr_ahb_podf_busy,
+  mimxrt1062_field_ccm_cdhipr_arm_podf_busy,
+  mimxrt1062_field_ccm_cdhipr_periph_clk_sel_busy,
+  mimxrt1062_field_ccm_cdhipr_periph2_clk_sel_busy,
   mimxrt1062_field_ccm_cscdr1_uart_clk_sel,
   mimxrt1062_field_ccm_cscdr2_lpi2c_clk_sel,
+  mimxrt1062_field_dcdc_reg0_sts_dc_ok,
+  mimxrt1062_field_dcdc_reg3_trg,
   mimxrt1062_field_gpio1_dr_data,
   mimxrt1062_field_gpio4_dr_data,
   mimxrt1062_field_lpuart1_baud_sbr,
@@ -167,9 +193,11 @@ struct PeripheralRefDescriptor {
   DeviceRefId device_id;
   PeripheralClassId peripheral_class_id;
 };
-inline constexpr std::array<PeripheralRefDescriptor, 8> kPeripheralRefs = {{
+inline constexpr std::array<PeripheralRefDescriptor, 10> kPeripheralRefs = {{
   {PeripheralRefId::none, DeviceRefId::none, PeripheralClassId::none},
   {PeripheralRefId::mimxrt1062_CCM, DeviceRefId::mimxrt1062, PeripheralClassId::class_ccm},
+  {PeripheralRefId::mimxrt1062_CCM_ANALOG, DeviceRefId::mimxrt1062, PeripheralClassId::class_ccm_analog},
+  {PeripheralRefId::mimxrt1062_DCDC, DeviceRefId::mimxrt1062, PeripheralClassId::class_dcdc},
   {PeripheralRefId::mimxrt1062_GPIO1, DeviceRefId::mimxrt1062, PeripheralClassId::class_gpio},
   {PeripheralRefId::mimxrt1062_GPIO4, DeviceRefId::mimxrt1062, PeripheralClassId::class_gpio},
   {PeripheralRefId::mimxrt1062_LPI2C1, DeviceRefId::mimxrt1062, PeripheralClassId::class_lpi2c1},
@@ -303,8 +331,11 @@ struct RegisterRefDescriptor {
   PeripheralRefId peripheral_id;
   std::uint32_t offset_bytes;
 };
-inline constexpr std::array<RegisterRefDescriptor, 25> kRegisterRefs = {{
+inline constexpr std::array<RegisterRefDescriptor, 31> kRegisterRefs = {{
   {RegisterRefId::none, DeviceRefId::none, PeripheralRefId::none, 0u},
+  {RegisterRefId::mimxrt1062_register_ccm_analog_pll_arm, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM_ANALOG, 0u},
+  {RegisterRefId::mimxrt1062_register_ccm_cacrr, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 16u},
+  {RegisterRefId::mimxrt1062_register_ccm_cbcdr, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 20u},
   {RegisterRefId::mimxrt1062_register_ccm_cbcmr, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 24u},
   {RegisterRefId::mimxrt1062_register_ccm_ccgr0, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 104u},
   {RegisterRefId::mimxrt1062_register_ccm_ccgr1, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 108u},
@@ -313,8 +344,11 @@ inline constexpr std::array<RegisterRefDescriptor, 25> kRegisterRefs = {{
   {RegisterRefId::mimxrt1062_register_ccm_ccgr5, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 124u},
   {RegisterRefId::mimxrt1062_register_ccm_ccgr6, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 128u},
   {RegisterRefId::mimxrt1062_register_ccm_ccgr7, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 132u},
+  {RegisterRefId::mimxrt1062_register_ccm_cdhipr, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 72u},
   {RegisterRefId::mimxrt1062_register_ccm_cscdr1, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 36u},
   {RegisterRefId::mimxrt1062_register_ccm_cscdr2, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_CCM, 56u},
+  {RegisterRefId::mimxrt1062_register_dcdc_reg0, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_DCDC, 0u},
+  {RegisterRefId::mimxrt1062_register_dcdc_reg3, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_DCDC, 12u},
   {RegisterRefId::mimxrt1062_register_gpio1_dr, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_GPIO1, 0u},
   {RegisterRefId::mimxrt1062_register_gpio1_gdir, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_GPIO1, 4u},
   {RegisterRefId::mimxrt1062_register_gpio1_psr, DeviceRefId::mimxrt1062, PeripheralRefId::mimxrt1062_GPIO1, 8u},
@@ -338,9 +372,21 @@ struct RegisterFieldRefDescriptor {
   std::uint16_t bit_offset;
   std::uint16_t bit_width;
 };
-inline constexpr std::array<RegisterFieldRefDescriptor, 31> kRegisterFieldRefs = {{
+inline constexpr std::array<RegisterFieldRefDescriptor, 49> kRegisterFieldRefs = {{
   {RegisterFieldRefId::none, DeviceRefId::none, RegisterRefId::none, 0u, 0u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_analog_pll_arm_bypass, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_analog_pll_arm, 16u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_analog_pll_arm_div_select, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_analog_pll_arm, 0u, 7u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_analog_pll_arm_enable, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_analog_pll_arm, 13u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_analog_pll_arm_lock, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_analog_pll_arm, 31u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_analog_pll_arm_powerdown, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_analog_pll_arm, 12u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cacrr_arm_podf, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cacrr, 0u, 3u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cbcdr_ahb_podf, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcdr, 10u, 3u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cbcdr_ipg_podf, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcdr, 8u, 2u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cbcdr_periph_clk_sel, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcdr, 25u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cbcdr_periph_clk2_podf, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcdr, 27u, 3u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_cbcmr_lpspi_clk_sel, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcmr, 4u, 2u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cbcmr_periph_clk2_sel, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcmr, 12u, 2u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cbcmr_pre_periph_clk_sel, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cbcmr, 18u, 2u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_ccgr0_cg14, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_ccgr0, 28u, 2u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_ccgr0_cg15, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_ccgr0, 30u, 2u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_ccgr0_cg6, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_ccgr0, 12u, 2u},
@@ -364,8 +410,14 @@ inline constexpr std::array<RegisterFieldRefDescriptor, 31> kRegisterFieldRefs =
   {RegisterFieldRefId::mimxrt1062_field_ccm_ccgr6_cg5, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_ccgr6, 10u, 2u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_ccgr6_cg7, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_ccgr6, 14u, 2u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_ccgr7_cg3, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_ccgr7, 6u, 2u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cdhipr_ahb_podf_busy, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cdhipr, 1u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cdhipr_arm_podf_busy, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cdhipr, 16u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cdhipr_periph_clk_sel_busy, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cdhipr, 5u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_ccm_cdhipr_periph2_clk_sel_busy, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cdhipr, 3u, 1u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_cscdr1_uart_clk_sel, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cscdr1, 6u, 1u},
   {RegisterFieldRefId::mimxrt1062_field_ccm_cscdr2_lpi2c_clk_sel, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_ccm_cscdr2, 18u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_dcdc_reg0_sts_dc_ok, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_dcdc_reg0, 31u, 1u},
+  {RegisterFieldRefId::mimxrt1062_field_dcdc_reg3_trg, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_dcdc_reg3, 0u, 5u},
   {RegisterFieldRefId::mimxrt1062_field_gpio1_dr_data, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_gpio1_dr, 0u, 32u},
   {RegisterFieldRefId::mimxrt1062_field_gpio4_dr_data, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_gpio4_dr, 0u, 32u},
   {RegisterFieldRefId::mimxrt1062_field_lpuart1_baud_sbr, DeviceRefId::mimxrt1062, RegisterRefId::mimxrt1062_register_lpuart1_baud, 0u, 13u},

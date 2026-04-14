@@ -26,6 +26,7 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/registers.hpp`
   - `generated/runtime/devices/<device>/register_fields.hpp`
   - `generated/runtime/devices/<device>/clock_bindings.hpp`
+  - `generated/runtime/devices/<device>/system_clock.hpp`
   - `generated/runtime/devices/<device>/dma_bindings.hpp`
   - `generated/runtime/devices/<device>/routes.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/common.hpp`
@@ -53,6 +54,7 @@ Published `alloy-devices` trees may contain:
   - `generated/devices/<device>/register_map.hpp`
   - `generated/devices/<device>/register_fields.hpp`
   - `generated/devices/<device>/startup_descriptors.hpp`
+  - `generated/devices/<device>/startup.cpp`
   - `generated/devices/<device>/startup_vectors.cpp`
 - reports:
   - `reports/validation-report.json`
@@ -90,7 +92,7 @@ The Alloy runtime owns:
 - ownership and claims such as `take()`, `claim()`, or token models
 - board initialization policy
 - peripheral driver APIs such as `uart`, `spi`, `i2c`, `gpio`, or `dma`
-- reset-handler behavior and startup algorithms
+- board sequencing and high-level bring-up policy
 
 `alloy-codegen` may emit the descriptor data needed by those behaviors, but it must not
 implement them.

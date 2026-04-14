@@ -81,6 +81,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     startup_descriptors_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/startup_descriptors.hpp"
     ]
+    startup_source_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     startup_vectors_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"
     ]
@@ -121,6 +122,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     ]
     runtime_dma_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/dma.hpp"
+    ]
+    runtime_system_clock_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
     ]
     ip_block_artifacts = [
         artifact
@@ -326,6 +330,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "kVectorSlots" in startup_descriptors_artifact.content
     assert "StartupSymbolId" in startup_descriptors_artifact.content
     assert "kStartupDescriptors" in startup_descriptors_artifact.content
+    assert startup_source_artifact.artifact_kind == "generated-cpp"
+    assert "Reset_Handler" in startup_source_artifact.content
+    assert "_vectors" in startup_source_artifact.content
 
     assert startup_vectors_artifact.artifact_kind == "generated-cpp"
     assert '#include "startup_descriptors.hpp"' in startup_vectors_artifact.content
@@ -365,6 +372,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_dma_semantics_artifact.artifact_kind == "generated-cpp"
     assert "DmaSemanticTraits<PeripheralId" in runtime_dma_semantics_artifact.content
     assert "kDmaSemanticPeripherals" in runtime_dma_semantics_artifact.content
+    assert runtime_system_clock_artifact.artifact_kind == "generated-cpp"
+    assert (
+        "SystemClockProfileTraits<SystemClockProfileId::" in runtime_system_clock_artifact.content
+    )
+    assert "apply_default_system_clock" in runtime_system_clock_artifact.content
 
 
 def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
@@ -421,19 +433,35 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_routes = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/routes.hpp"
     ].content
+    same70_system_clock = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/system_clock.hpp"
+    ].content
     assert "ClockGateTraits<ClockGateId::gate_usart0>" in same70_clock_bindings
     assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
     assert "RegisterId::register_pmc_pcer0" in same70_routes
     assert "FieldId::field_pmc_pcer0_pid13" in same70_routes
+    assert "same70_enable_external_crystal" in same70_system_clock
+    assert "same70_switch_mck" in same70_system_clock
+    assert "SystemClockProfileId::plla_150mhz" in same70_system_clock
+    assert "FieldId::field_pmc_ckgr_mor_key" in same70_system_clock
+    assert "FieldId::field_efc_eefc_fmr_fws" in same70_system_clock
 
     nxp_clock_bindings = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
+    ].content
+    nxp_system_clock = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/system_clock.hpp"
     ].content
     assert "ClockGateTraits<ClockGateId::gate_lpuart1>" in nxp_clock_bindings
     assert "RegisterId::register_ccm_ccgr5" in nxp_clock_bindings
     assert "FieldId::field_ccm_ccgr5_cg12" in nxp_clock_bindings
     assert "ClockSelectorTraits<ClockSelectorId::selector_lpuart_root>" in nxp_clock_bindings
     assert "FieldId::field_ccm_cscdr1_uart_clk_sel" in nxp_clock_bindings
+    assert "imxrt_switch_to_periph_clk2_osc24m" in nxp_system_clock
+    assert "imxrt_program_arm_pll" in nxp_system_clock
+    assert "SystemClockProfileId::default_arm_pll_600mhz" in nxp_system_clock
+    assert "FieldId::field_ccm_analog_pll_arm_div_select" in nxp_system_clock
+    assert "FieldId::field_dcdc_reg3_trg" in nxp_system_clock
 
 
 def test_emit_matches_golden_artifacts(
@@ -593,8 +621,16 @@ def test_emit_matches_golden_artifacts(
     ].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_descriptors.hpp"
     ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"
+    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_vectors.cpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_clock.hpp"
     ).read_text(encoding="utf-8")
     for ip_fixture in sorted((fixture_root / "generated" / "ip").iterdir()):
         artifact_path = f"st/stm32g0/generated/ip/{ip_fixture.name}"
@@ -684,7 +720,16 @@ def test_emit_connector_metadata_supports_microchip_family(
         is not None
     )
     assert (
+        artifacts["microchip/same70/generated/devices/atsame70q21b/startup.cpp"].content is not None
+    )
+    assert (
         artifacts["microchip/same70/generated/devices/atsame70q21b/startup_vectors.cpp"].content
+        is not None
+    )
+    assert (
+        artifacts[
+            "microchip/same70/generated/runtime/devices/atsame70q21b/system_clock.hpp"
+        ].content
         is not None
     )
     microchip_ip_headers = [

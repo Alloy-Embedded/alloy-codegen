@@ -24,6 +24,11 @@ def test_canonical_ir_schema_is_present_and_named() -> None:
     assert "interrupt_bindings" in schema["properties"]
     assert "vector_slots" in schema["properties"]
     assert "startup_descriptors" in schema["properties"]
+    assert "system_clock_profiles" in schema["properties"]
+    assert "oscillator_startup_cycles" in schema["$defs"]["system_clock_profile"]["properties"]
+    assert "mck_prescaler" in schema["$defs"]["system_clock_profile"]["properties"]
+    assert "cpu_prescaler" in schema["$defs"]["system_clock_profile"]["properties"]
+    assert "ipg_prescaler" in schema["$defs"]["system_clock_profile"]["properties"]
     assert "clock_nodes" in schema["properties"]
     assert "dma_bindings" in schema["properties"]
     assert schema["$defs"]["pin_definition"]["required"] == [

@@ -1417,6 +1417,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         interrupt_bindings=interrupt_bindings,
         vector_slots=vector_slots,
         startup_descriptors=startup_descriptors,
+        system_clock_profiles=device.system_clock_profiles,
         clock_nodes=tuple(clock_node_map[node_id] for node_id in sorted(clock_node_map)),
         clock_selectors=tuple(
             clock_selector_map[selector_id] for selector_id in sorted(clock_selector_map)

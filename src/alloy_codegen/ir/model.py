@@ -325,6 +325,38 @@ class StartupDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class SystemClockProfile:
+    """One typed system clock bring-up profile."""
+
+    profile_id: str
+    kind: str
+    source_kind: str
+    sysclk_hz: int
+    provenance: Provenance
+    hclk_hz: int | None = field(default=None, metadata={"omit_if_empty": True})
+    apb1_hz: int | None = field(default=None, metadata={"omit_if_empty": True})
+    apb2_hz: int | None = field(default=None, metadata={"omit_if_empty": True})
+    pclk_hz: int | None = field(default=None, metadata={"omit_if_empty": True})
+    source_hz: int | None = field(default=None, metadata={"omit_if_empty": True})
+    ahb_prescaler: int | None = field(default=None, metadata={"omit_if_empty": True})
+    apb1_prescaler: int | None = field(default=None, metadata={"omit_if_empty": True})
+    apb2_prescaler: int | None = field(default=None, metadata={"omit_if_empty": True})
+    oscillator_startup_cycles: int | None = field(
+        default=None,
+        metadata={"omit_if_empty": True},
+    )
+    mck_prescaler: int | None = field(default=None, metadata={"omit_if_empty": True})
+    cpu_prescaler: int | None = field(default=None, metadata={"omit_if_empty": True})
+    ipg_prescaler: int | None = field(default=None, metadata={"omit_if_empty": True})
+    pll_m: int | None = field(default=None, metadata={"omit_if_empty": True})
+    pll_n: int | None = field(default=None, metadata={"omit_if_empty": True})
+    pll_p: int | None = field(default=None, metadata={"omit_if_empty": True})
+    pll_q: int | None = field(default=None, metadata={"omit_if_empty": True})
+    pll_r: int | None = field(default=None, metadata={"omit_if_empty": True})
+    flash_latency: int | None = field(default=None, metadata={"omit_if_empty": True})
+
+
+@dataclass(frozen=True, slots=True)
 class ClockNodeLite:
     """One simplified clock-tree node."""
 
@@ -512,6 +544,10 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     startup_descriptors: tuple[StartupDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    system_clock_profiles: tuple[SystemClockProfile, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

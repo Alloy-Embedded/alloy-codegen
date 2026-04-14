@@ -10,6 +10,18 @@
           "name": "CCM"
         },
         {
+          "base_address": 1074626560,
+          "ip_name": "ccm_analog",
+          "ip_version": null,
+          "name": "CCM_ANALOG"
+        },
+        {
+          "base_address": 1074266112,
+          "ip_name": "dcdc",
+          "ip_version": null,
+          "name": "DCDC"
+        },
+        {
           "base_address": 1075544064,
           "ip_name": "gpio",
           "ip_version": "imxrt-gpio-v1",

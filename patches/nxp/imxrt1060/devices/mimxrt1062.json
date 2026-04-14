@@ -4,6 +4,33 @@
   "package": "bga196",
   "core": "cortex-m7f",
   "summary": "NXP MIMXRT1062DVL6B i.MX RT1060 Crossover MCU with 1 MB OCRAM.",
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-osc24m",
+      "kind": "safe",
+      "source_kind": "external-oscillator",
+      "sysclk_hz": 24000000,
+      "hclk_hz": 24000000,
+      "pclk_hz": 24000000,
+      "ahb_prescaler": 1,
+      "cpu_prescaler": 1,
+      "ipg_prescaler": 1,
+      "source_hz": 24000000
+    },
+    {
+      "profile_id": "default-arm-pll-600mhz",
+      "kind": "default",
+      "source_kind": "pll-external",
+      "sysclk_hz": 600000000,
+      "hclk_hz": 600000000,
+      "pclk_hz": 150000000,
+      "ahb_prescaler": 1,
+      "cpu_prescaler": 2,
+      "ipg_prescaler": 4,
+      "pll_n": 100,
+      "source_hz": 24000000
+    }
+  ],
   "memories": [
     {
       "name": "OCRAM",

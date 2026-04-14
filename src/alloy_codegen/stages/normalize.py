@@ -29,6 +29,7 @@ from alloy_codegen.ir.model import (
     RegisterDescriptor,
     RegisterFieldDescriptor,
     ResetDescriptor,
+    SystemClockProfile,
 )
 from alloy_codegen.patches import (
     ClockGatePatch,
@@ -45,6 +46,7 @@ from alloy_codegen.patches import (
     RegisterFieldPatch,
     RegisterPatch,
     ResetPatch,
+    SystemClockProfilePatch,
     load_device_patch,
 )
 from alloy_codegen.reporting import NormalizationBundle
@@ -211,6 +213,37 @@ def _peripheral_clock_binding_to_ir(
         clock_gate_id=binding.clock_gate_id,
         reset_id=binding.reset_id,
         selector_id=binding.selector_id,
+        provenance=provenance,
+    )
+
+
+def _system_clock_profile_to_ir(
+    profile: SystemClockProfilePatch,
+    provenance: Provenance,
+) -> SystemClockProfile:
+    return SystemClockProfile(
+        profile_id=profile.profile_id,
+        kind=profile.kind,
+        source_kind=profile.source_kind,
+        sysclk_hz=profile.sysclk_hz,
+        hclk_hz=profile.hclk_hz,
+        apb1_hz=profile.apb1_hz,
+        apb2_hz=profile.apb2_hz,
+        pclk_hz=profile.pclk_hz,
+        source_hz=profile.source_hz,
+        ahb_prescaler=profile.ahb_prescaler,
+        apb1_prescaler=profile.apb1_prescaler,
+        apb2_prescaler=profile.apb2_prescaler,
+        oscillator_startup_cycles=profile.oscillator_startup_cycles,
+        mck_prescaler=profile.mck_prescaler,
+        cpu_prescaler=profile.cpu_prescaler,
+        ipg_prescaler=profile.ipg_prescaler,
+        pll_m=profile.pll_m,
+        pll_n=profile.pll_n,
+        pll_p=profile.pll_p,
+        pll_q=profile.pll_q,
+        pll_r=profile.pll_r,
+        flash_latency=profile.flash_latency,
         provenance=provenance,
     )
 
@@ -1016,6 +1049,10 @@ def build_canonical_ir(
         ),
         clock_gates=tuple(_clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates),
         resets=tuple(_reset_to_ir(reset, patch_provenance) for reset in resets),
+        system_clock_profiles=tuple(
+            _system_clock_profile_to_ir(profile, patch_provenance)
+            for profile in patch.system_clock_profiles
+        ),
         peripheral_clock_bindings=tuple(
             _peripheral_clock_binding_to_ir(binding, patch_provenance)
             for binding in peripheral_clock_bindings
@@ -1324,6 +1361,10 @@ def build_nxp_canonical_ir(
         ),
         clock_gates=tuple(_clock_gate_to_ir(gate, patch_provenance) for gate in clock_gates),
         resets=tuple(_reset_to_ir(reset, patch_provenance) for reset in resets),
+        system_clock_profiles=tuple(
+            _system_clock_profile_to_ir(profile, patch_provenance)
+            for profile in patch.system_clock_profiles
+        ),
         peripheral_clock_bindings=tuple(
             _peripheral_clock_binding_to_ir(binding, patch_provenance)
             for binding in peripheral_clock_bindings

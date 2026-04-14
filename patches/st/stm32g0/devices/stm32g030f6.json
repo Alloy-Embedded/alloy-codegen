@@ -6,6 +6,51 @@
   "package": "tssop20",
   "core": "cortex-m0plus",
   "summary": "Low-pin-count bootstrap device.",
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-hsi16",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 16000000,
+      "hclk_hz": 16000000,
+      "pclk_hz": 16000000,
+      "source_hz": 16000000,
+      "flash_latency": 0
+    },
+    {
+      "profile_id": "default-pll-64mhz",
+      "kind": "default",
+      "source_kind": "pll-internal",
+      "sysclk_hz": 64000000,
+      "hclk_hz": 64000000,
+      "pclk_hz": 64000000,
+      "source_hz": 16000000,
+      "pll_m": 0,
+      "pll_n": 8,
+      "pll_r": 0,
+      "flash_latency": 2
+    }
+  ],
+  "registers": [
+    { "peripheral": "RCC", "name": "CR", "base_address": 1073876992, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "RCC", "name": "CFGR", "base_address": 1073876992, "offset_bytes": 8, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "RCC", "name": "PLLCFGR", "base_address": 1073876992, "offset_bytes": 12, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "FLASH", "name": "ACR", "base_address": 1073881088, "offset_bytes": 0, "access": "read-write", "size_bits": 32 }
+  ],
+  "register_fields": [
+    { "peripheral": "RCC", "register_name": "CR", "name": "HSION", "bit_offset": 8, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "CR", "name": "HSIRDY", "bit_offset": 10, "bit_width": 1, "access": "read-only" },
+    { "peripheral": "RCC", "register_name": "CR", "name": "PLLON", "bit_offset": 24, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "CR", "name": "PLLRDY", "bit_offset": 25, "bit_width": 1, "access": "read-only" },
+    { "peripheral": "RCC", "register_name": "CFGR", "name": "SW", "bit_offset": 0, "bit_width": 3, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "CFGR", "name": "SWS", "bit_offset": 3, "bit_width": 3, "access": "read-only" },
+    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLSRC", "bit_offset": 0, "bit_width": 2, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLM", "bit_offset": 4, "bit_width": 3, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLN", "bit_offset": 8, "bit_width": 7, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLR", "bit_offset": 25, "bit_width": 2, "access": "read-write" },
+    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLREN", "bit_offset": 24, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "FLASH", "register_name": "ACR", "name": "LATENCY", "bit_offset": 0, "bit_width": 3, "access": "read-write" }
+  ],
   "memories": [
     {
       "name": "flash",

@@ -16,8 +16,10 @@ struct PeripheralBase {
   PeripheralId peripheral_id;
   std::uintptr_t address;
 };
-inline constexpr std::array<PeripheralBase, 7> kPeripheralBases = {{
+inline constexpr std::array<PeripheralBase, 9> kPeripheralBases = {{
   {PeripheralId::CCM, 0x400FC000u},
+  {PeripheralId::CCM_ANALOG, 0x400D8000u},
+  {PeripheralId::DCDC, 0x40080000u},
   {PeripheralId::GPIO1, 0x401B8000u},
   {PeripheralId::GPIO4, 0x401C4000u},
   {PeripheralId::LPI2C1, 0x403F0000u},
@@ -27,9 +29,12 @@ inline constexpr std::array<PeripheralBase, 7> kPeripheralBases = {{
 }};
 
 enum class RegisterId : std::uint16_t {
+  register_ccm_cacrr,
+  register_ccm_cbcdr,
   register_ccm_cbcmr,
   register_ccm_cscdr1,
   register_ccm_cscdr2,
+  register_ccm_cdhipr,
   register_ccm_ccgr0,
   register_ccm_ccgr1,
   register_ccm_ccgr2,
@@ -37,6 +42,9 @@ enum class RegisterId : std::uint16_t {
   register_ccm_ccgr5,
   register_ccm_ccgr6,
   register_ccm_ccgr7,
+  register_ccm_analog_pll_arm,
+  register_dcdc_reg0,
+  register_dcdc_reg3,
   register_gpio1_dr,
   register_gpio1_gdir,
   register_gpio1_psr,
@@ -60,10 +68,13 @@ struct RegisterDescriptor {
   AccessKindId access_id;
   int size_bits;
 };
-inline constexpr std::array<RegisterDescriptor, 24> kRegisters = {{
+inline constexpr std::array<RegisterDescriptor, 30> kRegisters = {{
+  {RegisterId::register_ccm_cacrr, PeripheralId::CCM, 16u, AccessKindId::access_kind_read_write, 32},
+  {RegisterId::register_ccm_cbcdr, PeripheralId::CCM, 20u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_cbcmr, PeripheralId::CCM, 24u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_cscdr1, PeripheralId::CCM, 36u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_cscdr2, PeripheralId::CCM, 56u, AccessKindId::access_kind_read_write, 32},
+  {RegisterId::register_ccm_cdhipr, PeripheralId::CCM, 72u, AccessKindId::access_kind_read_only, 32},
   {RegisterId::register_ccm_ccgr0, PeripheralId::CCM, 104u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_ccgr1, PeripheralId::CCM, 108u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_ccgr2, PeripheralId::CCM, 112u, AccessKindId::access_kind_read_write, 32},
@@ -71,6 +82,9 @@ inline constexpr std::array<RegisterDescriptor, 24> kRegisters = {{
   {RegisterId::register_ccm_ccgr5, PeripheralId::CCM, 124u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_ccgr6, PeripheralId::CCM, 128u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_ccm_ccgr7, PeripheralId::CCM, 132u, AccessKindId::access_kind_read_write, 32},
+  {RegisterId::register_ccm_analog_pll_arm, PeripheralId::CCM_ANALOG, 0u, AccessKindId::access_kind_read_write, 32},
+  {RegisterId::register_dcdc_reg0, PeripheralId::DCDC, 0u, AccessKindId::access_kind_read_only, 32},
+  {RegisterId::register_dcdc_reg3, PeripheralId::DCDC, 12u, AccessKindId::access_kind_read_write, 32},
   {RegisterId::register_gpio1_dr, PeripheralId::GPIO1, 0u, AccessKindId::none, -1},
   {RegisterId::register_gpio1_gdir, PeripheralId::GPIO1, 4u, AccessKindId::none, -1},
   {RegisterId::register_gpio1_psr, PeripheralId::GPIO1, 8u, AccessKindId::none, -1},

@@ -12,6 +12,7 @@ from alloy_codegen.runtime_lite_emission import (
     RUNTIME_LITE_PERIPHERAL_CLASSES,
     runtime_lite_required_paths,
 )
+from alloy_codegen.runtime_system_clock import runtime_system_clock_required_paths
 
 
 def find_runtime_cpp_string_violations(
@@ -24,6 +25,8 @@ def find_runtime_cpp_string_violations(
         if artifact.artifact_kind != "generated-cpp":
             continue
         if "/generated/" not in f"/{artifact.path}":
+            continue
+        if artifact.path.endswith("/startup.cpp") or artifact.path.endswith("/startup_vectors.cpp"):
             continue
         if artifact.content is None:
             continue
@@ -50,6 +53,10 @@ def find_runtime_lite_contract_violations(
     violations: list[str] = []
     required_paths = runtime_lite_required_paths(family_dir=family_dir, devices=devices)
     required_paths = required_paths + runtime_driver_semantics_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_system_clock_required_paths(
         family_dir=family_dir,
         devices=devices,
     )
@@ -123,6 +130,7 @@ def find_runtime_lite_contract_violations(
             "i2c_semantics": f"{device_runtime_root}/driver_semantics/i2c.hpp",
             "spi_semantics": f"{device_runtime_root}/driver_semantics/spi.hpp",
             "dma_semantics": f"{device_runtime_root}/driver_semantics/dma.hpp",
+            "system_clock": f"{device_runtime_root}/system_clock.hpp",
         }
         content_by_key = {
             key: artifacts_by_path[path].content if path in artifacts_by_path else None
@@ -191,6 +199,41 @@ def find_runtime_lite_contract_violations(
         ):
             violations.append(
                 f"{device_runtime_paths['driver_common']} does not emit runtime register refs"
+            )
+        if (
+            content_by_key["system_clock"]
+            and "SystemClockProfileTraits<SystemClockProfileId::"
+            not in content_by_key["system_clock"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_clock']} does not emit system clock profile traits"
+            )
+        if (
+            content_by_key["system_clock"]
+            and "apply_default_system_clock" not in content_by_key["system_clock"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_clock']} does not emit default bring-up helper"
+            )
+        if (
+            device.identity.vendor == "microchip"
+            and device.identity.family == "same70"
+            and content_by_key["system_clock"]
+            and "return SystemClockProfileTraits<Id>::kPresent;" in content_by_key["system_clock"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_clock']} still emits the generic metadata-only "
+                "system-clock fallback for foundational SAME70"
+            )
+        if (
+            device.identity.vendor == "nxp"
+            and device.identity.family == "imxrt1060"
+            and content_by_key["system_clock"]
+            and "return SystemClockProfileTraits<Id>::kPresent;" in content_by_key["system_clock"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_clock']} still emits the generic metadata-only "
+                "system-clock fallback for foundational IMXRT1060"
             )
 
         gpio_candidates = tuple(

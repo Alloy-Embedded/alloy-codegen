@@ -5397,6 +5397,130 @@ def emit_startup_vectors_source(
     )
 
 
+def emit_startup_source(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    slot_map = {vector_slot.slot: vector_slot.symbol_name for vector_slot in device.vector_slots}
+    max_slot = max(slot_map) if slot_map else 15
+    weak_handler_symbols = sorted(
+        {
+            vector_slot.symbol_name
+            for vector_slot in device.vector_slots
+            if vector_slot.slot > 0 and vector_slot.symbol_name != "Reset_Handler"
+        }
+    )
+    vector_rows: list[str] = []
+    for slot in range(max_slot + 1):
+        if slot == 0:
+            vector_rows.append("    reinterpret_cast<void (*)()>(&__stack_top),")
+            continue
+        symbol_name = slot_map.get(slot)
+        vector_rows.append("    nullptr," if symbol_name is None else f"    {symbol_name},")
+
+    content = "\n".join(
+        [
+            "#include <cstdint>",
+            "",
+            '#include "startup_descriptors.hpp"',
+            "",
+            'extern "C" {',
+            "#if defined(ALLOY_CODEGEN_HOST_SMOKE)",
+            "std::uint32_t __stack_top = 0u;",
+            "std::uint32_t _sidata = 0u;",
+            "std::uint32_t _sdata = 0u;",
+            "std::uint32_t _edata = 0u;",
+            "std::uint32_t _sbss = 0u;",
+            "std::uint32_t _ebss = 0u;",
+            "using InitFn = void (*)();",
+            "InitFn __init_array_start[] = {nullptr};",
+            "InitFn __init_array_end[] = {nullptr};",
+            "#else",
+            "extern std::uint32_t __stack_top;",
+            "extern std::uint32_t _sidata;",
+            "extern std::uint32_t _sdata;",
+            "extern std::uint32_t _edata;",
+            "extern std::uint32_t _sbss;",
+            "extern std::uint32_t _ebss;",
+            "extern void (*__init_array_start[])();",
+            "extern void (*__init_array_end[])();",
+            "#endif",
+            "#if defined(__clang__)",
+            "#pragma clang diagnostic push",
+            '#pragma clang diagnostic ignored "-Wmain"',
+            "#endif",
+            "int main();",
+            "#if defined(__clang__)",
+            "#pragma clang diagnostic pop",
+            "#endif",
+            "void SystemInit() __attribute__((weak));",
+            "void SystemInit() {}",
+            "",
+            "__attribute__((noreturn)) void Default_Handler() {",
+            "    while (true) {",
+            "#if defined(__arm__) || defined(__thumb__)",
+            '        __asm__ volatile("wfi");',
+            "#endif",
+            "    }",
+            "}",
+            "",
+            *[
+                line
+                for symbol_name in weak_handler_symbols
+                for line in (
+                    f"void {symbol_name}() __attribute__((weak));",
+                    f"void {symbol_name}() {{",
+                    "    Default_Handler();",
+                    "}",
+                    "",
+                )
+            ],
+            "__attribute__((noreturn)) void Reset_Handler() {",
+            "    auto* copy_source = &_sidata;",
+            "    auto* copy_target = &_sdata;",
+            "    while (copy_target < &_edata) {",
+            "        *copy_target++ = *copy_source++;",
+            "    }",
+            "    auto* zero_target = &_sbss;",
+            "    while (zero_target < &_ebss) {",
+            "        *zero_target++ = 0u;",
+            "    }",
+            "    SystemInit();",
+            "    for (auto ctor = __init_array_start; ctor < __init_array_end; ++ctor) {",
+            "        if (*ctor != nullptr) {",
+            "            (*ctor)();",
+            "        }",
+            "    }",
+            "#if defined(__clang__)",
+            "#pragma clang diagnostic push",
+            '#pragma clang diagnostic ignored "-Wmain"',
+            "#endif",
+            "    static_cast<void>(main());",
+            "#if defined(__clang__)",
+            "#pragma clang diagnostic pop",
+            "#endif",
+            "    Default_Handler();",
+            "}",
+            "",
+            "#if defined(ALLOY_CODEGEN_HOST_SMOKE)",
+            "__attribute__((used))",
+            "#else",
+            '__attribute__((section(".isr_vector"), used))',
+            "#endif",
+            "void (*const _vectors[])() = {",
+            *vector_rows,
+            "};",
+            "}",
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_generated_path(family_dir, device.identity.device, "startup.cpp"),
+        content=content,
+    )
+
+
 def emit_rcc_map_header(
     *,
     family_dir: str,

@@ -67,12 +67,14 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/devices/{device_name}/register_map.hpp",
                 f"{family_dir}/generated/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_descriptors.hpp",
+                f"{family_dir}/generated/devices/{device_name}/startup.cpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/peripheral_instances.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/pins.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/registers.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_bindings.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/system_clock.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/common.hpp",
@@ -216,6 +218,14 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 publication_root
                 / family_dir
                 / "generated"
+                / "devices"
+                / device_name
+                / "startup.cpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
                 / "runtime"
                 / "devices"
                 / device_name
@@ -256,6 +266,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "clock_bindings.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "system_clock.hpp"
             ).exists()
             assert (
                 publication_root

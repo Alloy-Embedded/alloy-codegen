@@ -158,12 +158,139 @@ def _runtime_lite_selector_ids(device: CanonicalDeviceIR) -> set[str]:
     }
 
 
+def _runtime_lite_system_clock_register_keys(
+    device: CanonicalDeviceIR,
+) -> set[tuple[str, str]]:
+    if not device.system_clock_profiles:
+        return set()
+    family_key = (device.identity.vendor, device.identity.family)
+    if family_key == ("st", "stm32g0"):
+        return {
+            ("RCC", "CR"),
+            ("RCC", "CFGR"),
+            ("RCC", "PLLCFGR"),
+            ("FLASH", "ACR"),
+        }
+    if family_key == ("st", "stm32f4"):
+        return {
+            ("RCC", "CR"),
+            ("RCC", "PLLCFGR"),
+            ("RCC", "CFGR"),
+            ("FLASH", "ACR"),
+        }
+    if family_key == ("microchip", "same70"):
+        return {
+            ("PMC", "CKGR_MOR"),
+            ("PMC", "CKGR_PLLAR"),
+            ("PMC", "MCKR"),
+            ("PMC", "SR"),
+            ("EFC", "EEFC_FMR"),
+        }
+    if family_key == ("nxp", "imxrt1060"):
+        return {
+            ("CCM", "CACRR"),
+            ("CCM", "CBCDR"),
+            ("CCM", "CBCMR"),
+            ("CCM", "CDHIPR"),
+            ("CCM_ANALOG", "PLL_ARM"),
+            ("DCDC", "REG0"),
+            ("DCDC", "REG3"),
+        }
+    return set()
+
+
+def _runtime_lite_system_clock_field_keys(
+    device: CanonicalDeviceIR,
+) -> set[tuple[str, str, str]]:
+    if not device.system_clock_profiles:
+        return set()
+    family_key = (device.identity.vendor, device.identity.family)
+    if family_key == ("st", "stm32g0"):
+        return {
+            ("RCC", "CR", "HSION"),
+            ("RCC", "CR", "HSIRDY"),
+            ("RCC", "CR", "PLLON"),
+            ("RCC", "CR", "PLLRDY"),
+            ("RCC", "CFGR", "SW"),
+            ("RCC", "CFGR", "SWS"),
+            ("RCC", "PLLCFGR", "PLLSRC"),
+            ("RCC", "PLLCFGR", "PLLM"),
+            ("RCC", "PLLCFGR", "PLLN"),
+            ("RCC", "PLLCFGR", "PLLREN"),
+            ("RCC", "PLLCFGR", "PLLR"),
+            ("FLASH", "ACR", "LATENCY"),
+        }
+    if family_key == ("st", "stm32f4"):
+        return {
+            ("RCC", "CR", "HSEON"),
+            ("RCC", "CR", "HSERDY"),
+            ("RCC", "CR", "PLLON"),
+            ("RCC", "CR", "PLLRDY"),
+            ("RCC", "PLLCFGR", "PLLM"),
+            ("RCC", "PLLCFGR", "PLLN"),
+            ("RCC", "PLLCFGR", "PLLP"),
+            ("RCC", "PLLCFGR", "PLLSRC"),
+            ("RCC", "PLLCFGR", "PLLQ"),
+            ("RCC", "CFGR", "SW"),
+            ("RCC", "CFGR", "SWS"),
+            ("RCC", "CFGR", "HPRE"),
+            ("RCC", "CFGR", "PPRE1"),
+            ("RCC", "CFGR", "PPRE2"),
+            ("FLASH", "ACR", "LATENCY"),
+        }
+    if family_key == ("microchip", "same70"):
+        return {
+            ("PMC", "CKGR_MOR", "MOSCXTEN"),
+            ("PMC", "CKGR_MOR", "MOSCRCEN"),
+            ("PMC", "CKGR_MOR", "MOSCRCF"),
+            ("PMC", "CKGR_MOR", "MOSCXTST"),
+            ("PMC", "CKGR_MOR", "KEY"),
+            ("PMC", "CKGR_MOR", "MOSCSEL"),
+            ("PMC", "CKGR_PLLAR", "DIVA"),
+            ("PMC", "CKGR_PLLAR", "PLLACOUNT"),
+            ("PMC", "CKGR_PLLAR", "MULA"),
+            ("PMC", "CKGR_PLLAR", "ONE"),
+            ("PMC", "MCKR", "CSS"),
+            ("PMC", "MCKR", "PRES"),
+            ("PMC", "MCKR", "MDIV"),
+            ("PMC", "SR", "MOSCXTS"),
+            ("PMC", "SR", "LOCKA"),
+            ("PMC", "SR", "MCKRDY"),
+            ("PMC", "SR", "MOSCSELS"),
+            ("PMC", "SR", "MOSCRCS"),
+            ("EFC", "EEFC_FMR", "FWS"),
+        }
+    if family_key == ("nxp", "imxrt1060"):
+        return {
+            ("CCM", "CACRR", "ARM_PODF"),
+            ("CCM", "CBCDR", "IPG_PODF"),
+            ("CCM", "CBCDR", "AHB_PODF"),
+            ("CCM", "CBCDR", "PERIPH_CLK_SEL"),
+            ("CCM", "CBCDR", "PERIPH_CLK2_PODF"),
+            ("CCM", "CBCMR", "PERIPH_CLK2_SEL"),
+            ("CCM", "CBCMR", "PRE_PERIPH_CLK_SEL"),
+            ("CCM", "CDHIPR", "AHB_PODF_BUSY"),
+            ("CCM", "CDHIPR", "PERIPH2_CLK_SEL_BUSY"),
+            ("CCM", "CDHIPR", "PERIPH_CLK_SEL_BUSY"),
+            ("CCM", "CDHIPR", "ARM_PODF_BUSY"),
+            ("CCM_ANALOG", "PLL_ARM", "DIV_SELECT"),
+            ("CCM_ANALOG", "PLL_ARM", "POWERDOWN"),
+            ("CCM_ANALOG", "PLL_ARM", "ENABLE"),
+            ("CCM_ANALOG", "PLL_ARM", "BYPASS"),
+            ("CCM_ANALOG", "PLL_ARM", "LOCK"),
+            ("DCDC", "REG0", "STS_DC_OK"),
+            ("DCDC", "REG3", "TRG"),
+        }
+    return set()
+
+
 def _runtime_lite_register_ids(device: CanonicalDeviceIR) -> set[str]:
     runtime_peripherals = _runtime_lite_peripheral_names(device)
     operation_ids = _runtime_lite_operation_ids(device)
     gate_ids = _runtime_lite_gate_ids(device)
     reset_ids = _runtime_lite_reset_ids(device)
     selector_ids = _runtime_lite_selector_ids(device)
+    system_clock_register_keys = _runtime_lite_system_clock_register_keys(device)
 
     gate_by_id = {gate.gate_id: gate for gate in device.clock_gates if gate.gate_id in gate_ids}
     reset_by_id = {reset.reset_id: reset for reset in device.resets if reset.reset_id in reset_ids}
@@ -181,6 +308,7 @@ def _runtime_lite_register_ids(device: CanonicalDeviceIR) -> set[str]:
         register.register_id
         for register in device.registers
         if register.peripheral in runtime_peripherals
+        or (register.peripheral, register.name.upper()) in system_clock_register_keys
     }
     register_ids.update(
         gate.register_id for gate in gate_by_id.values() if gate.register_id is not None
@@ -207,6 +335,7 @@ def _runtime_lite_field_ids(device: CanonicalDeviceIR) -> set[str]:
     gate_ids = _runtime_lite_gate_ids(device)
     reset_ids = _runtime_lite_reset_ids(device)
     selector_ids = _runtime_lite_selector_ids(device)
+    system_clock_field_keys = _runtime_lite_system_clock_field_keys(device)
 
     gate_by_id = {gate.gate_id: gate for gate in device.clock_gates if gate.gate_id in gate_ids}
     reset_by_id = {reset.reset_id: reset for reset in device.resets if reset.reset_id in reset_ids}
@@ -224,6 +353,12 @@ def _runtime_lite_field_ids(device: CanonicalDeviceIR) -> set[str]:
         register_field.field_id
         for register_field in device.register_fields
         if register_field.peripheral in runtime_peripherals
+        or (
+            register_field.peripheral,
+            register_field.register_name.upper(),
+            register_field.name.upper(),
+        )
+        in system_clock_field_keys
     }
     field_ids.update(
         gate.register_field_id for gate in gate_by_id.values() if gate.register_field_id is not None
@@ -290,6 +425,7 @@ def _runtime_lite_required_paths(
                 _device_runtime_generated_path(family_dir, device_name, "registers.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "register_fields.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "clock_bindings.hpp"),
+                _device_runtime_generated_path(family_dir, device_name, "system_clock.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "dma_bindings.hpp"),
                 _device_runtime_generated_path(family_dir, device_name, "routes.hpp"),
             )

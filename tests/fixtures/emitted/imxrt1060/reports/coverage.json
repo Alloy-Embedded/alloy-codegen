@@ -18,7 +18,7 @@
         "package_pads": 4,
         "packages": 1,
         "peripheral_clock_bindings": 6,
-        "peripherals": 7,
+        "peripherals": 9,
         "pin_constraints": 0,
         "pins": 4,
         "resets": 0,

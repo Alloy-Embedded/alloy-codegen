@@ -392,6 +392,42 @@
         ]
       },
       "backend_schema_id": "alloy.ccm.nxp-ccm"
+    },
+    {
+      "name": "CCM_ANALOG",
+      "ip_name": "ccm_analog",
+      "ip_version": null,
+      "instance": 0,
+      "base_address": 1074626560,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.ccm_analog.nxp-ccm-analog"
+    },
+    {
+      "name": "DCDC",
+      "ip_name": "dcdc",
+      "ip_version": null,
+      "instance": 0,
+      "base_address": 1074266112,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.dcdc.nxp-dcdc"
     }
   ],
   "interrupts": [
@@ -699,6 +735,38 @@
       }
     },
     {
+      "register_id": "register:ccm:cacrr",
+      "peripheral": "CCM",
+      "name": "CACRR",
+      "offset_bytes": 16,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:ccm:cbcdr",
+      "peripheral": "CCM",
+      "name": "CBCDR",
+      "offset_bytes": 20,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
       "register_id": "register:ccm:cbcmr",
       "peripheral": "CCM",
       "name": "CBCMR",
@@ -736,6 +804,22 @@
       "name": "CSCDR2",
       "offset_bytes": 56,
       "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:ccm:cdhipr",
+      "peripheral": "CCM",
+      "name": "CDHIPR",
+      "offset_bytes": 72,
+      "access": "read-only",
       "size_bits": 32,
       "provenance": {
         "source_id": "nxp-mcux-soc-svd",
@@ -857,6 +941,54 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       }
+    },
+    {
+      "register_id": "register:ccm-analog:pll-arm",
+      "peripheral": "CCM_ANALOG",
+      "name": "PLL_ARM",
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:dcdc:reg0",
+      "peripheral": "DCDC",
+      "name": "REG0",
+      "offset_bytes": 0,
+      "access": "read-only",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:dcdc:reg3",
+      "peripheral": "DCDC",
+      "name": "REG3",
+      "offset_bytes": 12,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
     }
   ],
   "register_fields": [
@@ -933,6 +1065,132 @@
       }
     },
     {
+      "field_id": "field:ccm:cacrr:arm-podf",
+      "register_id": "register:ccm:cacrr",
+      "peripheral": "CCM",
+      "register_name": "CACRR",
+      "name": "ARM_PODF",
+      "bit_offset": 0,
+      "bit_width": 3,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cbcdr:ipg-podf",
+      "register_id": "register:ccm:cbcdr",
+      "peripheral": "CCM",
+      "register_name": "CBCDR",
+      "name": "IPG_PODF",
+      "bit_offset": 8,
+      "bit_width": 2,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cbcdr:ahb-podf",
+      "register_id": "register:ccm:cbcdr",
+      "peripheral": "CCM",
+      "register_name": "CBCDR",
+      "name": "AHB_PODF",
+      "bit_offset": 10,
+      "bit_width": 3,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cbcdr:periph-clk-sel",
+      "register_id": "register:ccm:cbcdr",
+      "peripheral": "CCM",
+      "register_name": "CBCDR",
+      "name": "PERIPH_CLK_SEL",
+      "bit_offset": 25,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cbcdr:periph-clk2-podf",
+      "register_id": "register:ccm:cbcdr",
+      "peripheral": "CCM",
+      "register_name": "CBCDR",
+      "name": "PERIPH_CLK2_PODF",
+      "bit_offset": 27,
+      "bit_width": 3,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cbcmr:periph-clk2-sel",
+      "register_id": "register:ccm:cbcmr",
+      "peripheral": "CCM",
+      "register_name": "CBCMR",
+      "name": "PERIPH_CLK2_SEL",
+      "bit_offset": 12,
+      "bit_width": 2,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cbcmr:pre-periph-clk-sel",
+      "register_id": "register:ccm:cbcmr",
+      "peripheral": "CCM",
+      "register_name": "CBCMR",
+      "name": "PRE_PERIPH_CLK_SEL",
+      "bit_offset": 18,
+      "bit_width": 2,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
       "field_id": "field:ccm:cbcmr:lpspi-clk-sel",
       "register_id": "register:ccm:cbcmr",
       "peripheral": "CCM",
@@ -940,6 +1198,204 @@
       "name": "LPSPI_CLK_SEL",
       "bit_offset": 4,
       "bit_width": 2,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cdhipr:ahb-podf-busy",
+      "register_id": "register:ccm:cdhipr",
+      "peripheral": "CCM",
+      "register_name": "CDHIPR",
+      "name": "AHB_PODF_BUSY",
+      "bit_offset": 1,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cdhipr:periph2-clk-sel-busy",
+      "register_id": "register:ccm:cdhipr",
+      "peripheral": "CCM",
+      "register_name": "CDHIPR",
+      "name": "PERIPH2_CLK_SEL_BUSY",
+      "bit_offset": 3,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cdhipr:periph-clk-sel-busy",
+      "register_id": "register:ccm:cdhipr",
+      "peripheral": "CCM",
+      "register_name": "CDHIPR",
+      "name": "PERIPH_CLK_SEL_BUSY",
+      "bit_offset": 5,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm:cdhipr:arm-podf-busy",
+      "register_id": "register:ccm:cdhipr",
+      "peripheral": "CCM",
+      "register_name": "CDHIPR",
+      "name": "ARM_PODF_BUSY",
+      "bit_offset": 16,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm-analog:pll-arm:div-select",
+      "register_id": "register:ccm-analog:pll-arm",
+      "peripheral": "CCM_ANALOG",
+      "register_name": "PLL_ARM",
+      "name": "DIV_SELECT",
+      "bit_offset": 0,
+      "bit_width": 7,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm-analog:pll-arm:powerdown",
+      "register_id": "register:ccm-analog:pll-arm",
+      "peripheral": "CCM_ANALOG",
+      "register_name": "PLL_ARM",
+      "name": "POWERDOWN",
+      "bit_offset": 12,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm-analog:pll-arm:enable",
+      "register_id": "register:ccm-analog:pll-arm",
+      "peripheral": "CCM_ANALOG",
+      "register_name": "PLL_ARM",
+      "name": "ENABLE",
+      "bit_offset": 13,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm-analog:pll-arm:bypass",
+      "register_id": "register:ccm-analog:pll-arm",
+      "peripheral": "CCM_ANALOG",
+      "register_name": "PLL_ARM",
+      "name": "BYPASS",
+      "bit_offset": 16,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:ccm-analog:pll-arm:lock",
+      "register_id": "register:ccm-analog:pll-arm",
+      "peripheral": "CCM_ANALOG",
+      "register_name": "PLL_ARM",
+      "name": "LOCK",
+      "bit_offset": 31,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:dcdc:reg0:sts-dc-ok",
+      "register_id": "register:dcdc:reg0",
+      "peripheral": "DCDC",
+      "register_name": "REG0",
+      "name": "STS_DC_OK",
+      "bit_offset": 31,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:dcdc:reg3:trg",
+      "register_id": "register:dcdc:reg3",
+      "peripheral": "DCDC",
+      "register_name": "REG3",
+      "name": "TRG",
+      "bit_offset": 0,
+      "bit_width": 5,
       "access": "read-write",
       "provenance": {
         "source_id": "bootstrap-patch",
@@ -3684,6 +4140,49 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       }
+    }
+  ],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-osc24m",
+      "kind": "safe",
+      "source_kind": "external-oscillator",
+      "sysclk_hz": 24000000,
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      },
+      "hclk_hz": 24000000,
+      "pclk_hz": 24000000,
+      "source_hz": 24000000,
+      "ahb_prescaler": 1,
+      "cpu_prescaler": 1,
+      "ipg_prescaler": 1
+    },
+    {
+      "profile_id": "default-arm-pll-600mhz",
+      "kind": "default",
+      "source_kind": "pll-external",
+      "sysclk_hz": 600000000,
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/nxp/imxrt1060/devices/mimxrt1064.json",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      },
+      "hclk_hz": 600000000,
+      "pclk_hz": 150000000,
+      "source_hz": 24000000,
+      "ahb_prescaler": 1,
+      "cpu_prescaler": 2,
+      "ipg_prescaler": 4,
+      "pll_n": 100
     }
   ],
   "clock_nodes": [

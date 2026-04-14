@@ -9,7 +9,9 @@ namespace runtime {
 enum class BackendSchemaId : std::uint16_t {
   none,
   schema_alloy_ccm_nxp_ccm,
+  schema_alloy_ccm_analog_nxp_ccm_analog,
   schema_alloy_clock_nxp_ccm,
+  schema_alloy_dcdc_nxp_dcdc,
   schema_alloy_gpio_nxp_imxrt_gpio_v1,
   schema_alloy_lpi2c1_nxp_lpi2c_v1,
   schema_alloy_pinmux_imxrt_iomuxc_v1,
@@ -20,6 +22,8 @@ enum class BackendSchemaId : std::uint16_t {
 enum class PeripheralClassId : std::uint16_t {
   none,
   class_ccm,
+  class_ccm_analog,
+  class_dcdc,
   class_gpio,
   class_lpi2c1,
   class_spi,
@@ -63,6 +67,7 @@ enum class PortId : std::uint16_t {
 
 enum class AccessKindId : std::uint16_t {
   none,
+  access_kind_read_only,
   access_kind_read_write,
 };
 

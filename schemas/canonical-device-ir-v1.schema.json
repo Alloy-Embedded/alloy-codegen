@@ -446,6 +446,42 @@
       },
       "additionalProperties": false
     },
+    "system_clock_profile": {
+      "type": "object",
+      "required": [
+        "profile_id",
+        "kind",
+        "source_kind",
+        "sysclk_hz",
+        "provenance"
+      ],
+      "properties": {
+        "profile_id": { "type": "string" },
+        "kind": { "type": "string" },
+        "source_kind": { "type": "string" },
+        "sysclk_hz": { "type": "integer" },
+        "hclk_hz": { "type": ["integer", "null"] },
+        "apb1_hz": { "type": ["integer", "null"] },
+        "apb2_hz": { "type": ["integer", "null"] },
+        "pclk_hz": { "type": ["integer", "null"] },
+        "source_hz": { "type": ["integer", "null"] },
+        "ahb_prescaler": { "type": ["integer", "null"] },
+        "apb1_prescaler": { "type": ["integer", "null"] },
+        "apb2_prescaler": { "type": ["integer", "null"] },
+        "oscillator_startup_cycles": { "type": ["integer", "null"] },
+        "mck_prescaler": { "type": ["integer", "null"] },
+        "cpu_prescaler": { "type": ["integer", "null"] },
+        "ipg_prescaler": { "type": ["integer", "null"] },
+        "pll_m": { "type": ["integer", "null"] },
+        "pll_n": { "type": ["integer", "null"] },
+        "pll_p": { "type": ["integer", "null"] },
+        "pll_q": { "type": ["integer", "null"] },
+        "pll_r": { "type": ["integer", "null"] },
+        "flash_latency": { "type": ["integer", "null"] },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
     "clock_node_lite": {
       "type": "object",
       "required": ["node_id", "kind", "parent", "selector", "provenance"],
@@ -740,6 +776,10 @@
     "startup_descriptors": {
       "type": "array",
       "items": { "$ref": "#/$defs/startup_descriptor" }
+    },
+    "system_clock_profiles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/system_clock_profile" }
     },
     "clock_nodes": {
       "type": "array",

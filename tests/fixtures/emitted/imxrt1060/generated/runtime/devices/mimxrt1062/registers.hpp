@@ -12,12 +12,18 @@ namespace devices {
 namespace mimxrt1062 {
 enum class RegisterId : std::uint16_t {
   none,
+  register_ccm_cacrr,
+  register_ccm_cbcdr,
   register_ccm_cbcmr,
   register_ccm_cscdr1,
+  register_ccm_cdhipr,
   register_ccm_ccgr0,
   register_ccm_ccgr1,
   register_ccm_ccgr3,
   register_ccm_ccgr5,
+  register_ccm_analog_pll_arm,
+  register_dcdc_reg0,
+  register_dcdc_reg3,
   register_gpio1_dr,
   register_gpio1_gdir,
   register_gpio1_psr,
@@ -44,6 +50,24 @@ struct RegisterTraits {
 };
 
 template<>
+struct RegisterTraits<RegisterId::register_ccm_cacrr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x400FC000u;
+  static constexpr std::uint32_t kOffsetBytes = 16u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_ccm_cbcdr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x400FC000u;
+  static constexpr std::uint32_t kOffsetBytes = 20u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
 struct RegisterTraits<RegisterId::register_ccm_cbcmr> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x400FC000u;
@@ -58,6 +82,15 @@ struct RegisterTraits<RegisterId::register_ccm_cscdr1> {
   static constexpr std::uintptr_t kBaseAddress = 0x400FC000u;
   static constexpr std::uint32_t kOffsetBytes = 36u;
   static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_ccm_cdhipr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x400FC000u;
+  static constexpr std::uint32_t kOffsetBytes = 72u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_only;
   static constexpr int kSizeBits = 32;
 };
 
@@ -93,6 +126,33 @@ struct RegisterTraits<RegisterId::register_ccm_ccgr5> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x400FC000u;
   static constexpr std::uint32_t kOffsetBytes = 124u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_ccm_analog_pll_arm> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x400D8000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_dcdc_reg0> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40080000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_only;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_dcdc_reg3> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40080000u;
+  static constexpr std::uint32_t kOffsetBytes = 12u;
   static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
   static constexpr int kSizeBits = 32;
 };
@@ -223,13 +283,19 @@ struct RegisterTraits<RegisterId::register_lpuart3_data> {
   static constexpr int kSizeBits = -1;
 };
 
-inline constexpr std::array<RegisterId, 20> kRegisters = {{
+inline constexpr std::array<RegisterId, 26> kRegisters = {{
+  RegisterId::register_ccm_cacrr,
+  RegisterId::register_ccm_cbcdr,
   RegisterId::register_ccm_cbcmr,
   RegisterId::register_ccm_cscdr1,
+  RegisterId::register_ccm_cdhipr,
   RegisterId::register_ccm_ccgr0,
   RegisterId::register_ccm_ccgr1,
   RegisterId::register_ccm_ccgr3,
   RegisterId::register_ccm_ccgr5,
+  RegisterId::register_ccm_analog_pll_arm,
+  RegisterId::register_dcdc_reg0,
+  RegisterId::register_dcdc_reg3,
   RegisterId::register_gpio1_dr,
   RegisterId::register_gpio1_gdir,
   RegisterId::register_gpio1_psr,

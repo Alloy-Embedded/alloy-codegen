@@ -3,5 +3,54 @@
   "device": "atsame70q21b",
   "package": "lqfp144",
   "core": "cortex-m7f",
-  "summary": "Board-target SAME70 Xplained Ultra device."
+  "summary": "Board-target SAME70 Xplained Ultra device.",
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-internal-12mhz",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 12000000,
+      "hclk_hz": 12000000,
+      "pclk_hz": 12000000,
+      "source_hz": 12000000,
+      "oscillator_startup_cycles": 255,
+      "mck_prescaler": 1
+    },
+    {
+      "profile_id": "default-safe-internal-12mhz",
+      "kind": "default",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 12000000,
+      "hclk_hz": 12000000,
+      "pclk_hz": 12000000,
+      "source_hz": 12000000,
+      "oscillator_startup_cycles": 255,
+      "mck_prescaler": 1
+    },
+    {
+      "profile_id": "crystal-12mhz",
+      "kind": "direct",
+      "source_kind": "external-oscillator",
+      "sysclk_hz": 12000000,
+      "hclk_hz": 12000000,
+      "pclk_hz": 12000000,
+      "source_hz": 12000000,
+      "oscillator_startup_cycles": 255,
+      "mck_prescaler": 1
+    },
+    {
+      "profile_id": "plla-150mhz",
+      "kind": "performance",
+      "source_kind": "pll-external",
+      "sysclk_hz": 150000000,
+      "hclk_hz": 150000000,
+      "pclk_hz": 150000000,
+      "source_hz": 12000000,
+      "oscillator_startup_cycles": 255,
+      "mck_prescaler": 2,
+      "pll_m": 1,
+      "pll_n": 24,
+      "flash_latency": 6
+    }
+  ]
 }

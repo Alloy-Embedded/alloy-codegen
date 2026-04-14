@@ -377,6 +377,24 @@
         ]
       },
       "backend_schema_id": "alloy.uart.st-usart-v3-1"
+    },
+    {
+      "name": "FLASH",
+      "ip_name": "flash",
+      "ip_version": null,
+      "instance": 0,
+      "base_address": 1073881088,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.flash.st-flash"
     }
   ],
   "interrupts": [
@@ -579,6 +597,54 @@
       "offset_bytes": 36,
       "access": null,
       "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:cr",
+      "peripheral": "RCC",
+      "name": "CR",
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:cfgr",
+      "peripheral": "RCC",
+      "name": "CFGR",
+      "offset_bytes": 8,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:rcc:pllcfgr",
+      "peripheral": "RCC",
+      "name": "PLLCFGR",
+      "offset_bytes": 12,
+      "access": "read-write",
+      "size_bits": 32,
       "provenance": {
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G071.svd",
@@ -803,6 +869,22 @@
       "offset_bytes": 40,
       "access": null,
       "size_bits": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:flash:acr",
+      "peripheral": "FLASH",
+      "name": "ACR",
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32,
       "provenance": {
         "source_id": "cmsis-svd-data",
         "source_path": "STM32G071.svd",
@@ -1182,6 +1264,222 @@
       "name": "FDCANRST",
       "bit_offset": 12,
       "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:cr:hsion",
+      "register_id": "register:rcc:cr",
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "HSION",
+      "bit_offset": 8,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:cr:hsirdy",
+      "register_id": "register:rcc:cr",
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "HSIRDY",
+      "bit_offset": 10,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:cr:pllon",
+      "register_id": "register:rcc:cr",
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "PLLON",
+      "bit_offset": 24,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:cr:pllrdy",
+      "register_id": "register:rcc:cr",
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "PLLRDY",
+      "bit_offset": 25,
+      "bit_width": 1,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:cfgr:sw",
+      "register_id": "register:rcc:cfgr",
+      "peripheral": "RCC",
+      "register_name": "CFGR",
+      "name": "SW",
+      "bit_offset": 0,
+      "bit_width": 3,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:cfgr:sws",
+      "register_id": "register:rcc:cfgr",
+      "peripheral": "RCC",
+      "register_name": "CFGR",
+      "name": "SWS",
+      "bit_offset": 3,
+      "bit_width": 3,
+      "access": "read-only",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:pllcfgr:pllsrc",
+      "register_id": "register:rcc:pllcfgr",
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLSRC",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:pllcfgr:pllm",
+      "register_id": "register:rcc:pllcfgr",
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLM",
+      "bit_offset": 4,
+      "bit_width": 3,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:pllcfgr:plln",
+      "register_id": "register:rcc:pllcfgr",
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLN",
+      "bit_offset": 8,
+      "bit_width": 7,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:pllcfgr:pllr",
+      "register_id": "register:rcc:pllcfgr",
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLR",
+      "bit_offset": 25,
+      "bit_width": 2,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:rcc:pllcfgr:pllren",
+      "register_id": "register:rcc:pllcfgr",
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLREN",
+      "bit_offset": 24,
+      "bit_width": 1,
+      "access": "read-write",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:flash:acr:latency",
+      "register_id": "register:flash:acr",
+      "peripheral": "FLASH",
+      "register_name": "ACR",
+      "name": "LATENCY",
+      "bit_offset": 0,
+      "bit_width": 3,
       "access": "read-write",
       "provenance": {
         "source_id": "bootstrap-patch",
@@ -2714,6 +3012,47 @@
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
       }
+    }
+  ],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-hsi16",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 16000000,
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "hclk_hz": 16000000,
+      "pclk_hz": 16000000,
+      "source_hz": 16000000,
+      "flash_latency": 0
+    },
+    {
+      "profile_id": "default-pll-64mhz",
+      "kind": "default",
+      "source_kind": "pll-internal",
+      "sysclk_hz": 64000000,
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32g0/devices/stm32g071rb.json",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "hclk_hz": 64000000,
+      "pclk_hz": 64000000,
+      "source_hz": 16000000,
+      "pll_m": 0,
+      "pll_n": 8,
+      "pll_r": 0,
+      "flash_latency": 2
     }
   ],
   "clock_nodes": [

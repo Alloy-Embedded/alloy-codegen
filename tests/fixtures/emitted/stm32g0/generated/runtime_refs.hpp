@@ -16,6 +16,7 @@ enum class PeripheralRefId : std::uint16_t {
   none,
   stm32g071rb_DMA1,
   stm32g071rb_DMAMUX1,
+  stm32g071rb_FLASH,
   stm32g071rb_GPIOA,
   stm32g071rb_GPIOB,
   stm32g071rb_RCC,
@@ -80,6 +81,7 @@ enum class CapabilityRefId : std::uint16_t {
 
 enum class RegisterRefId : std::uint16_t {
   none,
+  stm32g071rb_register_flash_acr,
   stm32g071rb_register_gpioa_afrh,
   stm32g071rb_register_gpioa_afrl,
   stm32g071rb_register_gpioa_moder,
@@ -92,8 +94,11 @@ enum class RegisterRefId : std::uint16_t {
   stm32g071rb_register_rcc_apbenr2,
   stm32g071rb_register_rcc_apbrstr1,
   stm32g071rb_register_rcc_apbrstr2,
+  stm32g071rb_register_rcc_cfgr,
+  stm32g071rb_register_rcc_cr,
   stm32g071rb_register_rcc_iopenr,
   stm32g071rb_register_rcc_ioprstr,
+  stm32g071rb_register_rcc_pllcfgr,
   stm32g071rb_register_usart1_brr,
   stm32g071rb_register_usart1_cr1,
   stm32g071rb_register_usart1_cr2,
@@ -104,6 +109,7 @@ enum class RegisterRefId : std::uint16_t {
 
 enum class RegisterFieldRefId : std::uint16_t {
   none,
+  stm32g071rb_field_flash_acr_latency,
   stm32g071rb_field_gpioa_moder_mode2,
   stm32g071rb_field_gpiob_moder_mode6,
   stm32g071rb_field_rcc_ahbenr_dma1en,
@@ -114,6 +120,12 @@ enum class RegisterFieldRefId : std::uint16_t {
   stm32g071rb_field_rcc_apbrstr1_fdcanrst,
   stm32g071rb_field_rcc_apbrstr1_usart2rst,
   stm32g071rb_field_rcc_apbrstr2_usart1rst,
+  stm32g071rb_field_rcc_cfgr_sw,
+  stm32g071rb_field_rcc_cfgr_sws,
+  stm32g071rb_field_rcc_cr_hsion,
+  stm32g071rb_field_rcc_cr_hsirdy,
+  stm32g071rb_field_rcc_cr_pllon,
+  stm32g071rb_field_rcc_cr_pllrdy,
   stm32g071rb_field_rcc_iopenr_gpioaen,
   stm32g071rb_field_rcc_iopenr_gpioben,
   stm32g071rb_field_rcc_iopenr_gpiocen,
@@ -124,6 +136,11 @@ enum class RegisterFieldRefId : std::uint16_t {
   stm32g071rb_field_rcc_ioprstr_gpiocrst,
   stm32g071rb_field_rcc_ioprstr_gpiodrst,
   stm32g071rb_field_rcc_ioprstr_gpiofrst,
+  stm32g071rb_field_rcc_pllcfgr_pllm,
+  stm32g071rb_field_rcc_pllcfgr_plln,
+  stm32g071rb_field_rcc_pllcfgr_pllr,
+  stm32g071rb_field_rcc_pllcfgr_pllren,
+  stm32g071rb_field_rcc_pllcfgr_pllsrc,
   stm32g071rb_field_usart1_cr1_ue,
 };
 
@@ -142,10 +159,11 @@ struct PeripheralRefDescriptor {
   DeviceRefId device_id;
   PeripheralClassId peripheral_class_id;
 };
-inline constexpr std::array<PeripheralRefDescriptor, 7> kPeripheralRefs = {{
+inline constexpr std::array<PeripheralRefDescriptor, 8> kPeripheralRefs = {{
   {PeripheralRefId::none, DeviceRefId::none, PeripheralClassId::none},
   {PeripheralRefId::stm32g071rb_DMA1, DeviceRefId::stm32g071rb, PeripheralClassId::class_dma},
   {PeripheralRefId::stm32g071rb_DMAMUX1, DeviceRefId::stm32g071rb, PeripheralClassId::class_dma_router},
+  {PeripheralRefId::stm32g071rb_FLASH, DeviceRefId::stm32g071rb, PeripheralClassId::class_flash},
   {PeripheralRefId::stm32g071rb_GPIOA, DeviceRefId::stm32g071rb, PeripheralClassId::class_gpio},
   {PeripheralRefId::stm32g071rb_GPIOB, DeviceRefId::stm32g071rb, PeripheralClassId::class_gpio},
   {PeripheralRefId::stm32g071rb_RCC, DeviceRefId::stm32g071rb, PeripheralClassId::class_rcc},
@@ -266,8 +284,9 @@ struct RegisterRefDescriptor {
   PeripheralRefId peripheral_id;
   std::uint32_t offset_bytes;
 };
-inline constexpr std::array<RegisterRefDescriptor, 21> kRegisterRefs = {{
+inline constexpr std::array<RegisterRefDescriptor, 25> kRegisterRefs = {{
   {RegisterRefId::none, DeviceRefId::none, PeripheralRefId::none, 0u},
+  {RegisterRefId::stm32g071rb_register_flash_acr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_FLASH, 0u},
   {RegisterRefId::stm32g071rb_register_gpioa_afrh, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_GPIOA, 36u},
   {RegisterRefId::stm32g071rb_register_gpioa_afrl, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_GPIOA, 32u},
   {RegisterRefId::stm32g071rb_register_gpioa_moder, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_GPIOA, 0u},
@@ -280,8 +299,11 @@ inline constexpr std::array<RegisterRefDescriptor, 21> kRegisterRefs = {{
   {RegisterRefId::stm32g071rb_register_rcc_apbenr2, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 64u},
   {RegisterRefId::stm32g071rb_register_rcc_apbrstr1, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 44u},
   {RegisterRefId::stm32g071rb_register_rcc_apbrstr2, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 48u},
+  {RegisterRefId::stm32g071rb_register_rcc_cfgr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 8u},
+  {RegisterRefId::stm32g071rb_register_rcc_cr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 0u},
   {RegisterRefId::stm32g071rb_register_rcc_iopenr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 52u},
   {RegisterRefId::stm32g071rb_register_rcc_ioprstr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 36u},
+  {RegisterRefId::stm32g071rb_register_rcc_pllcfgr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_RCC, 12u},
   {RegisterRefId::stm32g071rb_register_usart1_brr, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_USART1, 12u},
   {RegisterRefId::stm32g071rb_register_usart1_cr1, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_USART1, 0u},
   {RegisterRefId::stm32g071rb_register_usart1_cr2, DeviceRefId::stm32g071rb, PeripheralRefId::stm32g071rb_USART1, 4u},
@@ -297,8 +319,9 @@ struct RegisterFieldRefDescriptor {
   std::uint16_t bit_offset;
   std::uint16_t bit_width;
 };
-inline constexpr std::array<RegisterFieldRefDescriptor, 22> kRegisterFieldRefs = {{
+inline constexpr std::array<RegisterFieldRefDescriptor, 34> kRegisterFieldRefs = {{
   {RegisterFieldRefId::none, DeviceRefId::none, RegisterRefId::none, 0u, 0u},
+  {RegisterFieldRefId::stm32g071rb_field_flash_acr_latency, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_flash_acr, 0u, 3u},
   {RegisterFieldRefId::stm32g071rb_field_gpioa_moder_mode2, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_gpioa_moder, 4u, 2u},
   {RegisterFieldRefId::stm32g071rb_field_gpiob_moder_mode6, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_gpiob_moder, 12u, 2u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_ahbenr_dma1en, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_ahbenr, 0u, 1u},
@@ -309,6 +332,12 @@ inline constexpr std::array<RegisterFieldRefDescriptor, 22> kRegisterFieldRefs =
   {RegisterFieldRefId::stm32g071rb_field_rcc_apbrstr1_fdcanrst, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_apbrstr1, 12u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_apbrstr1_usart2rst, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_apbrstr1, 17u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_apbrstr2_usart1rst, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_apbrstr2, 14u, 1u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_cfgr_sw, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_cfgr, 0u, 3u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_cfgr_sws, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_cfgr, 3u, 3u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_cr_hsion, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_cr, 8u, 1u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_cr_hsirdy, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_cr, 10u, 1u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_cr_pllon, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_cr, 24u, 1u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_cr_pllrdy, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_cr, 25u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_iopenr_gpioaen, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_iopenr, 0u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_iopenr_gpioben, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_iopenr, 1u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_iopenr_gpiocen, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_iopenr, 2u, 1u},
@@ -319,6 +348,11 @@ inline constexpr std::array<RegisterFieldRefDescriptor, 22> kRegisterFieldRefs =
   {RegisterFieldRefId::stm32g071rb_field_rcc_ioprstr_gpiocrst, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_ioprstr, 2u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_ioprstr_gpiodrst, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_ioprstr, 3u, 1u},
   {RegisterFieldRefId::stm32g071rb_field_rcc_ioprstr_gpiofrst, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_ioprstr, 5u, 1u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_pllcfgr_pllm, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_pllcfgr, 4u, 3u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_pllcfgr_plln, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_pllcfgr, 8u, 7u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_pllcfgr_pllr, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_pllcfgr, 25u, 2u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_pllcfgr_pllren, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_pllcfgr, 24u, 1u},
+  {RegisterFieldRefId::stm32g071rb_field_rcc_pllcfgr_pllsrc, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_rcc_pllcfgr, 0u, 2u},
   {RegisterFieldRefId::stm32g071rb_field_usart1_cr1_ue, DeviceRefId::stm32g071rb, RegisterRefId::stm32g071rb_register_usart1_cr1, 0u, 1u},
 }};
 }

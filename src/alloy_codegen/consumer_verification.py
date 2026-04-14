@@ -20,6 +20,10 @@ def _published_device(scope: PipelineScope, family_root: Path) -> str:
     if scope.device is not None:
         return scope.device
 
+    startup_sources = sorted(family_root.glob("generated/devices/*/startup.cpp"))
+    if startup_sources:
+        return startup_sources[0].parent.name
+
     vector_sources = sorted(family_root.glob("generated/devices/*/startup_vectors.cpp"))
     if vector_sources:
         return vector_sources[0].parent.name
@@ -80,7 +84,9 @@ def _compile_smoke_source(
 ) -> ConsumerVerification:
     family_root = _family_root(publication_root, scope)
     device = _published_device(scope, family_root)
-    startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
+    startup_source = family_root / "generated" / "devices" / device / "startup.cpp"
+    if not startup_source.exists():
+        startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
     build_dir = build_root / consumer_id / device
     build_dir.mkdir(parents=True, exist_ok=True)
     executable_path = build_dir / "smoke-consumer"
@@ -123,7 +129,9 @@ def verify_alloy_smoke_consumer(
 
     family_root = _family_root(publication_root, scope)
     device = _published_device(scope, family_root)
-    startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
+    startup_source = family_root / "generated" / "devices" / device / "startup.cpp"
+    if not startup_source.exists():
+        startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
     if not startup_source.exists():
         raise StageExecutionError(f"Published startup source not found: {startup_source}")
     gpio_header = _first_generated_gpio_header(family_root)
@@ -142,6 +150,7 @@ def verify_alloy_smoke_consumer(
         "-Wextra",
         "-Werror",
         "-pedantic",
+        "-DALLOY_CODEGEN_HOST_SMOKE=1",
         f"-I{alloy_root / 'src'}",
         f"-I{publication_root}",
         (
@@ -247,6 +256,7 @@ def verify_runtime_lite_smoke_consumer(
         "-Wextra",
         "-Werror",
         "-pedantic",
+        "-DALLOY_CODEGEN_HOST_SMOKE=1",
         f"-I{alloy_root / 'src'}",
         f"-I{publication_root}",
         f'-DALLOY_CODEGEN_SMOKE_RUNTIME_TYPES_HEADER="{vendor}/{family}/generated/runtime/types.hpp"',
@@ -297,6 +307,10 @@ def verify_runtime_lite_smoke_consumer(
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/dma.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/system_clock.hpp"'
         ),
         f"-DALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE={vendor}::{family}::generated::runtime",
         (

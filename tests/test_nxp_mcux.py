@@ -338,6 +338,7 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/package_map.hpp" in artifacts
     assert f"{family_dir}/generated/clock_tree_lite.hpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp" in artifacts
+    assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup_vectors.cpp" in artifacts
     assert f"{family_dir}/generated/runtime/types.hpp" in artifacts
     assert (
@@ -347,6 +348,7 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/registers.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/register_fields.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_clock.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
 
     gpio_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/peripherals/")]
@@ -490,6 +492,7 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "registers.hpp",
         "register_fields.hpp",
         "clock_bindings.hpp",
+        "system_clock.hpp",
         "dma_bindings.hpp",
         "routes.hpp",
     ):
@@ -560,6 +563,9 @@ def test_publish_nxp_imxrt1060_completes_successfully(
     pub_root = nxp_execution_context.publication_root
     assert (
         pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "register_map.hpp"
+    ).exists()
+    assert (
+        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "startup.cpp"
     ).exists()
     assert (
         pub_root

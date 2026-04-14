@@ -16,6 +16,12 @@
           "name": "DMAMUX1"
         },
         {
+          "base_address": 1073881088,
+          "ip_name": "flash",
+          "ip_version": null,
+          "name": "FLASH"
+        },
+        {
           "base_address": 1342177280,
           "ip_name": "gpio",
           "ip_version": "STM32G07x_gpio_v1_0",

@@ -22,7 +22,7 @@ inline constexpr DeviceDescriptor kDeviceDescriptor = {
   PackageRefId::stm32g071rb_lqfp64,
   CoreId::core_cortex_m0plus,
   6,
-  6,
+  7,
   4,
   2,
   2,

@@ -161,6 +161,34 @@ class PeripheralClockBindingPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class SystemClockProfilePatch:
+    """Curated system clock bring-up profile metadata."""
+
+    profile_id: str
+    kind: str
+    source_kind: str
+    sysclk_hz: int
+    hclk_hz: int | None = None
+    apb1_hz: int | None = None
+    apb2_hz: int | None = None
+    pclk_hz: int | None = None
+    source_hz: int | None = None
+    ahb_prescaler: int | None = None
+    apb1_prescaler: int | None = None
+    apb2_prescaler: int | None = None
+    oscillator_startup_cycles: int | None = None
+    mck_prescaler: int | None = None
+    cpu_prescaler: int | None = None
+    ipg_prescaler: int | None = None
+    pll_m: int | None = None
+    pll_n: int | None = None
+    pll_p: int | None = None
+    pll_q: int | None = None
+    pll_r: int | None = None
+    flash_latency: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class FamilyPatchCatalog:
     """Family-level curated catalog used by device overlays."""
 
@@ -176,6 +204,7 @@ class FamilyPatchCatalog:
     clock_gates: tuple[ClockGatePatch, ...]
     resets: tuple[ResetPatch, ...]
     peripheral_clock_bindings: tuple[PeripheralClockBindingPatch, ...]
+    system_clock_profiles: tuple[SystemClockProfilePatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestCatalogEntry, ...]
 
@@ -224,6 +253,7 @@ class DevicePatch:
     clock_gates: tuple[ClockGatePatch, ...]
     resets: tuple[ResetPatch, ...]
     peripheral_clock_bindings: tuple[PeripheralClockBindingPatch, ...]
+    system_clock_profiles: tuple[SystemClockProfilePatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestPatch, ...]
 
@@ -338,6 +368,33 @@ class DevicePatch:
                     "selector_id": binding.selector_id,
                 }
                 for binding in self.peripheral_clock_bindings
+            ],
+            "system_clock_profiles": [
+                {
+                    "profile_id": profile.profile_id,
+                    "kind": profile.kind,
+                    "source_kind": profile.source_kind,
+                    "sysclk_hz": profile.sysclk_hz,
+                    "hclk_hz": profile.hclk_hz,
+                    "apb1_hz": profile.apb1_hz,
+                    "apb2_hz": profile.apb2_hz,
+                    "pclk_hz": profile.pclk_hz,
+                    "source_hz": profile.source_hz,
+                    "ahb_prescaler": profile.ahb_prescaler,
+                    "apb1_prescaler": profile.apb1_prescaler,
+                    "apb2_prescaler": profile.apb2_prescaler,
+                    "oscillator_startup_cycles": profile.oscillator_startup_cycles,
+                    "mck_prescaler": profile.mck_prescaler,
+                    "cpu_prescaler": profile.cpu_prescaler,
+                    "ipg_prescaler": profile.ipg_prescaler,
+                    "pll_m": profile.pll_m,
+                    "pll_n": profile.pll_n,
+                    "pll_p": profile.pll_p,
+                    "pll_q": profile.pll_q,
+                    "pll_r": profile.pll_r,
+                    "flash_latency": profile.flash_latency,
+                }
+                for profile in self.system_clock_profiles
             ],
             "dma_controllers": [
                 {
@@ -550,6 +607,51 @@ def _parse_peripheral_clock_binding_patch(
     )
 
 
+def _parse_system_clock_profile_patch(payload: dict[str, object]) -> SystemClockProfilePatch:
+    return SystemClockProfilePatch(
+        profile_id=str(payload["profile_id"]),
+        kind=str(payload["kind"]),
+        source_kind=str(payload["source_kind"]),
+        sysclk_hz=int(payload["sysclk_hz"]),
+        hclk_hz=int(payload["hclk_hz"]) if payload.get("hclk_hz") is not None else None,
+        apb1_hz=int(payload["apb1_hz"]) if payload.get("apb1_hz") is not None else None,
+        apb2_hz=int(payload["apb2_hz"]) if payload.get("apb2_hz") is not None else None,
+        pclk_hz=int(payload["pclk_hz"]) if payload.get("pclk_hz") is not None else None,
+        source_hz=int(payload["source_hz"]) if payload.get("source_hz") is not None else None,
+        ahb_prescaler=(
+            int(payload["ahb_prescaler"]) if payload.get("ahb_prescaler") is not None else None
+        ),
+        apb1_prescaler=(
+            int(payload["apb1_prescaler"]) if payload.get("apb1_prescaler") is not None else None
+        ),
+        apb2_prescaler=(
+            int(payload["apb2_prescaler"]) if payload.get("apb2_prescaler") is not None else None
+        ),
+        oscillator_startup_cycles=(
+            int(payload["oscillator_startup_cycles"])
+            if payload.get("oscillator_startup_cycles") is not None
+            else None
+        ),
+        mck_prescaler=(
+            int(payload["mck_prescaler"]) if payload.get("mck_prescaler") is not None else None
+        ),
+        cpu_prescaler=(
+            int(payload["cpu_prescaler"]) if payload.get("cpu_prescaler") is not None else None
+        ),
+        ipg_prescaler=(
+            int(payload["ipg_prescaler"]) if payload.get("ipg_prescaler") is not None else None
+        ),
+        pll_m=int(payload["pll_m"]) if payload.get("pll_m") is not None else None,
+        pll_n=int(payload["pll_n"]) if payload.get("pll_n") is not None else None,
+        pll_p=int(payload["pll_p"]) if payload.get("pll_p") is not None else None,
+        pll_q=int(payload["pll_q"]) if payload.get("pll_q") is not None else None,
+        pll_r=int(payload["pll_r"]) if payload.get("pll_r") is not None else None,
+        flash_latency=(
+            int(payload["flash_latency"]) if payload.get("flash_latency") is not None else None
+        ),
+    )
+
+
 def load_family_patch_catalog(
     context: ExecutionContext, *, vendor: str, family: str
 ) -> FamilyPatchCatalog:
@@ -580,6 +682,10 @@ def load_family_patch_catalog(
         peripheral_clock_bindings=tuple(
             _parse_peripheral_clock_binding_patch(item)
             for item in payload.get("peripheral_clock_bindings", ())
+        ),
+        system_clock_profiles=tuple(
+            _parse_system_clock_profile_patch(item)
+            for item in payload.get("system_clock_profiles", ())
         ),
         dma_controllers=tuple(
             _parse_dma_controller_patch(item) for item in payload.get("dma_controllers", ())
@@ -1158,6 +1264,18 @@ def load_device_patch(
                             "peripheral_clock_bindings",
                             payload.get("peripheral_clock_binding_refs", ()),
                         )
+                    ),
+                )
+            }.values()
+        ),
+        system_clock_profiles=tuple(
+            {
+                profile.profile_id: profile
+                for profile in (
+                    *family_catalog.system_clock_profiles,
+                    *(
+                        _parse_system_clock_profile_patch(item)
+                        for item in payload.get("system_clock_profiles", ())
                     ),
                 )
             }.values()

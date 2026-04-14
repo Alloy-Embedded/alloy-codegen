@@ -11,6 +11,7 @@ enum class BackendSchemaId : std::uint16_t {
   schema_alloy_clock_st_rcc_g0_v1_0,
   schema_alloy_dma_router_st_dmamux_v1_0,
   schema_alloy_dma_st_bdma_v1_0,
+  schema_alloy_flash_st_flash,
   schema_alloy_gpio_st_stm32g07x_gpio_v1_0,
   schema_alloy_pinmux_stm32_af_v1,
   schema_alloy_rcc_st_rcc_g0_v1_0,
@@ -21,6 +22,7 @@ enum class PeripheralClassId : std::uint16_t {
   none,
   class_dma,
   class_dma_router,
+  class_flash,
   class_gpio,
   class_rcc,
   class_uart,
@@ -51,6 +53,7 @@ enum class PortId : std::uint16_t {
 
 enum class AccessKindId : std::uint16_t {
   none,
+  access_kind_read_only,
   access_kind_read_write,
   access_kind_rwx,
   access_kind_rx,

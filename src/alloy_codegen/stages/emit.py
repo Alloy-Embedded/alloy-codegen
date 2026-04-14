@@ -41,6 +41,7 @@ from alloy_codegen.emission import (
     emit_runtime_refs_header,
     emit_runtime_semantics_header,
     emit_startup_descriptors_header,
+    emit_startup_source,
     emit_startup_vectors_source,
     emit_system_descriptors_metadata,
     emit_validation_report,
@@ -67,6 +68,7 @@ from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_routes_header,
     emit_runtime_lite_types_header,
 )
+from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.serialization import canonical_json_sha256
 from alloy_codegen.stages.common import StageResult
@@ -133,6 +135,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 emit_dma_bindings_header(family_dir=family_dir, device=device),
                 emit_capability_overlays_header(family_dir=family_dir, device=device),
                 emit_startup_descriptors_header(family_dir=family_dir, device=device),
+                emit_startup_source(family_dir=family_dir, device=device),
                 emit_startup_vectors_source(family_dir=family_dir, device=device),
                 emit_runtime_lite_peripheral_instances_header(
                     family_dir=family_dir,
@@ -174,6 +177,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_driver_dma_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_system_clock_header(
                     family_dir=family_dir,
                     device=device,
                 ),

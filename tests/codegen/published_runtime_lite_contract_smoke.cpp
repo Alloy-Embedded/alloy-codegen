@@ -54,6 +54,10 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE must be defined"
 #endif
@@ -75,6 +79,7 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
 
 #include <type_traits>
 
@@ -168,6 +173,10 @@ static_assert(
     first_dma_semantic_present<
         published_driver::kDmaSemanticPeripherals,
         published_device_runtime::kDmaBindings>());
+static_assert(published_device_runtime::kSystemClockProfiles.size() > 0u);
+static_assert(
+    published_device_runtime::SystemClockProfileTraits<
+        published_device_runtime::kSystemClockProfiles[0].profile_id>::kPresent);
 
 int main() {
     return 0;

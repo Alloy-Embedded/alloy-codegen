@@ -28,6 +28,7 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "generated/runtime/devices/<device>/registers.hpp",
         "generated/runtime/devices/<device>/register_fields.hpp",
         "generated/runtime/devices/<device>/clock_bindings.hpp",
+        "generated/runtime/devices/<device>/system_clock.hpp",
         "generated/runtime/devices/<device>/dma_bindings.hpp",
         "generated/runtime/devices/<device>/routes.hpp",
         "generated/runtime/devices/<device>/driver_semantics/common.hpp",
@@ -45,6 +46,7 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "generated/devices/<device>/register_map.hpp",
         "generated/devices/<device>/register_fields.hpp",
         "generated/devices/<device>/startup_descriptors.hpp",
+        "generated/devices/<device>/startup.cpp",
         "generated/devices/<device>/startup_vectors.cpp",
         "reports/validation-summary.json",
         "reports/coverage.json",
@@ -53,7 +55,6 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
     forbidden_tokens = (
         "generated/signal_map.hpp",
         "generated/devices/<device>/pin_functions.hpp",
-        "generated/devices/<device>/startup.cpp",
         "reports/publication-summary.json",
     )
 
@@ -91,6 +92,7 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp",
@@ -108,6 +110,7 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/generated/devices/<device>/register_map.hpp",
         "<vendor>/<family>/generated/devices/<device>/register_fields.hpp",
         "<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp",
+        "<vendor>/<family>/generated/devices/<device>/startup.cpp",
         "<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp",
         "<vendor>/<family>/reports/validation-summary.json",
         "<vendor>/<family>/reports/coverage.json",
@@ -117,7 +120,6 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
     forbidden_tokens = (
         "generated/signal_map.hpp",
         "generated/devices/<device>/pin_functions.hpp",
-        "generated/devices/<device>/startup.cpp",
     )
 
     for token in required_tokens:
