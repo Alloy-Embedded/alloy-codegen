@@ -181,7 +181,7 @@ def emit_runtime_system_clock_header(
         bit_offset: int,
         bit_width: int,
     ) -> str:
-        return _field_ref_expr(
+        expr = _field_ref_expr(
             _resolve_field_ref(
                 context,
                 peripheral_name=peripheral_name,
@@ -192,11 +192,14 @@ def emit_runtime_system_clock_header(
                 fallback_bit_width=bit_width,
             )
         )
+        if expr == "kInvalidFieldRef":
+            return "driver_semantics::kInvalidFieldRef"
+        return expr
 
     def register_ref(peripheral_name: str, register_name: str, *, reg_offset: int) -> str:
         from .runtime_driver_semantics import _resolve_register_ref
 
-        return _register_ref_expr(
+        expr = _register_ref_expr(
             _resolve_register_ref(
                 context,
                 peripheral_name=peripheral_name,
@@ -204,6 +207,9 @@ def emit_runtime_system_clock_header(
                 fallback_offset=reg_offset,
             )
         )
+        if expr == "kInvalidRegisterRef":
+            return "driver_semantics::kInvalidRegisterRef"
+        return expr
 
     family_key = (device.identity.vendor, device.identity.family)
     extra_trait_lines: list[str] = []
