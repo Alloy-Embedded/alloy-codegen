@@ -27,9 +27,18 @@ extern void (*__init_array_end[])();
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmain"
 #endif
+#if defined(ALLOY_CODEGEN_HOST_SMOKE)
+int alloy_codegen_host_smoke_entry();
+#else
 int main();
+#endif
 #if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
+#if defined(ALLOY_CODEGEN_HOST_SMOKE)
+int alloy_codegen_host_smoke_entry() {
+    return 0;
+}
 #endif
 void SystemInit() __attribute__((weak));
 void SystemInit() {}
@@ -152,7 +161,11 @@ __attribute__((noreturn)) void Reset_Handler() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmain"
 #endif
+#if defined(ALLOY_CODEGEN_HOST_SMOKE)
+    static_cast<void>(alloy_codegen_host_smoke_entry());
+#else
     static_cast<void>(main());
+#endif
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
