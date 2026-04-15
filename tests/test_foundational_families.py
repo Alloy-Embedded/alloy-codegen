@@ -83,6 +83,9 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/i2c.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/spi.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/dma.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/timer.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/pwm.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/systick.hpp",
             )
         )
     return tuple(paths)
@@ -266,6 +269,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "clock_bindings.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "systick.hpp"
             ).exists()
             assert (
                 publication_root

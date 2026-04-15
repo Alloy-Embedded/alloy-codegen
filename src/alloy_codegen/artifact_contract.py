@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from alloy_codegen.connector_model import canonical_peripheral_class
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
 from alloy_codegen.runtime_driver_semantics import (
@@ -10,9 +9,11 @@ from alloy_codegen.runtime_driver_semantics import (
 )
 from alloy_codegen.runtime_lite_emission import (
     RUNTIME_LITE_PERIPHERAL_CLASSES,
+    runtime_lite_peripheral_class_name,
     runtime_lite_required_paths,
 )
 from alloy_codegen.runtime_system_clock import runtime_system_clock_required_paths
+from alloy_codegen.runtime_systick import runtime_systick_required_paths
 
 
 def find_runtime_cpp_string_violations(
@@ -57,6 +58,10 @@ def find_runtime_lite_contract_violations(
         devices=devices,
     )
     required_paths = required_paths + runtime_system_clock_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_systick_required_paths(
         family_dir=family_dir,
         devices=devices,
     )
@@ -105,7 +110,8 @@ def find_runtime_lite_contract_violations(
         runtime_peripherals = tuple(
             peripheral
             for peripheral in device.peripherals
-            if canonical_peripheral_class(peripheral.ip_name) in RUNTIME_LITE_PERIPHERAL_CLASSES
+            if runtime_lite_peripheral_class_name(peripheral.ip_name)
+            in RUNTIME_LITE_PERIPHERAL_CLASSES
         )
         if not runtime_peripherals:
             continue
@@ -130,6 +136,9 @@ def find_runtime_lite_contract_violations(
             "i2c_semantics": f"{device_runtime_root}/driver_semantics/i2c.hpp",
             "spi_semantics": f"{device_runtime_root}/driver_semantics/spi.hpp",
             "dma_semantics": f"{device_runtime_root}/driver_semantics/dma.hpp",
+            "timer_semantics": f"{device_runtime_root}/driver_semantics/timer.hpp",
+            "pwm_semantics": f"{device_runtime_root}/driver_semantics/pwm.hpp",
+            "systick": f"{device_runtime_root}/systick.hpp",
             "system_clock": f"{device_runtime_root}/system_clock.hpp",
         }
         content_by_key = {
@@ -200,6 +209,12 @@ def find_runtime_lite_contract_violations(
             violations.append(
                 f"{device_runtime_paths['driver_common']} does not emit runtime register refs"
             )
+        if content_by_key["systick"] and "struct SysTickTraits" not in content_by_key["systick"]:
+            violations.append(f"{device_runtime_paths['systick']} does not emit SysTick traits")
+        if content_by_key["systick"] and "configure_for_tick_hz" not in content_by_key["systick"]:
+            violations.append(
+                f"{device_runtime_paths['systick']} does not emit SysTick configuration helpers"
+            )
         if (
             content_by_key["system_clock"]
             and "SystemClockProfileTraits<SystemClockProfileId::"
@@ -239,7 +254,7 @@ def find_runtime_lite_contract_violations(
         gpio_candidates = tuple(
             candidate
             for candidate in runtime_candidates
-            if canonical_peripheral_class(
+            if runtime_lite_peripheral_class_name(
                 next(
                     peripheral.ip_name
                     for peripheral in runtime_peripherals
@@ -268,7 +283,7 @@ def find_runtime_lite_contract_violations(
             class_candidates = tuple(
                 peripheral
                 for peripheral in runtime_peripherals
-                if canonical_peripheral_class(peripheral.ip_name) == class_name
+                if runtime_lite_peripheral_class_name(peripheral.ip_name) == class_name
                 and any(candidate.peripheral == peripheral.name for candidate in runtime_candidates)
             )
             if not class_candidates:
@@ -281,6 +296,47 @@ def find_runtime_lite_contract_violations(
             elif token not in content:
                 violations.append(
                     f"{device_runtime_paths[key]} does not emit {class_name} semantic traits"
+                )
+
+        timer_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "timer"
+        )
+        if timer_peripherals:
+            timer_content = content_by_key["timer_semantics"]
+            if timer_content is None:
+                violations.append(
+                    "missing timer driver semantics header: "
+                    f"{device_runtime_paths['timer_semantics']}"
+                )
+            elif "TimerSemanticTraits<PeripheralId::" not in timer_content:
+                violations.append(
+                    f"{device_runtime_paths['timer_semantics']} does not emit timer semantic traits"
+                )
+            elif "TimerChannelSemanticTraits<PeripheralId::" not in timer_content:
+                violations.append(
+                    f"{device_runtime_paths['timer_semantics']} does not emit timer channel traits"
+                )
+
+        pwm_capable_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) in {"timer", "pwm"}
+        )
+        if pwm_capable_peripherals:
+            pwm_content = content_by_key["pwm_semantics"]
+            if pwm_content is None:
+                violations.append(
+                    f"missing pwm driver semantics header: {device_runtime_paths['pwm_semantics']}"
+                )
+            elif "PwmSemanticTraits<PeripheralId::" not in pwm_content:
+                violations.append(
+                    f"{device_runtime_paths['pwm_semantics']} does not emit pwm semantic traits"
+                )
+            elif "PwmChannelSemanticTraits<PeripheralId::" not in pwm_content:
+                violations.append(
+                    f"{device_runtime_paths['pwm_semantics']} does not emit pwm channel traits"
                 )
 
         runtime_peripheral_names = {peripheral.name for peripheral in runtime_peripherals}

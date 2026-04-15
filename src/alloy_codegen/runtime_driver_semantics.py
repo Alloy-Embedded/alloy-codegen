@@ -12,7 +12,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from alloy_codegen.connector_model import canonical_peripheral_class
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     ConnectionCandidate,
@@ -35,6 +34,7 @@ from .runtime_lite_emission import (
     _device_runtime_generated_path,
     _runtime_device_namespace_components,
     _runtime_lite_dma_bindings,
+    runtime_lite_peripheral_class_name,
 )
 
 GPIO_DRIVER_HEADER = "driver_semantics/gpio.hpp"
@@ -42,6 +42,8 @@ I2C_DRIVER_HEADER = "driver_semantics/i2c.hpp"
 SPI_DRIVER_HEADER = "driver_semantics/spi.hpp"
 UART_DRIVER_HEADER = "driver_semantics/uart.hpp"
 DMA_DRIVER_HEADER = "driver_semantics/dma.hpp"
+TIMER_DRIVER_HEADER = "driver_semantics/timer.hpp"
+PWM_DRIVER_HEADER = "driver_semantics/pwm.hpp"
 COMMON_DRIVER_HEADER = "driver_semantics/common.hpp"
 
 _IO_SIGNAL_PATTERN = re.compile(r"^io(?P<index>\d+)$", re.IGNORECASE)
@@ -330,6 +332,123 @@ class DmaSemanticRow:
 
 
 @dataclass(frozen=True, slots=True)
+class TimerSemanticRow:
+    """Timer semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    counter_bits: int
+    channel_count: int
+    has_compare: bool
+    has_capture: bool
+    has_pwm: bool
+    has_one_pulse: bool
+    has_center_aligned: bool
+    has_complementary_outputs: bool
+    has_deadtime: bool
+    has_break_input: bool
+    control_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    event_reg: RuntimeRegisterRef
+    counter_reg: RuntimeRegisterRef
+    prescaler_reg: RuntimeRegisterRef
+    period_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    disable_field: RuntimeFieldRef
+    module_disable_field: RuntimeFieldRef
+    software_reset_field: RuntimeFieldRef
+    start_field: RuntimeFieldRef
+    stop_field: RuntimeFieldRef
+    update_interrupt_enable_field: RuntimeFieldRef
+    update_flag_field: RuntimeFieldRef
+    update_generation_field: RuntimeFieldRef
+    prescaler_field: RuntimeFieldRef
+    period_field: RuntimeFieldRef
+    one_pulse_field: RuntimeFieldRef
+    center_aligned_field: RuntimeFieldRef
+    auto_reload_preload_field: RuntimeFieldRef
+    clock_source_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class TimerChannelSemanticRow:
+    """Timer channel semantic trait payload keyed by peripheral/channel index."""
+
+    peripheral_name: str
+    channel_index: int
+    supports_compare: bool
+    supports_capture: bool
+    supports_pwm: bool
+    supports_complementary_output: bool
+    control_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    compare_reg: RuntimeRegisterRef
+    secondary_compare_reg: RuntimeRegisterRef
+    period_reg: RuntimeRegisterRef
+    counter_reg: RuntimeRegisterRef
+    capture_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    interrupt_enable_field: RuntimeFieldRef
+    interrupt_flag_field: RuntimeFieldRef
+    mode_field: RuntimeFieldRef
+    preload_field: RuntimeFieldRef
+    output_enable_field: RuntimeFieldRef
+    output_polarity_field: RuntimeFieldRef
+    complementary_output_enable_field: RuntimeFieldRef
+    capture_select_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class PwmSemanticRow:
+    """PWM semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    counter_bits: int
+    channel_count: int
+    has_complementary_outputs: bool
+    has_deadtime: bool
+    has_fault_input: bool
+    has_center_aligned: bool
+    has_synchronized_update: bool
+    control_reg: RuntimeRegisterRef
+    output_enable_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    clock_reg: RuntimeRegisterRef
+    sync_reg: RuntimeRegisterRef
+    master_output_enable_field: RuntimeFieldRef
+    load_field: RuntimeFieldRef
+    clear_load_field: RuntimeFieldRef
+    clock_prescaler_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class PwmChannelSemanticRow:
+    """PWM channel semantic trait payload keyed by peripheral/channel index."""
+
+    peripheral_name: str
+    channel_index: int
+    supports_complementary_output: bool
+    supports_deadtime: bool
+    control_reg: RuntimeRegisterRef
+    compare_reg: RuntimeRegisterRef
+    secondary_compare_reg: RuntimeRegisterRef
+    period_reg: RuntimeRegisterRef
+    deadtime_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    interrupt_enable_field: RuntimeFieldRef
+    interrupt_flag_field: RuntimeFieldRef
+    mode_field: RuntimeFieldRef
+    polarity_field: RuntimeFieldRef
+    complementary_output_enable_field: RuntimeFieldRef
+    center_aligned_field: RuntimeFieldRef
+    period_field: RuntimeFieldRef
+    duty_field: RuntimeFieldRef
+    deadtime_rise_field: RuntimeFieldRef
+    deadtime_fall_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
 class _SemanticContext:
     device: CanonicalDeviceIR
     semantics_catalog: dict[str, dict[str, str]]
@@ -357,6 +476,8 @@ def _driver_semantics_paths(
                 _device_runtime_generated_path(family_dir, device_name, I2C_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, SPI_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, DMA_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, TIMER_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, PWM_DRIVER_HEADER),
             )
         )
     return tuple(paths)
@@ -389,7 +510,7 @@ def _context(device: CanonicalDeviceIR) -> _SemanticContext:
             candidate
             for candidate in device.connection_candidates
             if candidate.peripheral in peripheral_by_name
-            and canonical_peripheral_class(peripheral_by_name[candidate.peripheral].ip_name)
+            and runtime_lite_peripheral_class_name(peripheral_by_name[candidate.peripheral].ip_name)
             == "gpio"
         ),
         key=lambda item: item.candidate_id,
@@ -404,7 +525,7 @@ def _context(device: CanonicalDeviceIR) -> _SemanticContext:
         peripheral = peripheral_by_name.get(candidate.peripheral)
         if peripheral is None:
             continue
-        peripheral_class = canonical_peripheral_class(peripheral.ip_name)
+        peripheral_class = runtime_lite_peripheral_class_name(peripheral.ip_name)
         key = (peripheral_class, peripheral.name)
         if key in seen:
             continue
@@ -540,6 +661,32 @@ def _resolve_field_ref(
         register=register_ref,
         bit_offset=fallback_bit_offset,
         bit_width=fallback_bit_width,
+        valid=True,
+    )
+
+
+def _manual_field_ref(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    register_name: str,
+    register_offset: int,
+    bit_offset: int,
+    bit_width: int = 1,
+) -> RuntimeFieldRef:
+    register_ref = _resolve_register_ref(
+        context,
+        peripheral_name=peripheral_name,
+        register_name=register_name,
+        fallback_offset=register_offset,
+    )
+    if not register_ref.valid:
+        return _invalid_field_ref(register_ref.base_address)
+    return RuntimeFieldRef(
+        field_id=None,
+        register=register_ref,
+        bit_offset=bit_offset,
+        bit_width=bit_width,
         valid=True,
     )
 
@@ -1912,7 +2059,7 @@ def _resolve_dma_router_peripheral(context: _SemanticContext) -> PeripheralInsta
     routers = tuple(
         peripheral
         for peripheral in sorted(context.peripheral_by_name.values(), key=lambda item: item.name)
-        if canonical_peripheral_class(peripheral.ip_name) == "dma-router"
+        if runtime_lite_peripheral_class_name(peripheral.ip_name) == "dma-router"
     )
     if not routers:
         return None
@@ -1923,7 +2070,7 @@ def _build_dma_rows(context: _SemanticContext) -> tuple[DmaSemanticRow, ...]:
     runtime_peripheral_names = {
         peripheral.name
         for peripheral in context.peripheral_by_name.values()
-        if canonical_peripheral_class(peripheral.ip_name)
+        if runtime_lite_peripheral_class_name(peripheral.ip_name)
         in {"gpio", "uart", "i2c", "spi", "dma", "dma-router"}
     }
     router = _resolve_dma_router_peripheral(context)
@@ -1984,6 +2131,1215 @@ def _build_dma_rows(context: _SemanticContext) -> tuple[DmaSemanticRow, ...]:
             )
         )
     return tuple(rows)
+
+
+def _st_timer_counter_bits(peripheral_name: str) -> int:
+    return 32 if peripheral_name in {"TIM2", "TIM5"} else 16
+
+
+def _st_timer_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> TimerSemanticRow:
+    counter_bits = _st_timer_counter_bits(peripheral_name)
+    advanced_timer = peripheral_name in {"TIM1", "TIM8"}
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    base = context.peripheral_by_name[peripheral_name].base_address
+    return TimerSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=counter_bits,
+        channel_count=4,
+        has_compare=True,
+        has_capture=True,
+        has_pwm=True,
+        has_one_pulse=True,
+        has_center_aligned=True,
+        has_complementary_outputs=advanced_timer,
+        has_deadtime=advanced_timer,
+        has_break_input=advanced_timer,
+        control_reg=reg("CR1", 0x00),
+        status_reg=reg("SR", 0x10),
+        event_reg=reg("EGR", 0x14),
+        counter_reg=reg("CNT", 0x24),
+        prescaler_reg=reg("PSC", 0x28),
+        period_reg=reg("ARR", 0x2C),
+        enable_field=field("CR1", ("CEN",), 0x00, 0),
+        disable_field=_invalid_field_ref(base),
+        module_disable_field=_invalid_field_ref(base),
+        software_reset_field=_invalid_field_ref(base),
+        start_field=_invalid_field_ref(base),
+        stop_field=_invalid_field_ref(base),
+        update_interrupt_enable_field=field("DIER", ("UIE",), 0x0C, 0),
+        update_flag_field=field("SR", ("UIF",), 0x10, 0),
+        update_generation_field=field("EGR", ("UG",), 0x14, 0),
+        prescaler_field=field("PSC", ("PSC",), 0x28, 0, 16),
+        period_field=field("ARR", ("ARR",), 0x2C, 0, counter_bits),
+        one_pulse_field=field("CR1", ("OPM",), 0x00, 3),
+        center_aligned_field=field("CR1", ("CMS",), 0x00, 5, 2),
+        auto_reload_preload_field=field("CR1", ("ARPE",), 0x00, 7),
+        clock_source_field=_invalid_field_ref(base),
+    )
+
+
+def _st_timer_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[TimerChannelSemanticRow, ...]:
+    advanced_timer = peripheral_name in {"TIM1", "TIM8"}
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    rows: list[TimerChannelSemanticRow] = []
+    for channel_index in range(4):
+        channel_number = channel_index + 1
+        mode_register_name = "CCMR1_INPUT" if channel_index < 2 else "CCMR2_INPUT"
+        mode_register_offset = 0x18 if channel_index < 2 else 0x1C
+        slot_offset = 0 if channel_index % 2 == 0 else 8
+        compare_offset = 0x34 + (channel_index * 0x04)
+        rows.append(
+            TimerChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                supports_compare=True,
+                supports_capture=True,
+                supports_pwm=True,
+                supports_complementary_output=advanced_timer and channel_index < 3,
+                control_reg=reg(mode_register_name, mode_register_offset),
+                status_reg=reg("SR", 0x10),
+                compare_reg=reg(f"CCR{channel_number}", compare_offset),
+                secondary_compare_reg=_invalid_register_ref(base),
+                period_reg=reg("ARR", 0x2C),
+                counter_reg=reg("CNT", 0x24),
+                capture_reg=reg(f"CCR{channel_number}", compare_offset),
+                enable_field=field("CCER", (f"CC{channel_number}E",), 0x20, channel_index * 4),
+                interrupt_enable_field=field(
+                    "DIER",
+                    (f"CC{channel_number}IE",),
+                    0x0C,
+                    channel_number,
+                ),
+                interrupt_flag_field=field(
+                    "SR",
+                    (f"CC{channel_number}IF",),
+                    0x10,
+                    channel_number,
+                ),
+                mode_field=field(
+                    mode_register_name,
+                    (f"OC{channel_number}M",),
+                    mode_register_offset,
+                    4 + slot_offset,
+                    3,
+                ),
+                preload_field=field(
+                    mode_register_name,
+                    (f"OC{channel_number}PE",),
+                    mode_register_offset,
+                    3 + slot_offset,
+                ),
+                output_enable_field=field(
+                    "CCER",
+                    (f"CC{channel_number}E",),
+                    0x20,
+                    channel_index * 4,
+                ),
+                output_polarity_field=field(
+                    "CCER",
+                    (f"CC{channel_number}P",),
+                    0x20,
+                    1 + (channel_index * 4),
+                ),
+                complementary_output_enable_field=(
+                    field(
+                        "CCER",
+                        (f"CC{channel_number}NE",),
+                        0x20,
+                        2 + (channel_index * 4),
+                    )
+                    if advanced_timer and channel_index < 3
+                    else _invalid_field_ref(base)
+                ),
+                capture_select_field=field(
+                    mode_register_name,
+                    (f"CC{channel_number}S",),
+                    mode_register_offset,
+                    slot_offset,
+                    2,
+                ),
+            )
+        )
+    return tuple(rows)
+
+
+def _microchip_tc_timer_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> TimerSemanticRow:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return TimerSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=32,
+        channel_count=3,
+        has_compare=True,
+        has_capture=True,
+        has_pwm=True,
+        has_one_pulse=False,
+        has_center_aligned=False,
+        has_complementary_outputs=False,
+        has_deadtime=False,
+        has_break_input=False,
+        control_reg=reg("CCR0", 0x00),
+        status_reg=reg("SR0", 0x20),
+        event_reg=reg("CCR0", 0x00),
+        counter_reg=reg("CV0", 0x10),
+        prescaler_reg=_invalid_register_ref(base),
+        period_reg=reg("RC0", 0x1C),
+        enable_field=field("CCR0", ("CLKEN",), 0x00, 0),
+        disable_field=field("CCR0", ("CLKDIS",), 0x00, 1),
+        module_disable_field=_invalid_field_ref(base),
+        software_reset_field=_invalid_field_ref(base),
+        start_field=field("CCR0", ("SWTRG",), 0x00, 2),
+        stop_field=field("CCR0", ("CLKDIS",), 0x00, 1),
+        update_interrupt_enable_field=field("IER0", ("CPCS",), 0x24, 4),
+        update_flag_field=field("SR0", ("CPCS",), 0x20, 4),
+        update_generation_field=field("CCR0", ("SWTRG",), 0x00, 2),
+        prescaler_field=_invalid_field_ref(base),
+        period_field=field("RC0", ("RC",), 0x1C, 0, 32),
+        one_pulse_field=_invalid_field_ref(base),
+        center_aligned_field=_invalid_field_ref(base),
+        auto_reload_preload_field=_invalid_field_ref(base),
+        clock_source_field=field("CMR0", ("TCCLKS",), 0x04, 0, 3),
+    )
+
+
+def _microchip_tc_timer_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[TimerChannelSemanticRow, ...]:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    rows: list[TimerChannelSemanticRow] = []
+    for channel_index in range(3):
+        stride = channel_index * 0x40
+        register_suffix = str(channel_index)
+        rows.append(
+            TimerChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                supports_compare=True,
+                supports_capture=True,
+                supports_pwm=True,
+                supports_complementary_output=False,
+                control_reg=reg(f"CCR{register_suffix}", 0x00 + stride),
+                status_reg=reg(f"SR{register_suffix}", 0x20 + stride),
+                compare_reg=reg(f"RA{register_suffix}", 0x14 + stride),
+                secondary_compare_reg=reg(f"RB{register_suffix}", 0x18 + stride),
+                period_reg=reg(f"RC{register_suffix}", 0x1C + stride),
+                counter_reg=reg(f"CV{register_suffix}", 0x10 + stride),
+                capture_reg=reg(f"RA{register_suffix}", 0x14 + stride),
+                enable_field=field(f"CCR{register_suffix}", ("CLKEN",), 0x00 + stride, 0),
+                interrupt_enable_field=field(
+                    f"IER{register_suffix}",
+                    ("CPCS",),
+                    0x24 + stride,
+                    4,
+                ),
+                interrupt_flag_field=field(
+                    f"SR{register_suffix}",
+                    ("CPCS",),
+                    0x20 + stride,
+                    4,
+                ),
+                mode_field=field(f"CMR{register_suffix}", ("WAVE",), 0x04 + stride, 15),
+                preload_field=_invalid_field_ref(base),
+                output_enable_field=_invalid_field_ref(base),
+                output_polarity_field=_invalid_field_ref(base),
+                complementary_output_enable_field=_invalid_field_ref(base),
+                capture_select_field=_invalid_field_ref(base),
+            )
+        )
+    return tuple(rows)
+
+
+def _nxp_gpt_timer_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> TimerSemanticRow:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return TimerSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=32,
+        channel_count=1,
+        has_compare=True,
+        has_capture=True,
+        has_pwm=False,
+        has_one_pulse=False,
+        has_center_aligned=False,
+        has_complementary_outputs=False,
+        has_deadtime=False,
+        has_break_input=False,
+        control_reg=reg("CR", 0x00),
+        status_reg=reg("SR", 0x08),
+        event_reg=reg("IR", 0x0C),
+        counter_reg=reg("CNT", 0x24),
+        prescaler_reg=reg("PR", 0x04),
+        period_reg=reg("OCR1", 0x10),
+        enable_field=field("CR", ("EN",), 0x00, 0),
+        disable_field=_invalid_field_ref(base),
+        module_disable_field=_invalid_field_ref(base),
+        software_reset_field=field("CR", ("SWR",), 0x00, 15),
+        start_field=_invalid_field_ref(base),
+        stop_field=_invalid_field_ref(base),
+        update_interrupt_enable_field=field("IR", ("OF1IE",), 0x0C, 0),
+        update_flag_field=field("SR", ("OF1",), 0x08, 0),
+        update_generation_field=_invalid_field_ref(base),
+        prescaler_field=field("PR", ("PRESCALER",), 0x04, 0, 12),
+        period_field=field("OCR1", ("OCR1",), 0x10, 0, 32),
+        one_pulse_field=_invalid_field_ref(base),
+        center_aligned_field=_invalid_field_ref(base),
+        auto_reload_preload_field=_invalid_field_ref(base),
+        clock_source_field=field("CR", ("CLKSRC",), 0x00, 6, 3),
+    )
+
+
+def _nxp_gpt_timer_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[TimerChannelSemanticRow, ...]:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return (
+        TimerChannelSemanticRow(
+            peripheral_name=peripheral_name,
+            channel_index=0,
+            supports_compare=True,
+            supports_capture=True,
+            supports_pwm=False,
+            supports_complementary_output=False,
+            control_reg=reg("CR", 0x00),
+            status_reg=reg("SR", 0x08),
+            compare_reg=reg("OCR1", 0x10),
+            secondary_compare_reg=_invalid_register_ref(base),
+            period_reg=reg("OCR1", 0x10),
+            counter_reg=reg("CNT", 0x24),
+            capture_reg=reg("ICR1", 0x1C),
+            enable_field=field("CR", ("EN",), 0x00, 0),
+            interrupt_enable_field=field("IR", ("OF1IE",), 0x0C, 0),
+            interrupt_flag_field=field("SR", ("OF1",), 0x08, 0),
+            mode_field=_invalid_field_ref(base),
+            preload_field=_invalid_field_ref(base),
+            output_enable_field=_invalid_field_ref(base),
+            output_polarity_field=_invalid_field_ref(base),
+            complementary_output_enable_field=_invalid_field_ref(base),
+            capture_select_field=_invalid_field_ref(base),
+        ),
+    )
+
+
+def _nxp_pit_timer_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> TimerSemanticRow:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return TimerSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=32,
+        channel_count=4,
+        has_compare=False,
+        has_capture=False,
+        has_pwm=False,
+        has_one_pulse=False,
+        has_center_aligned=False,
+        has_complementary_outputs=False,
+        has_deadtime=False,
+        has_break_input=False,
+        control_reg=reg("TCTRL0", 0x108),
+        status_reg=reg("TFLG0", 0x10C),
+        event_reg=_invalid_register_ref(base),
+        counter_reg=reg("CVAL0", 0x104),
+        prescaler_reg=_invalid_register_ref(base),
+        period_reg=reg("LDVAL0", 0x100),
+        enable_field=field("TCTRL0", ("TEN",), 0x108, 0),
+        disable_field=_invalid_field_ref(base),
+        module_disable_field=field("MCR", ("MDIS",), 0x00, 1),
+        software_reset_field=_invalid_field_ref(base),
+        start_field=_invalid_field_ref(base),
+        stop_field=_invalid_field_ref(base),
+        update_interrupt_enable_field=field("TCTRL0", ("TIE",), 0x108, 1),
+        update_flag_field=field("TFLG0", ("TIF",), 0x10C, 0),
+        update_generation_field=_invalid_field_ref(base),
+        prescaler_field=_invalid_field_ref(base),
+        period_field=field("LDVAL0", ("TSV", "LDVAL"), 0x100, 0, 32),
+        one_pulse_field=_invalid_field_ref(base),
+        center_aligned_field=_invalid_field_ref(base),
+        auto_reload_preload_field=_invalid_field_ref(base),
+        clock_source_field=_invalid_field_ref(base),
+    )
+
+
+def _nxp_pit_timer_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[TimerChannelSemanticRow, ...]:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    rows: list[TimerChannelSemanticRow] = []
+    for channel_index in range(4):
+        base_offset = 0x100 + (channel_index * 0x10)
+        rows.append(
+            TimerChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                supports_compare=False,
+                supports_capture=False,
+                supports_pwm=False,
+                supports_complementary_output=False,
+                control_reg=reg(f"TCTRL{channel_index}", base_offset + 0x08),
+                status_reg=reg(f"TFLG{channel_index}", base_offset + 0x0C),
+                compare_reg=reg(f"LDVAL{channel_index}", base_offset + 0x00),
+                secondary_compare_reg=_invalid_register_ref(base),
+                period_reg=reg(f"LDVAL{channel_index}", base_offset + 0x00),
+                counter_reg=reg(f"CVAL{channel_index}", base_offset + 0x04),
+                capture_reg=_invalid_register_ref(base),
+                enable_field=field(
+                    f"TCTRL{channel_index}",
+                    ("TEN",),
+                    base_offset + 0x08,
+                    0,
+                ),
+                interrupt_enable_field=field(
+                    f"TCTRL{channel_index}",
+                    ("TIE",),
+                    base_offset + 0x08,
+                    1,
+                ),
+                interrupt_flag_field=field(
+                    f"TFLG{channel_index}",
+                    ("TIF",),
+                    base_offset + 0x0C,
+                    0,
+                ),
+                mode_field=_invalid_field_ref(base),
+                preload_field=_invalid_field_ref(base),
+                output_enable_field=_invalid_field_ref(base),
+                output_polarity_field=_invalid_field_ref(base),
+                complementary_output_enable_field=_invalid_field_ref(base),
+                capture_select_field=_invalid_field_ref(base),
+            )
+        )
+    return tuple(rows)
+
+
+def _build_timer_rows(
+    context: _SemanticContext,
+) -> tuple[tuple[TimerSemanticRow, ...], tuple[TimerChannelSemanticRow, ...]]:
+    timer_rows: list[TimerSemanticRow] = []
+    channel_rows: list[TimerChannelSemanticRow] = []
+    for peripheral in context.candidate_peripherals_by_class.get("timer", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.timer.st-"):
+            timer_rows.append(
+                _st_timer_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(_st_timer_channel_rows(context, peripheral_name=peripheral.name))
+        elif schema_id == "alloy.timer.microchip-tc-zl":
+            timer_rows.append(
+                _microchip_tc_timer_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(
+                _microchip_tc_timer_channel_rows(
+                    context,
+                    peripheral_name=peripheral.name,
+                )
+            )
+        elif schema_id == "alloy.gpt.nxp-gpt":
+            timer_rows.append(
+                _nxp_gpt_timer_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(
+                _nxp_gpt_timer_channel_rows(context, peripheral_name=peripheral.name)
+            )
+        elif schema_id == "alloy.pit.nxp-pit":
+            timer_rows.append(
+                _nxp_pit_timer_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(
+                _nxp_pit_timer_channel_rows(context, peripheral_name=peripheral.name)
+            )
+    return tuple(timer_rows), tuple(channel_rows)
+
+
+def _st_pwm_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> PwmSemanticRow:
+    advanced_timer = peripheral_name in {"TIM1", "TIM8"}
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return PwmSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=_st_timer_counter_bits(peripheral_name),
+        channel_count=4,
+        has_complementary_outputs=advanced_timer,
+        has_deadtime=advanced_timer,
+        has_fault_input=advanced_timer,
+        has_center_aligned=True,
+        has_synchronized_update=True,
+        control_reg=reg("CR1", 0x00),
+        output_enable_reg=reg("CCER", 0x20),
+        status_reg=reg("SR", 0x10),
+        clock_reg=reg("PSC", 0x28),
+        sync_reg=reg("EGR", 0x14),
+        master_output_enable_field=(
+            field("BDTR", ("MOE",), 0x44, 15) if advanced_timer else _invalid_field_ref(base)
+        ),
+        load_field=field("EGR", ("UG",), 0x14, 0),
+        clear_load_field=_invalid_field_ref(base),
+        clock_prescaler_field=field("PSC", ("PSC",), 0x28, 0, 16),
+    )
+
+
+def _st_pwm_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[PwmChannelSemanticRow, ...]:
+    advanced_timer = peripheral_name in {"TIM1", "TIM8"}
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    rows: list[PwmChannelSemanticRow] = []
+    for channel_index in range(4):
+        channel_number = channel_index + 1
+        mode_register_name = "CCMR1_INPUT" if channel_index < 2 else "CCMR2_INPUT"
+        mode_register_offset = 0x18 if channel_index < 2 else 0x1C
+        slot_offset = 0 if channel_index % 2 == 0 else 8
+        compare_offset = 0x34 + (channel_index * 0x04)
+        rows.append(
+            PwmChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                supports_complementary_output=advanced_timer and channel_index < 3,
+                supports_deadtime=advanced_timer,
+                control_reg=reg(mode_register_name, mode_register_offset),
+                compare_reg=reg(f"CCR{channel_number}", compare_offset),
+                secondary_compare_reg=_invalid_register_ref(base),
+                period_reg=reg("ARR", 0x2C),
+                deadtime_reg=reg("BDTR", 0x44) if advanced_timer else _invalid_register_ref(base),
+                enable_field=field("CCER", (f"CC{channel_number}E",), 0x20, channel_index * 4),
+                interrupt_enable_field=field(
+                    "DIER",
+                    (f"CC{channel_number}IE",),
+                    0x0C,
+                    channel_number,
+                ),
+                interrupt_flag_field=field(
+                    "SR",
+                    (f"CC{channel_number}IF",),
+                    0x10,
+                    channel_number,
+                ),
+                mode_field=field(
+                    mode_register_name,
+                    (f"OC{channel_number}M",),
+                    mode_register_offset,
+                    4 + slot_offset,
+                    3,
+                ),
+                polarity_field=field(
+                    "CCER",
+                    (f"CC{channel_number}P",),
+                    0x20,
+                    1 + (channel_index * 4),
+                ),
+                complementary_output_enable_field=(
+                    field(
+                        "CCER",
+                        (f"CC{channel_number}NE",),
+                        0x20,
+                        2 + (channel_index * 4),
+                    )
+                    if advanced_timer and channel_index < 3
+                    else _invalid_field_ref(base)
+                ),
+                center_aligned_field=field("CR1", ("CMS",), 0x00, 5, 2),
+                period_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="ARR",
+                    register_offset=0x2C,
+                    bit_offset=0,
+                    bit_width=_st_timer_counter_bits(peripheral_name),
+                ),
+                duty_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"CCR{channel_number}",
+                    register_offset=compare_offset,
+                    bit_offset=0,
+                    bit_width=_st_timer_counter_bits(peripheral_name),
+                ),
+                deadtime_rise_field=(
+                    field("BDTR", ("DTG",), 0x44, 0, 8)
+                    if advanced_timer
+                    else _invalid_field_ref(base)
+                ),
+                deadtime_fall_field=(
+                    field("BDTR", ("DTG",), 0x44, 0, 8)
+                    if advanced_timer
+                    else _invalid_field_ref(base)
+                ),
+            )
+        )
+    return tuple(rows)
+
+
+def _microchip_pwm_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> PwmSemanticRow:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return PwmSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=24,
+        channel_count=4,
+        has_complementary_outputs=True,
+        has_deadtime=True,
+        has_fault_input=True,
+        has_center_aligned=True,
+        has_synchronized_update=True,
+        control_reg=reg("CLK", 0x00),
+        output_enable_reg=reg("ENA", 0x04),
+        status_reg=reg("SR", 0x0C),
+        clock_reg=reg("CLK", 0x00),
+        sync_reg=reg("SCUC", 0x28),
+        master_output_enable_field=_invalid_field_ref(base),
+        load_field=field("SCUC", ("UPDULOCK",), 0x28, 0),
+        clear_load_field=_invalid_field_ref(base),
+        clock_prescaler_field=field("CLK", ("PREA",), 0x00, 8, 4),
+    )
+
+
+def _microchip_pwm_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[PwmChannelSemanticRow, ...]:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    rows: list[PwmChannelSemanticRow] = []
+    for channel_index in range(4):
+        stride = channel_index * 0x20
+        rows.append(
+            PwmChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                supports_complementary_output=True,
+                supports_deadtime=True,
+                control_reg=reg(f"CMR{channel_index}", 0x200 + stride),
+                compare_reg=reg(f"CDTY{channel_index}", 0x204 + stride),
+                secondary_compare_reg=_invalid_register_ref(base),
+                period_reg=reg(f"CPRD{channel_index}", 0x20C + stride),
+                deadtime_reg=reg(f"DT{channel_index}", 0x218 + stride),
+                enable_field=field("ENA", (f"CHID{channel_index}",), 0x04, channel_index),
+                interrupt_enable_field=field(
+                    "IER1",
+                    (f"CHID{channel_index}",),
+                    0x10,
+                    channel_index,
+                ),
+                interrupt_flag_field=field(
+                    "ISR1",
+                    (f"CHID{channel_index}",),
+                    0x1C,
+                    channel_index,
+                ),
+                mode_field=field(
+                    f"CMR{channel_index}",
+                    ("CPRE",),
+                    0x200 + stride,
+                    0,
+                    4,
+                ),
+                polarity_field=field(
+                    f"CMR{channel_index}",
+                    ("CPOL",),
+                    0x200 + stride,
+                    9,
+                ),
+                complementary_output_enable_field=_invalid_field_ref(base),
+                center_aligned_field=field(
+                    f"CMR{channel_index}",
+                    ("CALG",),
+                    0x200 + stride,
+                    8,
+                ),
+                period_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"CPRD{channel_index}",
+                    register_offset=0x20C + stride,
+                    bit_offset=0,
+                    bit_width=24,
+                ),
+                duty_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"CDTY{channel_index}",
+                    register_offset=0x204 + stride,
+                    bit_offset=0,
+                    bit_width=24,
+                ),
+                deadtime_rise_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"DT{channel_index}",
+                    register_offset=0x218 + stride,
+                    bit_offset=16,
+                    bit_width=16,
+                ),
+                deadtime_fall_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"DT{channel_index}",
+                    register_offset=0x218 + stride,
+                    bit_offset=0,
+                    bit_width=16,
+                ),
+            )
+        )
+    return tuple(rows)
+
+
+def _nxp_pwm_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> PwmSemanticRow:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    def field(
+        register_name: str,
+        field_names: tuple[str, ...],
+        register_offset: int,
+        bit_offset: int,
+        bit_width: int = 1,
+    ) -> RuntimeFieldRef:
+        return _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=register_name,
+            field_names=field_names,
+            fallback_register_offset=register_offset,
+            fallback_bit_offset=bit_offset,
+            fallback_bit_width=bit_width,
+        )
+
+    return PwmSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        counter_bits=16,
+        channel_count=4,
+        has_complementary_outputs=True,
+        has_deadtime=True,
+        has_fault_input=True,
+        has_center_aligned=True,
+        has_synchronized_update=True,
+        control_reg=reg("MCTRL", 0x188),
+        output_enable_reg=reg("OUTEN", 0x180),
+        status_reg=reg("FSTS0", 0x18E),
+        clock_reg=_invalid_register_ref(base),
+        sync_reg=reg("MCTRL", 0x188),
+        master_output_enable_field=_invalid_field_ref(base),
+        load_field=field("MCTRL", ("LDOK",), 0x188, 0, 4),
+        clear_load_field=field("MCTRL", ("CLDOK",), 0x188, 4, 4),
+        clock_prescaler_field=_invalid_field_ref(base),
+    )
+
+
+def _nxp_pwm_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[PwmChannelSemanticRow, ...]:
+    base = context.peripheral_by_name[peripheral_name].base_address
+
+    def reg(name: str, offset: int) -> RuntimeRegisterRef:
+        return _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=name,
+            fallback_offset=offset,
+        )
+
+    rows: list[PwmChannelSemanticRow] = []
+    for channel_index in range(4):
+        stride = channel_index * 0x60
+        rows.append(
+            PwmChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                supports_complementary_output=True,
+                supports_deadtime=True,
+                control_reg=reg(f"SM{channel_index}CTRL", 0x06 + stride),
+                compare_reg=reg(f"SM{channel_index}VAL2", 0x10 + stride),
+                secondary_compare_reg=reg(f"SM{channel_index}VAL3", 0x12 + stride),
+                period_reg=reg(f"SM{channel_index}VAL1", 0x0C + stride),
+                deadtime_reg=reg(f"SM{channel_index}DTCNT0", 0x28 + stride),
+                enable_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="OUTEN",
+                    register_offset=0x180,
+                    bit_offset=8 + channel_index,
+                ),
+                interrupt_enable_field=_invalid_field_ref(base),
+                interrupt_flag_field=_invalid_field_ref(base),
+                mode_field=_invalid_field_ref(base),
+                polarity_field=_invalid_field_ref(base),
+                complementary_output_enable_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="OUTEN",
+                    register_offset=0x180,
+                    bit_offset=4 + channel_index,
+                ),
+                center_aligned_field=_invalid_field_ref(base),
+                period_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"SM{channel_index}VAL1",
+                    register_offset=0x0C + stride,
+                    bit_offset=0,
+                    bit_width=16,
+                ),
+                duty_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"SM{channel_index}VAL2",
+                    register_offset=0x10 + stride,
+                    bit_offset=0,
+                    bit_width=16,
+                ),
+                deadtime_rise_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"SM{channel_index}DTCNT0",
+                    register_offset=0x28 + stride,
+                    bit_offset=0,
+                    bit_width=16,
+                ),
+                deadtime_fall_field=_manual_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"SM{channel_index}DTCNT1",
+                    register_offset=0x2A + stride,
+                    bit_offset=0,
+                    bit_width=16,
+                ),
+            )
+        )
+    return tuple(rows)
+
+
+def _build_pwm_rows(
+    context: _SemanticContext,
+) -> tuple[tuple[PwmSemanticRow, ...], tuple[PwmChannelSemanticRow, ...]]:
+    pwm_rows: list[PwmSemanticRow] = []
+    channel_rows: list[PwmChannelSemanticRow] = []
+    timer_candidates = context.candidate_peripherals_by_class.get("timer", ())
+    dedicated_pwm_candidates = context.candidate_peripherals_by_class.get("pwm", ())
+
+    for peripheral in timer_candidates:
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.timer.st-"):
+            pwm_rows.append(
+                _st_pwm_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(_st_pwm_channel_rows(context, peripheral_name=peripheral.name))
+
+    for peripheral in dedicated_pwm_candidates:
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id == "alloy.pwm.microchip-pwm-y":
+            pwm_rows.append(
+                _microchip_pwm_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(
+                _microchip_pwm_channel_rows(context, peripheral_name=peripheral.name)
+            )
+        elif schema_id == "alloy.pwm.nxp-pwm":
+            pwm_rows.append(
+                _nxp_pwm_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(_nxp_pwm_channel_rows(context, peripheral_name=peripheral.name))
+    return tuple(pwm_rows), tuple(channel_rows)
 
 
 def _emit_driver_semantics_common_header(
@@ -2443,6 +3799,271 @@ def _spi_specialization_builder(context: _SemanticContext):
     return _build
 
 
+def _timer_specialization_builder(context: _SemanticContext):
+    def _build(row: TimerSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kStatusRegister": row.status_reg,
+            "kEventRegister": row.event_reg,
+            "kCounterRegister": row.counter_reg,
+            "kPrescalerRegister": row.prescaler_reg,
+            "kPeriodRegister": row.period_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kDisableField": row.disable_field,
+            "kModuleDisableField": row.module_disable_field,
+            "kSoftwareResetField": row.software_reset_field,
+            "kStartField": row.start_field,
+            "kStopField": row.stop_field,
+            "kUpdateInterruptEnableField": row.update_interrupt_enable_field,
+            "kUpdateFlagField": row.update_flag_field,
+            "kUpdateGenerationField": row.update_generation_field,
+            "kPrescalerField": row.prescaler_field,
+            "kPeriodField": row.period_field,
+            "kOnePulseField": row.one_pulse_field,
+            "kCenterAlignedField": row.center_aligned_field,
+            "kAutoReloadPreloadField": row.auto_reload_preload_field,
+            "kClockSourceField": row.clock_source_field,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            f"  static constexpr std::uint32_t kCounterBits = {row.counter_bits}u;",
+            f"  static constexpr std::uint32_t kChannelCount = {row.channel_count}u;",
+            f"  static constexpr bool kHasCompare = {'true' if row.has_compare else 'false'};",
+            f"  static constexpr bool kHasCapture = {'true' if row.has_capture else 'false'};",
+            f"  static constexpr bool kHasPwm = {'true' if row.has_pwm else 'false'};",
+            f"  static constexpr bool kHasOnePulse = {'true' if row.has_one_pulse else 'false'};",
+            "  static constexpr bool kHasCenterAligned = "
+            + ("true" if row.has_center_aligned else "false")
+            + ";",
+            "  static constexpr bool kHasComplementaryOutputs = "
+            + ("true" if row.has_complementary_outputs else "false")
+            + ";",
+            f"  static constexpr bool kHasDeadtime = {'true' if row.has_deadtime else 'false'};",
+            "  static constexpr bool kHasBreakInput = "
+            + ("true" if row.has_break_input else "false")
+            + ";",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _timer_channel_specialization_lines(
+    channel_rows: tuple[TimerChannelSemanticRow, ...],
+) -> list[str]:
+    lines = [
+        "template<PeripheralId Id, std::size_t ChannelIndex>",
+        "struct TimerChannelSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr bool kSupportsCompare = false;",
+        "  static constexpr bool kSupportsCapture = false;",
+        "  static constexpr bool kSupportsPwm = false;",
+        "  static constexpr bool kSupportsComplementaryOutput = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCompareRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSecondaryCompareRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kPeriodRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCounterRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCaptureRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kInterruptFlagField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPreloadField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kOutputEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kOutputPolarityField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kComplementaryOutputEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kCaptureSelectField = kInvalidFieldRef;",
+        "};",
+        "",
+    ]
+    for row in channel_rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kStatusRegister": row.status_reg,
+            "kCompareRegister": row.compare_reg,
+            "kSecondaryCompareRegister": row.secondary_compare_reg,
+            "kPeriodRegister": row.period_reg,
+            "kCounterRegister": row.counter_reg,
+            "kCaptureRegister": row.capture_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kInterruptEnableField": row.interrupt_enable_field,
+            "kInterruptFlagField": row.interrupt_flag_field,
+            "kModeField": row.mode_field,
+            "kPreloadField": row.preload_field,
+            "kOutputEnableField": row.output_enable_field,
+            "kOutputPolarityField": row.output_polarity_field,
+            "kComplementaryOutputEnableField": row.complementary_output_enable_field,
+            "kCaptureSelectField": row.capture_select_field,
+        }
+        lines.extend(
+            [
+                "template<>",
+                f"struct TimerChannelSemanticTraits<PeripheralId::{peripheral_id}, {row.channel_index}u> {{",
+                "  static constexpr bool kPresent = true;",
+                "  static constexpr bool kSupportsCompare = "
+                + ("true" if row.supports_compare else "false")
+                + ";",
+                "  static constexpr bool kSupportsCapture = "
+                + ("true" if row.supports_capture else "false")
+                + ";",
+                "  static constexpr bool kSupportsPwm = "
+                + ("true" if row.supports_pwm else "false")
+                + ";",
+                "  static constexpr bool kSupportsComplementaryOutput = "
+                + ("true" if row.supports_complementary_output else "false")
+                + ";",
+            ]
+        )
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        lines.extend(["};", ""])
+    return lines
+
+
+def _pwm_specialization_builder(context: _SemanticContext):
+    def _build(row: PwmSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kOutputEnableRegister": row.output_enable_reg,
+            "kStatusRegister": row.status_reg,
+            "kClockRegister": row.clock_reg,
+            "kSyncRegister": row.sync_reg,
+        }
+        field_members = {
+            "kMasterOutputEnableField": row.master_output_enable_field,
+            "kLoadField": row.load_field,
+            "kClearLoadField": row.clear_load_field,
+            "kClockPrescalerField": row.clock_prescaler_field,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            f"  static constexpr std::uint32_t kCounterBits = {row.counter_bits}u;",
+            f"  static constexpr std::uint32_t kChannelCount = {row.channel_count}u;",
+            "  static constexpr bool kHasComplementaryOutputs = "
+            + ("true" if row.has_complementary_outputs else "false")
+            + ";",
+            f"  static constexpr bool kHasDeadtime = {'true' if row.has_deadtime else 'false'};",
+            "  static constexpr bool kHasFaultInput = "
+            + ("true" if row.has_fault_input else "false")
+            + ";",
+            "  static constexpr bool kHasCenterAligned = "
+            + ("true" if row.has_center_aligned else "false")
+            + ";",
+            "  static constexpr bool kHasSynchronizedUpdate = "
+            + ("true" if row.has_synchronized_update else "false")
+            + ";",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _pwm_channel_specialization_lines(
+    channel_rows: tuple[PwmChannelSemanticRow, ...],
+) -> list[str]:
+    lines = [
+        "template<PeripheralId Id, std::size_t ChannelIndex>",
+        "struct PwmChannelSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr bool kSupportsComplementaryOutput = false;",
+        "  static constexpr bool kSupportsDeadtime = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCompareRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSecondaryCompareRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kPeriodRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeadtimeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kInterruptFlagField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPolarityField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kComplementaryOutputEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kCenterAlignedField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPeriodField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDutyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDeadtimeRiseField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDeadtimeFallField = kInvalidFieldRef;",
+        "};",
+        "",
+    ]
+    for row in channel_rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kCompareRegister": row.compare_reg,
+            "kSecondaryCompareRegister": row.secondary_compare_reg,
+            "kPeriodRegister": row.period_reg,
+            "kDeadtimeRegister": row.deadtime_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kInterruptEnableField": row.interrupt_enable_field,
+            "kInterruptFlagField": row.interrupt_flag_field,
+            "kModeField": row.mode_field,
+            "kPolarityField": row.polarity_field,
+            "kComplementaryOutputEnableField": row.complementary_output_enable_field,
+            "kCenterAlignedField": row.center_aligned_field,
+            "kPeriodField": row.period_field,
+            "kDutyField": row.duty_field,
+            "kDeadtimeRiseField": row.deadtime_rise_field,
+            "kDeadtimeFallField": row.deadtime_fall_field,
+        }
+        lines.extend(
+            [
+                "template<>",
+                f"struct PwmChannelSemanticTraits<PeripheralId::{peripheral_id}, {row.channel_index}u> {{",
+                "  static constexpr bool kPresent = true;",
+                "  static constexpr bool kSupportsComplementaryOutput = "
+                + ("true" if row.supports_complementary_output else "false")
+                + ";",
+                "  static constexpr bool kSupportsDeadtime = "
+                + ("true" if row.supports_deadtime else "false")
+                + ";",
+            ]
+        )
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        lines.extend(["};", ""])
+    return lines
+
+
 def emit_runtime_driver_semantics_common_header(
     *,
     family_dir: str,
@@ -2815,12 +4436,195 @@ def emit_runtime_driver_dma_semantics_header(
     )
 
 
+def emit_runtime_driver_timer_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    timer_rows, channel_rows = _build_timer_rows(context)
+    trait_lines = [
+        "template<PeripheralId Id>",
+        "struct TimerSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr std::uint32_t kCounterBits = 0u;",
+        "  static constexpr std::uint32_t kChannelCount = 0u;",
+        "  static constexpr bool kHasCompare = false;",
+        "  static constexpr bool kHasCapture = false;",
+        "  static constexpr bool kHasPwm = false;",
+        "  static constexpr bool kHasOnePulse = false;",
+        "  static constexpr bool kHasCenterAligned = false;",
+        "  static constexpr bool kHasComplementaryOutputs = false;",
+        "  static constexpr bool kHasDeadtime = false;",
+        "  static constexpr bool kHasBreakInput = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kEventRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCounterRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kPeriodRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kModuleDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSoftwareResetField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kStartField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kUpdateInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kUpdateFlagField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kUpdateGenerationField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPrescalerField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPeriodField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kOnePulseField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kCenterAlignedField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAutoReloadPreloadField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kClockSourceField = kInvalidFieldRef;",
+        "};",
+        "",
+    ]
+    timer_peripheral_rows: list[str] = []
+    specialization_builder = _timer_specialization_builder(context)
+    for row in timer_rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        trait_lines.extend(
+            [
+                "template<>",
+                f"struct TimerSemanticTraits<PeripheralId::{peripheral_id}> {{",
+                *specialization_builder(row),
+                "};",
+                "",
+            ]
+        )
+        timer_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+    body = "\n".join(
+        [
+            *trait_lines,
+            *_timer_channel_specialization_lines(channel_rows),
+            *_std_array_lines(
+                type_name="PeripheralId",
+                variable_name="kTimerSemanticPeripherals",
+                row_lines=timer_peripheral_rows,
+            ),
+        ]
+    )
+    namespace_block = _cpp_namespace_block(
+        (*_runtime_device_namespace_components(device), "driver_semantics"),
+        body,
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstddef>",
+            "#include <cstdint>",
+            '#include "common.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_runtime_generated_path(
+            family_dir,
+            device.identity.device,
+            TIMER_DRIVER_HEADER,
+        ),
+        content=content,
+    )
+
+
+def emit_runtime_driver_pwm_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    pwm_rows, channel_rows = _build_pwm_rows(context)
+    trait_lines = [
+        "template<PeripheralId Id>",
+        "struct PwmSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr std::uint32_t kCounterBits = 0u;",
+        "  static constexpr std::uint32_t kChannelCount = 0u;",
+        "  static constexpr bool kHasComplementaryOutputs = false;",
+        "  static constexpr bool kHasDeadtime = false;",
+        "  static constexpr bool kHasFaultInput = false;",
+        "  static constexpr bool kHasCenterAligned = false;",
+        "  static constexpr bool kHasSynchronizedUpdate = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kOutputEnableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kClockRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSyncRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kMasterOutputEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kLoadField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kClearLoadField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kClockPrescalerField = kInvalidFieldRef;",
+        "};",
+        "",
+    ]
+    pwm_peripheral_rows: list[str] = []
+    specialization_builder = _pwm_specialization_builder(context)
+    for row in pwm_rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        trait_lines.extend(
+            [
+                "template<>",
+                f"struct PwmSemanticTraits<PeripheralId::{peripheral_id}> {{",
+                *specialization_builder(row),
+                "};",
+                "",
+            ]
+        )
+        pwm_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+    body = "\n".join(
+        [
+            *trait_lines,
+            *_pwm_channel_specialization_lines(channel_rows),
+            *_std_array_lines(
+                type_name="PeripheralId",
+                variable_name="kPwmSemanticPeripherals",
+                row_lines=pwm_peripheral_rows,
+            ),
+        ]
+    )
+    namespace_block = _cpp_namespace_block(
+        (*_runtime_device_namespace_components(device), "driver_semantics"),
+        body,
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstddef>",
+            "#include <cstdint>",
+            '#include "common.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_runtime_generated_path(
+            family_dir,
+            device.identity.device,
+            PWM_DRIVER_HEADER,
+        ),
+        content=content,
+    )
+
+
 __all__ = [
     "emit_runtime_driver_dma_semantics_header",
     "emit_runtime_driver_gpio_semantics_header",
     "emit_runtime_driver_i2c_semantics_header",
     "emit_runtime_driver_semantics_common_header",
     "emit_runtime_driver_spi_semantics_header",
+    "emit_runtime_driver_timer_semantics_header",
     "emit_runtime_driver_uart_semantics_header",
+    "emit_runtime_driver_pwm_semantics_header",
     "runtime_driver_semantics_required_paths",
 ]

@@ -492,6 +492,7 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "registers.hpp",
         "register_fields.hpp",
         "clock_bindings.hpp",
+        "systick.hpp",
         "system_clock.hpp",
         "dma_bindings.hpp",
         "routes.hpp",
@@ -509,6 +510,8 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "i2c.hpp",
         "spi.hpp",
         "dma.hpp",
+        "timer.hpp",
+        "pwm.hpp",
     ):
         assert artifacts[
             f"{family_dir}/generated/runtime/devices/mimxrt1062/driver_semantics/{name}"

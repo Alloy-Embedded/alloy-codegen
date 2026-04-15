@@ -123,6 +123,12 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_dma_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/dma.hpp"
     ]
+    runtime_timer_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/timer.hpp"
+    ]
+    runtime_pwm_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/pwm.hpp"
+    ]
     runtime_system_clock_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
     ]
@@ -372,6 +378,14 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_dma_semantics_artifact.artifact_kind == "generated-cpp"
     assert "DmaSemanticTraits<PeripheralId" in runtime_dma_semantics_artifact.content
     assert "kDmaSemanticPeripherals" in runtime_dma_semantics_artifact.content
+    assert runtime_timer_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct TimerSemanticTraits" in runtime_timer_semantics_artifact.content
+    assert "struct TimerChannelSemanticTraits" in runtime_timer_semantics_artifact.content
+    assert "kTimerSemanticPeripherals" in runtime_timer_semantics_artifact.content
+    assert runtime_pwm_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct PwmSemanticTraits" in runtime_pwm_semantics_artifact.content
+    assert "struct PwmChannelSemanticTraits" in runtime_pwm_semantics_artifact.content
+    assert "kPwmSemanticPeripherals" in runtime_pwm_semantics_artifact.content
     assert runtime_system_clock_artifact.artifact_kind == "generated-cpp"
     assert (
         "SystemClockProfileTraits<SystemClockProfileId::" in runtime_system_clock_artifact.content
@@ -433,6 +447,12 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_peripheral_instances = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/peripheral_instances.hpp"
     ].content
+    same70_timer_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/timer.hpp"
+    ].content
+    same70_pwm_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/pwm.hpp"
+    ].content
     same70_registers = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/registers.hpp"
     ].content
@@ -449,6 +469,14 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
     assert "PeripheralId::WDT" in same70_peripheral_instances
     assert "PeripheralId::RSWDT" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::TC0>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::PWM0>" in same70_peripheral_instances
+    assert "PeripheralClassId::class_timer" in same70_peripheral_instances
+    assert "PeripheralClassId::class_pwm" in same70_peripheral_instances
+    assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
+    assert "TimerChannelSemanticTraits<PeripheralId::TC0, 0u>" in same70_timer_semantics
+    assert "PwmSemanticTraits<PeripheralId::PWM0>" in same70_pwm_semantics
+    assert "PwmChannelSemanticTraits<PeripheralId::PWM0, 0u>" in same70_pwm_semantics
     assert "RegisterId::register_wdt_mr" in same70_registers
     assert "RegisterId::register_rswdt_mr" in same70_registers
     assert "FieldId::field_wdt_mr_wddis" in same70_register_fields
@@ -619,6 +647,8 @@ def test_emit_matches_golden_artifacts(
         "i2c.hpp",
         "spi.hpp",
         "dma.hpp",
+        "timer.hpp",
+        "pwm.hpp",
     ):
         assert artifacts[
             f"st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/{name}"
@@ -641,6 +671,9 @@ def test_emit_matches_golden_artifacts(
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_vectors.cpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/systick.hpp"].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "systick.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
@@ -742,6 +775,10 @@ def test_emit_connector_metadata_supports_microchip_family(
         is not None
     )
     assert (
+        artifacts["microchip/same70/generated/runtime/devices/atsame70q21b/systick.hpp"].content
+        is not None
+    )
+    assert (
         artifacts[
             "microchip/same70/generated/runtime/devices/atsame70q21b/system_clock.hpp"
         ].content
@@ -751,6 +788,33 @@ def test_emit_connector_metadata_supports_microchip_family(
         path for path in artifacts if path.startswith("microchip/same70/generated/ip/")
     ]
     assert microchip_ip_headers
+
+
+def test_emit_runtime_systick_header_for_foundational_cortex_m_devices(
+    execution_context: ExecutionContext,
+    microchip_execution_context: ExecutionContext,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    cases = (
+        ("stm32g071rb", execution_context, "st/stm32g0"),
+        ("stm32f401re", execution_context, "st/stm32f4"),
+        ("atsame70q21b", microchip_execution_context, "microchip/same70"),
+        ("mimxrt1062", nxp_execution_context, "nxp/imxrt1060"),
+    )
+
+    for device_name, context, family_dir in cases:
+        result = run(PipelineScope(device=device_name), context)
+        artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
+        systick_artifact = artifacts[
+            f"{family_dir}/generated/runtime/devices/{device_name}/systick.hpp"
+        ]
+
+        assert systick_artifact.content is not None
+        assert "enum class SysTickClockSourceId" in systick_artifact.content
+        assert "struct SysTickTraits" in systick_artifact.content
+        assert "kCtrlRegister" in systick_artifact.content
+        assert "configure_for_tick_hz" in systick_artifact.content
+        assert "calibration_has_reference_clock" in systick_artifact.content
 
 
 def test_emit_packages_metadata_can_reconstruct_physical_pinout(

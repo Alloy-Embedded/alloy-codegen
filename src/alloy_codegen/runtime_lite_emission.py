@@ -23,11 +23,38 @@ from .emission import (
     _cpp_namespace_block,
     _enum_identifier,
     _enum_rows,
+    _semantic_enum_map,
     _semantic_enum_ref,
     _std_array_lines,
 )
 
-RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset({"gpio", "uart", "spi", "i2c", "dma", "dma-router"})
+RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset(
+    {"gpio", "uart", "spi", "i2c", "dma", "dma-router", "timer", "pwm"}
+)
+_RUNTIME_LITE_TIMING_CLASS_ALIASES = {
+    "gpt": "timer",
+    "pit": "timer",
+}
+
+
+def runtime_lite_peripheral_class_name(ip_name: str) -> str:
+    class_name = canonical_peripheral_class(ip_name)
+    return _RUNTIME_LITE_TIMING_CLASS_ALIASES.get(class_name, class_name)
+
+
+def _runtime_lite_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict[str, object]:
+    catalog = dict(_collect_runtime_semantics_catalog(devices))
+    peripheral_class_values = set(catalog["peripheral_class_enum_map"])
+    peripheral_class_values.update(
+        runtime_lite_peripheral_class_name(peripheral.ip_name)
+        for device in devices
+        for peripheral in device.peripherals
+    )
+    catalog["peripheral_class_enum_map"] = _semantic_enum_map(
+        peripheral_class_values,
+        prefix="class",
+    )
+    return catalog
 
 
 def _runtime_generated_path(family_dir: str, name: str) -> str:
@@ -72,7 +99,7 @@ def _runtime_lite_peripherals(device: CanonicalDeviceIR):
     return tuple(
         peripheral
         for peripheral in sorted(device.peripherals, key=lambda item: item.name)
-        if canonical_peripheral_class(peripheral.ip_name) in RUNTIME_LITE_PERIPHERAL_CLASSES
+        if runtime_lite_peripheral_class_name(peripheral.ip_name) in RUNTIME_LITE_PERIPHERAL_CLASSES
         or peripheral.name in startup_control_peripherals
     )
 
@@ -452,7 +479,7 @@ def emit_runtime_lite_types_header(
 ) -> EmittedArtifact:
     if not devices:
         raise ValueError("Runtime-lite emission requires at least one device.")
-    semantics_catalog = _collect_runtime_semantics_catalog(devices)
+    semantics_catalog = _runtime_lite_semantics_catalog(devices)
     first_device = devices[0]
     enum_specs = (
         ("BackendSchemaId", semantics_catalog["backend_schema_enum_map"]),
@@ -497,7 +524,7 @@ def emit_runtime_lite_peripheral_instances_header(
     family_dir: str,
     device: CanonicalDeviceIR,
 ) -> EmittedArtifact:
-    semantics_catalog = _collect_runtime_semantics_catalog((device,))
+    semantics_catalog = _runtime_lite_semantics_catalog((device,))
     runtime_peripherals = _runtime_lite_peripherals(device)
     bindings = _clock_bindings_by_peripheral(device)
     gate_enum_map = {
@@ -557,7 +584,7 @@ def emit_runtime_lite_peripheral_instances_header(
                 + _semantic_enum_ref(
                     "PeripheralClassId",
                     semantics_catalog["peripheral_class_enum_map"],
-                    canonical_peripheral_class(peripheral.ip_name),
+                    runtime_lite_peripheral_class_name(peripheral.ip_name),
                 )
                 + ";",
                 "  static constexpr BackendSchemaId kSchemaId = "
@@ -1568,6 +1595,7 @@ __all__ = [
     "emit_runtime_lite_registers_header",
     "emit_runtime_lite_routes_header",
     "emit_runtime_lite_types_header",
+    "runtime_lite_peripheral_class_name",
     "runtime_lite_required_paths",
 ]
 

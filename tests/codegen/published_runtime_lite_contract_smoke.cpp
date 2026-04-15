@@ -54,6 +54,18 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_PWM_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_PWM_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTICK_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTICK_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER must be defined"
 #endif
@@ -79,6 +91,9 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_PWM_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTICK_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
 
 #include <type_traits>
@@ -165,14 +180,44 @@ consteval bool first_dma_semantic_present() {
     }
 }
 
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstTimerSemanticSmoke {
+    static constexpr bool kPresent = published_driver::TimerSemanticTraits<Values[0]>::kPresent
+                                      && published_driver::TimerChannelSemanticTraits<
+                                          Values[0], 0u>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstTimerSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstPwmSemanticSmoke {
+    static constexpr bool kPresent = published_driver::PwmSemanticTraits<Values[0]>::kPresent
+                                      && published_driver::PwmChannelSemanticTraits<
+                                          Values[0], 0u>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstPwmSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
 static_assert(FirstGpioSemanticSmoke<published_driver::kGpioSemanticPins>::kPresent);
 static_assert(FirstUartSemanticSmoke<published_driver::kUartSemanticPeripherals>::kPresent);
 static_assert(FirstI2cSemanticSmoke<published_driver::kI2cSemanticPeripherals>::kPresent);
 static_assert(FirstSpiSemanticSmoke<published_driver::kSpiSemanticPeripherals>::kPresent);
+static_assert(FirstTimerSemanticSmoke<published_driver::kTimerSemanticPeripherals>::kPresent);
+static_assert(FirstPwmSemanticSmoke<published_driver::kPwmSemanticPeripherals>::kPresent);
 static_assert(
     first_dma_semantic_present<
         published_driver::kDmaSemanticPeripherals,
         published_device_runtime::kDmaBindings>());
+static_assert(!published_device_runtime::SysTickTraits::kPresent
+              || published_device_runtime::SysTickTraits::kCounterBits == 24u);
+static_assert(!published_device_runtime::SysTickTraits::kPresent
+              || published_device_runtime::kSysTick.exception_number == 15u);
 static_assert(published_device_runtime::kSystemClockProfiles.size() > 0u);
 static_assert(
     published_device_runtime::SystemClockProfileTraits<

@@ -54,8 +54,10 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_dma_semantics_header,
     emit_runtime_driver_gpio_semantics_header,
     emit_runtime_driver_i2c_semantics_header,
+    emit_runtime_driver_pwm_semantics_header,
     emit_runtime_driver_semantics_common_header,
     emit_runtime_driver_spi_semantics_header,
+    emit_runtime_driver_timer_semantics_header,
     emit_runtime_driver_uart_semantics_header,
 )
 from alloy_codegen.runtime_lite_emission import (
@@ -69,6 +71,7 @@ from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_types_header,
 )
 from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
+from alloy_codegen.runtime_systick import emit_runtime_systick_header
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.serialization import canonical_json_sha256
 from alloy_codegen.stages.common import StageResult
@@ -177,6 +180,18 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_driver_dma_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_timer_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_pwm_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_systick_header(
                     family_dir=family_dir,
                     device=device,
                 ),
