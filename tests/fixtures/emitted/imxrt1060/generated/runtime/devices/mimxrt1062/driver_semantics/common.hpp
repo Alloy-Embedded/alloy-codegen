@@ -33,6 +33,7 @@ struct RuntimeIndexedFieldRef {
   std::uint32_t stride_bytes = 0u;
   std::uint16_t bit_offset = 0u;
   std::uint16_t bit_width = 0u;
+  std::uint16_t bit_stride_bits = 0u;
   bool valid = false;
 };
 

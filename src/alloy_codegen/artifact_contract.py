@@ -136,6 +136,8 @@ def find_runtime_lite_contract_violations(
             "i2c_semantics": f"{device_runtime_root}/driver_semantics/i2c.hpp",
             "spi_semantics": f"{device_runtime_root}/driver_semantics/spi.hpp",
             "dma_semantics": f"{device_runtime_root}/driver_semantics/dma.hpp",
+            "adc_semantics": f"{device_runtime_root}/driver_semantics/adc.hpp",
+            "dac_semantics": f"{device_runtime_root}/driver_semantics/dac.hpp",
             "timer_semantics": f"{device_runtime_root}/driver_semantics/timer.hpp",
             "pwm_semantics": f"{device_runtime_root}/driver_semantics/pwm.hpp",
             "systick": f"{device_runtime_root}/systick.hpp",
@@ -296,6 +298,42 @@ def find_runtime_lite_contract_violations(
             elif token not in content:
                 violations.append(
                     f"{device_runtime_paths[key]} does not emit {class_name} semantic traits"
+                )
+
+        adc_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "adc"
+        )
+        if adc_peripherals:
+            adc_content = content_by_key["adc_semantics"]
+            if adc_content is None:
+                violations.append(
+                    f"missing adc driver semantics header: {device_runtime_paths['adc_semantics']}"
+                )
+            elif "AdcSemanticTraits<PeripheralId::" not in adc_content:
+                violations.append(
+                    f"{device_runtime_paths['adc_semantics']} does not emit adc semantic traits"
+                )
+
+        dac_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "dac"
+        )
+        if dac_peripherals:
+            dac_content = content_by_key["dac_semantics"]
+            if dac_content is None:
+                violations.append(
+                    f"missing dac driver semantics header: {device_runtime_paths['dac_semantics']}"
+                )
+            elif "DacSemanticTraits<PeripheralId::" not in dac_content:
+                violations.append(
+                    f"{device_runtime_paths['dac_semantics']} does not emit dac semantic traits"
+                )
+            elif "DacChannelSemanticTraits<PeripheralId::" not in dac_content:
+                violations.append(
+                    f"{device_runtime_paths['dac_semantics']} does not emit dac channel traits"
                 )
 
         timer_peripherals = tuple(

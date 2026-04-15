@@ -512,6 +512,8 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "i2c.hpp",
         "spi.hpp",
         "dma.hpp",
+        "adc.hpp",
+        "dac.hpp",
         "timer.hpp",
         "pwm.hpp",
     ):

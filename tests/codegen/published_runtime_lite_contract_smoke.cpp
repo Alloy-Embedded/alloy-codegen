@@ -54,6 +54,14 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ADC_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ADC_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DAC_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DAC_SEMANTICS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER must be defined"
 #endif
@@ -91,6 +99,8 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SPI_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ADC_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DAC_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_PWM_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTICK_HEADER
@@ -167,6 +177,16 @@ struct FirstSpiSemanticSmoke<Values, 0u> {
     static constexpr bool kPresent = true;
 };
 
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstAdcSemanticSmoke {
+    static constexpr bool kPresent = published_driver::AdcSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstAdcSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
 template<const auto& Values, const auto& Bindings>
 consteval bool first_dma_semantic_present() {
     constexpr auto kPeripheralCount = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>;
@@ -179,6 +199,18 @@ consteval bool first_dma_semantic_present() {
             Values[0], kSignalId>::kPresent;
     }
 }
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstDacSemanticSmoke {
+    static constexpr bool kPresent = published_driver::DacSemanticTraits<Values[0]>::kPresent
+                                      && published_driver::DacChannelSemanticTraits<
+                                          Values[0], 0u>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstDacSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
 
 template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
 struct FirstTimerSemanticSmoke {
@@ -208,6 +240,8 @@ static_assert(FirstGpioSemanticSmoke<published_driver::kGpioSemanticPins>::kPres
 static_assert(FirstUartSemanticSmoke<published_driver::kUartSemanticPeripherals>::kPresent);
 static_assert(FirstI2cSemanticSmoke<published_driver::kI2cSemanticPeripherals>::kPresent);
 static_assert(FirstSpiSemanticSmoke<published_driver::kSpiSemanticPeripherals>::kPresent);
+static_assert(FirstAdcSemanticSmoke<published_driver::kAdcSemanticPeripherals>::kPresent);
+static_assert(FirstDacSemanticSmoke<published_driver::kDacSemanticPeripherals>::kPresent);
 static_assert(FirstTimerSemanticSmoke<published_driver::kTimerSemanticPeripherals>::kPresent);
 static_assert(FirstPwmSemanticSmoke<published_driver::kPwmSemanticPeripherals>::kPresent);
 static_assert(

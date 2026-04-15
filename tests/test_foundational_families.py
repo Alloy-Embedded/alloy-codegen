@@ -83,6 +83,8 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/i2c.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/spi.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/dma.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/adc.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/dac.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/timer.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/pwm.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/systick.hpp",

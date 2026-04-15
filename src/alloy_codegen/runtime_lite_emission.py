@@ -29,7 +29,7 @@ from .emission import (
 )
 
 RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset(
-    {"gpio", "uart", "spi", "i2c", "dma", "dma-router", "timer", "pwm"}
+    {"gpio", "uart", "spi", "i2c", "dma", "dma-router", "timer", "pwm", "adc", "dac"}
 )
 _RUNTIME_LITE_TIMING_CLASS_ALIASES = {
     "gpt": "timer",

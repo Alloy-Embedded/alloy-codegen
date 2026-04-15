@@ -45,7 +45,7 @@ struct DmaSemanticTraits<PeripheralId::USART1, SignalId::signal_RX> {
   static constexpr int kChannelIndex = 0;
   static constexpr int kRequestValue = 50;
   static constexpr int kChannelSelector = -1;
-  static constexpr RuntimeIndexedFieldRef kRouteSelectorField = RuntimeIndexedFieldRef{0x40020800u, 0u, 4u, 0u, 8u, true};
+  static constexpr RuntimeIndexedFieldRef kRouteSelectorField = RuntimeIndexedFieldRef{0x40020800u, 0u, 4u, 0u, 8u, 0u, true};
 };
 
 template<>
@@ -63,7 +63,7 @@ struct DmaSemanticTraits<PeripheralId::USART1, SignalId::signal_TX> {
   static constexpr int kChannelIndex = 1;
   static constexpr int kRequestValue = 51;
   static constexpr int kChannelSelector = -1;
-  static constexpr RuntimeIndexedFieldRef kRouteSelectorField = RuntimeIndexedFieldRef{0x40020800u, 0u, 4u, 0u, 8u, true};
+  static constexpr RuntimeIndexedFieldRef kRouteSelectorField = RuntimeIndexedFieldRef{0x40020800u, 0u, 4u, 0u, 8u, 0u, true};
 };
 
 inline constexpr std::array<PeripheralId, 2> kDmaSemanticPeripherals = {{

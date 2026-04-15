@@ -44,6 +44,8 @@ UART_DRIVER_HEADER = "driver_semantics/uart.hpp"
 DMA_DRIVER_HEADER = "driver_semantics/dma.hpp"
 TIMER_DRIVER_HEADER = "driver_semantics/timer.hpp"
 PWM_DRIVER_HEADER = "driver_semantics/pwm.hpp"
+ADC_DRIVER_HEADER = "driver_semantics/adc.hpp"
+DAC_DRIVER_HEADER = "driver_semantics/dac.hpp"
 COMMON_DRIVER_HEADER = "driver_semantics/common.hpp"
 
 _IO_SIGNAL_PATTERN = re.compile(r"^io(?P<index>\d+)$", re.IGNORECASE)
@@ -79,6 +81,7 @@ class RuntimeIndexedFieldRef:
     stride_bytes: int
     bit_offset: int
     bit_width: int
+    bit_stride_bits: int
     valid: bool
 
 
@@ -332,6 +335,87 @@ class DmaSemanticRow:
 
 
 @dataclass(frozen=True, slots=True)
+class AdcSemanticRow:
+    """ADC semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    channel_count: int
+    result_bits: int
+    has_dma: bool
+    has_hardware_trigger: bool
+    has_channel_bitmask_select: bool
+    control_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    config_reg: RuntimeRegisterRef
+    sample_time_reg: RuntimeRegisterRef
+    sequence_reg: RuntimeRegisterRef
+    data_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    disable_field: RuntimeFieldRef
+    ready_field: RuntimeFieldRef
+    start_field: RuntimeFieldRef
+    stop_field: RuntimeFieldRef
+    continuous_field: RuntimeFieldRef
+    resolution_field: RuntimeFieldRef
+    align_field: RuntimeFieldRef
+    dma_enable_field: RuntimeFieldRef
+    dma_mode_field: RuntimeFieldRef
+    external_trigger_enable_field: RuntimeFieldRef
+    external_trigger_select_field: RuntimeFieldRef
+    end_of_conversion_field: RuntimeFieldRef
+    end_of_sequence_field: RuntimeFieldRef
+    overrun_field: RuntimeFieldRef
+    data_field: RuntimeFieldRef
+    channel_select_field: RuntimeFieldRef
+    channel_bit_pattern: RuntimeIndexedFieldRef
+    channel_enable_pattern: RuntimeIndexedFieldRef
+    channel_disable_pattern: RuntimeIndexedFieldRef
+    channel_status_pattern: RuntimeIndexedFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class DacSemanticRow:
+    """DAC semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    channel_count: int
+    has_hardware_trigger: bool
+    has_dma: bool
+    control_reg: RuntimeRegisterRef
+    mode_reg: RuntimeRegisterRef
+    trigger_reg: RuntimeRegisterRef
+    channel_enable_reg: RuntimeRegisterRef
+    channel_disable_reg: RuntimeRegisterRef
+    channel_status_reg: RuntimeRegisterRef
+    data_reg: RuntimeRegisterRef
+    software_reset_field: RuntimeFieldRef
+    word_mode_field: RuntimeFieldRef
+    prescaler_field: RuntimeFieldRef
+    channel_enable_pattern: RuntimeIndexedFieldRef
+    channel_disable_pattern: RuntimeIndexedFieldRef
+    channel_ready_pattern: RuntimeIndexedFieldRef
+    trigger_enable_pattern: RuntimeIndexedFieldRef
+    trigger_select_pattern: RuntimeIndexedFieldRef
+    data_pattern: RuntimeIndexedFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class DacChannelSemanticRow:
+    """DAC channel semantic trait payload keyed by peripheral/channel index."""
+
+    peripheral_name: str
+    channel_index: int
+    enable_field: RuntimeFieldRef
+    disable_field: RuntimeFieldRef
+    ready_field: RuntimeFieldRef
+    trigger_enable_field: RuntimeFieldRef
+    trigger_select_field: RuntimeFieldRef
+    data_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
 class TimerSemanticRow:
     """Timer semantic trait payload keyed by peripheral."""
 
@@ -479,6 +563,8 @@ def _driver_semantics_paths(
                 _device_runtime_generated_path(family_dir, device_name, DMA_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, TIMER_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, PWM_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, ADC_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, DAC_DRIVER_HEADER),
             )
         )
     return tuple(paths)
@@ -579,6 +665,7 @@ def _invalid_indexed_field_ref(base_address: int = 0) -> RuntimeIndexedFieldRef:
         stride_bytes=0,
         bit_offset=0,
         bit_width=0,
+        bit_stride_bits=0,
         valid=False,
     )
 
@@ -590,6 +677,7 @@ def _indexed_field_ref(
     stride_bytes: int,
     bit_offset: int,
     bit_width: int,
+    bit_stride_bits: int = 0,
 ) -> RuntimeIndexedFieldRef:
     return RuntimeIndexedFieldRef(
         base_address=base_address,
@@ -597,6 +685,7 @@ def _indexed_field_ref(
         stride_bytes=stride_bytes,
         bit_offset=bit_offset,
         bit_width=bit_width,
+        bit_stride_bits=bit_stride_bits,
         valid=True,
     )
 
@@ -726,6 +815,7 @@ def _indexed_field_ref_expr(field_ref: RuntimeIndexedFieldRef) -> str:
         f"{field_ref.stride_bytes}u, "
         f"{field_ref.bit_offset}u, "
         f"{field_ref.bit_width}u, "
+        f"{field_ref.bit_stride_bits}u, "
         "true}"
     )
 
@@ -2081,7 +2171,7 @@ def _build_dma_rows(context: _SemanticContext) -> tuple[DmaSemanticRow, ...]:
         peripheral.name
         for peripheral in context.peripheral_by_name.values()
         if runtime_lite_peripheral_class_name(peripheral.ip_name)
-        in {"gpio", "uart", "i2c", "spi", "dma", "dma-router"}
+        in {"gpio", "uart", "i2c", "spi", "pwm", "adc", "dac", "dma", "dma-router"}
     }
     router = _resolve_dma_router_peripheral(context)
     rows: list[DmaSemanticRow] = []
@@ -2141,6 +2231,761 @@ def _build_dma_rows(context: _SemanticContext) -> tuple[DmaSemanticRow, ...]:
             )
         )
     return tuple(rows)
+
+
+def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str) -> bool:
+    return any(
+        binding.peripheral == peripheral_name
+        for binding in _runtime_lite_dma_bindings(context.device)
+    )
+
+
+def _st_adc_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> AdcSemanticRow:
+    prefixed_registers = (peripheral_name, "ADC_CR") in context.register_by_key
+    if prefixed_registers:
+        control_register_name = "ADC_CR"
+        status_register_name = "ADC_ISR"
+        config_register_name = "ADC_CFGR1"
+        sample_time_register_name = "ADC_SMPR"
+        sequence_register_name = "ADC_CHSELRMOD0"
+        data_register_name = "ADC_DR"
+        enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("ADEN",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        )
+        disable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("ADDIS",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        )
+        ready_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=status_register_name,
+            field_names=("ADRDY",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        )
+        start_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("ADSTART",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        )
+        stop_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("ADSTP",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=4,
+            fallback_bit_width=1,
+        )
+        continuous_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("CONT",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=13,
+            fallback_bit_width=1,
+        )
+        resolution_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("RES",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=3,
+            fallback_bit_width=2,
+        )
+        align_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("ALIGN",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=5,
+            fallback_bit_width=1,
+        )
+        dma_enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("DMAEN",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        )
+        dma_mode_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("DMACFG",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        )
+        external_trigger_enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("EXTEN",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=10,
+            fallback_bit_width=2,
+        )
+        external_trigger_select_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            field_names=("EXTSEL",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=6,
+            fallback_bit_width=3,
+        )
+        channel_select_field = _invalid_field_ref(
+            context.peripheral_by_name[peripheral_name].base_address
+        )
+        channel_bit_pattern = _indexed_field_ref(
+            base_address=context.peripheral_by_name[peripheral_name].base_address,
+            base_offset_bytes=0x28,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        )
+    else:
+        control_register_name = "CR2"
+        status_register_name = "SR"
+        config_register_name = "CR2"
+        sample_time_register_name = "SMPR2"
+        sequence_register_name = "SQR3"
+        data_register_name = "DR"
+        enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("ADON",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        )
+        disable_field = _invalid_field_ref(context.peripheral_by_name[peripheral_name].base_address)
+        ready_field = _invalid_field_ref(context.peripheral_by_name[peripheral_name].base_address)
+        start_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("SWSTART",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=30,
+            fallback_bit_width=1,
+        )
+        stop_field = _invalid_field_ref(context.peripheral_by_name[peripheral_name].base_address)
+        continuous_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("CONT",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        )
+        resolution_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR1",
+            field_names=("RES",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=24,
+            fallback_bit_width=2,
+        )
+        align_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("ALIGN",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=11,
+            fallback_bit_width=1,
+        )
+        dma_enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("DMA",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=8,
+            fallback_bit_width=1,
+        )
+        dma_mode_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("DDS",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=9,
+            fallback_bit_width=1,
+        )
+        external_trigger_enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("EXTEN",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=28,
+            fallback_bit_width=2,
+        )
+        external_trigger_select_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            field_names=("EXTSEL",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=24,
+            fallback_bit_width=4,
+        )
+        channel_select_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=sequence_register_name,
+            field_names=("SQ1",),
+            fallback_register_offset=0x34,
+            fallback_bit_offset=0,
+            fallback_bit_width=5,
+        )
+        channel_bit_pattern = _invalid_indexed_field_ref(
+            context.peripheral_by_name[peripheral_name].base_address
+        )
+
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=19,
+        result_bits=12,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        has_hardware_trigger=True,
+        has_channel_bitmask_select=prefixed_registers,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            fallback_offset=0x08,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=status_register_name,
+            fallback_offset=0x00,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=config_register_name,
+            fallback_offset=0x0C if prefixed_registers else 0x08,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=sample_time_register_name,
+            fallback_offset=0x14 if prefixed_registers else 0x10,
+        ),
+        sequence_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=sequence_register_name,
+            fallback_offset=0x28 if prefixed_registers else 0x34,
+        ),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=data_register_name,
+            fallback_offset=0x40 if prefixed_registers else 0x4C,
+        ),
+        enable_field=enable_field,
+        disable_field=disable_field,
+        ready_field=ready_field,
+        start_field=start_field,
+        stop_field=stop_field,
+        continuous_field=continuous_field,
+        resolution_field=resolution_field,
+        align_field=align_field,
+        dma_enable_field=dma_enable_field,
+        dma_mode_field=dma_mode_field,
+        external_trigger_enable_field=external_trigger_enable_field,
+        external_trigger_select_field=external_trigger_select_field,
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=status_register_name,
+            field_names=("EOC",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=2 if prefixed_registers else 1,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=status_register_name,
+            field_names=("EOS",),
+            fallback_register_offset=0x00 if prefixed_registers else None,
+            fallback_bit_offset=3 if prefixed_registers else None,
+            fallback_bit_width=1 if prefixed_registers else None,
+        ),
+        overrun_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=status_register_name,
+            field_names=("OVR",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=4 if prefixed_registers else 5,
+            fallback_bit_width=1,
+        ),
+        data_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=data_register_name,
+            field_names=("DATA",),
+            fallback_register_offset=0x40 if prefixed_registers else 0x4C,
+            fallback_bit_offset=0,
+            fallback_bit_width=16,
+        ),
+        channel_select_field=channel_select_field,
+        channel_bit_pattern=channel_bit_pattern,
+        channel_enable_pattern=_invalid_indexed_field_ref(
+            context.peripheral_by_name[peripheral_name].base_address
+        ),
+        channel_disable_pattern=_invalid_indexed_field_ref(
+            context.peripheral_by_name[peripheral_name].base_address
+        ),
+        channel_status_pattern=_invalid_indexed_field_ref(
+            context.peripheral_by_name[peripheral_name].base_address
+        ),
+    )
+
+
+def _microchip_afec_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> AdcSemanticRow:
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=12,
+        result_bits=12,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        has_hardware_trigger=True,
+        has_channel_bitmask_select=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            fallback_offset=0x00,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ISR",
+            fallback_offset=0x30,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            fallback_offset=0x04,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            fallback_offset=0x04,
+        ),
+        sequence_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SEQ1R",
+            fallback_offset=0x0C,
+        ),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="LCDR",
+            fallback_offset=0x20,
+        ),
+        enable_field=_invalid_field_ref(base_address),
+        disable_field=_invalid_field_ref(base_address),
+        ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ISR",
+            field_names=("DRDY",),
+            fallback_register_offset=0x30,
+            fallback_bit_offset=24,
+            fallback_bit_width=1,
+        ),
+        start_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("START",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        stop_field=_invalid_field_ref(base_address),
+        continuous_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("FREERUN",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        resolution_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="EMR",
+            field_names=("RES",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=16,
+            fallback_bit_width=3,
+        ),
+        align_field=_invalid_field_ref(base_address),
+        dma_enable_field=_invalid_field_ref(base_address),
+        dma_mode_field=_invalid_field_ref(base_address),
+        external_trigger_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("TRGEN",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        external_trigger_select_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("TRGSEL",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=1,
+            fallback_bit_width=3,
+        ),
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ISR",
+            field_names=("DRDY",),
+            fallback_register_offset=0x30,
+            fallback_bit_offset=24,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_invalid_field_ref(base_address),
+        overrun_field=_invalid_field_ref(base_address),
+        data_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="LCDR",
+            field_names=("LDATA",),
+            fallback_register_offset=0x20,
+            fallback_bit_offset=0,
+            fallback_bit_width=16,
+        ),
+        channel_select_field=_invalid_field_ref(base_address),
+        channel_bit_pattern=_invalid_indexed_field_ref(base_address),
+        channel_enable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x14,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+        channel_disable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x18,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+        channel_status_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x1C,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+    )
+
+
+def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
+    rows: list[AdcSemanticRow] = []
+    for peripheral in context.runtime_peripherals_by_class.get("adc", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.adc.st-"):
+            rows.append(_st_adc_row(context, peripheral_name=peripheral.name, schema_id=schema_id))
+        elif schema_id == "alloy.adc.microchip-afec-s":
+            rows.append(
+                _microchip_afec_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+    return tuple(rows)
+
+
+def _microchip_dac_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> DacSemanticRow:
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return DacSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=2,
+        has_hardware_trigger=True,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            fallback_offset=0x00,
+        ),
+        mode_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            fallback_offset=0x04,
+        ),
+        trigger_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TRIGR",
+            fallback_offset=0x08,
+        ),
+        channel_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CHER",
+            fallback_offset=0x10,
+        ),
+        channel_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CHDR",
+            fallback_offset=0x14,
+        ),
+        channel_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CHSR",
+            fallback_offset=0x18,
+        ),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CDR[%s]",
+            fallback_offset=0x1C,
+        ),
+        software_reset_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("SWRST",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        word_mode_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("WORD",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=4,
+            fallback_bit_width=1,
+        ),
+        prescaler_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("PRESCALER",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=24,
+            fallback_bit_width=4,
+        ),
+        channel_enable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x10,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+        channel_disable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x14,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+        channel_ready_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x18,
+            stride_bytes=0,
+            bit_offset=16,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+        trigger_enable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x08,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+        trigger_select_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x08,
+            stride_bytes=0,
+            bit_offset=4,
+            bit_width=3,
+            bit_stride_bits=4,
+        ),
+        data_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x1C,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=16,
+            bit_stride_bits=16,
+        ),
+    )
+
+
+def _microchip_dac_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[DacChannelSemanticRow, ...]:
+    rows: list[DacChannelSemanticRow] = []
+    for channel_index in range(2):
+        rows.append(
+            DacChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                enable_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="CHER",
+                    field_names=(f"CH{channel_index}",),
+                    fallback_register_offset=0x10,
+                    fallback_bit_offset=channel_index,
+                    fallback_bit_width=1,
+                ),
+                disable_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="CHDR",
+                    field_names=(f"CH{channel_index}",),
+                    fallback_register_offset=0x14,
+                    fallback_bit_offset=channel_index,
+                    fallback_bit_width=1,
+                ),
+                ready_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="CHSR",
+                    field_names=(f"DACRDY{channel_index}",),
+                    fallback_register_offset=0x18,
+                    fallback_bit_offset=16 + channel_index,
+                    fallback_bit_width=1,
+                ),
+                trigger_enable_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="TRIGR",
+                    field_names=(f"TRGEN{channel_index}",),
+                    fallback_register_offset=0x08,
+                    fallback_bit_offset=channel_index,
+                    fallback_bit_width=1,
+                ),
+                trigger_select_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="TRIGR",
+                    field_names=(f"TRGSEL{channel_index}",),
+                    fallback_register_offset=0x08,
+                    fallback_bit_offset=4 + (channel_index * 4),
+                    fallback_bit_width=3,
+                ),
+                data_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name="CDR[%s]",
+                    field_names=(f"DATA{channel_index}",),
+                    fallback_register_offset=0x1C,
+                    fallback_bit_offset=channel_index * 16,
+                    fallback_bit_width=16,
+                ),
+            )
+        )
+    return tuple(rows)
+
+
+def _build_dac_rows(
+    context: _SemanticContext,
+) -> tuple[tuple[DacSemanticRow, ...], tuple[DacChannelSemanticRow, ...]]:
+    rows: list[DacSemanticRow] = []
+    channel_rows: list[DacChannelSemanticRow] = []
+    for peripheral in context.runtime_peripherals_by_class.get("dac", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id == "alloy.dac.microchip-dacc-e":
+            rows.append(
+                _microchip_dac_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(
+                _microchip_dac_channel_rows(context, peripheral_name=peripheral.name)
+            )
+    return tuple(rows), tuple(channel_rows)
 
 
 def _st_timer_counter_bits(peripheral_name: str) -> int:
@@ -3380,6 +4225,7 @@ def _emit_driver_semantics_common_header(
             "  std::uint32_t stride_bytes = 0u;",
             "  std::uint16_t bit_offset = 0u;",
             "  std::uint16_t bit_width = 0u;",
+            "  std::uint16_t bit_stride_bits = 0u;",
             "  bool valid = false;",
             "};",
             "",
@@ -3522,7 +4368,10 @@ def _emit_peripheral_semantics_header(
     header_name: str,
     trait_name: str,
     array_name: str,
-    rows: tuple[UartSemanticRow | I2cSemanticRow | SpiSemanticRow, ...],
+    rows: tuple[
+        UartSemanticRow | I2cSemanticRow | SpiSemanticRow | AdcSemanticRow | DacSemanticRow,
+        ...,
+    ],
     default_lines: list[str],
     specialization_builder,
 ) -> EmittedArtifact:
@@ -3807,6 +4656,162 @@ def _spi_specialization_builder(context: _SemanticContext):
         return lines
 
     return _build
+
+
+def _adc_specialization_builder(context: _SemanticContext):
+    def _build(row: AdcSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kStatusRegister": row.status_reg,
+            "kConfigRegister": row.config_reg,
+            "kSampleTimeRegister": row.sample_time_reg,
+            "kSequenceRegister": row.sequence_reg,
+            "kDataRegister": row.data_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kDisableField": row.disable_field,
+            "kReadyField": row.ready_field,
+            "kStartField": row.start_field,
+            "kStopField": row.stop_field,
+            "kContinuousField": row.continuous_field,
+            "kResolutionField": row.resolution_field,
+            "kAlignField": row.align_field,
+            "kDmaEnableField": row.dma_enable_field,
+            "kDmaModeField": row.dma_mode_field,
+            "kExternalTriggerEnableField": row.external_trigger_enable_field,
+            "kExternalTriggerSelectField": row.external_trigger_select_field,
+            "kEndOfConversionField": row.end_of_conversion_field,
+            "kEndOfSequenceField": row.end_of_sequence_field,
+            "kOverrunField": row.overrun_field,
+            "kDataField": row.data_field,
+            "kChannelSelectField": row.channel_select_field,
+        }
+        indexed_field_members = {
+            "kChannelBitPattern": row.channel_bit_pattern,
+            "kChannelEnablePattern": row.channel_enable_pattern,
+            "kChannelDisablePattern": row.channel_disable_pattern,
+            "kChannelStatusPattern": row.channel_status_pattern,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            f"  static constexpr std::uint32_t kChannelCount = {row.channel_count}u;",
+            f"  static constexpr std::uint32_t kResultBits = {row.result_bits}u;",
+            f"  static constexpr bool kHasDma = {'true' if row.has_dma else 'false'};",
+            "  static constexpr bool kHasHardwareTrigger = "
+            + ("true" if row.has_hardware_trigger else "false")
+            + ";",
+            "  static constexpr bool kHasChannelBitmaskSelect = "
+            + ("true" if row.has_channel_bitmask_select else "false")
+            + ";",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeIndexedFieldRef {name} = {_indexed_field_ref_expr(value)};"
+            for name, value in indexed_field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _dac_specialization_builder(context: _SemanticContext):
+    def _build(row: DacSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kModeRegister": row.mode_reg,
+            "kTriggerRegister": row.trigger_reg,
+            "kChannelEnableRegister": row.channel_enable_reg,
+            "kChannelDisableRegister": row.channel_disable_reg,
+            "kChannelStatusRegister": row.channel_status_reg,
+            "kDataRegister": row.data_reg,
+        }
+        field_members = {
+            "kSoftwareResetField": row.software_reset_field,
+            "kWordModeField": row.word_mode_field,
+            "kPrescalerField": row.prescaler_field,
+        }
+        indexed_field_members = {
+            "kChannelEnablePattern": row.channel_enable_pattern,
+            "kChannelDisablePattern": row.channel_disable_pattern,
+            "kChannelReadyPattern": row.channel_ready_pattern,
+            "kTriggerEnablePattern": row.trigger_enable_pattern,
+            "kTriggerSelectPattern": row.trigger_select_pattern,
+            "kDataPattern": row.data_pattern,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            f"  static constexpr std::uint32_t kChannelCount = {row.channel_count}u;",
+            "  static constexpr bool kHasHardwareTrigger = "
+            + ("true" if row.has_hardware_trigger else "false")
+            + ";",
+            f"  static constexpr bool kHasDma = {'true' if row.has_dma else 'false'};",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeIndexedFieldRef {name} = {_indexed_field_ref_expr(value)};"
+            for name, value in indexed_field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _dac_channel_specialization_lines(
+    channel_rows: tuple[DacChannelSemanticRow, ...],
+) -> list[str]:
+    lines = [
+        "template<PeripheralId Id, std::size_t ChannelIndex>",
+        "struct DacChannelSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTriggerEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTriggerSelectField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDataField = kInvalidFieldRef;",
+        "};",
+        "",
+    ]
+    for row in channel_rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kDisableField": row.disable_field,
+            "kReadyField": row.ready_field,
+            "kTriggerEnableField": row.trigger_enable_field,
+            "kTriggerSelectField": row.trigger_select_field,
+            "kDataField": row.data_field,
+        }
+        lines.extend(
+            [
+                "template<>",
+                f"struct DacChannelSemanticTraits<PeripheralId::{peripheral_id}, {row.channel_index}u> {{",
+                "  static constexpr bool kPresent = true;",
+            ]
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        lines.extend(["};", ""])
+    return lines
 
 
 def _timer_specialization_builder(context: _SemanticContext):
@@ -4446,6 +5451,147 @@ def emit_runtime_driver_dma_semantics_header(
     )
 
 
+def emit_runtime_driver_adc_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    rows = _build_adc_rows(context)
+    default_lines = [
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr std::uint32_t kChannelCount = 0u;",
+        "  static constexpr std::uint32_t kResultBits = 0u;",
+        "  static constexpr bool kHasDma = false;",
+        "  static constexpr bool kHasHardwareTrigger = false;",
+        "  static constexpr bool kHasChannelBitmaskSelect = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kConfigRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSampleTimeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSequenceRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDataRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kStartField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kContinuousField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kResolutionField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAlignField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDmaModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kExternalTriggerEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kExternalTriggerSelectField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kEndOfConversionField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kEndOfSequenceField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kOverrunField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDataField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kChannelSelectField = kInvalidFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelBitPattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelEnablePattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelDisablePattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelStatusPattern = kInvalidIndexedFieldRef;",
+    ]
+    return _emit_peripheral_semantics_header(
+        family_dir=family_dir,
+        device=device,
+        header_name=ADC_DRIVER_HEADER,
+        trait_name="AdcSemanticTraits",
+        array_name="kAdcSemanticPeripherals",
+        rows=rows,
+        default_lines=default_lines,
+        specialization_builder=_adc_specialization_builder(context),
+    )
+
+
+def emit_runtime_driver_dac_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    dac_rows, channel_rows = _build_dac_rows(context)
+    trait_lines = [
+        "template<PeripheralId Id>",
+        "struct DacSemanticTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr std::uint32_t kChannelCount = 0u;",
+        "  static constexpr bool kHasHardwareTrigger = false;",
+        "  static constexpr bool kHasDma = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kModeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kTriggerRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kChannelEnableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kChannelDisableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kChannelStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDataRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kSoftwareResetField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kWordModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPrescalerField = kInvalidFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelEnablePattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelDisablePattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kChannelReadyPattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kTriggerEnablePattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kTriggerSelectPattern = kInvalidIndexedFieldRef;",
+        "  static constexpr RuntimeIndexedFieldRef kDataPattern = kInvalidIndexedFieldRef;",
+        "};",
+        "",
+    ]
+    dac_peripheral_rows: list[str] = []
+    specialization_builder = _dac_specialization_builder(context)
+    for row in dac_rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        trait_lines.extend(
+            [
+                "template<>",
+                f"struct DacSemanticTraits<PeripheralId::{peripheral_id}> {{",
+                *specialization_builder(row),
+                "};",
+                "",
+            ]
+        )
+        dac_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+    body = "\n".join(
+        [
+            *trait_lines,
+            *_dac_channel_specialization_lines(channel_rows),
+            *_std_array_lines(
+                type_name="PeripheralId",
+                variable_name="kDacSemanticPeripherals",
+                row_lines=dac_peripheral_rows,
+            ),
+        ]
+    )
+    namespace_block = _cpp_namespace_block(
+        (*_runtime_device_namespace_components(device), "driver_semantics"),
+        body,
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstddef>",
+            "#include <cstdint>",
+            '#include "common.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_runtime_generated_path(
+            family_dir,
+            device.identity.device,
+            DAC_DRIVER_HEADER,
+        ),
+        content=content,
+    )
+
+
 def emit_runtime_driver_timer_semantics_header(
     *,
     family_dir: str,
@@ -4628,6 +5774,8 @@ def emit_runtime_driver_pwm_semantics_header(
 
 
 __all__ = [
+    "emit_runtime_driver_adc_semantics_header",
+    "emit_runtime_driver_dac_semantics_header",
     "emit_runtime_driver_dma_semantics_header",
     "emit_runtime_driver_gpio_semantics_header",
     "emit_runtime_driver_i2c_semantics_header",

@@ -123,6 +123,12 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_dma_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/dma.hpp"
     ]
+    runtime_adc_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/adc.hpp"
+    ]
+    runtime_dac_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/dac.hpp"
+    ]
     runtime_timer_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/timer.hpp"
     ]
@@ -378,6 +384,13 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_dma_semantics_artifact.artifact_kind == "generated-cpp"
     assert "DmaSemanticTraits<PeripheralId" in runtime_dma_semantics_artifact.content
     assert "kDmaSemanticPeripherals" in runtime_dma_semantics_artifact.content
+    assert runtime_adc_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct AdcSemanticTraits" in runtime_adc_semantics_artifact.content
+    assert "kAdcSemanticPeripherals" in runtime_adc_semantics_artifact.content
+    assert runtime_dac_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct DacSemanticTraits" in runtime_dac_semantics_artifact.content
+    assert "struct DacChannelSemanticTraits" in runtime_dac_semantics_artifact.content
+    assert "kDacSemanticPeripherals" in runtime_dac_semantics_artifact.content
     assert runtime_timer_semantics_artifact.artifact_kind == "generated-cpp"
     assert "struct TimerSemanticTraits" in runtime_timer_semantics_artifact.content
     assert "struct TimerChannelSemanticTraits" in runtime_timer_semantics_artifact.content
@@ -447,6 +460,18 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_peripheral_instances = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/peripheral_instances.hpp"
     ].content
+    same70_dma_bindings = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/dma_bindings.hpp"
+    ].content
+    same70_dma_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/dma.hpp"
+    ].content
+    same70_adc_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/adc.hpp"
+    ].content
+    same70_dac_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/dac.hpp"
+    ].content
     same70_timer_semantics = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/timer.hpp"
     ].content
@@ -469,10 +494,29 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
     assert "PeripheralId::WDT" in same70_peripheral_instances
     assert "PeripheralId::RSWDT" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::AFEC0>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::DACC>" in same70_peripheral_instances
     assert "PeripheralInstanceTraits<PeripheralId::TC0>" in same70_peripheral_instances
     assert "PeripheralInstanceTraits<PeripheralId::PWM0>" in same70_peripheral_instances
+    assert "PeripheralClassId::class_adc" in same70_peripheral_instances
+    assert "PeripheralClassId::class_dac" in same70_peripheral_instances
     assert "PeripheralClassId::class_timer" in same70_peripheral_instances
     assert "PeripheralClassId::class_pwm" in same70_peripheral_instances
+    assert "BindingTraits<PeripheralId::AFEC0" in same70_dma_bindings
+    assert "BindingTraits<PeripheralId::DACC" in same70_dma_bindings
+    assert "BindingTraits<PeripheralId::PWM0" in same70_dma_bindings
+    assert "BindingTraits<PeripheralId::SPI0" in same70_dma_bindings
+    assert "BindingTraits<PeripheralId::TWIHS0" in same70_dma_bindings
+    assert "AdcSemanticTraits<PeripheralId::AFEC0>" in same70_adc_semantics
+    assert "kAdcSemanticPeripherals" in same70_adc_semantics
+    assert "DacSemanticTraits<PeripheralId::DACC>" in same70_dac_semantics
+    assert "DacChannelSemanticTraits<PeripheralId::DACC, 0u>" in same70_dac_semantics
+    assert "kDacSemanticPeripherals" in same70_dac_semantics
+    assert "PeripheralId::AFEC0" in same70_dma_semantics
+    assert "PeripheralId::DACC" in same70_dma_semantics
+    assert "PeripheralId::PWM0" in same70_dma_semantics
+    assert "PeripheralId::SPI0" in same70_dma_semantics
+    assert "PeripheralId::TWIHS0" in same70_dma_semantics
     assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
     assert "TimerChannelSemanticTraits<PeripheralId::TC0, 0u>" in same70_timer_semantics
     assert "PwmSemanticTraits<PeripheralId::PWM0>" in same70_pwm_semantics
@@ -647,6 +691,8 @@ def test_emit_matches_golden_artifacts(
         "i2c.hpp",
         "spi.hpp",
         "dma.hpp",
+        "adc.hpp",
+        "dac.hpp",
         "timer.hpp",
         "pwm.hpp",
     ):
