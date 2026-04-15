@@ -458,6 +458,7 @@ class _SemanticContext:
     field_by_key: dict[tuple[str, str, str], RegisterFieldDescriptor]
     gpio_candidate_by_pin: dict[str, ConnectionCandidate]
     candidate_peripherals_by_class: dict[str, tuple[PeripheralInstance, ...]]
+    runtime_peripherals_by_class: dict[str, tuple[PeripheralInstance, ...]]
 
 
 def _driver_semantics_paths(
@@ -531,6 +532,11 @@ def _context(device: CanonicalDeviceIR) -> _SemanticContext:
             continue
         seen.add(key)
         candidate_peripherals.setdefault(peripheral_class, []).append(peripheral)
+
+    runtime_peripherals: dict[str, list[PeripheralInstance]] = {}
+    for peripheral in sorted(device.peripherals, key=lambda item: item.name):
+        peripheral_class = runtime_lite_peripheral_class_name(peripheral.ip_name)
+        runtime_peripherals.setdefault(peripheral_class, []).append(peripheral)
     return _SemanticContext(
         device=device,
         semantics_catalog=_collect_runtime_semantics_catalog((device,)),
@@ -542,6 +548,10 @@ def _context(device: CanonicalDeviceIR) -> _SemanticContext:
         candidate_peripherals_by_class={
             name: tuple(sorted(peripherals, key=lambda item: item.name))
             for name, peripherals in candidate_peripherals.items()
+        },
+        runtime_peripherals_by_class={
+            name: tuple(sorted(peripherals, key=lambda item: item.name))
+            for name, peripherals in runtime_peripherals.items()
         },
     )
 
@@ -2753,7 +2763,7 @@ def _build_timer_rows(
 ) -> tuple[tuple[TimerSemanticRow, ...], tuple[TimerChannelSemanticRow, ...]]:
     timer_rows: list[TimerSemanticRow] = []
     channel_rows: list[TimerChannelSemanticRow] = []
-    for peripheral in context.candidate_peripherals_by_class.get("timer", ()):
+    for peripheral in context.runtime_peripherals_by_class.get("timer", ()):
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
@@ -3298,8 +3308,8 @@ def _build_pwm_rows(
 ) -> tuple[tuple[PwmSemanticRow, ...], tuple[PwmChannelSemanticRow, ...]]:
     pwm_rows: list[PwmSemanticRow] = []
     channel_rows: list[PwmChannelSemanticRow] = []
-    timer_candidates = context.candidate_peripherals_by_class.get("timer", ())
-    dedicated_pwm_candidates = context.candidate_peripherals_by_class.get("pwm", ())
+    timer_candidates = context.runtime_peripherals_by_class.get("timer", ())
+    dedicated_pwm_candidates = context.runtime_peripherals_by_class.get("pwm", ())
 
     for peripheral in timer_candidates:
         schema_id = peripheral.backend_schema_id

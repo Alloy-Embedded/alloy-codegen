@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
 
 from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.context import ExecutionContext
+from alloy_codegen.runtime_driver_semantics import _context
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.fetch import run as run_fetch
@@ -551,6 +553,49 @@ def test_emit_nxp_imxrt1060_is_byte_stable(nxp_execution_context: ExecutionConte
         sort_keys=True,
     )
     assert result_a == result_b
+
+
+def test_emit_nxp_timer_and_pwm_semantics_do_not_require_connection_candidates(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    base_device = result.payload.devices[0]
+    gpio = next(peripheral for peripheral in base_device.peripherals if peripheral.name == "GPIO1")
+    augmented = replace(
+        base_device,
+        peripherals=base_device.peripherals
+        + (
+            replace(
+                gpio,
+                name="GPT1",
+                ip_name="GPT",
+                backend_schema_id="alloy.gpt.nxp-gpt",
+            ),
+            replace(
+                gpio,
+                name="PIT",
+                ip_name="PIT",
+                backend_schema_id="alloy.pit.nxp-pit",
+            ),
+            replace(
+                gpio,
+                name="PWM1",
+                ip_name="PWM",
+                backend_schema_id="alloy.pwm.nxp-pwm",
+            ),
+        ),
+        connection_candidates=tuple(),
+    )
+
+    context = _context(augmented)
+
+    assert {peripheral.name for peripheral in context.runtime_peripherals_by_class["timer"]} >= {
+        "GPT1",
+        "PIT",
+    }
+    assert {peripheral.name for peripheral in context.runtime_peripherals_by_class["pwm"]} >= {
+        "PWM1",
+    }
 
 
 def test_publish_nxp_imxrt1060_completes_successfully(
