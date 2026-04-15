@@ -57,11 +57,23 @@ def _runtime_device_namespace_components(
     )
 
 
+def _runtime_lite_startup_control_peripheral_names(device: CanonicalDeviceIR) -> set[str]:
+    if not device.startup_descriptors:
+        return set()
+
+    family_key = (device.identity.vendor, device.identity.family)
+    if family_key == ("microchip", "same70"):
+        return {"WDT", "RSWDT"}
+    return set()
+
+
 def _runtime_lite_peripherals(device: CanonicalDeviceIR):
+    startup_control_peripherals = _runtime_lite_startup_control_peripheral_names(device)
     return tuple(
         peripheral
         for peripheral in sorted(device.peripherals, key=lambda item: item.name)
         if canonical_peripheral_class(peripheral.ip_name) in RUNTIME_LITE_PERIPHERAL_CLASSES
+        or peripheral.name in startup_control_peripherals
     )
 
 

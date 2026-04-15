@@ -430,6 +430,15 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_clock_bindings = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/clock_bindings.hpp"
     ].content
+    same70_peripheral_instances = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/peripheral_instances.hpp"
+    ].content
+    same70_registers = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/registers.hpp"
+    ].content
+    same70_register_fields = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/register_fields.hpp"
+    ].content
     same70_routes = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/routes.hpp"
     ].content
@@ -438,6 +447,12 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     ].content
     assert "ClockGateTraits<ClockGateId::gate_usart0>" in same70_clock_bindings
     assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
+    assert "PeripheralId::WDT" in same70_peripheral_instances
+    assert "PeripheralId::RSWDT" in same70_peripheral_instances
+    assert "RegisterId::register_wdt_mr" in same70_registers
+    assert "RegisterId::register_rswdt_mr" in same70_registers
+    assert "FieldId::field_wdt_mr_wddis" in same70_register_fields
+    assert "FieldId::field_rswdt_mr_allones" in same70_register_fields
     assert "RegisterId::register_pmc_pcer0" in same70_routes
     assert "FieldId::field_pmc_pcer0_pid13" in same70_routes
     assert "same70_enable_external_crystal" in same70_system_clock
