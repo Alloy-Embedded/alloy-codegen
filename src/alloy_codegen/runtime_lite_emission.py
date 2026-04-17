@@ -487,6 +487,8 @@ def emit_runtime_lite_types_header(
         ("SignalId", semantics_catalog["signal_enum_map"]),
         ("PortId", semantics_catalog["port_enum_map"]),
         ("AccessKindId", semantics_catalog["access_kind_enum_map"]),
+        ("StartupKindId", semantics_catalog["startup_kind_enum_map"]),
+        ("VectorKindId", semantics_catalog["vector_kind_enum_map"]),
         ("RouteKindId", semantics_catalog["route_kind_enum_map"]),
         ("OperationKindId", semantics_catalog["operation_kind_enum_map"]),
         ("OperationSubjectKindId", semantics_catalog["operation_subject_kind_enum_map"]),

@@ -1,1 +1,1 @@
-#include "startup_descriptors.hpp"
+#include "../../runtime/devices/mimxrt1062/startup.hpp"

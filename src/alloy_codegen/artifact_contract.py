@@ -12,6 +12,7 @@ from alloy_codegen.runtime_lite_emission import (
     runtime_lite_peripheral_class_name,
     runtime_lite_required_paths,
 )
+from alloy_codegen.runtime_startup import runtime_startup_required_paths
 from alloy_codegen.runtime_system_clock import runtime_system_clock_required_paths
 from alloy_codegen.runtime_systick import runtime_systick_required_paths
 
@@ -61,6 +62,10 @@ def find_runtime_lite_contract_violations(
         family_dir=family_dir,
         devices=devices,
     )
+    required_paths = required_paths + runtime_startup_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
     required_paths = required_paths + runtime_systick_required_paths(
         family_dir=family_dir,
         devices=devices,
@@ -69,11 +74,23 @@ def find_runtime_lite_contract_violations(
         if path not in artifacts_by_path:
             violations.append(f"missing runtime-lite artifact: {path}")
 
+    for artifact in artifacts:
+        if artifact.artifact_kind != "generated-cpp":
+            continue
+        if f"/{family_dir}/generated/" not in f"/{artifact.path}":
+            continue
+        if f"/{family_dir}/generated/runtime/" in f"/{artifact.path}":
+            continue
+        if artifact.path.endswith("/startup.cpp") or artifact.path.endswith("/startup_vectors.cpp"):
+            continue
+        violations.append(f"{artifact.path} is a legacy generated C++ artifact outside runtime/")
+
     forbidden_reflection_headers = (
         "connector_tables.hpp",
         "clock_tree_lite.hpp",
         "runtime_refs.hpp",
         "runtime_semantics.hpp",
+        "startup_descriptors.hpp",
         "rcc_map.hpp",
         "dma_map.hpp",
         "interrupt_map.hpp",
@@ -141,6 +158,7 @@ def find_runtime_lite_contract_violations(
             "timer_semantics": f"{device_runtime_root}/driver_semantics/timer.hpp",
             "pwm_semantics": f"{device_runtime_root}/driver_semantics/pwm.hpp",
             "systick": f"{device_runtime_root}/systick.hpp",
+            "startup": f"{device_runtime_root}/startup.hpp",
             "system_clock": f"{device_runtime_root}/system_clock.hpp",
         }
         content_by_key = {
@@ -216,6 +234,21 @@ def find_runtime_lite_contract_violations(
         if content_by_key["systick"] and "configure_for_tick_hz" not in content_by_key["systick"]:
             violations.append(
                 f"{device_runtime_paths['systick']} does not emit SysTick configuration helpers"
+            )
+        if (
+            content_by_key["startup"]
+            and "struct VectorSlotDescriptor" not in content_by_key["startup"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['startup']} does not emit vector slot descriptors"
+            )
+        if content_by_key["startup"] and "kVectorSlots" not in content_by_key["startup"]:
+            violations.append(
+                f"{device_runtime_paths['startup']} does not emit startup vector slots"
+            )
+        if content_by_key["startup"] and "kStartupDescriptors" not in content_by_key["startup"]:
+            violations.append(
+                f"{device_runtime_paths['startup']} does not emit startup descriptors"
             )
         if (
             content_by_key["system_clock"]

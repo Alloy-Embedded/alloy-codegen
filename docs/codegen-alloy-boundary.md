@@ -26,9 +26,11 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/registers.hpp`
   - `generated/runtime/devices/<device>/register_fields.hpp`
   - `generated/runtime/devices/<device>/clock_bindings.hpp`
-  - `generated/runtime/devices/<device>/system_clock.hpp`
   - `generated/runtime/devices/<device>/dma_bindings.hpp`
   - `generated/runtime/devices/<device>/routes.hpp`
+  - `generated/runtime/devices/<device>/systick.hpp`
+  - `generated/runtime/devices/<device>/startup.hpp`
+  - `generated/runtime/devices/<device>/system_clock.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/common.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/uart.hpp`
@@ -37,25 +39,8 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/driver_semantics/dma.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/adc.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/dac.hpp`
-  - `generated/peripherals/*.hpp`
-  - `generated/ip/*.hpp`
-  - `generated/connector_tables.hpp`
-  - `generated/runtime_profiles.hpp`
-  - `generated/rcc_map.hpp`
-  - `generated/dma_map.hpp`
-  - `generated/interrupt_map.hpp`
-  - `generated/memory_map.hpp`
-  - `generated/package_map.hpp`
-  - `generated/clock_tree_lite.hpp`
-  - `generated/devices/<device>/device_descriptor.hpp`
-  - `generated/devices/<device>/pins.hpp`
-  - `generated/devices/<device>/peripheral_instances.hpp`
-  - `generated/devices/<device>/interrupt_bindings.hpp`
-  - `generated/devices/<device>/dma_bindings.hpp`
-  - `generated/devices/<device>/capability_overlays.hpp`
-  - `generated/devices/<device>/register_map.hpp`
-  - `generated/devices/<device>/register_fields.hpp`
-  - `generated/devices/<device>/startup_descriptors.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/timer.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
   - `generated/devices/<device>/startup.cpp`
   - `generated/devices/<device>/startup_vectors.cpp`
 - reports:
@@ -67,23 +52,20 @@ Published `alloy-devices` trees may contain:
 Those files may describe:
 
 - addresses
-- device descriptors, register maps, and IP versions
-- pins, packages, and constraints
-- connector candidates, groups, requirements, and operations
-- interrupts, memories, startup descriptors, clocks, resets, and DMA routes
+- typed peripheral, pin, register, route, DMA, startup, SysTick, and clock facts
 - validation and publication status
 
-The published C++ contract is descriptor-first:
+The published C++ contract is runtime-first:
 
-- runtime-lite headers under `generated/runtime/` are the preferred hot-path boundary for Alloy
-- runtime-lite driver semantic headers under
+- headers under `generated/runtime/` are the only supported Alloy-facing C++ boundary
+- driver semantic headers under
   `generated/runtime/devices/<device>/driver_semantics/` are the required hot-path layer for
-  foundational drivers, including DMA, ADC, and DAC
-- family-level headers describe shared hardware facts across the family
-- device-level headers describe one target device without requiring JSON-side inference
-- reflection headers under `generated/*.hpp` remain available for tooling, smoke, and inspection
-- runtime profile headers describe schema/backend dispatch without family parsing in Alloy
-- reports describe whether the emitted contract is complete enough for Alloy to consume directly
+  foundational drivers, including DMA, ADC, DAC, timer, and PWM
+- `generated/runtime/devices/<device>/startup.hpp` carries the typed startup descriptor surface
+  that Alloy consumes for startup metadata
+- `generated/devices/<device>/startup.cpp` and `startup_vectors.cpp` remain published as build
+  inputs, not as a descriptor contract
+- JSON metadata and reports remain available for tooling, validation, and inspection
 
 ## Alloy-Owned Behavior
 
@@ -93,7 +75,8 @@ The Alloy runtime owns:
 - compile-time and runtime connection selection behavior
 - ownership and claims such as `take()`, `claim()`, or token models
 - board initialization policy
-- peripheral driver APIs such as `uart`, `spi`, `i2c`, `gpio`, or `dma`
+- peripheral driver APIs such as `uart`, `spi`, `i2c`, `gpio`, `dma`, `adc`, `dac`, `timer`,
+  or `pwm`
 - board sequencing and high-level bring-up policy
 
 `alloy-codegen` may emit the descriptor data needed by those behaviors, but it must not

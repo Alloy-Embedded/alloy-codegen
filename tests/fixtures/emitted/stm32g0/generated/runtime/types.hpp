@@ -59,6 +59,25 @@ enum class AccessKindId : std::uint16_t {
   access_kind_rx,
 };
 
+enum class StartupKindId : std::uint16_t {
+  none,
+  startup_kind_copy_source_region,
+  startup_kind_copy_target_region,
+  startup_kind_initial_stack_pointer,
+  startup_kind_vector_source_region,
+  startup_kind_vector_table,
+  startup_kind_zero_target_region,
+};
+
+enum class VectorKindId : std::uint16_t {
+  none,
+  vector_kind_external_interrupt,
+  vector_kind_initial_stack_pointer,
+  vector_kind_reserved,
+  vector_kind_reset_handler,
+  vector_kind_system_exception,
+};
+
 enum class RouteKindId : std::uint16_t {
   none,
   route_kind_alternate_function,

@@ -53,34 +53,6 @@ def test_emit_includes_metadata_artifacts_with_content(
     connectors_artifact = artifacts["st/stm32g0/metadata/connectors.json"]
     system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
     device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
-    register_map_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"]
-    device_descriptor_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/device_descriptor.hpp"
-    ]
-    pins_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/pins.hpp"]
-    peripheral_instances_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/peripheral_instances.hpp"
-    ]
-    interrupt_bindings_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"
-    ]
-    dma_bindings_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"]
-    capability_overlays_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
-    ]
-    register_fields_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/register_fields.hpp"
-    ]
-    rcc_map_artifact = artifacts["st/stm32g0/generated/rcc_map.hpp"]
-    dma_map_artifact = artifacts["st/stm32g0/generated/dma_map.hpp"]
-    connector_tables_artifact = artifacts["st/stm32g0/generated/connector_tables.hpp"]
-    interrupt_map_artifact = artifacts["st/stm32g0/generated/interrupt_map.hpp"]
-    memory_map_artifact = artifacts["st/stm32g0/generated/memory_map.hpp"]
-    package_map_artifact = artifacts["st/stm32g0/generated/package_map.hpp"]
-    clock_tree_artifact = artifacts["st/stm32g0/generated/clock_tree_lite.hpp"]
-    startup_descriptors_artifact = artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/startup_descriptors.hpp"
-    ]
     startup_source_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     startup_vectors_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"
@@ -135,21 +107,18 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_pwm_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/pwm.hpp"
     ]
+    runtime_startup_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
+    ]
     runtime_system_clock_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
     ]
-    ip_block_artifacts = [
-        artifact
-        for path, artifact in artifacts.items()
-        if path.startswith("st/stm32g0/generated/ip/")
-    ]
-    gpio_artifacts = [
-        artifact
-        for path, artifact in artifacts.items()
-        if path.startswith("st/stm32g0/generated/peripherals/")
-    ]
-    assert gpio_artifacts, "Expected at least one GPIO peripheral header"
-    assert ip_block_artifacts, "Expected at least one IP block header"
+    assert not any(path.startswith("st/stm32g0/generated/ip/") for path in artifacts), (
+        "Legacy IP headers should not be published"
+    )
+    assert not any(path.startswith("st/stm32g0/generated/peripherals/") for path in artifacts), (
+        "Legacy peripheral headers should not be published"
+    )
 
     for artifact in (
         manifest_artifact,
@@ -258,98 +227,16 @@ def test_emit_includes_metadata_artifacts_with_content(
         for pin_entry in packages_payload["packages"][0]["pinouts"][0]["pin_index"]
     )
 
-    assert register_map_artifact.artifact_kind == "generated-cpp"
-    assert register_map_artifact.content is not None
-    assert register_map_artifact.content_sha256 is not None
-    assert register_map_artifact.materialized_path is not None
-    assert Path(register_map_artifact.materialized_path).exists()
-    assert register_fields_artifact.artifact_kind == "generated-cpp"
-    assert register_fields_artifact.content is not None
-    assert register_fields_artifact.content_sha256 is not None
-    assert register_fields_artifact.materialized_path is not None
-    assert Path(register_fields_artifact.materialized_path).exists()
-    assert device_descriptor_artifact.artifact_kind == "generated-cpp"
-    assert "kDeviceDescriptor" in device_descriptor_artifact.content
-    assert pins_artifact.artifact_kind == "generated-cpp"
-    assert "kPins" in pins_artifact.content
-    assert "kPinSignals" in pins_artifact.content
-    assert peripheral_instances_artifact.artifact_kind == "generated-cpp"
-    assert "kPeripheralInstances" in peripheral_instances_artifact.content
-    assert interrupt_bindings_artifact.artifact_kind == "generated-cpp"
-    assert "kInterruptBindings" in interrupt_bindings_artifact.content
-    assert "kInterruptBindingAliases" in interrupt_bindings_artifact.content
-    assert dma_bindings_artifact.artifact_kind == "generated-cpp"
-    assert "kDmaBindings" in dma_bindings_artifact.content
-    assert capability_overlays_artifact.artifact_kind == "generated-cpp"
-    assert "kCapabilityOverlays" in capability_overlays_artifact.content
-
-    for gpio_artifact in gpio_artifacts:
-        assert gpio_artifact.artifact_kind == "generated-cpp"
-        assert gpio_artifact.content is not None
-        assert Path(gpio_artifact.materialized_path).exists()
-        assert "kPeripheral" in gpio_artifact.content
-
-    for ip_block_artifact in ip_block_artifacts:
-        assert ip_block_artifact.artifact_kind == "generated-cpp"
-        assert "kIpBlock" in ip_block_artifact.content
-        assert "kCapabilities" in ip_block_artifact.content
-
-    assert "kPeripheralBases" in register_map_artifact.content
-    assert "RegisterId" in register_map_artifact.content
-    assert "kRegisters" in register_map_artifact.content
-    assert "FieldId" in register_fields_artifact.content
-    assert "kRegisterFields" in register_fields_artifact.content
-
-    assert connector_tables_artifact.artifact_kind == "generated-cpp"
-    assert "kConnectionCandidates" in connector_tables_artifact.content
-    assert "kConnectionGroups" in connector_tables_artifact.content
-
-    assert rcc_map_artifact.artifact_kind == "generated-cpp"
-    assert rcc_map_artifact.content is not None
-    assert rcc_map_artifact.content_sha256 is not None
-    assert Path(rcc_map_artifact.materialized_path).exists()
-    assert "kRccMap" in rcc_map_artifact.content
-    assert "RccDescriptor" in rcc_map_artifact.content
-
-    assert dma_map_artifact.artifact_kind == "generated-cpp"
-    assert dma_map_artifact.content is not None
-    assert dma_map_artifact.content_sha256 is not None
-    assert Path(dma_map_artifact.materialized_path).exists()
-    assert "kDmaMap" in dma_map_artifact.content
-    assert "DmaDescriptor" in dma_map_artifact.content
-
-    assert interrupt_map_artifact.artifact_kind == "generated-cpp"
-    assert "kInterruptMap" in interrupt_map_artifact.content
-    assert "InterruptDescriptor" in interrupt_map_artifact.content
-    assert "shared_group_id" in interrupt_map_artifact.content
-    assert "kInterruptAliases" in interrupt_map_artifact.content
-
-    assert memory_map_artifact.artifact_kind == "generated-cpp"
-    assert "kMemoryMap" in memory_map_artifact.content
-    assert "MemoryDescriptor" in memory_map_artifact.content
-    assert "kMemoryStartupRoles" in memory_map_artifact.content
-
-    assert package_map_artifact.artifact_kind == "generated-cpp"
-    assert "kPackageMap" in package_map_artifact.content
-    assert "PackageDescriptor" in package_map_artifact.content
-
-    assert clock_tree_artifact.artifact_kind == "generated-cpp"
-    assert "kClockNodes" in clock_tree_artifact.content
-    assert "kClockGates" in clock_tree_artifact.content
-    assert "kPeripheralClockBindings" in clock_tree_artifact.content
-
-    assert startup_descriptors_artifact.artifact_kind == "generated-cpp"
-    assert "kVectorSlots" in startup_descriptors_artifact.content
-    assert "StartupSymbolId" in startup_descriptors_artifact.content
-    assert "kStartupDescriptors" in startup_descriptors_artifact.content
     assert startup_source_artifact.artifact_kind == "generated-cpp"
     assert "Reset_Handler" in startup_source_artifact.content
     assert "_vectors" in startup_source_artifact.content
 
     assert startup_vectors_artifact.artifact_kind == "generated-cpp"
-    assert '#include "startup_descriptors.hpp"' in startup_vectors_artifact.content
+    assert "../../runtime/devices/stm32g071rb/startup.hpp" in startup_vectors_artifact.content
     assert runtime_types_artifact.artifact_kind == "generated-cpp"
     assert "enum class BackendSchemaId" in runtime_types_artifact.content
+    assert "enum class StartupKindId" in runtime_types_artifact.content
+    assert "enum class VectorKindId" in runtime_types_artifact.content
     assert runtime_peripheral_instances_artifact.artifact_kind == "generated-cpp"
     assert (
         "PeripheralInstanceTraits<PeripheralId::" in runtime_peripheral_instances_artifact.content
@@ -399,6 +286,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "struct PwmSemanticTraits" in runtime_pwm_semantics_artifact.content
     assert "struct PwmChannelSemanticTraits" in runtime_pwm_semantics_artifact.content
     assert "kPwmSemanticPeripherals" in runtime_pwm_semantics_artifact.content
+    assert runtime_startup_artifact.artifact_kind == "generated-cpp"
+    assert "struct VectorSlotDescriptor" in runtime_startup_artifact.content
+    assert "StartupSymbolId" in runtime_startup_artifact.content
+    assert "kVectorSlots" in runtime_startup_artifact.content
+    assert "kStartupDescriptors" in runtime_startup_artifact.content
     assert runtime_system_clock_artifact.artifact_kind == "generated-cpp"
     assert (
         "SystemClockProfileTraits<SystemClockProfileId::" in runtime_system_clock_artifact.content
@@ -595,58 +487,23 @@ def test_emit_matches_golden_artifacts(
     assert json.loads(
         artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"].content
     ) == _load_json_fixture(fixture_root / "metadata" / "devices" / "stm32g071rb.json")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/device_descriptor.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "device_descriptor.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/pins.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "pins.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/peripheral_instances.hpp"
-    ].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "peripheral_instances.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/interrupt_bindings.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "interrupt_bindings.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/dma_bindings.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "dma_bindings.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/capability_overlays.hpp"
-    ].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "capability_overlays.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "register_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/register_fields.hpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "register_fields.hpp"
-    ).read_text(encoding="utf-8")
-    for gpio_fixture in (fixture_root / "generated" / "peripherals").iterdir():
-        artifact_path = f"st/stm32g0/generated/peripherals/{gpio_fixture.name}"
-        assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/rcc_map.hpp"].content == (
-        fixture_root / "generated" / "rcc_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/dma_map.hpp"].content == (
-        fixture_root / "generated" / "dma_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/connector_tables.hpp"].content == (
-        fixture_root / "generated" / "connector_tables.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/interrupt_map.hpp"].content == (
-        fixture_root / "generated" / "interrupt_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/memory_map.hpp"].content == (
-        fixture_root / "generated" / "memory_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/package_map.hpp"].content == (
-        fixture_root / "generated" / "package_map.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/clock_tree_lite.hpp"].content == (
-        fixture_root / "generated" / "clock_tree_lite.hpp"
-    ).read_text(encoding="utf-8")
+    assert not any(path.startswith("st/stm32g0/generated/ip/") for path in artifacts), (
+        "Legacy IP headers should not be emitted"
+    )
+    assert not any(path.startswith("st/stm32g0/generated/peripherals/") for path in artifacts), (
+        "Legacy peripheral headers should not be emitted"
+    )
+    assert not any(
+        path.startswith("st/stm32g0/generated/devices/stm32g071rb/") and path.endswith(".hpp")
+        for path in artifacts
+    ), "Legacy device-scoped generated headers should not be emitted"
+    assert "st/stm32g0/generated/connector_tables.hpp" not in artifacts
+    assert "st/stm32g0/generated/interrupt_map.hpp" not in artifacts
+    assert "st/stm32g0/generated/memory_map.hpp" not in artifacts
+    assert "st/stm32g0/generated/package_map.hpp" not in artifacts
+    assert "st/stm32g0/generated/clock_tree_lite.hpp" not in artifacts
+    assert "st/stm32g0/generated/dma_map.hpp" not in artifacts
+    assert "st/stm32g0/generated/rcc_map.hpp" not in artifacts
     assert artifacts["st/stm32g0/generated/runtime/types.hpp"].content == (
         fixture_root / "generated" / "runtime" / "types.hpp"
     ).read_text(encoding="utf-8")
@@ -707,10 +564,8 @@ def test_emit_matches_golden_artifacts(
             / "driver_semantics"
             / name
         ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/devices/stm32g071rb/startup_descriptors.hpp"
-    ].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_descriptors.hpp"
+    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "startup.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"
@@ -726,9 +581,6 @@ def test_emit_matches_golden_artifacts(
     ].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_clock.hpp"
     ).read_text(encoding="utf-8")
-    for ip_fixture in sorted((fixture_root / "generated" / "ip").iterdir()):
-        artifact_path = f"st/stm32g0/generated/ip/{ip_fixture.name}"
-        assert artifacts[artifact_path].content == ip_fixture.read_text(encoding="utf-8")
 
 
 def test_emit_uart_semantics_accepts_live_st_schema_ids(
@@ -804,13 +656,8 @@ def test_emit_connector_metadata_supports_microchip_family(
     assert system_payload["devices"][0]["clock_gates"]
     assert system_payload["devices"][0]["dma_routes"]
     assert any(memory.get("startup_roles") for memory in system_payload["devices"][0]["memories"])
-    assert artifacts["microchip/same70/generated/connector_tables.hpp"].content is not None
-    assert artifacts["microchip/same70/generated/interrupt_map.hpp"].content is not None
-    assert artifacts["microchip/same70/generated/memory_map.hpp"].content is not None
-    assert artifacts["microchip/same70/generated/package_map.hpp"].content is not None
-    assert artifacts["microchip/same70/generated/clock_tree_lite.hpp"].content is not None
     assert (
-        artifacts["microchip/same70/generated/devices/atsame70q21b/startup_descriptors.hpp"].content
+        artifacts["microchip/same70/generated/runtime/devices/atsame70q21b/startup.hpp"].content
         is not None
     )
     assert (
@@ -830,10 +677,7 @@ def test_emit_connector_metadata_supports_microchip_family(
         ].content
         is not None
     )
-    microchip_ip_headers = [
-        path for path in artifacts if path.startswith("microchip/same70/generated/ip/")
-    ]
-    assert microchip_ip_headers
+    assert not any(path.startswith("microchip/same70/generated/ip/") for path in artifacts)
 
 
 def test_emit_runtime_systick_header_for_foundational_cortex_m_devices(

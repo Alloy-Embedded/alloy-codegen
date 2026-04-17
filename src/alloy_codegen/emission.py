@@ -5387,7 +5387,7 @@ def emit_startup_vectors_source(
 ) -> EmittedArtifact:
     content = "\n".join(
         [
-            '#include "startup_descriptors.hpp"',
+            f'#include "../../runtime/devices/{device.identity.device}/startup.hpp"',
             "",
         ]
     )
@@ -5423,7 +5423,7 @@ def emit_startup_source(
         [
             "#include <cstdint>",
             "",
-            '#include "startup_descriptors.hpp"',
+            f'#include "../../runtime/devices/{device.identity.device}/startup.hpp"',
             "",
             'extern "C" {',
             "#if defined(ALLOY_CODEGEN_HOST_SMOKE)",

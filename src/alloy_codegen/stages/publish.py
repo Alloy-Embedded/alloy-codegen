@@ -7,10 +7,7 @@ from alloy_codegen.artifact_contract import (
     find_runtime_lite_contract_violations,
 )
 from alloy_codegen.bootstrap import PUBLICATION_TARGET_REPOSITORY
-from alloy_codegen.consumer_verification import (
-    verify_alloy_smoke_consumer,
-    verify_runtime_lite_smoke_consumer,
-)
+from alloy_codegen.consumer_verification import verify_runtime_lite_smoke_consumer
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     build_coverage_payload,
@@ -168,30 +165,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             ),
             warnings=("Alloy runtime-lite smoke consumer failed to build from staged artifacts.",),
         )
-    consumer_verification = verify_alloy_smoke_consumer(
-        scope=emit_result.scope,
-        alloy_root=execution_context.alloy_root,
-        publication_root=staging_root,
-        build_root=execution_context.artifact_root,
-    )
-    if not consumer_verification.succeeded:
-        return StageResult(
-            stage="publish",
-            scope=emit_result.scope,
-            status="failed",
-            payload=PublicationPlan(
-                target_repository=PUBLICATION_TARGET_REPOSITORY,
-                publication_mode="blocked",
-                artifact_root=str(execution_context.artifact_root),
-                publication_root=str(execution_context.publication_root),
-                artifact_manifest=emit_result.payload.artifact_manifest,
-                artifacts=emit_result.payload.artifacts,
-                consumer_verification=consumer_verification,
-                draft_system_descriptor_domains=draft_system_descriptor_domains,
-            ),
-            warnings=("Alloy smoke consumer failed to build from staged artifacts.",),
-        )
-
     target_artifact_revision = compute_target_artifact_revision(staged_artifacts)
     publication_record = emit_publication_record(
         family_dir=f"{emit_result.scope.resolved_vendor()}/{emit_result.scope.resolved_family()}",
@@ -202,7 +175,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         artifact_manifest=emit_result.payload.artifact_manifest,
         validation_report=validate_result.payload.report,
         published_artifacts=staged_artifacts,
-        consumer_verification=consumer_verification,
+        consumer_verification=runtime_lite_consumer_verification,
     )
     materialize_artifacts(
         artifact_root=staging_root,
@@ -229,7 +202,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         artifacts=published_bundle,
         publication_root=str(execution_context.publication_root),
         target_artifact_revision=target_artifact_revision,
-        consumer_verification=consumer_verification,
+        consumer_verification=runtime_lite_consumer_verification,
     )
     materialized_summary = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
@@ -248,7 +221,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             artifacts=(*emit_result.payload.artifacts, materialized_summary),
             published_artifacts=published_bundle,
             target_artifact_revision=target_artifact_revision,
-            consumer_verification=consumer_verification,
+            consumer_verification=runtime_lite_consumer_verification,
             publication_record=published_record,
             publication_summary=materialized_summary,
             draft_system_descriptor_domains=draft_system_descriptor_domains,

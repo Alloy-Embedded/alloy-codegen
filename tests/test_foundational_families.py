@@ -38,13 +38,6 @@ def _common_family_artifact_paths(family_dir: str) -> tuple[str, ...]:
         f"{family_dir}/reports/validation-report.json",
         f"{family_dir}/reports/validation-summary.json",
         f"{family_dir}/reports/coverage.json",
-        f"{family_dir}/generated/connector_tables.hpp",
-        f"{family_dir}/generated/interrupt_map.hpp",
-        f"{family_dir}/generated/memory_map.hpp",
-        f"{family_dir}/generated/package_map.hpp",
-        f"{family_dir}/generated/clock_tree_lite.hpp",
-        f"{family_dir}/generated/dma_map.hpp",
-        f"{family_dir}/generated/rcc_map.hpp",
         f"{family_dir}/generated/runtime/types.hpp",
     )
 
@@ -58,15 +51,6 @@ def _device_artifact_paths(
         paths.extend(
             (
                 f"{family_dir}/metadata/devices/{device_name}.json",
-                f"{family_dir}/generated/devices/{device_name}/device_descriptor.hpp",
-                f"{family_dir}/generated/devices/{device_name}/pins.hpp",
-                f"{family_dir}/generated/devices/{device_name}/peripheral_instances.hpp",
-                f"{family_dir}/generated/devices/{device_name}/interrupt_bindings.hpp",
-                f"{family_dir}/generated/devices/{device_name}/dma_bindings.hpp",
-                f"{family_dir}/generated/devices/{device_name}/capability_overlays.hpp",
-                f"{family_dir}/generated/devices/{device_name}/register_map.hpp",
-                f"{family_dir}/generated/devices/{device_name}/register_fields.hpp",
-                f"{family_dir}/generated/devices/{device_name}/startup_descriptors.hpp",
                 f"{family_dir}/generated/devices/{device_name}/startup.cpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/peripheral_instances.hpp",
@@ -77,6 +61,7 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/system_clock.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/startup.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/common.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/gpio.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/uart.hpp",
@@ -166,65 +151,6 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "generated"
                 / "devices"
                 / device_name
-                / "device_descriptor.hpp"
-            ).exists()
-            assert (
-                publication_root / family_dir / "generated" / "devices" / device_name / "pins.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "peripheral_instances.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "interrupt_bindings.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "dma_bindings.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "capability_overlays.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "register_map.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
-                / "register_fields.hpp"
-            ).exists()
-            assert (
-                publication_root
-                / family_dir
-                / "generated"
-                / "devices"
-                / device_name
                 / "startup.cpp"
             ).exists()
             assert (
@@ -307,6 +233,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "routes.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "startup.hpp"
             ).exists()
             assert (
                 publication_root

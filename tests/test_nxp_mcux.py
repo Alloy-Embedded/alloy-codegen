@@ -331,15 +331,6 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/reports/validation-report.json" in artifacts
     assert f"{family_dir}/metadata/family-index.json" in artifacts
     assert f"{family_dir}/metadata/family-connectivity.json" in artifacts
-    assert f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp" in artifacts
-    assert f"{family_dir}/generated/rcc_map.hpp" in artifacts
-    assert f"{family_dir}/generated/dma_map.hpp" in artifacts
-    assert f"{family_dir}/generated/connector_tables.hpp" in artifacts
-    assert f"{family_dir}/generated/interrupt_map.hpp" in artifacts
-    assert f"{family_dir}/generated/memory_map.hpp" in artifacts
-    assert f"{family_dir}/generated/package_map.hpp" in artifacts
-    assert f"{family_dir}/generated/clock_tree_lite.hpp" in artifacts
-    assert f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup_vectors.cpp" in artifacts
     assert f"{family_dir}/generated/runtime/types.hpp" in artifacts
@@ -352,13 +343,9 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_clock.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
-
-    gpio_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/peripherals/")]
-    ip_headers = [p for p in artifacts if p.startswith(f"{family_dir}/generated/ip/")]
-    assert gpio_headers, "Expected at least one GPIO peripheral header"
-    ip_blocks_payload = json.loads(artifacts[f"{family_dir}/metadata/ip-blocks.json"].content)
-    if ip_blocks_payload["ip_blocks"]:
-        assert ip_headers, "Expected at least one IP block header"
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp" in artifacts
+    assert not any(p.startswith(f"{family_dir}/generated/peripherals/") for p in artifacts)
+    assert not any(p.startswith(f"{family_dir}/generated/ip/") for p in artifacts)
 
 
 def test_emit_nxp_imxrt1060_artifact_content(
@@ -369,22 +356,6 @@ def test_emit_nxp_imxrt1060_artifact_content(
     artifacts = {a.path: a for a in result.payload.artifacts}
     family_dir = "nxp/imxrt1060"
 
-    register_map = artifacts[f"{family_dir}/generated/devices/mimxrt1062/register_map.hpp"]
-    device_descriptor = artifacts[
-        f"{family_dir}/generated/devices/mimxrt1062/device_descriptor.hpp"
-    ]
-    pins_header = artifacts[f"{family_dir}/generated/devices/mimxrt1062/pins.hpp"]
-    peripheral_instances = artifacts[
-        f"{family_dir}/generated/devices/mimxrt1062/peripheral_instances.hpp"
-    ]
-    interrupt_bindings = artifacts[
-        f"{family_dir}/generated/devices/mimxrt1062/interrupt_bindings.hpp"
-    ]
-    dma_bindings = artifacts[f"{family_dir}/generated/devices/mimxrt1062/dma_bindings.hpp"]
-    register_fields = artifacts[f"{family_dir}/generated/devices/mimxrt1062/register_fields.hpp"]
-    capability_overlays = artifacts[
-        f"{family_dir}/generated/devices/mimxrt1062/capability_overlays.hpp"
-    ]
     runtime_types = artifacts[f"{family_dir}/generated/runtime/types.hpp"]
     runtime_peripherals = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/peripheral_instances.hpp"
@@ -400,55 +371,18 @@ def test_emit_nxp_imxrt1060_artifact_content(
         f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
     ]
     runtime_routes = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp"]
-    assert "kPeripheralBases" in register_map.content
-    assert "nxp" in register_map.content
-    assert "imxrt1060" in register_map.content
-    assert "mimxrt1062" in register_map.content
-    assert "kDeviceDescriptor" in device_descriptor.content
-    assert "kPins" in pins_header.content
-    assert "kPinSignals" in pins_header.content
-    assert "kPeripheralInstances" in peripheral_instances.content
-    assert "kInterruptBindings" in interrupt_bindings.content
-    assert "kInterruptBindingAliases" in interrupt_bindings.content
-    assert "kDmaBindings" in dma_bindings.content
-    assert "kRegisterFields" in register_fields.content
-    assert "kCapabilityOverlays" in capability_overlays.content
+    runtime_startup = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp"]
     assert "enum class BackendSchemaId" in runtime_types.content
+    assert "enum class StartupKindId" in runtime_types.content
+    assert "enum class VectorKindId" in runtime_types.content
     assert "PeripheralInstanceTraits<PeripheralId::" in runtime_peripherals.content
     assert "PinTraits<PinId::" in runtime_pins.content
     assert "RegisterTraits<RegisterId::" in runtime_registers.content
     assert "RegisterFieldTraits<FieldId::" in runtime_register_fields.content
     assert "PeripheralClockBindingTraits<PeripheralId::" in runtime_clock_bindings.content
     assert "RouteTraits<" in runtime_routes.content
-
-    connector_tables = artifacts[f"{family_dir}/generated/connector_tables.hpp"]
-    assert "kConnectionCandidates" in connector_tables.content
-    assert "RouteKindId::route_kind_iomuxc_mux" in connector_tables.content
-
-    ip_header_paths = sorted(
-        path for path in artifacts if path.startswith(f"{family_dir}/generated/ip/")
-    )
-    if ip_header_paths:
-        ip_header = artifacts[ip_header_paths[0]]
-        assert "kIpBlock" in ip_header.content
-        assert "kCapabilities" in ip_header.content
-
-    rcc_map = artifacts[f"{family_dir}/generated/rcc_map.hpp"]
-    assert "kRccMap" in rcc_map.content
-    assert "ClockGateId::mimxrt1062_gate_gpio1" in rcc_map.content
-
-    startup_descriptors = artifacts[
-        f"{family_dir}/generated/devices/mimxrt1062/startup_descriptors.hpp"
-    ]
-    assert "kVectorSlots" in startup_descriptors.content
-    assert "kStartupDescriptors" in startup_descriptors.content
-
-    gpio_headers = [
-        a for p, a in artifacts.items() if p.startswith(f"{family_dir}/generated/peripherals/")
-    ]
-    for gpio_art in gpio_headers:
-        assert "kPeripheral" in gpio_art.content
-        assert "ClockGateId::" in gpio_art.content
+    assert "kVectorSlots" in runtime_startup.content
+    assert "kStartupDescriptors" in runtime_startup.content
 
 
 def test_emit_nxp_imxrt1060_reports_publishable_descriptor_coverage(
@@ -475,26 +409,13 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     fixture_root = IMXRT1060_EMITTED_DIR
 
     for name in (
-        "register_map.hpp",
-        "register_fields.hpp",
-        "device_descriptor.hpp",
-        "pins.hpp",
-        "peripheral_instances.hpp",
-        "interrupt_bindings.hpp",
-        "dma_bindings.hpp",
-        "capability_overlays.hpp",
-    ):
-        assert artifacts[f"{family_dir}/generated/devices/mimxrt1062/{name}"].content == (
-            fixture_root / "generated" / "devices" / "mimxrt1062" / name
-        ).read_text(encoding="utf-8"), f"mimxrt1062/{name} does not match golden fixture"
-
-    for name in (
         "peripheral_instances.hpp",
         "pins.hpp",
         "registers.hpp",
         "register_fields.hpp",
         "clock_bindings.hpp",
         "systick.hpp",
+        "startup.hpp",
         "system_clock.hpp",
         "dma_bindings.hpp",
         "routes.hpp",
@@ -532,16 +453,8 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
             f"{name} does not match golden fixture"
         )
 
-    for gpio_fixture in sorted((fixture_root / "generated" / "peripherals").iterdir()):
-        artifact_path = f"{family_dir}/generated/peripherals/{gpio_fixture.name}"
-        assert artifacts[artifact_path].content == gpio_fixture.read_text(encoding="utf-8"), (
-            f"generated/peripherals/{gpio_fixture.name} does not match golden fixture"
-        )
-
-    for name in ("rcc_map.hpp", "dma_map.hpp"):
-        assert artifacts[f"{family_dir}/generated/{name}"].content == (
-            fixture_root / "generated" / name
-        ).read_text(encoding="utf-8"), f"generated/{name} does not match golden fixture"
+    assert not any(path.startswith(f"{family_dir}/generated/peripherals/") for path in artifacts)
+    assert not any(path.startswith(f"{family_dir}/generated/ip/") for path in artifacts)
 
 
 def test_emit_nxp_imxrt1060_is_byte_stable(nxp_execution_context: ExecutionContext) -> None:
@@ -612,10 +525,17 @@ def test_publish_nxp_imxrt1060_completes_successfully(
 
     pub_root = nxp_execution_context.publication_root
     assert (
-        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "register_map.hpp"
+        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "startup.cpp"
     ).exists()
     assert (
-        pub_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "startup.cpp"
+        pub_root
+        / "nxp"
+        / "imxrt1060"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "mimxrt1062"
+        / "startup.hpp"
     ).exists()
     assert (
         pub_root

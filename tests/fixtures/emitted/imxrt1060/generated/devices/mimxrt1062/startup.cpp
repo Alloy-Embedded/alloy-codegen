@@ -1,6 +1,6 @@
 #include <cstdint>
 
-#include "startup_descriptors.hpp"
+#include "../../runtime/devices/mimxrt1062/startup.hpp"
 
 extern "C" {
 #if defined(ALLOY_CODEGEN_HOST_SMOKE)

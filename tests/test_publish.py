@@ -39,11 +39,7 @@ def test_publish_includes_materialized_summary(
     assert result.payload.consumer_verification is not None
     assert result.payload.consumer_verification.succeeded is True
     assert any(
-        argument.startswith("-DALLOY_CODEGEN_SMOKE_CONNECTOR_TABLES_HEADER=")
-        for argument in result.payload.consumer_verification.command
-    )
-    assert any(
-        argument.startswith("-DALLOY_CODEGEN_SMOKE_CLOCK_TREE_HEADER=")
+        argument.startswith("-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER=")
         for argument in result.payload.consumer_verification.command
     )
     assert summary is not None
@@ -59,7 +55,7 @@ def test_publish_includes_materialized_summary(
         artifact.materialized_path
         == str(
             execution_context.publication_root
-            / "st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"
+            / "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
         )
         for artifact in result.payload.published_artifacts
     )
@@ -70,7 +66,7 @@ def test_publish_includes_materialized_summary(
     assert payload["artifact_root"] == "st/stm32g0/"
     assert payload["publication_root"] == str(execution_context.publication_root)
     assert payload["target_artifact_revision"] == result.payload.target_artifact_revision
-    assert payload["consumer_verification"]["consumer_id"] == "alloy-published-artifact-smoke"
+    assert payload["consumer_verification"]["consumer_id"] == "alloy-published-runtime-lite-smoke"
     assert payload["consumer_verification"]["succeeded"] is True
     assert payload["materialized_artifact_count"] >= 10
     assert any(
@@ -82,7 +78,7 @@ def test_publish_includes_materialized_summary(
         for artifact in payload["materialized_artifacts"]
     )
     assert any(
-        artifact["path"] == "st/stm32g0/generated/devices/stm32g071rb/register_map.hpp"
+        artifact["path"] == "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
         for artifact in payload["materialized_artifacts"]
     )
 
@@ -131,18 +127,20 @@ def test_publish_microchip_family_scope(
         / "microchip"
         / "same70"
         / "generated"
+        / "runtime"
         / "devices"
         / "atsame70n21b"
-        / "register_map.hpp"
+        / "startup.hpp"
     ).exists()
     assert (
         microchip_execution_context.publication_root
         / "microchip"
         / "same70"
         / "generated"
+        / "runtime"
         / "devices"
         / "atsame70q21b"
-        / "register_map.hpp"
+        / "startup.hpp"
     ).exists()
 
 
@@ -377,7 +375,10 @@ def test_publish_blocks_when_runtime_generated_cpp_contains_string_literals(
         raise AssertionError("publish should stop before consumer verification")
 
     monkeypatch.setattr("alloy_codegen.stages.publish.run_emit", fake_emit)
-    monkeypatch.setattr("alloy_codegen.stages.publish.verify_alloy_smoke_consumer", fail_consumer)
+    monkeypatch.setattr(
+        "alloy_codegen.stages.publish.verify_runtime_lite_smoke_consumer",
+        fail_consumer,
+    )
 
     result = run(PipelineScope(device="stm32g071rb"), execution_context)
 
@@ -444,7 +445,7 @@ def test_publish_does_not_modify_publication_root_when_consumer_verification_fai
 
     def fake_verify(**_: object) -> ConsumerVerification:
         return ConsumerVerification(
-            consumer_id="alloy-published-artifact-smoke",
+            consumer_id="alloy-published-runtime-lite-smoke",
             compiler="c++",
             source_file="/tmp/source.cpp",
             startup_source="/tmp/startup_vectors.cpp",
@@ -456,7 +457,10 @@ def test_publish_does_not_modify_publication_root_when_consumer_verification_fai
             stderr="forced failure",
         )
 
-    monkeypatch.setattr("alloy_codegen.stages.publish.verify_alloy_smoke_consumer", fake_verify)
+    monkeypatch.setattr(
+        "alloy_codegen.stages.publish.verify_runtime_lite_smoke_consumer",
+        fake_verify,
+    )
 
     result = run(PipelineScope(device="stm32g071rb"), execution_context)
 
@@ -527,9 +531,10 @@ def test_publish_preserves_git_checkout_metadata_and_unrelated_files(
         / "st"
         / "stm32g0"
         / "generated"
+        / "runtime"
         / "devices"
         / "stm32g030f6"
-        / "register_map.hpp"
+        / "startup.hpp"
     ).exists()
     assert "README.md" not in status.stdout
     assert "?? st/" in status.stdout or "A  st/" in status.stdout

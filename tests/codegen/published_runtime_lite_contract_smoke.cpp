@@ -78,6 +78,10 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE must be defined"
 #endif
@@ -105,6 +109,7 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_PWM_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTICK_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER
 
 #include <type_traits>
 
@@ -253,6 +258,8 @@ static_assert(!published_device_runtime::SysTickTraits::kPresent
 static_assert(!published_device_runtime::SysTickTraits::kPresent
               || published_device_runtime::kSysTick.exception_number == 15u);
 static_assert(published_device_runtime::kSystemClockProfiles.size() > 0u);
+static_assert(published_device_runtime::kVectorSlots.size() > 0u);
+static_assert(published_device_runtime::kStartupDescriptors.size() > 0u);
 static_assert(
     published_device_runtime::SystemClockProfileTraits<
         published_device_runtime::kSystemClockProfiles[0].profile_id>::kPresent);

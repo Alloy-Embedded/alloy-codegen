@@ -17,17 +17,17 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/metadata/connectors.json`
 - `<vendor>/<family>/metadata/system-descriptors.json`
 - `<vendor>/<family>/metadata/devices/<device>.json`
-- `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
-- `<vendor>/<family>/generated/ip/<ip-version>.hpp`
 - `<vendor>/<family>/generated/runtime/types.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
@@ -36,23 +36,8 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dma.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp`
-- `<vendor>/<family>/generated/connector_tables.hpp`
-- `<vendor>/<family>/generated/runtime_profiles.hpp`
-- `<vendor>/<family>/generated/rcc_map.hpp`
-- `<vendor>/<family>/generated/dma_map.hpp`
-- `<vendor>/<family>/generated/interrupt_map.hpp`
-- `<vendor>/<family>/generated/memory_map.hpp`
-- `<vendor>/<family>/generated/package_map.hpp`
-- `<vendor>/<family>/generated/clock_tree_lite.hpp`
-- `<vendor>/<family>/generated/devices/<device>/device_descriptor.hpp`
-- `<vendor>/<family>/generated/devices/<device>/pins.hpp`
-- `<vendor>/<family>/generated/devices/<device>/peripheral_instances.hpp`
-- `<vendor>/<family>/generated/devices/<device>/interrupt_bindings.hpp`
-- `<vendor>/<family>/generated/devices/<device>/dma_bindings.hpp`
-- `<vendor>/<family>/generated/devices/<device>/capability_overlays.hpp`
-- `<vendor>/<family>/generated/devices/<device>/register_map.hpp`
-- `<vendor>/<family>/generated/devices/<device>/register_fields.hpp`
-- `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup.cpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `<vendor>/<family>/reports/validation-report.json`
@@ -81,44 +66,17 @@ Successful publication writes:
 - `<vendor>/<family>/metadata/connectors.json`
 - `<vendor>/<family>/metadata/system-descriptors.json`
 - `<vendor>/<family>/metadata/devices/<device>.json`
-- `<vendor>/<family>/generated/peripherals/<peripheral>.hpp`
-- `<vendor>/<family>/generated/ip/<ip-version>.hpp`
 - `<vendor>/<family>/generated/runtime/types.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
-- `<vendor>/<family>/generated/connector_tables.hpp`
-- `<vendor>/<family>/generated/runtime_profiles.hpp`
-- `<vendor>/<family>/generated/rcc_map.hpp`
-- `<vendor>/<family>/generated/dma_map.hpp`
-- `<vendor>/<family>/generated/interrupt_map.hpp`
-- `<vendor>/<family>/generated/memory_map.hpp`
-- `<vendor>/<family>/generated/package_map.hpp`
-- `<vendor>/<family>/generated/clock_tree_lite.hpp`
-- `<vendor>/<family>/generated/devices/<device>/device_descriptor.hpp`
-- `<vendor>/<family>/generated/devices/<device>/pins.hpp`
-- `<vendor>/<family>/generated/devices/<device>/peripheral_instances.hpp`
-- `<vendor>/<family>/generated/devices/<device>/interrupt_bindings.hpp`
-- `<vendor>/<family>/generated/devices/<device>/dma_bindings.hpp`
-- `<vendor>/<family>/generated/devices/<device>/capability_overlays.hpp`
-- `<vendor>/<family>/generated/devices/<device>/register_map.hpp`
-- `<vendor>/<family>/generated/devices/<device>/register_fields.hpp`
-- `<vendor>/<family>/generated/devices/<device>/startup_descriptors.hpp`
-- `<vendor>/<family>/generated/devices/<device>/startup.cpp`
-- `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
-- `<vendor>/<family>/generated/runtime/types.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/registers.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/register_fields.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
-- `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
@@ -127,6 +85,10 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dma.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
+- `<vendor>/<family>/generated/devices/<device>/startup.cpp`
+- `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `<vendor>/<family>/reports/validation-report.json`
 - `<vendor>/<family>/reports/validation-summary.json`
 - `<vendor>/<family>/reports/coverage.json`
@@ -134,21 +96,21 @@ Successful publication writes:
 
 ## Contract Notes
 
-- `generated/runtime/` is the runtime-lite contract intended for Alloy's hot path.
+- `generated/runtime/` is the only supported Alloy-facing C++ contract.
 - `generated/runtime/devices/<device>/driver_semantics/*.hpp` is the semantic layer that maps
-  runtime-lite facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
-  `adc`, and `dac`.
-- `generated/*.hpp` family tables remain the reflection contract used for validation, smoke, and
-  inspection.
+  runtime facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
+  `adc`, `dac`, `timer`, and `pwm`.
+- `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
+- `generated/devices/<device>/startup.cpp` and `startup_vectors.cpp` remain published build
+  translation units.
 - Published artifacts are written only when validation passes for the requested scope.
 - Published artifacts are staged and verified against an Alloy smoke consumer before
   promotion to the final publication root.
 - When the publication root is a git checkout, promotion preserves `.git` and unrelated
   repository files while replacing only the managed published artifact subtrees.
 - The smoke consumer source lives in
-  `tests/codegen/published_artifact_contract_smoke.cpp` inside `alloy-codegen`, but it is
-  compiled against the checked-out Alloy headers and the staged/published generated
-  artifacts.
+  `tests/codegen/published_runtime_lite_contract_smoke.cpp` inside `alloy-codegen`, and it is
+  compiled against the checked-out Alloy headers and the staged/published runtime contract.
 - `reports/publication-record.json` contains the deterministic `target_artifact_revision` for the
   published artifact set.
 - `artifact-manifest.json` is the traceability entrypoint for generator version, schema

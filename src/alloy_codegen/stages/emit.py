@@ -13,34 +13,13 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     emit_artifact_manifest,
     emit_capabilities_metadata,
-    emit_capability_overlays_header,
-    emit_clock_tree_lite_header,
-    emit_connector_tables_header,
     emit_connectors_metadata,
     emit_coverage_report,
-    emit_device_descriptor_header,
     emit_device_metadata,
-    emit_dma_bindings_header,
-    emit_dma_map_header,
     emit_family_connectivity,
     emit_family_index,
-    emit_gpio_header,
-    emit_interrupt_bindings_header,
-    emit_interrupt_map_header,
-    emit_ip_block_header,
     emit_ip_blocks_metadata,
-    emit_memory_map_header,
-    emit_package_map_header,
     emit_packages_metadata,
-    emit_peripheral_instances_header,
-    emit_pins_header,
-    emit_rcc_map_header,
-    emit_register_fields_header,
-    emit_register_map_header,
-    emit_runtime_profiles_header,
-    emit_runtime_refs_header,
-    emit_runtime_semantics_header,
-    emit_startup_descriptors_header,
     emit_startup_source,
     emit_startup_vectors_source,
     emit_system_descriptors_metadata,
@@ -72,6 +51,7 @@ from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_routes_header,
     emit_runtime_lite_types_header,
 )
+from alloy_codegen.runtime_startup import emit_runtime_startup_header
 from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
 from alloy_codegen.runtime_systick import emit_runtime_systick_header
 from alloy_codegen.scope import PipelineScope
@@ -131,15 +111,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         artifacts.extend(
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
-                emit_register_map_header(family_dir=family_dir, device=device),
-                emit_register_fields_header(family_dir=family_dir, device=device),
-                emit_device_descriptor_header(family_dir=family_dir, device=device),
-                emit_pins_header(family_dir=family_dir, device=device),
-                emit_peripheral_instances_header(family_dir=family_dir, device=device),
-                emit_interrupt_bindings_header(family_dir=family_dir, device=device),
-                emit_dma_bindings_header(family_dir=family_dir, device=device),
-                emit_capability_overlays_header(family_dir=family_dir, device=device),
-                emit_startup_descriptors_header(family_dir=family_dir, device=device),
                 emit_startup_source(family_dir=family_dir, device=device),
                 emit_startup_vectors_source(family_dir=family_dir, device=device),
                 emit_runtime_lite_peripheral_instances_header(
@@ -205,54 +176,17 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     family_dir=family_dir,
                     device=device,
                 ),
+                emit_runtime_startup_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
                 emit_runtime_system_clock_header(
                     family_dir=family_dir,
                     device=device,
                 ),
             )
         )
-    gpio_names = sorted(
-        {
-            peripheral.name
-            for device in devices
-            for peripheral in device.peripherals
-            if peripheral.ip_name == "gpio"
-        }
-    )
-    for gpio_name in gpio_names:
-        artifacts.append(
-            emit_gpio_header(
-                family_dir=family_dir,
-                devices=devices,
-                peripheral_name=gpio_name,
-            )
-        )
-    for ip_name, ip_version in sorted(
-        {
-            (ip_block.ip_name, ip_block.ip_version)
-            for device in devices
-            for ip_block in device.ip_blocks
-        }
-    ):
-        artifacts.append(
-            emit_ip_block_header(
-                family_dir=family_dir,
-                devices=devices,
-                ip_name=ip_name,
-                ip_version=ip_version,
-            )
-        )
-    artifacts.append(emit_runtime_semantics_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_runtime_profiles_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_runtime_refs_header(family_dir=family_dir, devices=devices))
     artifacts.append(emit_runtime_lite_types_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_connector_tables_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_rcc_map_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_dma_map_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_interrupt_map_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_memory_map_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_package_map_header(family_dir=family_dir, devices=devices))
-    artifacts.append(emit_clock_tree_lite_header(family_dir=family_dir, devices=devices))
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
         artifacts=tuple(artifacts),
