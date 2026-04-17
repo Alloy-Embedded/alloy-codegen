@@ -369,9 +369,10 @@ jobs:
           assert payload["status"] == "completed", payload
           assert plan["publication_mode"] == "published", payload
           assert plan["consumer_verification"]["succeeded"] is True, payload
-          assert (publication_root / "st" / "stm32g0" / "generated" / "devices" / "stm32g030f6" / "register_map.hpp").exists()
-          assert (publication_root / "st" / "stm32g0" / "generated" / "devices" / "stm32g071rb" / "register_map.hpp").exists()
-          assert (publication_root / "st" / "stm32g0" / "generated" / "devices" / "stm32g0b1re" / "register_map.hpp").exists()
+          assert (publication_root / "st" / "stm32g0" / "generated" / "runtime" / "types.hpp").exists()
+          assert (publication_root / "st" / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g030f6" / "registers.hpp").exists()
+          assert (publication_root / "st" / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb" / "registers.hpp").exists()
+          assert (publication_root / "st" / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g0b1re" / "registers.hpp").exists()
           assert (publication_root / "st" / "stm32g0" / "metadata" / "family-index.json").exists()
           assert (publication_root / "st" / "stm32g0" / "artifact-manifest.json").exists()
           PY
@@ -496,8 +497,9 @@ jobs:
           assert payload["status"] == "completed", payload
           assert plan["publication_mode"] == "published", payload
           assert plan["consumer_verification"]["succeeded"] is True, payload
-          assert (publication_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1062" / "register_map.hpp").exists()
-          assert (publication_root / "nxp" / "imxrt1060" / "generated" / "devices" / "mimxrt1064" / "register_map.hpp").exists()
+          assert (publication_root / "nxp" / "imxrt1060" / "generated" / "runtime" / "types.hpp").exists()
+          assert (publication_root / "nxp" / "imxrt1060" / "generated" / "runtime" / "devices" / "mimxrt1062" / "registers.hpp").exists()
+          assert (publication_root / "nxp" / "imxrt1060" / "generated" / "runtime" / "devices" / "mimxrt1064" / "registers.hpp").exists()
           assert (publication_root / "nxp" / "imxrt1060" / "metadata" / "family-index.json").exists()
           assert (publication_root / "nxp" / "imxrt1060" / "artifact-manifest.json").exists()
           PY
@@ -623,8 +625,9 @@ jobs:
           assert payload["status"] == "completed", payload
           assert plan["publication_mode"] == "published", payload
           assert plan["consumer_verification"]["succeeded"] is True, payload
-          assert (publication_root / "st" / "stm32f4" / "generated" / "devices" / "stm32f401re" / "register_map.hpp").exists()
-          assert (publication_root / "st" / "stm32f4" / "generated" / "devices" / "stm32f405rg" / "register_map.hpp").exists()
+          assert (publication_root / "st" / "stm32f4" / "generated" / "runtime" / "types.hpp").exists()
+          assert (publication_root / "st" / "stm32f4" / "generated" / "runtime" / "devices" / "stm32f401re" / "registers.hpp").exists()
+          assert (publication_root / "st" / "stm32f4" / "generated" / "runtime" / "devices" / "stm32f405rg" / "registers.hpp").exists()
           assert (publication_root / "st" / "stm32f4" / "metadata" / "family-index.json").exists()
           assert (publication_root / "st" / "stm32f4" / "artifact-manifest.json").exists()
           PY
@@ -749,8 +752,9 @@ jobs:
           assert payload["status"] == "completed", payload
           assert plan["publication_mode"] == "published", payload
           assert plan["consumer_verification"]["succeeded"] is True, payload
-          assert (publication_root / "microchip" / "same70" / "generated" / "devices" / "atsame70n21b" / "register_map.hpp").exists()
-          assert (publication_root / "microchip" / "same70" / "generated" / "devices" / "atsame70q21b" / "register_map.hpp").exists()
+          assert (publication_root / "microchip" / "same70" / "generated" / "runtime" / "types.hpp").exists()
+          assert (publication_root / "microchip" / "same70" / "generated" / "runtime" / "devices" / "atsame70n21b" / "registers.hpp").exists()
+          assert (publication_root / "microchip" / "same70" / "generated" / "runtime" / "devices" / "atsame70q21b" / "registers.hpp").exists()
           assert (publication_root / "microchip" / "same70" / "metadata" / "family-index.json").exists()
           assert (publication_root / "microchip" / "same70" / "artifact-manifest.json").exists()
           PY

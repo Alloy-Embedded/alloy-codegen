@@ -159,12 +159,12 @@ jobs:
 
           for device in expected_devices:
               for relative_path in (
-                  f"generated/devices/{device}/device_descriptor.hpp",
-                  f"generated/devices/{device}/pins.hpp",
-                  f"generated/devices/{device}/peripheral_instances.hpp",
-                  f"generated/devices/{device}/capability_overlays.hpp",
-                  f"generated/devices/{device}/register_map.hpp",
-                  f"generated/devices/{device}/startup_descriptors.hpp",
+                  "generated/runtime/types.hpp",
+                  f"generated/runtime/devices/{device}/pins.hpp",
+                  f"generated/runtime/devices/{device}/peripheral_instances.hpp",
+                  f"generated/runtime/devices/{device}/register_fields.hpp",
+                  f"generated/runtime/devices/{device}/registers.hpp",
+                  f"generated/runtime/devices/{device}/startup.hpp",
                   f"generated/devices/{device}/startup_vectors.cpp",
               ):
                   assert (family_root / relative_path).exists(), relative_path
