@@ -2743,6 +2743,144 @@ def _microchip_afec_row(
     )
 
 
+def _nxp_adc_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> AdcSemanticRow:
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=16,
+        result_bits=12,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        has_hardware_trigger=True,
+        has_channel_bitmask_select=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="GC",
+            fallback_offset=0x48,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HS",
+            fallback_offset=0x20,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CFG",
+            fallback_offset=0x44,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CFG",
+            fallback_offset=0x44,
+        ),
+        sequence_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HC0",
+            fallback_offset=0x00,
+        ),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="R0",
+            fallback_offset=0x24,
+        ),
+        enable_field=_invalid_field_ref(base_address),
+        disable_field=_invalid_field_ref(base_address),
+        ready_field=_invalid_field_ref(base_address),
+        start_field=_invalid_field_ref(base_address),
+        stop_field=_invalid_field_ref(base_address),
+        continuous_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="GC",
+            field_names=("ADCO",),
+            fallback_register_offset=0x48,
+            fallback_bit_offset=6,
+            fallback_bit_width=1,
+        ),
+        resolution_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CFG",
+            field_names=("MODE",),
+            fallback_register_offset=0x44,
+            fallback_bit_offset=2,
+            fallback_bit_width=2,
+        ),
+        align_field=_invalid_field_ref(base_address),
+        dma_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="GC",
+            field_names=("DMAEN",),
+            fallback_register_offset=0x48,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        dma_mode_field=_invalid_field_ref(base_address),
+        external_trigger_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CFG",
+            field_names=("ADTRG",),
+            fallback_register_offset=0x44,
+            fallback_bit_offset=13,
+            fallback_bit_width=1,
+        ),
+        external_trigger_select_field=_invalid_field_ref(base_address),
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HS",
+            field_names=("COCO0",),
+            fallback_register_offset=0x20,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_invalid_field_ref(base_address),
+        overrun_field=_invalid_field_ref(base_address),
+        data_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="R0",
+            field_names=("CDATA",),
+            fallback_register_offset=0x24,
+            fallback_bit_offset=0,
+            fallback_bit_width=12,
+        ),
+        channel_select_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HC0",
+            field_names=("ADCH",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=5,
+        ),
+        channel_bit_pattern=_invalid_indexed_field_ref(base_address),
+        channel_enable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_disable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_status_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x20,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=1,
+        ),
+    )
+
+
 def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
     rows: list[AdcSemanticRow] = []
     for peripheral in context.runtime_peripherals_by_class.get("adc", ()):
@@ -2759,6 +2897,199 @@ def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
                     schema_id=schema_id,
                 )
             )
+        elif schema_id == "alloy.adc.nxp-adc":
+            rows.append(_nxp_adc_row(context, peripheral_name=peripheral.name, schema_id=schema_id))
+    return tuple(rows)
+
+
+def _st_dac_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> DacSemanticRow:
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    prefixed_registers = (peripheral_name, "DAC_CR") in context.register_by_key
+    register_prefix = "DAC_" if prefixed_registers else ""
+    control_register_name = f"{register_prefix}CR"
+    trigger_register_name = f"{register_prefix}SWTRGR"
+    dual_data_register_name = f"{register_prefix}DHR12RD"
+    data_register_name = dual_data_register_name
+    dual_channel = (
+        peripheral_name,
+        dual_data_register_name.upper(),
+    ) in context.register_by_key or (
+        peripheral_name,
+        f"{register_prefix}DHR12R2".upper(),
+    ) in context.register_by_key
+    channel_count = 2 if dual_channel else 1
+    trigger_bit_offset = 1 if prefixed_registers else 2
+    trigger_select_bit_offset = 2 if prefixed_registers else 3
+    trigger_select_width = 4 if prefixed_registers else 3
+    mode_register = (
+        _resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=f"{register_prefix}MCR",
+            fallback_offset=0x3C,
+        )
+        if prefixed_registers
+        else _invalid_register_ref(base_address)
+    )
+    return DacSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=channel_count,
+        has_hardware_trigger=True,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            fallback_offset=0x00,
+        ),
+        mode_reg=mode_register,
+        trigger_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=trigger_register_name,
+            fallback_offset=0x04,
+        ),
+        channel_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            fallback_offset=0x00,
+        ),
+        channel_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=control_register_name,
+            fallback_offset=0x00,
+        ),
+        channel_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=f"{register_prefix}SR",
+            fallback_offset=0x34,
+        ),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=data_register_name,
+            fallback_offset=0x20 if dual_channel else 0x08,
+        ),
+        software_reset_field=_invalid_field_ref(base_address),
+        word_mode_field=_invalid_field_ref(base_address),
+        prescaler_field=_invalid_field_ref(base_address),
+        channel_enable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x00,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=16,
+        ),
+        channel_disable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x00,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=1,
+            bit_stride_bits=16,
+        ),
+        channel_ready_pattern=_invalid_indexed_field_ref(base_address),
+        trigger_enable_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x00,
+            stride_bytes=0,
+            bit_offset=trigger_bit_offset,
+            bit_width=1,
+            bit_stride_bits=16,
+        ),
+        trigger_select_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x00,
+            stride_bytes=0,
+            bit_offset=trigger_select_bit_offset,
+            bit_width=trigger_select_width,
+            bit_stride_bits=16,
+        ),
+        data_pattern=_indexed_field_ref(
+            base_address=base_address,
+            base_offset_bytes=0x20 if dual_channel else 0x08,
+            stride_bytes=0,
+            bit_offset=0,
+            bit_width=12,
+            bit_stride_bits=16 if dual_channel else 0,
+        ),
+    )
+
+
+def _st_dac_channel_rows(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[DacChannelSemanticRow, ...]:
+    prefixed_registers = (peripheral_name, "DAC_CR") in context.register_by_key
+    register_prefix = "DAC_" if prefixed_registers else ""
+    channel_count = (
+        2
+        if (peripheral_name, f"{register_prefix}DHR12R2".upper()) in context.register_by_key
+        else 1
+    )
+    trigger_select_width = 4 if prefixed_registers else 3
+    rows: list[DacChannelSemanticRow] = []
+    for channel_index in range(channel_count):
+        channel_number = channel_index + 1
+        register_offset = 0x08 + (channel_index * 0x0C)
+        enable_field = _resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name=f"{register_prefix}CR",
+            field_names=(f"EN{channel_number}",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=channel_index * 16,
+            fallback_bit_width=1,
+        )
+        rows.append(
+            DacChannelSemanticRow(
+                peripheral_name=peripheral_name,
+                channel_index=channel_index,
+                enable_field=enable_field,
+                disable_field=enable_field,
+                ready_field=_invalid_field_ref(
+                    context.peripheral_by_name[peripheral_name].base_address
+                ),
+                trigger_enable_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"{register_prefix}CR",
+                    field_names=(f"TEN{channel_number}",),
+                    fallback_register_offset=0x00,
+                    fallback_bit_offset=(1 if prefixed_registers else 2) + (channel_index * 16),
+                    fallback_bit_width=1,
+                ),
+                trigger_select_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"{register_prefix}CR",
+                    field_names=(f"TSEL{channel_number}",),
+                    fallback_register_offset=0x00,
+                    fallback_bit_offset=(2 if prefixed_registers else 3) + (channel_index * 16),
+                    fallback_bit_width=trigger_select_width,
+                ),
+                data_field=_resolve_field_ref(
+                    context,
+                    peripheral_name=peripheral_name,
+                    register_name=f"{register_prefix}DHR12R{channel_number}",
+                    field_names=(f"DACC{channel_number}DHR",),
+                    fallback_register_offset=register_offset,
+                    fallback_bit_offset=0,
+                    fallback_bit_width=12,
+                ),
+            )
+        )
     return tuple(rows)
 
 
@@ -2974,7 +3305,16 @@ def _build_dac_rows(
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
-        if schema_id == "alloy.dac.microchip-dacc-e":
+        if schema_id.startswith("alloy.dac.st-"):
+            rows.append(
+                _st_dac_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+            channel_rows.extend(_st_dac_channel_rows(context, peripheral_name=peripheral.name))
+        elif schema_id == "alloy.dac.microchip-dacc-e":
             rows.append(
                 _microchip_dac_row(
                     context,

@@ -146,6 +146,52 @@ def test_publish_microchip_family_scope(
     ).exists()
 
 
+def test_publish_stm32f4_family_scope(
+    execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(vendor="st", family="stm32f4"), execution_context)
+
+    assert result.stage == "publish"
+    assert result.status == "completed"
+    assert result.payload.publication_mode == "published"
+    assert result.payload.consumer_verification is not None
+    assert result.payload.consumer_verification.succeeded is True
+    assert (
+        execution_context.publication_root
+        / "st"
+        / "stm32f4"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32f405rg"
+        / "driver_semantics"
+        / "dac.hpp"
+    ).exists()
+
+
+def test_publish_nxp_family_scope(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(vendor="nxp", family="imxrt1060"), nxp_execution_context)
+
+    assert result.stage == "publish"
+    assert result.status == "completed"
+    assert result.payload.publication_mode == "published"
+    assert result.payload.consumer_verification is not None
+    assert result.payload.consumer_verification.succeeded is True
+    assert (
+        nxp_execution_context.publication_root
+        / "nxp"
+        / "imxrt1060"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "mimxrt1064"
+        / "driver_semantics"
+        / "adc.hpp"
+    ).exists()
+
+
 def test_publish_does_not_modify_publication_root_when_validation_fails(
     execution_context: ExecutionContext,
     monkeypatch,
