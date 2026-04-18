@@ -38,6 +38,8 @@ def _common_family_artifact_paths(family_dir: str) -> tuple[str, ...]:
         f"{family_dir}/reports/validation-report.json",
         f"{family_dir}/reports/validation-summary.json",
         f"{family_dir}/reports/coverage.json",
+        f"{family_dir}/reports/runtime-provenance.json",
+        f"{family_dir}/reports/runtime-explainability.json",
         f"{family_dir}/generated/runtime/types.hpp",
     )
 
@@ -62,6 +64,12 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/startup.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/interrupts.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/resets.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/enable_domains.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/clock_graph.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/capabilities.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/system_sequences.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/common.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/gpio.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/uart.hpp",

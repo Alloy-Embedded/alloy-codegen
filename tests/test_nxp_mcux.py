@@ -329,6 +329,8 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
 
     assert f"{family_dir}/artifact-manifest.json" in artifacts
     assert f"{family_dir}/reports/validation-report.json" in artifacts
+    assert f"{family_dir}/reports/runtime-provenance.json" in artifacts
+    assert f"{family_dir}/reports/runtime-explainability.json" in artifacts
     assert f"{family_dir}/metadata/family-index.json" in artifacts
     assert f"{family_dir}/metadata/family-connectivity.json" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
@@ -344,6 +346,12 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_clock.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupts.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/resets.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/enable_domains.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_graph.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/capabilities.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_sequences.hpp" in artifacts
     assert not any(p.startswith(f"{family_dir}/generated/peripherals/") for p in artifacts)
     assert not any(p.startswith(f"{family_dir}/generated/ip/") for p in artifacts)
 
@@ -372,6 +380,22 @@ def test_emit_nxp_imxrt1060_artifact_content(
     ]
     runtime_routes = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp"]
     runtime_startup = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp"]
+    runtime_interrupts = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupts.hpp"
+    ]
+    runtime_resets = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/resets.hpp"]
+    runtime_enable_domains = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/enable_domains.hpp"
+    ]
+    runtime_clock_graph = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_graph.hpp"
+    ]
+    runtime_capabilities = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/capabilities.hpp"
+    ]
+    runtime_system_sequences = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/system_sequences.hpp"
+    ]
     assert "enum class BackendSchemaId" in runtime_types.content
     assert "enum class StartupKindId" in runtime_types.content
     assert "enum class VectorKindId" in runtime_types.content
@@ -383,6 +407,13 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "RouteTraits<" in runtime_routes.content
     assert "kVectorSlots" in runtime_startup.content
     assert "kStartupDescriptors" in runtime_startup.content
+    assert "kInterruptDescriptors" in runtime_interrupts.content
+    assert "kResetDescriptors" in runtime_resets.content
+    assert "kEnableDomains" in runtime_enable_domains.content
+    assert "EnableDomainTraits<EnableDomainId::" in runtime_enable_domains.content
+    assert "kClockDependencies" in runtime_clock_graph.content
+    assert "kCapabilities" in runtime_capabilities.content
+    assert "kSystemSequenceSteps" in runtime_system_sequences.content
 
 
 def test_emit_nxp_imxrt1060_reports_publishable_descriptor_coverage(
@@ -416,6 +447,11 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "clock_bindings.hpp",
         "systick.hpp",
         "startup.hpp",
+        "interrupts.hpp",
+        "resets.hpp",
+        "clock_graph.hpp",
+        "capabilities.hpp",
+        "system_sequences.hpp",
         "system_clock.hpp",
         "dma_bindings.hpp",
         "routes.hpp",

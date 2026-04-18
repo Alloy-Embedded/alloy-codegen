@@ -28,6 +28,12 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/interrupts.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/resets.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/enable_domains.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/clock_graph.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/capabilities.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/system_sequences.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
@@ -43,6 +49,8 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/reports/validation-report.json`
 - `<vendor>/<family>/reports/validation-summary.json`
 - `<vendor>/<family>/reports/coverage.json`
+- `<vendor>/<family>/reports/runtime-provenance.json`
+- `<vendor>/<family>/reports/runtime-explainability.json`
 - `<vendor>/<family>/reports/publication-summary.json`
 
 `publication-summary.json` is a local run artifact. It may contain absolute filesystem paths
@@ -77,6 +85,12 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/interrupts.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/resets.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/enable_domains.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/clock_graph.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/capabilities.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/system_sequences.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp`
@@ -92,6 +106,8 @@ Successful publication writes:
 - `<vendor>/<family>/reports/validation-report.json`
 - `<vendor>/<family>/reports/validation-summary.json`
 - `<vendor>/<family>/reports/coverage.json`
+- `<vendor>/<family>/reports/runtime-provenance.json`
+- `<vendor>/<family>/reports/runtime-explainability.json`
 - `<vendor>/<family>/reports/publication-record.json`
 
 ## Contract Notes
@@ -101,6 +117,11 @@ Successful publication writes:
   runtime facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
   `adc`, `dac`, `timer`, and `pwm`.
 - `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
+- `generated/runtime/devices/<device>/enable_domains.hpp` exposes typed enable-domain facts for
+  peripherals whose activation is governed by published runtime clock-gate controls.
+- `generated/runtime/devices/<device>/system_sequences.hpp` is the typed foundational
+  bring-up sequence contract that ties startup, startup-control, and default clock metadata
+  together without reintroducing reflection-heavy tables.
 - `generated/devices/<device>/startup.cpp` and `startup_vectors.cpp` remain published build
   translation units.
 - Published artifacts are written only when validation passes for the requested scope.
@@ -113,6 +134,10 @@ Successful publication writes:
   compiled against the checked-out Alloy headers and the staged/published runtime contract.
 - `reports/publication-record.json` contains the deterministic `target_artifact_revision` for the
   published artifact set.
+- `reports/runtime-provenance.json` traces runtime-critical published facts back to upstream
+  sources, patches, and inference rules.
+- `reports/runtime-explainability.json` explains accepted runtime routes, bindings, capabilities,
+  and any heuristic or partial coverage that remains visible in the published contract.
 - `artifact-manifest.json` is the traceability entrypoint for generator version, schema
   version, source manifest, patch manifest, and validation hashes.
 

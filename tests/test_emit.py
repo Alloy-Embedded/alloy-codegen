@@ -45,6 +45,8 @@ def test_emit_includes_metadata_artifacts_with_content(
     validation_artifact = artifacts["st/stm32g0/reports/validation-report.json"]
     validation_summary_artifact = artifacts["st/stm32g0/reports/validation-summary.json"]
     coverage_artifact = artifacts["st/stm32g0/reports/coverage.json"]
+    provenance_report_artifact = artifacts["st/stm32g0/reports/runtime-provenance.json"]
+    explainability_report_artifact = artifacts["st/stm32g0/reports/runtime-explainability.json"]
     family_index_artifact = artifacts["st/stm32g0/metadata/family-index.json"]
     connectivity_artifact = artifacts["st/stm32g0/metadata/family-connectivity.json"]
     ip_blocks_artifact = artifacts["st/stm32g0/metadata/ip-blocks.json"]
@@ -110,6 +112,24 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_startup_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
     ]
+    runtime_interrupts_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/interrupts.hpp"
+    ]
+    runtime_resets_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp"
+    ]
+    runtime_enable_domains_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/enable_domains.hpp"
+    ]
+    runtime_clock_graph_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_graph.hpp"
+    ]
+    runtime_capabilities_contract_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp"
+    ]
+    runtime_system_sequences_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/system_sequences.hpp"
+    ]
     runtime_system_clock_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
     ]
@@ -125,6 +145,8 @@ def test_emit_includes_metadata_artifacts_with_content(
         validation_artifact,
         validation_summary_artifact,
         coverage_artifact,
+        provenance_report_artifact,
+        explainability_report_artifact,
         family_index_artifact,
         connectivity_artifact,
         ip_blocks_artifact,
@@ -138,6 +160,7 @@ def test_emit_includes_metadata_artifacts_with_content(
             "canonical-metadata",
             "validation-report",
             "coverage-report",
+            "runtime-report",
         }
         assert artifact.content is not None
         assert artifact.content_sha256 is not None
@@ -149,6 +172,8 @@ def test_emit_includes_metadata_artifacts_with_content(
     validation_payload = json.loads(validation_artifact.content)
     validation_summary_payload = json.loads(validation_summary_artifact.content)
     coverage_payload = json.loads(coverage_artifact.content)
+    provenance_report_payload = json.loads(provenance_report_artifact.content)
+    explainability_report_payload = json.loads(explainability_report_artifact.content)
     family_index_payload = json.loads(family_index_artifact.content)
     connectivity_payload = json.loads(connectivity_artifact.content)
     ip_blocks_payload = json.loads(ip_blocks_artifact.content)
@@ -178,6 +203,16 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert coverage_payload["all_devices_publishable"] is True
     assert coverage_payload["devices"][0]["domains"]["startup"] is True
     assert coverage_payload["devices"][0]["counts"]["connection_candidates"] > 0
+    assert provenance_report_payload["report_id"] == "runtime-provenance-v1"
+    assert provenance_report_payload["devices"][0]["device"] == "stm32g071rb"
+    assert provenance_report_payload["devices"][0]["fact_count"] > 0
+    assert explainability_report_payload["report_id"] == "runtime-explainability-v1"
+    assert explainability_report_payload["devices"][0]["device"] == "stm32g071rb"
+    assert explainability_report_payload["devices"][0]["route_decision_count"] > 0
+    assert any(
+        coverage["coverage_kind"] in {"instance", "class-only"}
+        for coverage in explainability_report_payload["devices"][0]["capability_coverage"]
+    )
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (
@@ -291,6 +326,33 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "StartupSymbolId" in runtime_startup_artifact.content
     assert "kVectorSlots" in runtime_startup_artifact.content
     assert "kStartupDescriptors" in runtime_startup_artifact.content
+    assert runtime_interrupts_artifact.artifact_kind == "generated-cpp"
+    assert "enum class InterruptId" in runtime_interrupts_artifact.content
+    assert "kInterruptDescriptors" in runtime_interrupts_artifact.content
+    assert runtime_resets_artifact.artifact_kind == "generated-cpp"
+    assert "kResetDescriptors" in runtime_resets_artifact.content
+    assert runtime_enable_domains_artifact.artifact_kind == "generated-cpp"
+    assert "using EnableDomainId = ClockGateId;" in runtime_enable_domains_artifact.content
+    assert "kEnableDomains" in runtime_enable_domains_artifact.content
+    assert "PeripheralEnableDomainTraits<PeripheralId::" in runtime_enable_domains_artifact.content
+    assert runtime_clock_graph_artifact.artifact_kind == "generated-cpp"
+    assert "enum class ClockNodeId" in runtime_clock_graph_artifact.content
+    assert "kClockDependencies" in runtime_clock_graph_artifact.content
+    assert runtime_capabilities_contract_artifact.artifact_kind == "generated-cpp"
+    assert "enum class CapabilityId" in runtime_capabilities_contract_artifact.content
+    assert (
+        "PeripheralCapabilityTraits<PeripheralId::"
+        in runtime_capabilities_contract_artifact.content
+    )
+    assert "kCapabilities" in runtime_capabilities_contract_artifact.content
+    assert "CapabilityNameId::runtime_supported" in runtime_capabilities_contract_artifact.content
+    assert runtime_system_sequences_artifact.artifact_kind == "generated-cpp"
+    assert "enum class SystemSequenceId" in runtime_system_sequences_artifact.content
+    assert "kSystemSequenceSteps" in runtime_system_sequences_artifact.content
+    assert (
+        "SystemSequenceTraits<SystemSequenceId::default_bringup>"
+        in runtime_system_sequences_artifact.content
+    )
     assert runtime_system_clock_artifact.artifact_kind == "generated-cpp"
     assert (
         "SystemClockProfileTraits<SystemClockProfileId::" in runtime_system_clock_artifact.content
@@ -382,6 +444,18 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_system_clock = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/system_clock.hpp"
     ].content
+    same70_capabilities = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/capabilities.hpp"
+    ].content
+    same70_resets = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/resets.hpp"
+    ].content
+    same70_enable_domains = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/enable_domains.hpp"
+    ].content
+    same70_system_sequences = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/system_sequences.hpp"
+    ].content
     assert "ClockGateTraits<ClockGateId::gate_usart0>" in same70_clock_bindings
     assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
     assert "PeripheralId::WDT" in same70_peripheral_instances
@@ -424,12 +498,33 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemClockProfileId::plla_150mhz" in same70_system_clock
     assert "FieldId::field_pmc_ckgr_mor_key" in same70_system_clock
     assert "FieldId::field_efc_eefc_fmr_fws" in same70_system_clock
+    assert "kCapabilities" in same70_capabilities
+    assert "CapabilityNameId::dma_compatible_signal" in same70_capabilities
+    assert "CapabilityNameId::runtime_supported" in same70_capabilities
+    assert "kResetDescriptors" in same70_resets
+    assert "kEnableDomains" in same70_enable_domains
+    assert "PeripheralEnableDomainTraits<PeripheralId::USART0>" in same70_enable_domains
+    assert "SystemSequenceId::default_bringup" in same70_system_sequences
+    assert "PeripheralId::WDT" in same70_system_sequences
+    assert "SystemClockProfileId::default_safe_internal_12mhz" in same70_system_sequences
 
     nxp_clock_bindings = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
     ].content
     nxp_system_clock = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/system_clock.hpp"
+    ].content
+    nxp_capabilities = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/capabilities.hpp"
+    ].content
+    nxp_resets = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/resets.hpp"
+    ].content
+    nxp_enable_domains = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/enable_domains.hpp"
+    ].content
+    nxp_system_sequences = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/system_sequences.hpp"
     ].content
     assert "ClockGateTraits<ClockGateId::gate_lpuart1>" in nxp_clock_bindings
     assert "RegisterId::register_ccm_ccgr5" in nxp_clock_bindings
@@ -441,6 +536,14 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemClockProfileId::default_arm_pll_600mhz" in nxp_system_clock
     assert "FieldId::field_ccm_analog_pll_arm_div_select" in nxp_system_clock
     assert "FieldId::field_dcdc_reg3_trg" in nxp_system_clock
+    assert "PeripheralClassCapabilityTraits<PeripheralClassId::class_gpio>" in nxp_capabilities
+    assert "kCapabilities" in nxp_capabilities
+    assert "CapabilityNameId::runtime_supported" in nxp_capabilities
+    assert "kResetDescriptors" in nxp_resets
+    assert "kEnableDomains" in nxp_enable_domains
+    assert "PeripheralEnableDomainTraits<PeripheralId::LPUART1>" in nxp_enable_domains
+    assert "SystemSequenceId::default_bringup" in nxp_system_sequences
+    assert "SystemClockProfileId::default_arm_pll_600mhz" in nxp_system_sequences
 
 
 def test_emit_matches_golden_artifacts(
@@ -575,6 +678,32 @@ def test_emit_matches_golden_artifacts(
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/systick.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "systick.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/interrupts.hpp"].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "interrupts.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp"].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "resets.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/enable_domains.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "enable_domains.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_graph.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_graph.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "capabilities.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/system_sequences.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_sequences.hpp"
     ).read_text(encoding="utf-8")
     assert artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"

@@ -206,25 +206,58 @@ jobs:
           set -o pipefail
           mkdir -p out/publish
           publish_path="out/publish/${{ matrix.device }}-cycle1.json"
+          publication_root="$RUNNER_TEMP/publication/${{ matrix.device }}"
           python -m alloy_codegen.cli publish \
             --device "${{ matrix.device }}" \
             ${{ matrix.sources }} \
             --artifact-root "$RUNNER_TEMP/artifacts/${{ matrix.device }}" \
-            --publication-root "$RUNNER_TEMP/publication/${{ matrix.device }}" \
+            --publication-root "$publication_root" \
             --alloy-root "$GITHUB_WORKSPACE/alloy" \
             --json | tee "$publish_path"
-          python - "$publish_path" <<'PY'
+          python - "$publish_path" "$publication_root" "${{ matrix.device }}" <<'PY'
           import json
           import sys
           from pathlib import Path
 
           payload = json.loads(Path(sys.argv[1]).read_text())
+          publication_root = Path(sys.argv[2])
+          device = sys.argv[3]
           assert payload["stage"] == "publish", payload
           assert payload["status"] == "completed", payload
           plan = payload["payload"]
           assert plan["publication_mode"] == "published", payload
           assert plan["target_artifact_revision"], payload
           assert plan["consumer_verification"]["succeeded"] is True, payload
+
+          scope = payload["scope"]
+          vendor = scope["vendor"]
+          family = scope["family"]
+          family_root = publication_root / vendor / family
+          provenance = json.loads((family_root / "reports" / "runtime-provenance.json").read_text())
+          explainability = json.loads(
+              (family_root / "reports" / "runtime-explainability.json").read_text()
+          )
+
+          assert provenance["report_id"] == "runtime-provenance-v1", provenance
+          assert explainability["report_id"] == "runtime-explainability-v1", explainability
+
+          provenance_device = next(item for item in provenance["devices"] if item["device"] == device)
+          explainability_device = next(
+              item for item in explainability["devices"] if item["device"] == device
+          )
+          assert provenance_device["fact_count"] > 0, provenance_device
+          assert explainability_device["unsupported_runtime_peripherals"] == [], explainability_device
+          assert explainability_device["route_decision_count"] >= 0, explainability_device
+
+          for relative_path in (
+              f"generated/runtime/devices/{device}/interrupts.hpp",
+              f"generated/runtime/devices/{device}/resets.hpp",
+              f"generated/runtime/devices/{device}/enable_domains.hpp",
+              f"generated/runtime/devices/{device}/clock_graph.hpp",
+              f"generated/runtime/devices/{device}/capabilities.hpp",
+              f"generated/runtime/devices/{device}/system_sequences.hpp",
+          ):
+              assert (family_root / relative_path).exists(), relative_path
           PY
 
       - name: Publish bootstrap artifact cycle 2 and verify determinism

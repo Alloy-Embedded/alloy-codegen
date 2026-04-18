@@ -4,16 +4,26 @@ from __future__ import annotations
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
+from alloy_codegen.runtime_capabilities import (
+    runtime_capabilities_required_paths,
+    runtime_capability_rows,
+)
+from alloy_codegen.runtime_clock_graph import runtime_clock_graph_required_paths
 from alloy_codegen.runtime_driver_semantics import (
     runtime_driver_semantics_required_paths,
 )
+from alloy_codegen.runtime_enable_domains import runtime_enable_domains_required_paths
+from alloy_codegen.runtime_interrupts import runtime_interrupts_required_paths
 from alloy_codegen.runtime_lite_emission import (
     RUNTIME_LITE_PERIPHERAL_CLASSES,
+    _runtime_lite_gate_ids,
     runtime_lite_peripheral_class_name,
     runtime_lite_required_paths,
 )
+from alloy_codegen.runtime_resets import runtime_resets_required_paths
 from alloy_codegen.runtime_startup import runtime_startup_required_paths
 from alloy_codegen.runtime_system_clock import runtime_system_clock_required_paths
+from alloy_codegen.runtime_system_sequences import runtime_system_sequences_required_paths
 from alloy_codegen.runtime_systick import runtime_systick_required_paths
 
 
@@ -67,6 +77,30 @@ def find_runtime_lite_contract_violations(
         devices=devices,
     )
     required_paths = required_paths + runtime_systick_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_interrupts_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_resets_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_enable_domains_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_clock_graph_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_capabilities_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_system_sequences_required_paths(
         family_dir=family_dir,
         devices=devices,
     )
@@ -160,6 +194,12 @@ def find_runtime_lite_contract_violations(
             "systick": f"{device_runtime_root}/systick.hpp",
             "startup": f"{device_runtime_root}/startup.hpp",
             "system_clock": f"{device_runtime_root}/system_clock.hpp",
+            "interrupts": f"{device_runtime_root}/interrupts.hpp",
+            "resets": f"{device_runtime_root}/resets.hpp",
+            "enable_domains": f"{device_runtime_root}/enable_domains.hpp",
+            "clock_graph": f"{device_runtime_root}/clock_graph.hpp",
+            "capabilities": f"{device_runtime_root}/capabilities.hpp",
+            "system_sequences": f"{device_runtime_root}/system_sequences.hpp",
         }
         content_by_key = {
             key: artifacts_by_path[path].content if path in artifacts_by_path else None
@@ -284,6 +324,103 @@ def find_runtime_lite_contract_violations(
             violations.append(
                 f"{device_runtime_paths['system_clock']} still emits the generic metadata-only "
                 "system-clock fallback for foundational IMXRT1060"
+            )
+
+        if (
+            content_by_key["interrupts"]
+            and "enum class InterruptId" not in content_by_key["interrupts"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['interrupts']} does not emit InterruptId enum"
+            )
+        if (
+            content_by_key["interrupts"]
+            and "kInterruptDescriptors" not in content_by_key["interrupts"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['interrupts']} does not emit kInterruptDescriptors"
+            )
+        if content_by_key["resets"] and "kResetDescriptors" not in content_by_key["resets"]:
+            violations.append(f"{device_runtime_paths['resets']} does not emit kResetDescriptors")
+        if _runtime_lite_gate_ids(device):
+            enable_domains_content = content_by_key["enable_domains"]
+            if enable_domains_content is None:
+                violations.append(
+                    "missing runtime enable-domain header: "
+                    f"{device_runtime_paths['enable_domains']}"
+                )
+            elif "kEnableDomains" not in enable_domains_content:
+                violations.append(
+                    f"{device_runtime_paths['enable_domains']} does not emit kEnableDomains"
+                )
+            elif "EnableDomainTraits<EnableDomainId::" not in enable_domains_content:
+                violations.append(
+                    f"{device_runtime_paths['enable_domains']} does not emit enable-domain traits"
+                )
+            elif "PeripheralEnableDomainTraits<PeripheralId::" not in enable_domains_content:
+                violations.append(
+                    f"{device_runtime_paths['enable_domains']} does not emit per-peripheral "
+                    "enable-domain traits"
+                )
+        if (
+            content_by_key["clock_graph"]
+            and "enum class ClockNodeId" not in content_by_key["clock_graph"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_graph']} does not emit ClockNodeId enum"
+            )
+        if (
+            content_by_key["clock_graph"]
+            and "kClockDependencies" not in content_by_key["clock_graph"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_graph']} does not emit kClockDependencies"
+            )
+        if (
+            content_by_key["capabilities"]
+            and "enum class CapabilityId" not in content_by_key["capabilities"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['capabilities']} does not emit CapabilityId enum"
+            )
+        if content_by_key["capabilities"] and "kCapabilities" not in content_by_key["capabilities"]:
+            violations.append(f"{device_runtime_paths['capabilities']} does not emit kCapabilities")
+        if (
+            content_by_key["capabilities"]
+            and "PeripheralCapabilityTraits<PeripheralId::" not in content_by_key["capabilities"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['capabilities']} does not emit peripheral capability traits"
+            )
+        if (
+            content_by_key["capabilities"]
+            and "PeripheralClassCapabilityTraits<PeripheralClassId::"
+            not in content_by_key["capabilities"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['capabilities']} does not emit class capability traits"
+            )
+        if (
+            content_by_key["system_sequences"]
+            and "enum class SystemSequenceId" not in content_by_key["system_sequences"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_sequences']} does not emit SystemSequenceId enum"
+            )
+        if (
+            content_by_key["system_sequences"]
+            and "kSystemSequenceSteps" not in content_by_key["system_sequences"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_sequences']} does not emit kSystemSequenceSteps"
+            )
+        if (
+            content_by_key["system_sequences"]
+            and "SystemSequenceTraits<SystemSequenceId::default_bringup>"
+            not in content_by_key["system_sequences"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['system_sequences']} does not emit default bring-up traits"
             )
 
         gpio_candidates = tuple(
@@ -411,6 +548,21 @@ def find_runtime_lite_contract_violations(
                 )
 
         runtime_peripheral_names = {peripheral.name for peripheral in runtime_peripherals}
+        runtime_capabilities = runtime_capability_rows(device)
+        class_capabilities = {capability.peripheral_class for capability in runtime_capabilities}
+        peripheral_capabilities = {
+            capability.peripheral for capability in runtime_capabilities if capability.peripheral
+        }
+        for peripheral in runtime_peripherals:
+            class_name = runtime_lite_peripheral_class_name(peripheral.ip_name)
+            if peripheral.name in peripheral_capabilities:
+                continue
+            if class_name in class_capabilities:
+                continue
+            violations.append(
+                f"{device.identity.device} runtime peripheral {peripheral.name} "
+                "has no published capability coverage"
+            )
         runtime_dma_bindings = tuple(
             binding
             for binding in device.dma_bindings

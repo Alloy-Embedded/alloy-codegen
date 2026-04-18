@@ -31,6 +31,12 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/systick.hpp`
   - `generated/runtime/devices/<device>/startup.hpp`
   - `generated/runtime/devices/<device>/system_clock.hpp`
+  - `generated/runtime/devices/<device>/interrupts.hpp`
+  - `generated/runtime/devices/<device>/resets.hpp`
+  - `generated/runtime/devices/<device>/enable_domains.hpp`
+  - `generated/runtime/devices/<device>/clock_graph.hpp`
+  - `generated/runtime/devices/<device>/capabilities.hpp`
+  - `generated/runtime/devices/<device>/system_sequences.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/common.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/gpio.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/uart.hpp`
@@ -47,12 +53,15 @@ Published `alloy-devices` trees may contain:
   - `reports/validation-report.json`
   - `reports/validation-summary.json`
   - `reports/coverage.json`
+  - `reports/runtime-provenance.json`
+  - `reports/runtime-explainability.json`
   - `reports/publication-record.json`
 
 Those files may describe:
 
 - addresses
-- typed peripheral, pin, register, route, DMA, startup, SysTick, and clock facts
+- typed peripheral, pin, register, route, DMA, startup, SysTick, interrupt, reset,
+  clock-graph, capability, and bring-up sequence facts
 - validation and publication status
 
 The published C++ contract is runtime-first:
@@ -63,9 +72,17 @@ The published C++ contract is runtime-first:
   foundational drivers, including DMA, ADC, DAC, timer, and PWM
 - `generated/runtime/devices/<device>/startup.hpp` carries the typed startup descriptor surface
   that Alloy consumes for startup metadata
+- `generated/runtime/devices/<device>/enable_domains.hpp` carries typed enable-domain facts
+  derived from published runtime gate controls so Alloy does not need to reconstruct peripheral
+  activation policy from low-level clock tables
+- `generated/runtime/devices/<device>/system_sequences.hpp` carries typed default bring-up
+  ordering metadata so Alloy can sequence startup descriptors, startup controls, and default
+  clock profiles without reconstructing vendor policy from tables
 - `generated/devices/<device>/startup.cpp` and `startup_vectors.cpp` remain published as build
   inputs, not as a descriptor contract
 - JSON metadata and reports remain available for tooling, validation, and inspection
+- provenance and explainability reports remain JSON-only outputs; they are not a second public
+  C++ contract
 
 ## Alloy-Owned Behavior
 

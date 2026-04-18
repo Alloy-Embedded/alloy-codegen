@@ -29,6 +29,8 @@ from alloy_codegen.emission import (
 )
 from alloy_codegen.manifests import ArtifactManifest
 from alloy_codegen.reporting import EmissionPlan, EmittedArtifact
+from alloy_codegen.runtime_capabilities import emit_runtime_capabilities_header
+from alloy_codegen.runtime_clock_graph import emit_runtime_clock_graph_header
 from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_adc_semantics_header,
     emit_runtime_driver_dac_semantics_header,
@@ -41,6 +43,8 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_timer_semantics_header,
     emit_runtime_driver_uart_semantics_header,
 )
+from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
+from alloy_codegen.runtime_interrupts import emit_runtime_interrupts_header
 from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_clock_bindings_header,
     emit_runtime_lite_dma_bindings_header,
@@ -51,8 +55,14 @@ from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_routes_header,
     emit_runtime_lite_types_header,
 )
+from alloy_codegen.runtime_reports import (
+    emit_runtime_explainability_report,
+    emit_runtime_provenance_report,
+)
+from alloy_codegen.runtime_resets import emit_runtime_resets_header
 from alloy_codegen.runtime_startup import emit_runtime_startup_header
 from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
+from alloy_codegen.runtime_system_sequences import emit_runtime_system_sequences_header
 from alloy_codegen.runtime_systick import emit_runtime_systick_header
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.serialization import canonical_json_sha256
@@ -99,6 +109,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             devices=devices,
             report=validation_report,
         ),
+        emit_runtime_provenance_report(family_dir=family_dir, devices=devices),
+        emit_runtime_explainability_report(family_dir=family_dir, devices=devices),
         emit_family_index(family_dir=family_dir, devices=devices),
         emit_family_connectivity(family_dir=family_dir, devices=devices),
         emit_ip_blocks_metadata(family_dir=family_dir, devices=devices),
@@ -172,6 +184,26 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     family_dir=family_dir,
                     device=device,
                 ),
+                emit_runtime_interrupts_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_resets_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_enable_domains_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_clock_graph_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_capabilities_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
                 emit_runtime_systick_header(
                     family_dir=family_dir,
                     device=device,
@@ -181,6 +213,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_system_clock_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_system_sequences_header(
                     family_dir=family_dir,
                     device=device,
                 ),

@@ -147,17 +147,44 @@ jobs:
 
           coverage = json.loads((family_root / "reports" / "coverage.json").read_text())
           summary = json.loads((family_root / "reports" / "validation-summary.json").read_text())
+          provenance = json.loads((family_root / "reports" / "runtime-provenance.json").read_text())
+          explainability = json.loads(
+              (family_root / "reports" / "runtime-explainability.json").read_text()
+          )
 
           assert coverage["vendor"] == vendor, coverage
           assert coverage["family"] == family, coverage
           assert coverage["all_devices_publishable"] is True, coverage
           assert all(bool(device["publishable"]) for device in coverage["devices"]), coverage
           assert summary["draft_system_descriptor_domains"] == [], summary
+          assert provenance["report_id"] == "runtime-provenance-v1", provenance
+          assert explainability["report_id"] == "runtime-explainability-v1", explainability
 
           expected_devices = registered_device_names(vendor, family)
           assert {device["device"] for device in coverage["devices"]} == set(expected_devices)
+          assert {device["device"] for device in provenance["devices"]} == set(expected_devices)
+          assert {device["device"] for device in explainability["devices"]} == set(expected_devices)
+
+          provenance_by_device = {device["device"]: device for device in provenance["devices"]}
+          explainability_by_device = {
+              device["device"]: device for device in explainability["devices"]
+          }
 
           for device in expected_devices:
+              provenance_device = provenance_by_device[device]
+              explainability_device = explainability_by_device[device]
+              assert provenance_device["fact_count"] > 0, provenance_device
+              assert all(
+                  fact["provenance"]["source_ids"] for fact in provenance_device["facts"]
+              ), provenance_device
+              assert all(
+                  fact["inference_rule"]
+                  for fact in provenance_device["facts"]
+                  if fact["derivation_kind"] == "inferred"
+              ), provenance_device
+              assert explainability_device["unsupported_runtime_peripherals"] == [], (
+                  explainability_device
+              )
               for relative_path in (
                   "generated/runtime/types.hpp",
                   f"generated/runtime/devices/{device}/pins.hpp",
@@ -165,6 +192,12 @@ jobs:
                   f"generated/runtime/devices/{device}/register_fields.hpp",
                   f"generated/runtime/devices/{device}/registers.hpp",
                   f"generated/runtime/devices/{device}/startup.hpp",
+                  f"generated/runtime/devices/{device}/interrupts.hpp",
+                  f"generated/runtime/devices/{device}/resets.hpp",
+                  f"generated/runtime/devices/{device}/enable_domains.hpp",
+                  f"generated/runtime/devices/{device}/clock_graph.hpp",
+                  f"generated/runtime/devices/{device}/capabilities.hpp",
+                  f"generated/runtime/devices/{device}/system_sequences.hpp",
                   f"generated/devices/{device}/startup_vectors.cpp",
               ):
                   assert (family_root / relative_path).exists(), relative_path

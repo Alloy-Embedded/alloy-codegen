@@ -21,6 +21,7 @@ from alloy_codegen.publication import (
     promote_staging_root,
 )
 from alloy_codegen.reporting import PublicationPlan
+from alloy_codegen.runtime_reports import find_runtime_report_violations
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.common import StageResult
 from alloy_codegen.stages.emit import run as run_emit
@@ -135,6 +136,32 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             warnings=(
                 "Publication is blocked because runtime-lite artifacts are incomplete or still "
                 f"depend on reflection payloads: {sample}",
+            ),
+        )
+    runtime_report_violations = find_runtime_report_violations(
+        family_dir=f"{emit_result.scope.resolved_vendor()}/{emit_result.scope.resolved_family()}",
+        devices=validate_result.payload.devices,
+    )
+    if runtime_report_violations:
+        sample = "; ".join(runtime_report_violations[:3])
+        if len(runtime_report_violations) > 3:
+            sample = f"{sample}; ..."
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(
+                "Publication is blocked because runtime provenance/explainability coverage is "
+                f"incomplete: {sample}",
             ),
         )
     staging_root = prepare_staging_root(execution_context.publication_root)

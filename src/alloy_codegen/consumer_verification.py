@@ -192,6 +192,30 @@ def verify_runtime_lite_smoke_consumer(
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/startup.hpp"'
         ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/interrupts.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/resets.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ENABLE_DOMAINS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/enable_domains.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_GRAPH_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/clock_graph.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAPABILITIES_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/capabilities.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_SEQUENCES_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/system_sequences.hpp"'
+        ),
         f"-DALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE={vendor}::{family}::generated::runtime",
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE="

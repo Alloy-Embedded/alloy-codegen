@@ -24,6 +24,7 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "generated/runtime/devices/<device>/systick.hpp",
         "generated/runtime/devices/<device>/startup.hpp",
         "generated/runtime/devices/<device>/system_clock.hpp",
+        "generated/runtime/devices/<device>/enable_domains.hpp",
         "generated/runtime/devices/<device>/driver_semantics/common.hpp",
         "generated/runtime/devices/<device>/driver_semantics/gpio.hpp",
         "generated/runtime/devices/<device>/driver_semantics/uart.hpp",
@@ -38,6 +39,8 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "generated/devices/<device>/startup_vectors.cpp",
         "reports/validation-summary.json",
         "reports/coverage.json",
+        "reports/runtime-provenance.json",
+        "reports/runtime-explainability.json",
         "reports/publication-record.json",
     )
     forbidden_tokens = (
@@ -97,6 +100,7 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/enable_domains.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/uart.hpp",
@@ -111,6 +115,8 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp",
         "<vendor>/<family>/reports/validation-summary.json",
         "<vendor>/<family>/reports/coverage.json",
+        "<vendor>/<family>/reports/runtime-provenance.json",
+        "<vendor>/<family>/reports/runtime-explainability.json",
         "<vendor>/<family>/reports/publication-summary.json",
         "<vendor>/<family>/reports/publication-record.json",
     )

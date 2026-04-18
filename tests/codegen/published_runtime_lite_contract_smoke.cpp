@@ -82,6 +82,30 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ENABLE_DOMAINS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ENABLE_DOMAINS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_GRAPH_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_GRAPH_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAPABILITIES_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAPABILITIES_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_SEQUENCES_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_SEQUENCES_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE must be defined"
 #endif
@@ -110,6 +134,12 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTICK_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ENABLE_DOMAINS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_GRAPH_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAPABILITIES_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_SEQUENCES_HEADER
 
 #include <type_traits>
 
@@ -205,6 +235,27 @@ consteval bool first_dma_semantic_present() {
     }
 }
 
+template<const auto& Values>
+consteval bool first_reset_descriptor_present() {
+    constexpr auto kCount = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>;
+    if constexpr (kCount == 0u) {
+        return true;
+    } else {
+        return published_device_runtime::ResetTraits<Values[0].reset_id>::kPresent;
+    }
+}
+
+template<const auto& Values>
+consteval bool first_enable_domain_present() {
+    constexpr auto kCount = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>;
+    if constexpr (kCount == 0u) {
+        return true;
+    } else {
+        return published_device_runtime::EnableDomainTraits<
+            std::get<0>(Values).enable_domain_id>::kPresent;
+    }
+}
+
 template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
 struct FirstDacSemanticSmoke {
     static constexpr bool kPresent = published_driver::DacSemanticTraits<Values[0]>::kPresent
@@ -260,9 +311,20 @@ static_assert(!published_device_runtime::SysTickTraits::kPresent
 static_assert(published_device_runtime::kSystemClockProfiles.size() > 0u);
 static_assert(published_device_runtime::kVectorSlots.size() > 0u);
 static_assert(published_device_runtime::kStartupDescriptors.size() > 0u);
+static_assert(published_device_runtime::kClockDependencies.size() > 0u);
+static_assert(published_device_runtime::kCapabilities.size() > 0u);
+static_assert(published_device_runtime::kSystemSequenceSteps.size() > 0u);
+static_assert(first_reset_descriptor_present<published_device_runtime::kResetDescriptors>());
+static_assert(first_enable_domain_present<published_device_runtime::kEnableDomains>());
 static_assert(
     published_device_runtime::SystemClockProfileTraits<
         published_device_runtime::kSystemClockProfiles[0].profile_id>::kPresent);
+static_assert(
+    published_device_runtime::CapabilityTraits<
+        published_device_runtime::kCapabilities[0].capability_id>::kPresent);
+static_assert(
+    published_device_runtime::SystemSequenceTraits<
+        published_device_runtime::SystemSequenceId::default_bringup>::kPresent);
 
 int main() {
     return 0;

@@ -1,60 +1,72 @@
-## Vendor Admission
+# vendor-admission Specification
 
-### Foundational vendor set
+## Purpose
 
-The following vendors are admitted and their families may be published without further approval:
+Define the policy that governs when a vendor or family is admitted into the supported
+multi-vendor publication set.
 
-| Vendor      | Admitted families | Source pattern                              |
-|-------------|-------------------|---------------------------------------------|
-| `st`        | `stm32g0`, `stm32f4` | repository + structured metadata companion |
-| `microchip` | `same70`          | pack archive + deterministic extracted tree |
-| `nxp`       | `imxrt1060`       | repository + SDK-delivered structured headers |
+## Requirements
 
-### Admission gate
+### Requirement: Foundational vendor set is explicit
 
-A new vendor (vendor 4 or beyond) may NOT enter active implementation until all of the
-following are true:
+The admitted foundational vendor/family set MUST be explicitly documented.
 
-- Gates T7, T8, and T9 are closed:
-  - T7: `st/stm32f4` is publishable and has completed two stable publication cycles
-  - T8: `microchip/same70` is publishable and has completed two stable publication cycles
-  - T9: `nxp/imxrt1060` is publishable and has completed two stable publication cycles
-- No foundational family requires final-stage emitter or publish exceptions
-- A completed vendor-admission proposal exists in `openspec/changes/` declaring all of the
-  items in the checklist below
+#### Scenario: Foundational vendors are listed
 
-### CI enforcement
+- **WHEN** maintainers review current admission status
+- **THEN** the admitted vendor/family set is explicit
+- **AND** the source pattern used by each foundational family is documented
 
-The `quality` job in `bootstrap-family.yml` contains a `Vendor admission gate` step that
-scans `patches/` and fails the build if any vendor directory other than the admitted set is
-present. Removing a vendor from the admitted list or adding a new one requires updating that
-step as part of the same admission proposal.
+### Requirement: New vendor admission is gated
 
-### Vendor admission checklist (J.2)
+A new vendor beyond the admitted foundational set MUST NOT enter active implementation until
+readiness gates are closed and an admission proposal exists.
 
-A proposal to admit a new vendor MUST answer all of the following before merging:
+#### Scenario: Admission checks bootstrap readiness
 
-1. **Vendor identity** — canonical lower-case vendor key and rationale for adding it
-2. **Family** — at least one representative family to be admitted as the bootstrap family
-3. **Source pattern** — which of the three proven source patterns the vendor uses:
-   - `repository + metadata companion` (ST model)
-   - `pack archive + extracted tree` (Microchip DFP model)
-   - `repository + SDK-delivered headers` (NXP SDK model)
-   If the vendor requires a new fourth source pattern, the proposal must explain why the
-   existing generic source-bundle model cannot accommodate it and what pipeline changes
-   would be needed. (J.3)
-4. **Two bootstrap devices** — at least two representative devices that will serve as CI
-   fixtures and golden-fixture baselines
-5. **Fixture plan** — how the source fixtures will be kept minimal, deterministic, and
-   checked into the repository
-6. **Licensing notes** — upstream license for the vendor data and any publication constraints
-7. **Gate plan** — proposed gate IDs (following the N1/N4, M1/M4 numbering convention) and
-   what each gate requires before publication is allowed
+- **WHEN** a new vendor or family is considered publishable
+- **THEN** Gates T7, T8, and T9 are closed
+- **AND** no foundational family requires final-stage emitter or publish exceptions
+- **AND** a completed vendor-admission proposal exists in `openspec/changes/`
 
-### Additional families from admitted vendors
+### Requirement: CI enforces the admitted vendor set
 
-An admitted vendor may add new families beyond their bootstrap family only after:
-- The bootstrap family has completed at least two stable publication cycles
-- No outstanding CI exceptions exist for that vendor's existing families
-- A lightweight proposal (may skip design.md) exists naming the new family, its devices,
-  and its source fixture plan
+The CI workflow MUST fail if unadmitted vendor directories appear in `patches/`.
+
+#### Scenario: Unadmitted vendor directories are blocked
+
+- **WHEN** the quality workflow scans `patches/`
+- **THEN** any vendor directory outside the admitted set fails the build
+
+### Requirement: Vendor admission proposals are complete
+
+A proposal to admit a new vendor MUST answer the bootstrap and source questions needed to make
+the vendor publishable and maintainable.
+
+#### Scenario: Admission proposal covers the full checklist
+
+- **WHEN** a new vendor-admission proposal is reviewed
+- **THEN** it identifies vendor key, bootstrap family, source pattern, bootstrap devices,
+  fixture plan, licensing notes, and gate plan
+
+### Requirement: Additional families from admitted vendors are still gated
+
+Admitted vendors MUST satisfy bootstrap stability and proposal requirements before adding new
+families.
+
+#### Scenario: Existing vendor expands to a new family
+
+- **WHEN** an already admitted vendor adds another family
+- **THEN** the bootstrap family has completed at least two stable publication cycles
+- **AND** no outstanding CI exceptions exist for that vendor
+- **AND** a proposal exists naming the new family, its devices, and its fixture plan
+
+### Requirement: New vendor admission requires semantic and provenance readiness
+
+Vendor/family admission MUST not be judged only by parser success or low-level artifact emission.
+
+#### Scenario: Admission checks semantic readiness
+
+- **WHEN** a new vendor or family is considered publishable
+- **THEN** admission evaluates system-control coverage, capability coverage, and provenance quality
+- **AND** the family is not considered foundational-ready if those remain heuristic or opaque

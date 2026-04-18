@@ -78,6 +78,14 @@ def test_publish_includes_materialized_summary(
         for artifact in payload["materialized_artifacts"]
     )
     assert any(
+        artifact["path"] == "st/stm32g0/reports/runtime-provenance.json"
+        for artifact in payload["materialized_artifacts"]
+    )
+    assert any(
+        artifact["path"] == "st/stm32g0/reports/runtime-explainability.json"
+        for artifact in payload["materialized_artifacts"]
+    )
+    assert any(
         artifact["path"] == "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
         for artifact in payload["materialized_artifacts"]
     )
