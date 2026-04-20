@@ -34,6 +34,7 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/system_clock.hpp`
   - `generated/runtime/devices/<device>/clock_profiles.hpp`
   - `generated/runtime/devices/<device>/clock_config.hpp`
+  - `generated/runtime/devices/<device>/low_power.hpp`
   - `generated/runtime/devices/<device>/interrupts.hpp`
   - `generated/runtime/devices/<device>/interrupt_stubs.hpp`
   - `generated/runtime/devices/<device>/capabilities.json`
@@ -51,6 +52,10 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/driver_semantics/adc.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/dac.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/can.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/eth.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/usb.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/qspi.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/sdmmc.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/rtc.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/watchdog.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/timer.hpp`
@@ -65,6 +70,8 @@ Published `alloy-devices` trees may contain:
   - `reports/coverage.json`
   - `reports/runtime-provenance.json`
   - `reports/runtime-explainability.json`
+  - `reports/runtime-capability-summary.json`
+  - `reports/runtime-compatibility-matrix.json`
   - `reports/publication-record.json`
 
 Those files may describe:
@@ -79,7 +86,8 @@ The published C++ contract is runtime-first:
 - headers under `generated/runtime/` are the only supported Alloy-facing C++ boundary
 - driver semantic headers under
   `generated/runtime/devices/<device>/driver_semantics/` are the required hot-path layer for
-  foundational drivers, including DMA, ADC, DAC, timer, and PWM
+  foundational drivers, including DMA, ADC, DAC, CAN, ETH, USB, QSPI, SDMMC, RTC, watchdog,
+  timer, and PWM
 - `generated/runtime/devices/<device>/startup.hpp` carries the typed startup descriptor surface
   that Alloy consumes for startup metadata
 - `generated/runtime/devices/<device>/interrupts.hpp` carries typed interrupt-to-peripheral
@@ -94,8 +102,12 @@ The published C++ contract is runtime-first:
   profile ids and default/safe/max-profile metadata derived from the canonical clock graph
 - `generated/runtime/devices/<device>/clock_config.hpp` carries ready-to-call typed profile
   application helpers so Alloy does not need handwritten per-device clock bring-up wrappers
+- `generated/runtime/devices/<device>/low_power.hpp` carries typed low-power entry modes plus
+  normalized wakeup-capable pin sources without forcing Alloy to reverse-engineer vendor PMU state
 - `generated/runtime/devices/<device>/capabilities.json` carries the same runtime capability
   facts as the header contract, but in a tool-friendly sidecar for diff, CMake, and diagnostics
+- `alloy-codegen config-schema`, `config-template`, and `config-diagnose` are the supported
+  entrypoints for the declarative configuration layer built on top of the typed runtime contract
 - `alloy-codegen explain --device <device> --fact <fact>` is the supported diagnostic entrypoint
   for tracing one emitted runtime fact back to provenance and explainability reports
 - `alloy-codegen diff --from <device1> --to <device2>` is the supported diagnostic entrypoint

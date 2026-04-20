@@ -31,6 +31,7 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_profiles.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_config.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/low_power.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/interrupts.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/interrupt_stubs.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/capabilities.json`
@@ -48,6 +49,10 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/can.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/eth.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/usb.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/qspi.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/sdmmc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/rtc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/watchdog.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
@@ -61,6 +66,8 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/reports/coverage.json`
 - `<vendor>/<family>/reports/runtime-provenance.json`
 - `<vendor>/<family>/reports/runtime-explainability.json`
+- `<vendor>/<family>/reports/runtime-capability-summary.json`
+- `<vendor>/<family>/reports/runtime-compatibility-matrix.json`
 - `<vendor>/<family>/reports/publication-summary.json`
 
 `publication-summary.json` is a local run artifact. It may contain absolute filesystem paths
@@ -98,6 +105,7 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_profiles.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_config.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/low_power.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/interrupts.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/interrupt_stubs.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/capabilities.json`
@@ -115,6 +123,10 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/can.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/eth.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/usb.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/qspi.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/sdmmc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/rtc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/watchdog.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
@@ -128,6 +140,8 @@ Successful publication writes:
 - `<vendor>/<family>/reports/coverage.json`
 - `<vendor>/<family>/reports/runtime-provenance.json`
 - `<vendor>/<family>/reports/runtime-explainability.json`
+- `<vendor>/<family>/reports/runtime-capability-summary.json`
+- `<vendor>/<family>/reports/runtime-compatibility-matrix.json`
 - `<vendor>/<family>/reports/publication-record.json`
 
 ## Contract Notes
@@ -135,7 +149,7 @@ Successful publication writes:
 - `generated/runtime/` is the only supported Alloy-facing C++ contract.
 - `generated/runtime/devices/<device>/driver_semantics/*.hpp` is the semantic layer that maps
   runtime facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
-  `adc`, `dac`, `timer`, and `pwm`.
+  `adc`, `dac`, `can`, `eth`, `usb`, `qspi`, `sdmmc`, `rtc`, `watchdog`, `timer`, and `pwm`.
 - `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
 - `generated/runtime/devices/<device>/interrupt_stubs.hpp` is the typed weak-interrupt
   declaration contract aligned with the generated startup surface.
@@ -146,8 +160,13 @@ Successful publication writes:
   clock-profile ids, descriptors, and named default/safe/max profile facts.
 - `generated/runtime/devices/<device>/clock_config.hpp` publishes ready-to-call typed
   clock-profile application helpers without duplicating downstream bring-up logic.
+- `generated/runtime/devices/<device>/low_power.hpp` publishes typed low-power entry modes and
+  normalized wakeup-capable pin descriptors for the validated device.
 - `generated/runtime/devices/<device>/capabilities.json` is the machine-readable sidecar for
   the per-device runtime capability contract.
+- `alloy-codegen config-schema`, `config-template`, and `config-diagnose` are the supported
+  entrypoints for the declarative configuration layer layered on top of that same runtime
+  contract.
 - `generated/devices/<device>/device.ld` is the generated linker script carrying the
   device-scoped memory layout and default section placement contract, including address-space-aware
   region naming when the canonical IR exposes Harvard-style memory spaces.
@@ -172,6 +191,10 @@ Successful publication writes:
   sources, patches, and inference rules.
 - `reports/runtime-explainability.json` explains accepted runtime routes, bindings, capabilities,
   and any heuristic or partial coverage that remains visible in the published contract.
+- `reports/runtime-capability-summary.json` aggregates runtime capability coverage by driver
+  class across the published family.
+- `reports/runtime-compatibility-matrix.json` publishes the per-device compatibility matrix for
+  runtime-supported driver classes without reparsing generated headers.
 - `alloy-codegen explain --device <device> --fact <fact>` reads those runtime provenance and
   explainability reports through the validated device pipeline and returns a fact-scoped trace.
 - `alloy-codegen diff --from <device1> --to <device2>` compares emitted runtime capability rows

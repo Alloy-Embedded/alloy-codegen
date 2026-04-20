@@ -40,6 +40,8 @@ def _common_family_artifact_paths(family_dir: str) -> tuple[str, ...]:
         f"{family_dir}/reports/coverage.json",
         f"{family_dir}/reports/runtime-provenance.json",
         f"{family_dir}/reports/runtime-explainability.json",
+        f"{family_dir}/reports/runtime-capability-summary.json",
+        f"{family_dir}/reports/runtime-compatibility-matrix.json",
         f"{family_dir}/generated/runtime/types.hpp",
     )
 
@@ -64,6 +66,7 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/system_clock.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_profiles.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_config.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/low_power.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/connectors.hpp",
@@ -85,6 +88,10 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/adc.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/dac.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/can.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/eth.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/usb.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/qspi.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/sdmmc.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/rtc.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/watchdog.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/timer.hpp",

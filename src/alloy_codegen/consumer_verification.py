@@ -353,6 +353,22 @@ def verify_runtime_lite_smoke_consumer(
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/can.hpp"'
         ),
         (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ETH_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/eth.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_USB_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/usb.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_QSPI_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/qspi.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SDMMC_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/sdmmc.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RTC_SEMANTICS_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/rtc.hpp"'
         ),
@@ -383,6 +399,10 @@ def verify_runtime_lite_smoke_consumer(
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_CONFIG_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/clock_config.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_LOW_POWER_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/low_power.hpp"'
         ),
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER="

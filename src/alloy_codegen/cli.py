@@ -8,6 +8,23 @@ import sys
 from collections.abc import Sequence
 
 from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, supported_families
+from alloy_codegen.config_cli import (
+    build_runtime_config_template,
+    format_runtime_config_template,
+    load_runtime_config_schema,
+)
+from alloy_codegen.config_diagnostics import (
+    diagnose_runtime_config,
+    format_runtime_config_diagnosis,
+)
+from alloy_codegen.config_examples import (
+    format_runtime_config_examples,
+    generate_runtime_config_examples,
+)
+from alloy_codegen.config_recipes import (
+    format_runtime_config_recipe,
+    generate_runtime_config_recipe,
+)
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.diagnostics_cli import (
     diff_runtime_capabilities,
@@ -124,6 +141,59 @@ def build_parser() -> argparse.ArgumentParser:
     diff_parser.add_argument("--to", dest="to_device", required=True, help="Target device.")
     add_context_args(diff_parser)
 
+    config_schema_parser = subparsers.add_parser(
+        "config-schema",
+        help="Print the declarative runtime configuration request schema.",
+    )
+    config_schema_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit machine-readable JSON instead of human-readable text.",
+    )
+
+    config_template_parser = subparsers.add_parser(
+        "config-template",
+        help="Print a declarative runtime configuration template for one device.",
+    )
+    config_template_parser.add_argument("--device", required=True, help="Device to template.")
+    add_context_args(config_template_parser)
+
+    config_diagnose_parser = subparsers.add_parser(
+        "config-diagnose",
+        help="Diagnose one declarative runtime configuration request.",
+    )
+    config_diagnose_parser.add_argument(
+        "--file",
+        required=True,
+        dest="request_file",
+        help="Path to a runtime config request JSON file.",
+    )
+    add_context_args(config_diagnose_parser)
+
+    config_recipe_parser = subparsers.add_parser(
+        "config-recipe",
+        help="Render a resolved runtime recipe from one declarative config request.",
+    )
+    config_recipe_parser.add_argument(
+        "--file",
+        required=True,
+        dest="request_file",
+        help="Path to a runtime config request JSON file.",
+    )
+    add_context_args(config_recipe_parser)
+
+    config_example_parser = subparsers.add_parser(
+        "config-example",
+        help="Render example-ready outputs from one declarative config request.",
+    )
+    config_example_parser.add_argument(
+        "--file",
+        required=True,
+        dest="request_file",
+        help="Path to a runtime config request JSON file.",
+    )
+    add_context_args(config_example_parser)
+
     return parser
 
 
@@ -179,6 +249,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(format_targets_payload(payload))
         return 0
+
+    if args.stage == "config-schema":
+        schema = load_runtime_config_schema()
+        if args.json:
+            print(json.dumps(schema, indent=2, sort_keys=True))
+        else:
+            print(f"{schema['title']} [{schema['$id']}]")
+            print("required:", ", ".join(schema["required"]))
+        return 0
+
     source_overrides = parse_source_overrides(args.source)
     context = ExecutionContext.default().with_overrides(
         source_overrides=source_overrides,
@@ -225,6 +305,69 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
         else:
             print(format_diff_result(result))
+        return 0
+
+    if args.stage == "config-template":
+        try:
+            result = build_runtime_config_template(device_name=args.device, context=context)
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(result, indent=2, sort_keys=True))
+        else:
+            print(format_runtime_config_template(result))
+        return 0
+
+    if args.stage == "config-diagnose":
+        try:
+            result = diagnose_runtime_config(request_path=args.request_file, context=context)
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        else:
+            print(format_runtime_config_diagnosis(result))
+        return 0 if result.is_valid else 1
+
+    if args.stage == "config-recipe":
+        try:
+            result = generate_runtime_config_recipe(request_path=args.request_file, context=context)
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        else:
+            print(format_runtime_config_recipe(result))
+        return 0
+
+    if args.stage == "config-example":
+        try:
+            result = generate_runtime_config_examples(
+                request_path=args.request_file,
+                context=context,
+            )
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        else:
+            print(format_runtime_config_examples(result))
         return 0
 
     scope = PipelineScope(vendor=args.vendor, family=args.family, device=args.device)

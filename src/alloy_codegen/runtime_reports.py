@@ -21,6 +21,8 @@ from .runtime_system_sequences import runtime_system_sequence_steps
 
 RUNTIME_PROVENANCE_REPORT = "runtime-provenance.json"
 RUNTIME_EXPLAINABILITY_REPORT = "runtime-explainability.json"
+RUNTIME_CAPABILITY_SUMMARY_REPORT = "runtime-capability-summary.json"
+RUNTIME_COMPATIBILITY_MATRIX_REPORT = "runtime-compatibility-matrix.json"
 
 
 def runtime_report_required_paths(
@@ -33,7 +35,176 @@ def runtime_report_required_paths(
     return (
         _family_report_path(family_dir, RUNTIME_PROVENANCE_REPORT),
         _family_report_path(family_dir, RUNTIME_EXPLAINABILITY_REPORT),
+        _family_report_path(family_dir, RUNTIME_CAPABILITY_SUMMARY_REPORT),
+        _family_report_path(family_dir, RUNTIME_COMPATIBILITY_MATRIX_REPORT),
     )
+
+
+def _device_runtime_capability_views(
+    device: CanonicalDeviceIR,
+) -> tuple[list[dict[str, object]], dict[str, dict[str, object]]]:
+    runtime_peripherals = tuple(_runtime_lite_peripherals(device))
+    peripherals_by_class: dict[str, list[str]] = defaultdict(list)
+    for peripheral in runtime_peripherals:
+        peripherals_by_class[runtime_lite_peripheral_class_name(peripheral.ip_name)].append(
+            peripheral.name
+        )
+
+    rows_by_class: dict[str, list[object]] = defaultdict(list)
+    for row in runtime_capability_rows(device):
+        rows_by_class[row.peripheral_class].append(row)
+
+    per_class_views: list[dict[str, object]] = []
+    per_class_lookup: dict[str, dict[str, object]] = {}
+    for peripheral_class in sorted(
+        set(peripherals_by_class) | set(rows_by_class),
+    ):
+        rows = rows_by_class.get(peripheral_class, [])
+        peripherals = sorted(peripherals_by_class.get(peripheral_class, []))
+        capability_names = sorted({row.name for row in rows})
+        dma_signals = sorted(
+            {row.value for row in rows if row.name == "dma-compatible-signal" and row.value}
+        )
+        instance_capability_count = sum(
+            1
+            for row in rows
+            if row.scope in {"instance_overlay", "dma_binding"} and row.peripheral is not None
+        )
+        class_capability_count = sum(
+            1
+            for row in rows
+            if row.scope in {"ip_block", "runtime_contract"} and row.peripheral is None
+        )
+        view = {
+            "peripheral_class": peripheral_class,
+            "present": bool(peripherals),
+            "peripheral_count": len(peripherals),
+            "peripherals": peripherals,
+            "capability_names": capability_names,
+            "dma_signals": dma_signals,
+            "instance_capability_count": instance_capability_count,
+            "class_capability_count": class_capability_count,
+        }
+        per_class_views.append(view)
+        per_class_lookup[peripheral_class] = view
+    return per_class_views, per_class_lookup
+
+
+def build_runtime_capability_summary_payload(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> dict[str, object]:
+    if not devices:
+        raise ValueError("Runtime capability summary generation requires at least one device.")
+
+    device_payloads: list[dict[str, object]] = []
+    family_class_aggregate: dict[str, dict[str, object]] = {}
+    for device in sorted(devices, key=lambda item: item.identity.device):
+        class_views, class_lookup = _device_runtime_capability_views(device)
+        device_payloads.append(
+            {
+                "device": device.identity.device,
+                "package": device.identity.package,
+                "classes": class_views,
+            }
+        )
+        for peripheral_class, view in class_lookup.items():
+            aggregate = family_class_aggregate.setdefault(
+                peripheral_class,
+                {
+                    "peripheral_class": peripheral_class,
+                    "devices": [],
+                    "device_count": 0,
+                    "total_peripheral_count": 0,
+                    "capability_names": set(),
+                    "dma_signals": set(),
+                },
+            )
+            if view["present"]:
+                aggregate["devices"].append(device.identity.device)
+                aggregate["device_count"] += 1
+                aggregate["total_peripheral_count"] += view["peripheral_count"]
+            aggregate["capability_names"].update(view["capability_names"])
+            aggregate["dma_signals"].update(view["dma_signals"])
+
+    summary_rows = [
+        {
+            "peripheral_class": peripheral_class,
+            "devices": sorted(aggregate["devices"]),
+            "device_count": aggregate["device_count"],
+            "total_peripheral_count": aggregate["total_peripheral_count"],
+            "capability_names": sorted(aggregate["capability_names"]),
+            "dma_signals": sorted(aggregate["dma_signals"]),
+        }
+        for peripheral_class, aggregate in sorted(family_class_aggregate.items())
+    ]
+
+    first_device = devices[0]
+    return {
+        "report_id": "runtime-capability-summary-v1",
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "family_dir": family_dir,
+        "devices": device_payloads,
+        "classes": summary_rows,
+    }
+
+
+def build_runtime_compatibility_matrix_payload(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> dict[str, object]:
+    if not devices:
+        raise ValueError("Runtime compatibility matrix generation requires at least one device.")
+
+    device_views: list[
+        tuple[CanonicalDeviceIR, list[dict[str, object]], dict[str, dict[str, object]]]
+    ] = []
+    all_classes: set[str] = set()
+    for device in sorted(devices, key=lambda item: item.identity.device):
+        class_views, class_lookup = _device_runtime_capability_views(device)
+        device_views.append((device, class_views, class_lookup))
+        all_classes.update(class_lookup)
+
+    driver_classes = sorted(all_classes)
+    matrix_devices: list[dict[str, object]] = []
+    for device, _class_views, class_lookup in device_views:
+        matrix_devices.append(
+            {
+                "device": device.identity.device,
+                "package": device.identity.package,
+                "classes": [
+                    {
+                        "peripheral_class": peripheral_class,
+                        **class_lookup.get(
+                            peripheral_class,
+                            {
+                                "present": False,
+                                "peripheral_count": 0,
+                                "peripherals": [],
+                                "capability_names": [],
+                                "dma_signals": [],
+                                "instance_capability_count": 0,
+                                "class_capability_count": 0,
+                            },
+                        ),
+                    }
+                    for peripheral_class in driver_classes
+                ],
+            }
+        )
+
+    first_device = devices[0]
+    return {
+        "report_id": "runtime-compatibility-matrix-v1",
+        "vendor": first_device.identity.vendor,
+        "family": first_device.identity.family,
+        "family_dir": family_dir,
+        "driver_classes": driver_classes,
+        "devices": matrix_devices,
+    }
 
 
 def _runtime_supported_peripherals(device: CanonicalDeviceIR):
@@ -763,9 +934,37 @@ def emit_runtime_explainability_report(
     )
 
 
+def emit_runtime_capability_summary_report(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    return _text_artifact(
+        path=_family_report_path(family_dir, RUNTIME_CAPABILITY_SUMMARY_REPORT),
+        artifact_kind="runtime-report",
+        payload=build_runtime_capability_summary_payload(family_dir=family_dir, devices=devices),
+    )
+
+
+def emit_runtime_compatibility_matrix_report(
+    *,
+    family_dir: str,
+    devices: tuple[CanonicalDeviceIR, ...],
+) -> EmittedArtifact:
+    return _text_artifact(
+        path=_family_report_path(family_dir, RUNTIME_COMPATIBILITY_MATRIX_REPORT),
+        artifact_kind="runtime-report",
+        payload=build_runtime_compatibility_matrix_payload(family_dir=family_dir, devices=devices),
+    )
+
+
 __all__ = [
+    "build_runtime_capability_summary_payload",
+    "build_runtime_compatibility_matrix_payload",
     "build_runtime_explainability_payload",
     "build_runtime_provenance_payload",
+    "emit_runtime_capability_summary_report",
+    "emit_runtime_compatibility_matrix_report",
     "emit_runtime_explainability_report",
     "emit_runtime_provenance_report",
     "find_runtime_report_violations",

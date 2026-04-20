@@ -26,6 +26,7 @@ from alloy_codegen.runtime_lite_emission import (
     runtime_lite_peripheral_class_name,
     runtime_lite_required_paths,
 )
+from alloy_codegen.runtime_low_power import runtime_low_power_required_paths
 from alloy_codegen.runtime_resets import runtime_resets_required_paths
 from alloy_codegen.runtime_startup import runtime_startup_required_paths
 from alloy_codegen.runtime_system_clock import runtime_system_clock_required_paths
@@ -126,6 +127,10 @@ def find_runtime_lite_contract_violations(
         family_dir=family_dir,
         devices=devices,
     )
+    required_paths = required_paths + runtime_low_power_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
     required_paths = required_paths + runtime_linker_script_required_paths(
         family_dir=family_dir,
         devices=devices,
@@ -219,6 +224,10 @@ def find_runtime_lite_contract_violations(
             "adc_semantics": f"{device_runtime_root}/driver_semantics/adc.hpp",
             "dac_semantics": f"{device_runtime_root}/driver_semantics/dac.hpp",
             "can_semantics": f"{device_runtime_root}/driver_semantics/can.hpp",
+            "eth_semantics": f"{device_runtime_root}/driver_semantics/eth.hpp",
+            "usb_semantics": f"{device_runtime_root}/driver_semantics/usb.hpp",
+            "qspi_semantics": f"{device_runtime_root}/driver_semantics/qspi.hpp",
+            "sdmmc_semantics": f"{device_runtime_root}/driver_semantics/sdmmc.hpp",
             "rtc_semantics": f"{device_runtime_root}/driver_semantics/rtc.hpp",
             "watchdog_semantics": f"{device_runtime_root}/driver_semantics/watchdog.hpp",
             "timer_semantics": f"{device_runtime_root}/driver_semantics/timer.hpp",
@@ -228,6 +237,7 @@ def find_runtime_lite_contract_violations(
             "system_clock": f"{device_runtime_root}/system_clock.hpp",
             "clock_profiles": f"{device_runtime_root}/clock_profiles.hpp",
             "clock_config": f"{device_runtime_root}/clock_config.hpp",
+            "low_power": f"{device_runtime_root}/low_power.hpp",
             "interrupts": f"{device_runtime_root}/interrupts.hpp",
             "interrupt_stubs": f"{device_runtime_root}/interrupt_stubs.hpp",
             "resets": f"{device_runtime_root}/resets.hpp",
@@ -437,6 +447,37 @@ def find_runtime_lite_contract_violations(
                 "system-clock fallback for foundational IMXRT1060"
             )
 
+        if (
+            content_by_key["low_power"]
+            and "enum class LowPowerModeId" not in content_by_key["low_power"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['low_power']} does not emit LowPowerModeId enum"
+            )
+        if content_by_key["low_power"] and "kLowPowerModes" not in content_by_key["low_power"]:
+            violations.append(f"{device_runtime_paths['low_power']} does not emit kLowPowerModes")
+        if content_by_key["low_power"] and "kWakeupSources" not in content_by_key["low_power"]:
+            violations.append(f"{device_runtime_paths['low_power']} does not emit kWakeupSources")
+        device_has_wakeup_pins = any(
+            constraint.kind == "wakeup-capable" and constraint.value
+            for constraint in device.pin_constraints
+        )
+        if (
+            content_by_key["low_power"]
+            and not device_has_wakeup_pins
+            and "struct WakeupPinTraits {" not in content_by_key["low_power"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['low_power']} does not emit WakeupPinTraits base template"
+            )
+        if (
+            content_by_key["low_power"]
+            and device_has_wakeup_pins
+            and "WakeupPinTraits<PinId::" not in content_by_key["low_power"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['low_power']} does not emit wakeup pin traits"
+            )
         if (
             content_by_key["interrupts"]
             and "enum class InterruptId" not in content_by_key["interrupts"]
@@ -680,6 +721,56 @@ def find_runtime_lite_contract_violations(
             elif "CanSemanticTraits<PeripheralId::" not in can_content:
                 violations.append(
                     f"{device_runtime_paths['can_semantics']} does not emit can semantic traits"
+                )
+
+        eth_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "eth"
+        )
+        if eth_peripherals:
+            eth_content = content_by_key["eth_semantics"]
+            if eth_content is None:
+                violations.append(
+                    f"missing eth driver semantics header: {device_runtime_paths['eth_semantics']}"
+                )
+            elif "EthSemanticTraits<PeripheralId::" not in eth_content:
+                violations.append(
+                    f"{device_runtime_paths['eth_semantics']} does not emit eth semantic traits"
+                )
+
+        qspi_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "qspi"
+        )
+        if qspi_peripherals:
+            qspi_content = content_by_key["qspi_semantics"]
+            if qspi_content is None:
+                violations.append(
+                    "missing qspi driver semantics header: "
+                    f"{device_runtime_paths['qspi_semantics']}"
+                )
+            elif "QspiSemanticTraits<PeripheralId::" not in qspi_content:
+                violations.append(
+                    f"{device_runtime_paths['qspi_semantics']} does not emit qspi semantic traits"
+                )
+
+        sdmmc_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "sdmmc"
+        )
+        if sdmmc_peripherals:
+            sdmmc_content = content_by_key["sdmmc_semantics"]
+            if sdmmc_content is None:
+                violations.append(
+                    "missing sdmmc driver semantics header: "
+                    f"{device_runtime_paths['sdmmc_semantics']}"
+                )
+            elif "SdmmcSemanticTraits<PeripheralId::" not in sdmmc_content:
+                violations.append(
+                    f"{device_runtime_paths['sdmmc_semantics']} does not emit sdmmc semantic traits"
                 )
 
         rtc_peripherals = tuple(

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://alloy-embedded.dev/schemas/runtime-config-request-v1.schema.json",
+  "title": "RuntimeConfigRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "device",
+    "requests",
+    "outputs"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "runtime-config-request-v1"
+    },
+    "device": {
+      "type": "string",
+      "minLength": 1
+    },
+    "vendor": {
+      "type": "string",
+      "minLength": 1
+    },
+    "family": {
+      "type": "string",
+      "minLength": 1
+    },
+    "clock_profile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/peripheral_request"
+      }
+    },
+    "outputs": {
+      "$ref": "#/$defs/output_request"
+    }
+  },
+  "$defs": {
+    "peripheral_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "peripheral_class"
+      ],
+      "properties": {
+        "kind": {
+          "const": "peripheral"
+        },
+        "peripheral_class": {
+          "type": "string",
+          "minLength": 1
+        },
+        "peripheral": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "route_group": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pins": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "dma": {
+          "$ref": "#/$defs/dma_request"
+        },
+        "options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "integer",
+              "boolean"
+            ]
+          }
+        }
+      }
+    },
+    "dma_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rx": {
+          "type": "boolean"
+        },
+        "tx": {
+          "type": "boolean"
+        }
+      }
+    },
+    "output_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recipes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

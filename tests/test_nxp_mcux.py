@@ -439,6 +439,8 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/reports/validation-report.json" in artifacts
     assert f"{family_dir}/reports/runtime-provenance.json" in artifacts
     assert f"{family_dir}/reports/runtime-explainability.json" in artifacts
+    assert f"{family_dir}/reports/runtime-capability-summary.json" in artifacts
+    assert f"{family_dir}/reports/runtime-compatibility-matrix.json" in artifacts
     assert f"{family_dir}/metadata/family-index.json" in artifacts
     assert f"{family_dir}/metadata/family-connectivity.json" in artifacts
     assert f"{family_dir}/generated/devices/mimxrt1062/startup.cpp" in artifacts
@@ -454,6 +456,7 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_clock.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_profiles.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_config.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/low_power.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/connectors.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp" in artifacts
@@ -497,6 +500,9 @@ def test_emit_nxp_imxrt1060_artifact_content(
     runtime_clock_config = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_config.hpp"
     ]
+    runtime_low_power = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/low_power.hpp"
+    ]
     runtime_routes = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp"]
     runtime_connectors = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/connectors.hpp"
@@ -524,6 +530,10 @@ def test_emit_nxp_imxrt1060_artifact_content(
     runtime_system_sequences = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/system_sequences.hpp"
     ]
+    capability_summary_report = artifacts[f"{family_dir}/reports/runtime-capability-summary.json"]
+    compatibility_matrix_report = artifacts[
+        f"{family_dir}/reports/runtime-compatibility-matrix.json"
+    ]
     assert "enum class BackendSchemaId" in runtime_types.content
     assert "enum class StartupKindId" in runtime_types.content
     assert "enum class VectorKindId" in runtime_types.content
@@ -536,6 +546,7 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "kMaxClockProfileId" in runtime_clock_profiles.content
     assert "apply_default_clock_profile" in runtime_clock_config.content
     assert "apply_clock_profile_default_arm_pll_600mhz" in runtime_clock_config.content
+    assert "kLowPowerModes" in runtime_low_power.content
     assert "RouteTraits<" in runtime_routes.content
     assert "ConnectorTraits<PinId::" in runtime_connectors.content
     assert "kConnectors" in runtime_connectors.content
@@ -551,6 +562,14 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "kCapabilities" in runtime_capabilities.content
     assert '"device": "mimxrt1062"' in runtime_capabilities_json.content
     assert "kSystemSequenceSteps" in runtime_system_sequences.content
+    assert (
+        json.loads(capability_summary_report.content)["report_id"]
+        == "runtime-capability-summary-v1"
+    )
+    assert (
+        json.loads(compatibility_matrix_report.content)["report_id"]
+        == "runtime-compatibility-matrix-v1"
+    )
 
 
 def test_emit_nxp_imxrt1060_reports_publishable_descriptor_coverage(
@@ -612,6 +631,10 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "adc.hpp",
         "dac.hpp",
         "can.hpp",
+        "eth.hpp",
+        "usb.hpp",
+        "qspi.hpp",
+        "sdmmc.hpp",
         "rtc.hpp",
         "watchdog.hpp",
         "timer.hpp",

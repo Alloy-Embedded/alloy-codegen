@@ -49,6 +49,10 @@ DAC_DRIVER_HEADER = "driver_semantics/dac.hpp"
 RTC_DRIVER_HEADER = "driver_semantics/rtc.hpp"
 WATCHDOG_DRIVER_HEADER = "driver_semantics/watchdog.hpp"
 CAN_DRIVER_HEADER = "driver_semantics/can.hpp"
+ETH_DRIVER_HEADER = "driver_semantics/eth.hpp"
+USB_DRIVER_HEADER = "driver_semantics/usb.hpp"
+QSPI_DRIVER_HEADER = "driver_semantics/qspi.hpp"
+SDMMC_DRIVER_HEADER = "driver_semantics/sdmmc.hpp"
 COMMON_DRIVER_HEADER = "driver_semantics/common.hpp"
 
 _IO_SIGNAL_PATTERN = re.compile(r"^io(?P<index>\d+)$", re.IGNORECASE)
@@ -565,6 +569,194 @@ class CanSemanticRow:
 
 
 @dataclass(frozen=True, slots=True)
+class EthSemanticRow:
+    """Ethernet MAC semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    supports_mii: bool
+    supports_rmii: bool
+    has_dma_engine: bool
+    has_statistics_counters: bool
+    control_reg: RuntimeRegisterRef
+    config_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    user_io_reg: RuntimeRegisterRef
+    dma_config_reg: RuntimeRegisterRef
+    tx_status_reg: RuntimeRegisterRef
+    rx_status_reg: RuntimeRegisterRef
+    interrupt_status_reg: RuntimeRegisterRef
+    interrupt_enable_reg: RuntimeRegisterRef
+    interrupt_disable_reg: RuntimeRegisterRef
+    interrupt_mask_reg: RuntimeRegisterRef
+    rx_descriptor_base_reg: RuntimeRegisterRef
+    tx_descriptor_base_reg: RuntimeRegisterRef
+    rx_enable_field: RuntimeFieldRef
+    tx_enable_field: RuntimeFieldRef
+    management_port_enable_field: RuntimeFieldRef
+    clear_statistics_field: RuntimeFieldRef
+    write_enable_statistics_field: RuntimeFieldRef
+    tx_start_field: RuntimeFieldRef
+    speed_field: RuntimeFieldRef
+    full_duplex_field: RuntimeFieldRef
+    mdc_clock_divider_field: RuntimeFieldRef
+    rmii_enable_field: RuntimeFieldRef
+    management_done_field: RuntimeFieldRef
+    rx_complete_interrupt_field: RuntimeFieldRef
+    tx_complete_interrupt_field: RuntimeFieldRef
+    rx_complete_interrupt_enable_field: RuntimeFieldRef
+    tx_complete_interrupt_enable_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class UsbSemanticRow:
+    """USB semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    supports_device_mode: bool
+    supports_host_mode: bool
+    has_dedicated_endpoint_config: bool
+    has_clock_freeze: bool
+    control_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    interrupt_status_reg: RuntimeRegisterRef
+    interrupt_mask_reg: RuntimeRegisterRef
+    device_control_reg: RuntimeRegisterRef
+    device_status_reg: RuntimeRegisterRef
+    device_interrupt_status_reg: RuntimeRegisterRef
+    device_interrupt_mask_reg: RuntimeRegisterRef
+    device_interrupt_enable_reg: RuntimeRegisterRef
+    device_interrupt_disable_reg: RuntimeRegisterRef
+    host_control_reg: RuntimeRegisterRef
+    host_status_reg: RuntimeRegisterRef
+    host_interrupt_status_reg: RuntimeRegisterRef
+    host_interrupt_mask_reg: RuntimeRegisterRef
+    host_interrupt_enable_reg: RuntimeRegisterRef
+    host_interrupt_disable_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    freeze_clock_field: RuntimeFieldRef
+    force_device_mode_field: RuntimeFieldRef
+    force_host_mode_field: RuntimeFieldRef
+    mode_status_field: RuntimeFieldRef
+    soft_disconnect_field: RuntimeFieldRef
+    remote_wakeup_field: RuntimeFieldRef
+    address_enable_field: RuntimeFieldRef
+    address_field: RuntimeFieldRef
+    clock_usable_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class QspiSemanticRow:
+    """QSPI semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    supports_spi_mode: bool
+    supports_memory_mode: bool
+    has_scrambling: bool
+    has_dma: bool
+    control_reg: RuntimeRegisterRef
+    mode_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    interrupt_enable_reg: RuntimeRegisterRef
+    interrupt_disable_reg: RuntimeRegisterRef
+    interrupt_mask_reg: RuntimeRegisterRef
+    serial_clock_reg: RuntimeRegisterRef
+    instruction_address_reg: RuntimeRegisterRef
+    instruction_code_reg: RuntimeRegisterRef
+    instruction_frame_reg: RuntimeRegisterRef
+    scrambling_mode_reg: RuntimeRegisterRef
+    scrambling_key_reg: RuntimeRegisterRef
+    receive_data_reg: RuntimeRegisterRef
+    transmit_data_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    disable_field: RuntimeFieldRef
+    software_reset_field: RuntimeFieldRef
+    last_transfer_field: RuntimeFieldRef
+    enabled_status_field: RuntimeFieldRef
+    serial_memory_mode_field: RuntimeFieldRef
+    chip_select_mode_field: RuntimeFieldRef
+    bits_per_transfer_field: RuntimeFieldRef
+    receive_ready_field: RuntimeFieldRef
+    transmit_ready_field: RuntimeFieldRef
+    transmit_empty_field: RuntimeFieldRef
+    receive_ready_interrupt_enable_field: RuntimeFieldRef
+    transmit_ready_interrupt_enable_field: RuntimeFieldRef
+    transmit_empty_interrupt_enable_field: RuntimeFieldRef
+    serial_clock_baud_rate_field: RuntimeFieldRef
+    instruction_field: RuntimeFieldRef
+    address_field: RuntimeFieldRef
+    width_field: RuntimeFieldRef
+    instruction_enable_field: RuntimeFieldRef
+    address_enable_field: RuntimeFieldRef
+    option_enable_field: RuntimeFieldRef
+    data_enable_field: RuntimeFieldRef
+    transfer_type_field: RuntimeFieldRef
+    continuous_read_mode_field: RuntimeFieldRef
+    dummy_cycles_field: RuntimeFieldRef
+    scrambling_enable_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
+class SdmmcSemanticRow:
+    """SD/MMC semantic trait payload keyed by peripheral."""
+
+    peripheral_name: str
+    schema_id: str
+    supports_1bit: bool
+    supports_4bit: bool
+    supports_8bit: bool
+    has_dma: bool
+    control_reg: RuntimeRegisterRef
+    mode_reg: RuntimeRegisterRef
+    data_timeout_reg: RuntimeRegisterRef
+    sd_card_reg: RuntimeRegisterRef
+    argument_reg: RuntimeRegisterRef
+    command_reg: RuntimeRegisterRef
+    block_reg: RuntimeRegisterRef
+    completion_timeout_reg: RuntimeRegisterRef
+    status_reg: RuntimeRegisterRef
+    interrupt_enable_reg: RuntimeRegisterRef
+    interrupt_disable_reg: RuntimeRegisterRef
+    interrupt_mask_reg: RuntimeRegisterRef
+    dma_reg: RuntimeRegisterRef
+    config_reg: RuntimeRegisterRef
+    read_data_reg: RuntimeRegisterRef
+    write_data_reg: RuntimeRegisterRef
+    enable_field: RuntimeFieldRef
+    disable_field: RuntimeFieldRef
+    power_save_enable_field: RuntimeFieldRef
+    power_save_disable_field: RuntimeFieldRef
+    software_reset_field: RuntimeFieldRef
+    clock_divider_field: RuntimeFieldRef
+    power_save_divider_field: RuntimeFieldRef
+    read_proof_field: RuntimeFieldRef
+    write_proof_field: RuntimeFieldRef
+    slot_select_field: RuntimeFieldRef
+    bus_width_field: RuntimeFieldRef
+    argument_field: RuntimeFieldRef
+    command_index_field: RuntimeFieldRef
+    response_type_field: RuntimeFieldRef
+    special_command_field: RuntimeFieldRef
+    open_drain_field: RuntimeFieldRef
+    max_latency_field: RuntimeFieldRef
+    transfer_command_field: RuntimeFieldRef
+    transfer_direction_field: RuntimeFieldRef
+    transfer_type_field: RuntimeFieldRef
+    sdio_interrupt_command_field: RuntimeFieldRef
+    atacs_field: RuntimeFieldRef
+    block_count_field: RuntimeFieldRef
+    block_length_field: RuntimeFieldRef
+    command_ready_field: RuntimeFieldRef
+    rx_ready_field: RuntimeFieldRef
+    tx_ready_field: RuntimeFieldRef
+    transfer_done_field: RuntimeFieldRef
+    not_busy_field: RuntimeFieldRef
+    dma_enable_field: RuntimeFieldRef
+
+
+@dataclass(frozen=True, slots=True)
 class TimerSemanticRow:
     """Timer semantic trait payload keyed by peripheral."""
 
@@ -725,6 +917,10 @@ def _driver_semantics_paths(
                 _device_runtime_generated_path(family_dir, device_name, RTC_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, WATCHDOG_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, CAN_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, ETH_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, USB_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, QSPI_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, SDMMC_DRIVER_HEADER),
             )
         )
     return tuple(paths)
@@ -2388,7 +2584,19 @@ def _build_dma_rows(context: _SemanticContext) -> tuple[DmaSemanticRow, ...]:
         peripheral.name
         for peripheral in context.peripheral_by_name.values()
         if runtime_lite_peripheral_class_name(peripheral.ip_name)
-        in {"gpio", "uart", "i2c", "spi", "pwm", "adc", "dac", "dma", "dma-router"}
+        in {
+            "gpio",
+            "uart",
+            "i2c",
+            "spi",
+            "qspi",
+            "sdmmc",
+            "pwm",
+            "adc",
+            "dac",
+            "dma",
+            "dma-router",
+        }
     }
     router = _resolve_dma_router_peripheral(context)
     rows: list[DmaSemanticRow] = []
@@ -4873,6 +5081,1355 @@ def _build_can_rows(context: _SemanticContext) -> tuple[CanSemanticRow, ...]:
     return tuple(rows)
 
 
+def _microchip_gmac_eth_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> EthSemanticRow:
+    return EthSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        supports_mii=True,
+        supports_rmii=True,
+        has_dma_engine=True,
+        has_statistics_counters=True,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            fallback_offset=0x0000,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCFGR",
+            fallback_offset=0x0004,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NSR",
+            fallback_offset=0x0008,
+        ),
+        user_io_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="UR",
+            fallback_offset=0x000C,
+        ),
+        dma_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DCFGR",
+            fallback_offset=0x0010,
+        ),
+        tx_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TSR",
+            fallback_offset=0x0014,
+        ),
+        rx_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RSR",
+            fallback_offset=0x0020,
+        ),
+        interrupt_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ISR",
+            fallback_offset=0x0024,
+        ),
+        interrupt_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            fallback_offset=0x0028,
+        ),
+        interrupt_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IDR",
+            fallback_offset=0x002C,
+        ),
+        interrupt_mask_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IMR",
+            fallback_offset=0x0030,
+        ),
+        rx_descriptor_base_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RBQB",
+            fallback_offset=0x0018,
+        ),
+        tx_descriptor_base_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TBQB",
+            fallback_offset=0x001C,
+        ),
+        rx_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            field_names=("RXEN",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        tx_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            field_names=("TXEN",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=3,
+            fallback_bit_width=1,
+        ),
+        management_port_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            field_names=("MPE",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=4,
+            fallback_bit_width=1,
+        ),
+        clear_statistics_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            field_names=("CLRSTAT",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=5,
+            fallback_bit_width=1,
+        ),
+        write_enable_statistics_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            field_names=("WESTAT",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        tx_start_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCR",
+            field_names=("TSTART",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=9,
+            fallback_bit_width=1,
+        ),
+        speed_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCFGR",
+            field_names=("SPD",),
+            fallback_register_offset=0x0004,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        full_duplex_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCFGR",
+            field_names=("FD",),
+            fallback_register_offset=0x0004,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        mdc_clock_divider_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NCFGR",
+            field_names=("CLK",),
+            fallback_register_offset=0x0004,
+            fallback_bit_offset=10,
+            fallback_bit_width=3,
+        ),
+        rmii_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="UR",
+            field_names=("RMII",),
+            fallback_register_offset=0x000C,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        management_done_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="NSR",
+            field_names=("IDLE",),
+            fallback_register_offset=0x0008,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        rx_complete_interrupt_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ISR",
+            field_names=("RCOMP",),
+            fallback_register_offset=0x0024,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        tx_complete_interrupt_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ISR",
+            field_names=("TCOMP",),
+            fallback_register_offset=0x0024,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        rx_complete_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("RCOMP",),
+            fallback_register_offset=0x0028,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        tx_complete_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("TCOMP",),
+            fallback_register_offset=0x0028,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+    )
+
+
+def _build_eth_rows(context: _SemanticContext) -> tuple[EthSemanticRow, ...]:
+    rows: list[EthSemanticRow] = []
+    for peripheral in context.runtime_peripherals_by_class.get("eth", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.gmac.microchip-") or schema_id.startswith(
+            "alloy.eth.microchip-"
+        ):
+            rows.append(
+                _microchip_gmac_eth_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+    return tuple(rows)
+
+
+def _st_usb_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> UsbSemanticRow:
+    peripheral = context.peripheral_by_name[peripheral_name]
+    return UsbSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        supports_device_mode=True,
+        supports_host_mode=True,
+        has_dedicated_endpoint_config=True,
+        has_clock_freeze=False,
+        control_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GUSBCFG",),
+            fallback_offset=0x0C,
+        ),
+        status_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GINTSTS",),
+            fallback_offset=0x14,
+        ),
+        interrupt_status_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GINTSTS",),
+            fallback_offset=0x14,
+        ),
+        interrupt_mask_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GINTMSK",),
+            fallback_offset=0x18,
+        ),
+        device_control_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("DCTL",),
+            fallback_offset=0x804,
+        ),
+        device_status_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("DSTS",),
+            fallback_offset=0x808,
+        ),
+        device_interrupt_status_reg=_invalid_register_ref(peripheral.base_address),
+        device_interrupt_mask_reg=_invalid_register_ref(peripheral.base_address),
+        device_interrupt_enable_reg=_invalid_register_ref(peripheral.base_address),
+        device_interrupt_disable_reg=_invalid_register_ref(peripheral.base_address),
+        host_control_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("HCFG",),
+            fallback_offset=0x400,
+        ),
+        host_status_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("HPRT", "HPRT0"),
+            fallback_offset=0x440,
+        ),
+        host_interrupt_status_reg=_invalid_register_ref(peripheral.base_address),
+        host_interrupt_mask_reg=_invalid_register_ref(peripheral.base_address),
+        host_interrupt_enable_reg=_invalid_register_ref(peripheral.base_address),
+        host_interrupt_disable_reg=_invalid_register_ref(peripheral.base_address),
+        enable_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GCCFG",),
+            field_names=("PWRDWN",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=16,
+            fallback_bit_width=1,
+        ),
+        freeze_clock_field=_invalid_field_ref(peripheral.base_address),
+        force_device_mode_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GUSBCFG",),
+            field_names=("FDMOD",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=30,
+            fallback_bit_width=1,
+        ),
+        force_host_mode_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GUSBCFG",),
+            field_names=("FHMOD",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=29,
+            fallback_bit_width=1,
+        ),
+        mode_status_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("GINTSTS",),
+            field_names=("CMOD",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        soft_disconnect_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("DCTL",),
+            field_names=("SDIS",),
+            fallback_register_offset=0x804,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        remote_wakeup_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("DCTL",),
+            field_names=("RWUSIG",),
+            fallback_register_offset=0x804,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        address_enable_field=_invalid_field_ref(peripheral.base_address),
+        address_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("DCFG",),
+            field_names=("DAD",),
+            fallback_register_offset=0x800,
+            fallback_bit_offset=4,
+            fallback_bit_width=7,
+        ),
+        clock_usable_field=_invalid_field_ref(peripheral.base_address),
+    )
+
+
+def _microchip_usb_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> UsbSemanticRow:
+    peripheral = context.peripheral_by_name[peripheral_name]
+    return UsbSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        supports_device_mode=True,
+        supports_host_mode=True,
+        has_dedicated_endpoint_config=True,
+        has_clock_freeze=True,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            fallback_offset=0x0800,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            fallback_offset=0x0804,
+        ),
+        interrupt_status_reg=_invalid_register_ref(peripheral.base_address),
+        interrupt_mask_reg=_invalid_register_ref(peripheral.base_address),
+        device_control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVCTRL",
+            fallback_offset=0x0000,
+        ),
+        device_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVISR",
+            fallback_offset=0x0004,
+        ),
+        device_interrupt_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVISR",
+            fallback_offset=0x0004,
+        ),
+        device_interrupt_mask_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVIMR",
+            fallback_offset=0x0010,
+        ),
+        device_interrupt_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVIER",
+            fallback_offset=0x0018,
+        ),
+        device_interrupt_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVIDR",
+            fallback_offset=0x0014,
+        ),
+        host_control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HSTCTRL",
+            fallback_offset=0x0400,
+        ),
+        host_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HSTISR",
+            fallback_offset=0x0404,
+        ),
+        host_interrupt_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HSTISR",
+            fallback_offset=0x0404,
+        ),
+        host_interrupt_mask_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HSTIMR",
+            fallback_offset=0x0410,
+        ),
+        host_interrupt_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HSTIER",
+            fallback_offset=0x0418,
+        ),
+        host_interrupt_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="HSTIDR",
+            fallback_offset=0x0414,
+        ),
+        enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            field_names=("USBE",),
+            fallback_register_offset=0x0800,
+            fallback_bit_offset=8,
+            fallback_bit_width=1,
+        ),
+        freeze_clock_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            field_names=("FRZCLK",),
+            fallback_register_offset=0x0800,
+            fallback_bit_offset=14,
+            fallback_bit_width=1,
+        ),
+        force_device_mode_field=_invalid_field_ref(peripheral.base_address),
+        force_host_mode_field=_invalid_field_ref(peripheral.base_address),
+        mode_status_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            field_names=("UIMOD",),
+            fallback_register_offset=0x0800,
+            fallback_bit_offset=25,
+            fallback_bit_width=1,
+        ),
+        soft_disconnect_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVCTRL",
+            field_names=("DETACH",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=8,
+            fallback_bit_width=1,
+        ),
+        remote_wakeup_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVCTRL",
+            field_names=("RMWKUP",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=9,
+            fallback_bit_width=1,
+        ),
+        address_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVCTRL",
+            field_names=("ADDEN",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        address_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DEVCTRL",
+            field_names=("UADD",),
+            fallback_register_offset=0x0000,
+            fallback_bit_offset=0,
+            fallback_bit_width=7,
+        ),
+        clock_usable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("CLKUSABLE",),
+            fallback_register_offset=0x0804,
+            fallback_bit_offset=14,
+            fallback_bit_width=1,
+        ),
+    )
+
+
+def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
+    rows: list[UsbSemanticRow] = []
+    for peripheral in context.runtime_peripherals_by_class.get("usb", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.usb.st-") or schema_id.startswith("alloy.otg_fs.st-"):
+            rows.append(
+                _st_usb_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+        elif schema_id.startswith("alloy.usb.microchip-") or schema_id.startswith(
+            "alloy.usbhs.microchip-"
+        ):
+            rows.append(
+                _microchip_usb_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+    return tuple(rows)
+
+
+def _microchip_qspi_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> QspiSemanticRow:
+    has_dma = any(
+        binding.peripheral == peripheral_name and binding.signal in {"RX", "TX"}
+        for binding in _runtime_lite_dma_bindings(context.device)
+    )
+    return QspiSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        supports_spi_mode=True,
+        supports_memory_mode=True,
+        has_scrambling=True,
+        has_dma=has_dma,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            fallback_offset=0x00,
+        ),
+        mode_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            fallback_offset=0x04,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            fallback_offset=0x10,
+        ),
+        interrupt_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            fallback_offset=0x14,
+        ),
+        interrupt_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IDR",
+            fallback_offset=0x18,
+        ),
+        interrupt_mask_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IMR",
+            fallback_offset=0x1C,
+        ),
+        serial_clock_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SCR",
+            fallback_offset=0x20,
+        ),
+        instruction_address_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IAR",
+            fallback_offset=0x30,
+        ),
+        instruction_code_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ICR",
+            fallback_offset=0x34,
+        ),
+        instruction_frame_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            fallback_offset=0x38,
+        ),
+        scrambling_mode_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SMR",
+            fallback_offset=0x40,
+        ),
+        scrambling_key_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SKR",
+            fallback_offset=0x44,
+        ),
+        receive_data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RDR",
+            fallback_offset=0x08,
+        ),
+        transmit_data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TDR",
+            fallback_offset=0x0C,
+        ),
+        enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("QSPIEN",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        disable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("QSPIDIS",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        software_reset_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("SWRST",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        last_transfer_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("LASTXFER",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=24,
+            fallback_bit_width=1,
+        ),
+        enabled_status_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("QSPIENS",),
+            fallback_register_offset=0x10,
+            fallback_bit_offset=24,
+            fallback_bit_width=1,
+        ),
+        serial_memory_mode_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("SMM",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        chip_select_mode_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("CSMODE",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=4,
+            fallback_bit_width=2,
+        ),
+        bits_per_transfer_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("NBBITS",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=8,
+            fallback_bit_width=4,
+        ),
+        receive_ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("RDRF",),
+            fallback_register_offset=0x10,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        transmit_ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("TDRE",),
+            fallback_register_offset=0x10,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        transmit_empty_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("TXEMPTY",),
+            fallback_register_offset=0x10,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        receive_ready_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("RDRF",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        transmit_ready_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("TDRE",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        transmit_empty_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("TXEMPTY",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        serial_clock_baud_rate_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SCR",
+            field_names=("SCBR",),
+            fallback_register_offset=0x20,
+            fallback_bit_offset=8,
+            fallback_bit_width=8,
+        ),
+        instruction_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ICR",
+            field_names=("INST",),
+            fallback_register_offset=0x34,
+            fallback_bit_offset=0,
+            fallback_bit_width=8,
+        ),
+        address_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IAR",
+            field_names=("ADDR",),
+            fallback_register_offset=0x30,
+            fallback_bit_offset=0,
+            fallback_bit_width=32,
+        ),
+        width_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("WIDTH",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=0,
+            fallback_bit_width=3,
+        ),
+        instruction_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("INSTEN",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=4,
+            fallback_bit_width=1,
+        ),
+        address_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("ADDREN",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=5,
+            fallback_bit_width=1,
+        ),
+        option_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("OPTEN",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=6,
+            fallback_bit_width=1,
+        ),
+        data_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("DATAEN",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        transfer_type_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("TFRTYP",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=12,
+            fallback_bit_width=2,
+        ),
+        continuous_read_mode_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("CRM",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=14,
+            fallback_bit_width=1,
+        ),
+        dummy_cycles_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFR",
+            field_names=("NBDUM",),
+            fallback_register_offset=0x38,
+            fallback_bit_offset=16,
+            fallback_bit_width=5,
+        ),
+        scrambling_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SMR",
+            field_names=("SCREN",),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+    )
+
+
+def _build_qspi_rows(context: _SemanticContext) -> tuple[QspiSemanticRow, ...]:
+    rows: list[QspiSemanticRow] = []
+    for peripheral in context.runtime_peripherals_by_class.get("qspi", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.qspi.microchip-"):
+            rows.append(
+                _microchip_qspi_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+    return tuple(rows)
+
+
+def _microchip_hsmci_sdmmc_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> SdmmcSemanticRow:
+    has_dma = any(
+        binding.peripheral == peripheral_name and binding.signal in {"RX", "TX"}
+        for binding in _runtime_lite_dma_bindings(context.device)
+    )
+    return SdmmcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        supports_1bit=True,
+        supports_4bit=True,
+        supports_8bit=False,
+        has_dma=has_dma,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            fallback_offset=0x00,
+        ),
+        mode_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            fallback_offset=0x04,
+        ),
+        data_timeout_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DTOR",
+            fallback_offset=0x08,
+        ),
+        sd_card_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SDCR",
+            fallback_offset=0x0C,
+        ),
+        argument_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ARGR",
+            fallback_offset=0x10,
+        ),
+        command_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            fallback_offset=0x14,
+        ),
+        block_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BLKR",
+            fallback_offset=0x18,
+        ),
+        completion_timeout_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CSTOR",
+            fallback_offset=0x1C,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            fallback_offset=0x40,
+        ),
+        interrupt_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            fallback_offset=0x44,
+        ),
+        interrupt_disable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IDR",
+            fallback_offset=0x48,
+        ),
+        interrupt_mask_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IMR",
+            fallback_offset=0x4C,
+        ),
+        dma_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DMA",
+            fallback_offset=0x50,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CFG",
+            fallback_offset=0x54,
+        ),
+        read_data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RDR",
+            fallback_offset=0x30,
+        ),
+        write_data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TDR",
+            fallback_offset=0x34,
+        ),
+        enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("MCIEN",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        disable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("MCIDIS",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        power_save_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("PWSEN",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        power_save_disable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("PWSDIS",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=3,
+            fallback_bit_width=1,
+        ),
+        software_reset_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CR",
+            field_names=("SWRST",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=7,
+            fallback_bit_width=1,
+        ),
+        clock_divider_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("CLKDIV",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=0,
+            fallback_bit_width=8,
+        ),
+        power_save_divider_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("PWSDIV",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=8,
+            fallback_bit_width=3,
+        ),
+        read_proof_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("RDPROOF",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=11,
+            fallback_bit_width=1,
+        ),
+        write_proof_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MR",
+            field_names=("WRPROOF",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=12,
+            fallback_bit_width=1,
+        ),
+        slot_select_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SDCR",
+            field_names=("SDCSEL",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        bus_width_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SDCR",
+            field_names=("SDCBUS",),
+            fallback_register_offset=0x0C,
+            fallback_bit_offset=6,
+            fallback_bit_width=2,
+        ),
+        argument_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ARGR",
+            field_names=("ARG",),
+            fallback_register_offset=0x10,
+            fallback_bit_offset=0,
+            fallback_bit_width=32,
+        ),
+        command_index_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("CMDNB",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=0,
+            fallback_bit_width=6,
+        ),
+        response_type_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("RSPTYP",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=6,
+            fallback_bit_width=2,
+        ),
+        special_command_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("SPCMD",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=8,
+            fallback_bit_width=3,
+        ),
+        open_drain_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("OPDCMD",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=11,
+            fallback_bit_width=1,
+        ),
+        max_latency_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("MAXLAT",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=12,
+            fallback_bit_width=1,
+        ),
+        transfer_command_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("TRCMD",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=16,
+            fallback_bit_width=2,
+        ),
+        transfer_direction_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("TRDIR",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=18,
+            fallback_bit_width=1,
+        ),
+        transfer_type_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("TRTYP",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=19,
+            fallback_bit_width=3,
+        ),
+        sdio_interrupt_command_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("IOSPCMD",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=24,
+            fallback_bit_width=2,
+        ),
+        atacs_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CMDR",
+            field_names=("ATACS",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=26,
+            fallback_bit_width=1,
+        ),
+        block_count_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BLKR",
+            field_names=("BCNT",),
+            fallback_register_offset=0x18,
+            fallback_bit_offset=0,
+            fallback_bit_width=16,
+        ),
+        block_length_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BLKR",
+            field_names=("BLKLEN",),
+            fallback_register_offset=0x18,
+            fallback_bit_offset=16,
+            fallback_bit_width=16,
+        ),
+        command_ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("CMDRDY",),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        rx_ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("RXRDY",),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        tx_ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("TXRDY",),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        transfer_done_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("XFRDONE",),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=27,
+            fallback_bit_width=1,
+        ),
+        not_busy_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SR",
+            field_names=("NOTBUSY",),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=5,
+            fallback_bit_width=1,
+        ),
+        dma_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DMA",
+            field_names=("DMAEN",),
+            fallback_register_offset=0x50,
+            fallback_bit_offset=8,
+            fallback_bit_width=1,
+        ),
+    )
+
+
+def _build_sdmmc_rows(context: _SemanticContext) -> tuple[SdmmcSemanticRow, ...]:
+    rows: list[SdmmcSemanticRow] = []
+    for peripheral in context.runtime_peripherals_by_class.get("sdmmc", ()):
+        schema_id = peripheral.backend_schema_id
+        if schema_id is None:
+            continue
+        if schema_id.startswith("alloy.hsmci.microchip-"):
+            rows.append(
+                _microchip_hsmci_sdmmc_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+    return tuple(rows)
+
+
 def _microchip_watchdog_row(
     context: _SemanticContext,
     *,
@@ -6838,14 +8395,20 @@ def _emit_peripheral_semantics_header(
     trait_name: str,
     array_name: str,
     rows: tuple[
-        UartSemanticRow
-        | I2cSemanticRow
-        | SpiSemanticRow
-        | AdcSemanticRow
-        | DacSemanticRow
-        | RtcSemanticRow
-        | WatchdogSemanticRow
-        | CanSemanticRow,
+        (
+            UartSemanticRow
+            | I2cSemanticRow
+            | SpiSemanticRow
+            | AdcSemanticRow
+            | DacSemanticRow
+            | RtcSemanticRow
+            | WatchdogSemanticRow
+            | CanSemanticRow
+            | EthSemanticRow
+            | UsbSemanticRow
+            | QspiSemanticRow
+            | SdmmcSemanticRow
+        ),
         ...,
     ],
     default_lines: list[str],
@@ -7485,6 +9048,268 @@ def _can_specialization_builder(context: _SemanticContext):
         lines.extend(
             f"  static constexpr RuntimeIndexedFieldRef {name} = {_indexed_field_ref_expr(value)};"
             for name, value in indexed_field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _usb_specialization_builder(context: _SemanticContext):
+    def _build(row: UsbSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kStatusRegister": row.status_reg,
+            "kInterruptStatusRegister": row.interrupt_status_reg,
+            "kInterruptMaskRegister": row.interrupt_mask_reg,
+            "kDeviceControlRegister": row.device_control_reg,
+            "kDeviceStatusRegister": row.device_status_reg,
+            "kDeviceInterruptStatusRegister": row.device_interrupt_status_reg,
+            "kDeviceInterruptMaskRegister": row.device_interrupt_mask_reg,
+            "kDeviceInterruptEnableRegister": row.device_interrupt_enable_reg,
+            "kDeviceInterruptDisableRegister": row.device_interrupt_disable_reg,
+            "kHostControlRegister": row.host_control_reg,
+            "kHostStatusRegister": row.host_status_reg,
+            "kHostInterruptStatusRegister": row.host_interrupt_status_reg,
+            "kHostInterruptMaskRegister": row.host_interrupt_mask_reg,
+            "kHostInterruptEnableRegister": row.host_interrupt_enable_reg,
+            "kHostInterruptDisableRegister": row.host_interrupt_disable_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kFreezeClockField": row.freeze_clock_field,
+            "kForceDeviceModeField": row.force_device_mode_field,
+            "kForceHostModeField": row.force_host_mode_field,
+            "kModeStatusField": row.mode_status_field,
+            "kSoftDisconnectField": row.soft_disconnect_field,
+            "kRemoteWakeupField": row.remote_wakeup_field,
+            "kAddressEnableField": row.address_enable_field,
+            "kAddressField": row.address_field,
+            "kClockUsableField": row.clock_usable_field,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            "  static constexpr bool kSupportsDeviceMode = "
+            + ("true" if row.supports_device_mode else "false")
+            + ";",
+            "  static constexpr bool kSupportsHostMode = "
+            + ("true" if row.supports_host_mode else "false")
+            + ";",
+            "  static constexpr bool kHasDedicatedEndpointConfig = "
+            + ("true" if row.has_dedicated_endpoint_config else "false")
+            + ";",
+            "  static constexpr bool kHasClockFreeze = "
+            + ("true" if row.has_clock_freeze else "false")
+            + ";",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _eth_specialization_builder(context: _SemanticContext):
+    def _build(row: EthSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kConfigRegister": row.config_reg,
+            "kStatusRegister": row.status_reg,
+            "kUserIoRegister": row.user_io_reg,
+            "kDmaConfigRegister": row.dma_config_reg,
+            "kTxStatusRegister": row.tx_status_reg,
+            "kRxStatusRegister": row.rx_status_reg,
+            "kInterruptStatusRegister": row.interrupt_status_reg,
+            "kInterruptEnableRegister": row.interrupt_enable_reg,
+            "kInterruptDisableRegister": row.interrupt_disable_reg,
+            "kInterruptMaskRegister": row.interrupt_mask_reg,
+            "kRxDescriptorBaseRegister": row.rx_descriptor_base_reg,
+            "kTxDescriptorBaseRegister": row.tx_descriptor_base_reg,
+        }
+        field_members = {
+            "kRxEnableField": row.rx_enable_field,
+            "kTxEnableField": row.tx_enable_field,
+            "kManagementPortEnableField": row.management_port_enable_field,
+            "kClearStatisticsField": row.clear_statistics_field,
+            "kWriteEnableStatisticsField": row.write_enable_statistics_field,
+            "kTxStartField": row.tx_start_field,
+            "kSpeedField": row.speed_field,
+            "kFullDuplexField": row.full_duplex_field,
+            "kMdcClockDividerField": row.mdc_clock_divider_field,
+            "kRmiiEnableField": row.rmii_enable_field,
+            "kManagementDoneField": row.management_done_field,
+            "kRxCompleteInterruptField": row.rx_complete_interrupt_field,
+            "kTxCompleteInterruptField": row.tx_complete_interrupt_field,
+            "kRxCompleteInterruptEnableField": row.rx_complete_interrupt_enable_field,
+            "kTxCompleteInterruptEnableField": row.tx_complete_interrupt_enable_field,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            f"  static constexpr bool kSupportsMii = {'true' if row.supports_mii else 'false'};",
+            f"  static constexpr bool kSupportsRmii = {'true' if row.supports_rmii else 'false'};",
+            f"  static constexpr bool kHasDmaEngine = {'true' if row.has_dma_engine else 'false'};",
+            "  static constexpr bool kHasStatisticsCounters = "
+            + ("true" if row.has_statistics_counters else "false")
+            + ";",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _qspi_specialization_builder(context: _SemanticContext):
+    def _build(row: QspiSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kModeRegister": row.mode_reg,
+            "kStatusRegister": row.status_reg,
+            "kInterruptEnableRegister": row.interrupt_enable_reg,
+            "kInterruptDisableRegister": row.interrupt_disable_reg,
+            "kInterruptMaskRegister": row.interrupt_mask_reg,
+            "kSerialClockRegister": row.serial_clock_reg,
+            "kInstructionAddressRegister": row.instruction_address_reg,
+            "kInstructionCodeRegister": row.instruction_code_reg,
+            "kInstructionFrameRegister": row.instruction_frame_reg,
+            "kScramblingModeRegister": row.scrambling_mode_reg,
+            "kScramblingKeyRegister": row.scrambling_key_reg,
+            "kReceiveDataRegister": row.receive_data_reg,
+            "kTransmitDataRegister": row.transmit_data_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kDisableField": row.disable_field,
+            "kSoftwareResetField": row.software_reset_field,
+            "kLastTransferField": row.last_transfer_field,
+            "kEnabledStatusField": row.enabled_status_field,
+            "kSerialMemoryModeField": row.serial_memory_mode_field,
+            "kChipSelectModeField": row.chip_select_mode_field,
+            "kBitsPerTransferField": row.bits_per_transfer_field,
+            "kReceiveReadyField": row.receive_ready_field,
+            "kTransmitReadyField": row.transmit_ready_field,
+            "kTransmitEmptyField": row.transmit_empty_field,
+            "kReceiveReadyInterruptEnableField": row.receive_ready_interrupt_enable_field,
+            "kTransmitReadyInterruptEnableField": row.transmit_ready_interrupt_enable_field,
+            "kTransmitEmptyInterruptEnableField": row.transmit_empty_interrupt_enable_field,
+            "kSerialClockBaudRateField": row.serial_clock_baud_rate_field,
+            "kInstructionField": row.instruction_field,
+            "kAddressField": row.address_field,
+            "kWidthField": row.width_field,
+            "kInstructionEnableField": row.instruction_enable_field,
+            "kAddressEnableField": row.address_enable_field,
+            "kOptionEnableField": row.option_enable_field,
+            "kDataEnableField": row.data_enable_field,
+            "kTransferTypeField": row.transfer_type_field,
+            "kContinuousReadModeField": row.continuous_read_mode_field,
+            "kDummyCyclesField": row.dummy_cycles_field,
+            "kScramblingEnableField": row.scrambling_enable_field,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            "  static constexpr bool kSupportsSpiMode = "
+            + ("true" if row.supports_spi_mode else "false")
+            + ";",
+            "  static constexpr bool kSupportsMemoryMode = "
+            + ("true" if row.supports_memory_mode else "false")
+            + ";",
+            f"  static constexpr bool kHasScrambling = {'true' if row.has_scrambling else 'false'};",
+            f"  static constexpr bool kHasDma = {'true' if row.has_dma else 'false'};",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
+        )
+        return lines
+
+    return _build
+
+
+def _sdmmc_specialization_builder(context: _SemanticContext):
+    def _build(row: SdmmcSemanticRow) -> list[str]:
+        register_members = {
+            "kControlRegister": row.control_reg,
+            "kModeRegister": row.mode_reg,
+            "kDataTimeoutRegister": row.data_timeout_reg,
+            "kSdCardRegister": row.sd_card_reg,
+            "kArgumentRegister": row.argument_reg,
+            "kCommandRegister": row.command_reg,
+            "kBlockRegister": row.block_reg,
+            "kCompletionTimeoutRegister": row.completion_timeout_reg,
+            "kStatusRegister": row.status_reg,
+            "kInterruptEnableRegister": row.interrupt_enable_reg,
+            "kInterruptDisableRegister": row.interrupt_disable_reg,
+            "kInterruptMaskRegister": row.interrupt_mask_reg,
+            "kDmaRegister": row.dma_reg,
+            "kConfigRegister": row.config_reg,
+            "kReadDataRegister": row.read_data_reg,
+            "kWriteDataRegister": row.write_data_reg,
+        }
+        field_members = {
+            "kEnableField": row.enable_field,
+            "kDisableField": row.disable_field,
+            "kPowerSaveEnableField": row.power_save_enable_field,
+            "kPowerSaveDisableField": row.power_save_disable_field,
+            "kSoftwareResetField": row.software_reset_field,
+            "kClockDividerField": row.clock_divider_field,
+            "kPowerSaveDividerField": row.power_save_divider_field,
+            "kReadProofField": row.read_proof_field,
+            "kWriteProofField": row.write_proof_field,
+            "kSlotSelectField": row.slot_select_field,
+            "kBusWidthField": row.bus_width_field,
+            "kArgumentField": row.argument_field,
+            "kCommandIndexField": row.command_index_field,
+            "kResponseTypeField": row.response_type_field,
+            "kSpecialCommandField": row.special_command_field,
+            "kOpenDrainField": row.open_drain_field,
+            "kMaxLatencyField": row.max_latency_field,
+            "kTransferCommandField": row.transfer_command_field,
+            "kTransferDirectionField": row.transfer_direction_field,
+            "kTransferTypeField": row.transfer_type_field,
+            "kSdioInterruptCommandField": row.sdio_interrupt_command_field,
+            "kAtacsField": row.atacs_field,
+            "kBlockCountField": row.block_count_field,
+            "kBlockLengthField": row.block_length_field,
+            "kCommandReadyField": row.command_ready_field,
+            "kRxReadyField": row.rx_ready_field,
+            "kTxReadyField": row.tx_ready_field,
+            "kTransferDoneField": row.transfer_done_field,
+            "kNotBusyField": row.not_busy_field,
+            "kDmaEnableField": row.dma_enable_field,
+        }
+        lines = [
+            "  static constexpr bool kPresent = true;",
+            f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            f"  static constexpr bool kSupports1Bit = {'true' if row.supports_1bit else 'false'};",
+            f"  static constexpr bool kSupports4Bit = {'true' if row.supports_4bit else 'false'};",
+            f"  static constexpr bool kSupports8Bit = {'true' if row.supports_8bit else 'false'};",
+            f"  static constexpr bool kHasDma = {'true' if row.has_dma else 'false'};",
+        ]
+        lines.extend(
+            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
+            for name, value in register_members.items()
+        )
+        lines.extend(
+            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
+            for name, value in field_members.items()
         )
         return lines
 
@@ -8427,6 +10252,258 @@ def emit_runtime_driver_can_semantics_header(
     )
 
 
+def emit_runtime_driver_usb_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    rows = _build_usb_rows(context)
+    default_lines = [
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr bool kSupportsDeviceMode = false;",
+        "  static constexpr bool kSupportsHostMode = false;",
+        "  static constexpr bool kHasDedicatedEndpointConfig = false;",
+        "  static constexpr bool kHasClockFreeze = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptMaskRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeviceControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeviceStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeviceInterruptStatusRegister = "
+        "kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeviceInterruptMaskRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeviceInterruptEnableRegister = "
+        "kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDeviceInterruptDisableRegister = "
+        "kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kHostControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kHostStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kHostInterruptStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kHostInterruptMaskRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kHostInterruptEnableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kHostInterruptDisableRegister = "
+        "kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kFreezeClockField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kForceDeviceModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kForceHostModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kModeStatusField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSoftDisconnectField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kRemoteWakeupField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAddressEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAddressField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kClockUsableField = kInvalidFieldRef;",
+    ]
+    return _emit_peripheral_semantics_header(
+        family_dir=family_dir,
+        device=device,
+        header_name=USB_DRIVER_HEADER,
+        trait_name="UsbSemanticTraits",
+        array_name="kUsbSemanticPeripherals",
+        rows=rows,
+        default_lines=default_lines,
+        specialization_builder=_usb_specialization_builder(context),
+    )
+
+
+def emit_runtime_driver_eth_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    rows = _build_eth_rows(context)
+    default_lines = [
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr bool kSupportsMii = false;",
+        "  static constexpr bool kSupportsRmii = false;",
+        "  static constexpr bool kHasDmaEngine = false;",
+        "  static constexpr bool kHasStatisticsCounters = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kConfigRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kUserIoRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDmaConfigRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kTxStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kRxStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptEnableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptDisableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptMaskRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kRxDescriptorBaseRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kTxDescriptorBaseRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kRxEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTxEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kManagementPortEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kClearStatisticsField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kWriteEnableStatisticsField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTxStartField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kFullDuplexField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kMdcClockDividerField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kRmiiEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kManagementDoneField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kRxCompleteInterruptField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTxCompleteInterruptField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kRxCompleteInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;",
+    ]
+    return _emit_peripheral_semantics_header(
+        family_dir=family_dir,
+        device=device,
+        header_name=ETH_DRIVER_HEADER,
+        trait_name="EthSemanticTraits",
+        array_name="kEthSemanticPeripherals",
+        rows=rows,
+        default_lines=default_lines,
+        specialization_builder=_eth_specialization_builder(context),
+    )
+
+
+def emit_runtime_driver_qspi_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    rows = _build_qspi_rows(context)
+    default_lines = [
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr bool kSupportsSpiMode = false;",
+        "  static constexpr bool kSupportsMemoryMode = false;",
+        "  static constexpr bool kHasScrambling = false;",
+        "  static constexpr bool kHasDma = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kModeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptEnableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptDisableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptMaskRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSerialClockRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInstructionAddressRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInstructionCodeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInstructionFrameRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kScramblingModeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kScramblingKeyRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kReceiveDataRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kTransmitDataRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSoftwareResetField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kLastTransferField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kEnabledStatusField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSerialMemoryModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kChipSelectModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kBitsPerTransferField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kReceiveReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransmitReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransmitEmptyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kReceiveReadyInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransmitReadyInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransmitEmptyInterruptEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSerialClockBaudRateField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kInstructionField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAddressField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kWidthField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kInstructionEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAddressEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kOptionEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDataEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransferTypeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kContinuousReadModeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDummyCyclesField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kScramblingEnableField = kInvalidFieldRef;",
+    ]
+    return _emit_peripheral_semantics_header(
+        family_dir=family_dir,
+        device=device,
+        header_name=QSPI_DRIVER_HEADER,
+        trait_name="QspiSemanticTraits",
+        array_name="kQspiSemanticPeripherals",
+        rows=rows,
+        default_lines=default_lines,
+        specialization_builder=_qspi_specialization_builder(context),
+    )
+
+
+def emit_runtime_driver_sdmmc_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    context = _context(device)
+    rows = _build_sdmmc_rows(context)
+    default_lines = [
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        "  static constexpr bool kSupports1Bit = false;",
+        "  static constexpr bool kSupports4Bit = false;",
+        "  static constexpr bool kSupports8Bit = false;",
+        "  static constexpr bool kHasDma = false;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kModeRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDataTimeoutRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kSdCardRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kArgumentRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCommandRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kBlockRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kCompletionTimeoutRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptEnableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptDisableRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kInterruptMaskRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kDmaRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kConfigRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kReadDataRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeRegisterRef kWriteDataRegister = kInvalidRegisterRef;",
+        "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPowerSaveEnableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPowerSaveDisableField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSoftwareResetField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kClockDividerField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kPowerSaveDividerField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kReadProofField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kWriteProofField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSlotSelectField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kBusWidthField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kArgumentField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kCommandIndexField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kResponseTypeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSpecialCommandField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kOpenDrainField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kMaxLatencyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransferCommandField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransferDirectionField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransferTypeField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSdioInterruptCommandField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kAtacsField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kBlockCountField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kBlockLengthField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kCommandReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kRxReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTxReadyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kTransferDoneField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kNotBusyField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;",
+    ]
+    return _emit_peripheral_semantics_header(
+        family_dir=family_dir,
+        device=device,
+        header_name=SDMMC_DRIVER_HEADER,
+        trait_name="SdmmcSemanticTraits",
+        array_name="kSdmmcSemanticPeripherals",
+        rows=rows,
+        default_lines=default_lines,
+        specialization_builder=_sdmmc_specialization_builder(context),
+    )
+
+
 def emit_runtime_driver_watchdog_semantics_header(
     *,
     family_dir: str,
@@ -8669,8 +10746,12 @@ __all__ = [
     "emit_runtime_driver_can_semantics_header",
     "emit_runtime_driver_dac_semantics_header",
     "emit_runtime_driver_dma_semantics_header",
+    "emit_runtime_driver_eth_semantics_header",
     "emit_runtime_driver_gpio_semantics_header",
     "emit_runtime_driver_i2c_semantics_header",
+    "emit_runtime_driver_qspi_semantics_header",
+    "emit_runtime_driver_sdmmc_semantics_header",
+    "emit_runtime_driver_usb_semantics_header",
     "emit_runtime_driver_rtc_semantics_header",
     "emit_runtime_driver_semantics_common_header",
     "emit_runtime_driver_spi_semantics_header",

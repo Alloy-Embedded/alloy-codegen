@@ -39,15 +39,20 @@ RUNTIME_LITE_PERIPHERAL_CLASSES = frozenset(
         "timer",
         "pwm",
         "can",
+        "qspi",
+        "eth",
         "adc",
         "dac",
         "rtc",
         "watchdog",
+        "usb",
+        "sdmmc",
     }
 )
 _RUNTIME_LITE_TIMING_CLASS_ALIASES = {
     "gpt": "timer",
     "pit": "timer",
+    "hsmci": "sdmmc",
 }
 
 

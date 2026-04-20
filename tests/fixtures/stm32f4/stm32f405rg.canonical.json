@@ -382,7 +382,7 @@
           "st-stm32f4-stm32f405rg-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.otg_fs.st-otgfs-f4-v1-0"
+      "backend_schema_id": "alloy.usb.st-otgfs-f4-v1-0"
     },
     {
       "name": "FLASH",
@@ -1616,7 +1616,7 @@
     {
       "ip_name": "otg_fs",
       "ip_version": "otgfs_f4_v1_0",
-      "peripheral_class": "otg_fs",
+      "peripheral_class": "usb",
       "register_profile": "otg_fs:otgfs_f4_v1_0",
       "signal_roles": [],
       "capability_ids": [],
@@ -1628,7 +1628,7 @@
           "st-stm32f4-stm32f405rg-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.otg_fs.st-otgfs-f4-v1-0"
+      "backend_schema_id": "alloy.usb.st-otgfs-f4-v1-0"
     },
     {
       "ip_name": "rcc",

@@ -97,6 +97,14 @@ def test_publish_includes_materialized_summary(
         for artifact in payload["materialized_artifacts"]
     )
     assert any(
+        artifact["path"] == "st/stm32g0/reports/runtime-capability-summary.json"
+        for artifact in payload["materialized_artifacts"]
+    )
+    assert any(
+        artifact["path"] == "st/stm32g0/reports/runtime-compatibility-matrix.json"
+        for artifact in payload["materialized_artifacts"]
+    )
+    assert any(
         artifact["path"] == "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
         for artifact in payload["materialized_artifacts"]
     )
@@ -172,6 +180,60 @@ def test_publish_microchip_family_scope(
         / "driver_semantics"
         / "can.hpp"
     ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "atsame70q21b"
+        / "driver_semantics"
+        / "eth.hpp"
+    ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "atsame70q21b"
+        / "driver_semantics"
+        / "usb.hpp"
+    ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "atsame70q21b"
+        / "driver_semantics"
+        / "qspi.hpp"
+    ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "atsame70q21b"
+        / "driver_semantics"
+        / "sdmmc.hpp"
+    ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "atsame70q21b"
+        / "low_power.hpp"
+    ).exists()
 
 
 def test_publish_stm32f4_family_scope(
@@ -206,6 +268,38 @@ def test_publish_stm32f4_family_scope(
         / "driver_semantics"
         / "rtc.hpp"
     ).exists()
+    assert (
+        execution_context.publication_root
+        / "st"
+        / "stm32f4"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32f405rg"
+        / "driver_semantics"
+        / "usb.hpp"
+    ).exists()
+    assert (
+        execution_context.publication_root
+        / "st"
+        / "stm32f4"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32f405rg"
+        / "driver_semantics"
+        / "eth.hpp"
+    ).exists()
+    assert (
+        execution_context.publication_root
+        / "st"
+        / "stm32f4"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32f405rg"
+        / "low_power.hpp"
+    ).exists()
 
 
 def test_publish_nxp_family_scope(
@@ -239,6 +333,16 @@ def test_publish_nxp_family_scope(
         / "mimxrt1064"
         / "driver_semantics"
         / "watchdog.hpp"
+    ).exists()
+    assert (
+        nxp_execution_context.publication_root
+        / "nxp"
+        / "imxrt1060"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "mimxrt1064"
+        / "low_power.hpp"
     ).exists()
 
 

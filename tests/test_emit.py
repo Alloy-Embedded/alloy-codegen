@@ -18,6 +18,7 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_can_semantics_header,
     emit_runtime_driver_timer_semantics_header,
     emit_runtime_driver_uart_semantics_header,
+    emit_runtime_driver_usb_semantics_header,
 )
 from alloy_codegen.runtime_linker_script import emit_runtime_linker_script
 from alloy_codegen.scope import PipelineScope
@@ -120,6 +121,54 @@ def _synthetic_bxcan_field(
     )
 
 
+def _synthetic_usb_provenance() -> Provenance:
+    return Provenance(
+        source_id="test-fixture",
+        source_path="tests/test_emit.py",
+        patch_ids=("usb-wave2-semantic-regression",),
+    )
+
+
+def _synthetic_usb_register(
+    *,
+    peripheral: str,
+    name: str,
+    offset_bytes: int,
+) -> RegisterDescriptor:
+    provenance = _synthetic_usb_provenance()
+    return RegisterDescriptor(
+        register_id=f"register_{peripheral.lower()}_{name.lower()}",
+        peripheral=peripheral,
+        name=name,
+        offset_bytes=offset_bytes,
+        access="read-write",
+        size_bits=32,
+        provenance=provenance,
+    )
+
+
+def _synthetic_usb_field(
+    *,
+    peripheral: str,
+    register_name: str,
+    name: str,
+    bit_offset: int,
+    bit_width: int,
+) -> RegisterFieldDescriptor:
+    provenance = _synthetic_usb_provenance()
+    return RegisterFieldDescriptor(
+        field_id=f"field_{peripheral.lower()}_{register_name.lower()}_{name.lower()}",
+        register_id=f"register_{peripheral.lower()}_{register_name.lower()}",
+        peripheral=peripheral,
+        register_name=register_name,
+        name=name,
+        bit_offset=bit_offset,
+        bit_width=bit_width,
+        access="read-write",
+        provenance=provenance,
+    )
+
+
 def _synthetic_linker_provenance() -> Provenance:
     return Provenance(
         source_id="test-fixture",
@@ -193,6 +242,12 @@ def test_emit_includes_metadata_artifacts_with_content(
     coverage_artifact = artifacts["st/stm32g0/reports/coverage.json"]
     provenance_report_artifact = artifacts["st/stm32g0/reports/runtime-provenance.json"]
     explainability_report_artifact = artifacts["st/stm32g0/reports/runtime-explainability.json"]
+    capability_summary_report_artifact = artifacts[
+        "st/stm32g0/reports/runtime-capability-summary.json"
+    ]
+    compatibility_matrix_report_artifact = artifacts[
+        "st/stm32g0/reports/runtime-compatibility-matrix.json"
+    ]
     family_index_artifact = artifacts["st/stm32g0/metadata/family-index.json"]
     connectivity_artifact = artifacts["st/stm32g0/metadata/family-connectivity.json"]
     ip_blocks_artifact = artifacts["st/stm32g0/metadata/ip-blocks.json"]
@@ -256,6 +311,18 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_can_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/can.hpp"
     ]
+    runtime_eth_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/eth.hpp"
+    ]
+    runtime_usb_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/usb.hpp"
+    ]
+    runtime_qspi_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/qspi.hpp"
+    ]
+    runtime_sdmmc_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/sdmmc.hpp"
+    ]
     runtime_rtc_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/rtc.hpp"
     ]
@@ -304,6 +371,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_clock_config_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_config.hpp"
     ]
+    runtime_low_power_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/low_power.hpp"
+    ]
     assert not any(path.startswith("st/stm32g0/generated/ip/") for path in artifacts), (
         "Legacy IP headers should not be published"
     )
@@ -318,6 +388,8 @@ def test_emit_includes_metadata_artifacts_with_content(
         coverage_artifact,
         provenance_report_artifact,
         explainability_report_artifact,
+        capability_summary_report_artifact,
+        compatibility_matrix_report_artifact,
         family_index_artifact,
         connectivity_artifact,
         ip_blocks_artifact,
@@ -345,6 +417,8 @@ def test_emit_includes_metadata_artifacts_with_content(
     coverage_payload = json.loads(coverage_artifact.content)
     provenance_report_payload = json.loads(provenance_report_artifact.content)
     explainability_report_payload = json.loads(explainability_report_artifact.content)
+    capability_summary_payload = json.loads(capability_summary_report_artifact.content)
+    compatibility_matrix_payload = json.loads(compatibility_matrix_report_artifact.content)
     family_index_payload = json.loads(family_index_artifact.content)
     connectivity_payload = json.loads(connectivity_artifact.content)
     ip_blocks_payload = json.loads(ip_blocks_artifact.content)
@@ -384,6 +458,12 @@ def test_emit_includes_metadata_artifacts_with_content(
         coverage["coverage_kind"] in {"instance", "class-only"}
         for coverage in explainability_report_payload["devices"][0]["capability_coverage"]
     )
+    assert capability_summary_payload["report_id"] == "runtime-capability-summary-v1"
+    assert capability_summary_payload["devices"][0]["device"] == "stm32g071rb"
+    assert any(row["peripheral_class"] == "uart" for row in capability_summary_payload["classes"])
+    assert compatibility_matrix_payload["report_id"] == "runtime-compatibility-matrix-v1"
+    assert "gpio" in compatibility_matrix_payload["driver_classes"]
+    assert compatibility_matrix_payload["devices"][0]["device"] == "stm32g071rb"
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (
@@ -495,6 +575,18 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_can_semantics_artifact.artifact_kind == "generated-cpp"
     assert "struct CanSemanticTraits" in runtime_can_semantics_artifact.content
     assert "kCanSemanticPeripherals" in runtime_can_semantics_artifact.content
+    assert runtime_eth_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct EthSemanticTraits" in runtime_eth_semantics_artifact.content
+    assert "kEthSemanticPeripherals" in runtime_eth_semantics_artifact.content
+    assert runtime_usb_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct UsbSemanticTraits" in runtime_usb_semantics_artifact.content
+    assert "kUsbSemanticPeripherals" in runtime_usb_semantics_artifact.content
+    assert runtime_qspi_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct QspiSemanticTraits" in runtime_qspi_semantics_artifact.content
+    assert "kQspiSemanticPeripherals" in runtime_qspi_semantics_artifact.content
+    assert runtime_sdmmc_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct SdmmcSemanticTraits" in runtime_sdmmc_semantics_artifact.content
+    assert "kSdmmcSemanticPeripherals" in runtime_sdmmc_semantics_artifact.content
     assert runtime_rtc_semantics_artifact.artifact_kind == "generated-cpp"
     assert "struct RtcSemanticTraits" in runtime_rtc_semantics_artifact.content
     assert "kRtcSemanticPeripherals" in runtime_rtc_semantics_artifact.content
@@ -563,7 +655,11 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "kClockProfiles" in runtime_clock_profiles_artifact.content
     assert "kMaxClockProfileId" in runtime_clock_profiles_artifact.content
     assert runtime_clock_config_artifact.artifact_kind == "generated-cpp"
+    assert runtime_low_power_artifact.artifact_kind == "generated-cpp"
     assert "apply_default_clock_profile" in runtime_clock_config_artifact.content
+    assert "enum class LowPowerModeId" in runtime_low_power_artifact.content
+    assert "kLowPowerModes" in runtime_low_power_artifact.content
+    assert "kWakeupSources" in runtime_low_power_artifact.content
     assert "apply_max_clock_profile" in runtime_clock_config_artifact.content
     assert "apply_clock_profile_default_pll_64mhz" in runtime_clock_config_artifact.content
 
@@ -637,6 +733,18 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_can_semantics = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/can.hpp"
     ].content
+    same70_eth_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/eth.hpp"
+    ].content
+    same70_usb_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/usb.hpp"
+    ].content
+    same70_qspi_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/qspi.hpp"
+    ].content
+    same70_sdmmc_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/sdmmc.hpp"
+    ].content
     same70_rtc_semantics = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/rtc.hpp"
     ].content
@@ -679,6 +787,9 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_system_sequences = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/system_sequences.hpp"
     ].content
+    same70_low_power = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/low_power.hpp"
+    ].content
     assert "ClockGateTraits<ClockGateId::gate_usart0>" in same70_clock_bindings
     assert "FieldId::field_pmc_pcer0_pid13" in same70_clock_bindings
     assert "PeripheralId::WDT" in same70_peripheral_instances
@@ -689,15 +800,23 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "PeripheralInstanceTraits<PeripheralId::PWM0>" in same70_peripheral_instances
     assert "PeripheralInstanceTraits<PeripheralId::MCAN0>" in same70_peripheral_instances
     assert "PeripheralInstanceTraits<PeripheralId::MCAN1>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::GMAC>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::QSPI>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::HSMCI>" in same70_peripheral_instances
     assert "PeripheralClassId::class_adc" in same70_peripheral_instances
     assert "PeripheralClassId::class_dac" in same70_peripheral_instances
     assert "PeripheralClassId::class_can" in same70_peripheral_instances
+    assert "PeripheralClassId::class_eth" in same70_peripheral_instances
+    assert "PeripheralClassId::class_qspi" in same70_peripheral_instances
+    assert "PeripheralClassId::class_sdmmc" in same70_peripheral_instances
     assert "PeripheralClassId::class_timer" in same70_peripheral_instances
     assert "PeripheralClassId::class_pwm" in same70_peripheral_instances
     assert "BindingTraits<PeripheralId::AFEC0" in same70_dma_bindings
     assert "BindingTraits<PeripheralId::DACC" in same70_dma_bindings
     assert "BindingTraits<PeripheralId::PWM0" in same70_dma_bindings
     assert "BindingTraits<PeripheralId::SPI0" in same70_dma_bindings
+    assert "BindingTraits<PeripheralId::QSPI" in same70_dma_bindings
+    assert "BindingTraits<PeripheralId::HSMCI" in same70_dma_bindings
     assert "BindingTraits<PeripheralId::TWIHS0" in same70_dma_bindings
     assert "AdcSemanticTraits<PeripheralId::AFEC0>" in same70_adc_semantics
     assert "kAdcSemanticPeripherals" in same70_adc_semantics
@@ -707,6 +826,33 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "CanSemanticTraits<PeripheralId::MCAN0>" in same70_can_semantics
     assert "CanSemanticTraits<PeripheralId::MCAN1>" in same70_can_semantics
     assert "kCanSemanticPeripherals" in same70_can_semantics
+    assert "EthSemanticTraits<PeripheralId::GMAC>" in same70_eth_semantics
+    assert "kSupportsRmii = true;" in same70_eth_semantics
+    assert "kHasDmaEngine = true;" in same70_eth_semantics
+    assert "kRxDescriptorBaseRegister" in same70_eth_semantics
+    assert "kTxDescriptorBaseRegister" in same70_eth_semantics
+    assert "kManagementPortEnableField" in same70_eth_semantics
+    assert "kEthSemanticPeripherals" in same70_eth_semantics
+    assert "UsbSemanticTraits<PeripheralId::USBHS>" in same70_usb_semantics
+    assert "kSupportsDeviceMode = true;" in same70_usb_semantics
+    assert "kSupportsHostMode = true;" in same70_usb_semantics
+    assert "kEnableField" in same70_usb_semantics
+    assert "kClockUsableField" in same70_usb_semantics
+    assert "kUsbSemanticPeripherals" in same70_usb_semantics
+    assert "QspiSemanticTraits<PeripheralId::QSPI>" in same70_qspi_semantics
+    assert "kSupportsMemoryMode = true;" in same70_qspi_semantics
+    assert "kHasDma = true;" in same70_qspi_semantics
+    assert "kInstructionFrameRegister" in same70_qspi_semantics
+    assert "kInstructionEnableField" in same70_qspi_semantics
+    assert "kScramblingEnableField" in same70_qspi_semantics
+    assert "kQspiSemanticPeripherals" in same70_qspi_semantics
+    assert "SdmmcSemanticTraits<PeripheralId::HSMCI>" in same70_sdmmc_semantics
+    assert "kSupports4Bit = true;" in same70_sdmmc_semantics
+    assert "kSupports8Bit = false;" in same70_sdmmc_semantics
+    assert "kHasDma = true;" in same70_sdmmc_semantics
+    assert "kCommandRegister" in same70_sdmmc_semantics
+    assert "kBusWidthField" in same70_sdmmc_semantics
+    assert "kSdmmcSemanticPeripherals" in same70_sdmmc_semantics
     assert "RtcSemanticTraits<PeripheralId::RTC>" in same70_rtc_semantics
     assert "kRtcSemanticPeripherals" in same70_rtc_semantics
     assert "WatchdogSemanticTraits<PeripheralId::WDT>" in same70_watchdog_semantics
@@ -716,6 +862,8 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "PeripheralId::DACC" in same70_dma_semantics
     assert "PeripheralId::PWM0" in same70_dma_semantics
     assert "PeripheralId::SPI0" in same70_dma_semantics
+    assert "PeripheralId::QSPI" in same70_dma_semantics
+    assert "PeripheralId::HSMCI" in same70_dma_semantics
     assert "PeripheralId::TWIHS0" in same70_dma_semantics
     assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
     assert "kHasEncoder = true;" in same70_timer_semantics
@@ -756,6 +904,10 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemSequenceId::default_bringup" in same70_system_sequences
     assert "PeripheralId::WDT" in same70_system_sequences
     assert "SystemClockProfileId::default_safe_internal_12mhz" in same70_system_sequences
+    assert "WakeupPinTraits<PinId::PA0>" in same70_low_power
+    assert "WakeupTagId::WKUP0" in same70_low_power
+    assert "kWakeupSources" in same70_low_power
+    assert "LowPowerModeTraits<LowPowerModeId::deep_sleep>" in same70_low_power
 
     nxp_clock_bindings = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
@@ -784,6 +936,9 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     nxp_system_sequences = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/system_sequences.hpp"
     ].content
+    nxp_low_power = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/low_power.hpp"
+    ].content
     assert "ClockGateTraits<ClockGateId::gate_lpuart1>" in nxp_clock_bindings
     assert "RegisterId::register_ccm_ccgr5" in nxp_clock_bindings
     assert "FieldId::field_ccm_ccgr5_cg12" in nxp_clock_bindings
@@ -800,6 +955,8 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "kMaxClockProfileId = ClockProfileId::default_arm_pll_600mhz" in nxp_clock_profiles
     assert "apply_clock_profile_default_arm_pll_600mhz" in nxp_clock_config
     assert "apply_default_clock_profile" in nxp_clock_config
+    assert "enum class LowPowerModeId" in nxp_low_power
+    assert "kLowPowerModes" in nxp_low_power
     assert "PeripheralClassCapabilityTraits<PeripheralClassId::class_gpio>" in nxp_capabilities
     assert "kCapabilities" in nxp_capabilities
     assert "CapabilityNameId::runtime_supported" in nxp_capabilities
@@ -931,6 +1088,10 @@ def test_emit_matches_golden_artifacts(
         "adc.hpp",
         "dac.hpp",
         "can.hpp",
+        "eth.hpp",
+        "usb.hpp",
+        "qspi.hpp",
+        "sdmmc.hpp",
         "rtc.hpp",
         "watchdog.hpp",
         "timer.hpp",
@@ -1137,6 +1298,107 @@ def test_emit_timer_advanced_semantics_cover_wave1_vendors(
     assert "TimerSemanticTraits<PeripheralId::GPT1>" in nxp_timer_semantics
     assert "TimerSemanticTraits<PeripheralId::PIT>" in nxp_timer_semantics
     assert "kHasEncoder = false;" in nxp_timer_semantics
+
+
+def test_emit_usb_semantics_cover_wave2_vendors(
+    execution_context: ExecutionContext,
+    microchip_execution_context: ExecutionContext,
+) -> None:
+    st_base_device = run_normalize(
+        PipelineScope(device="stm32f405rg"), execution_context
+    ).payload.devices[0]
+    st_augmented = replace(
+        st_base_device,
+        registers=st_base_device.registers
+        + (
+            _synthetic_usb_register(peripheral="OTG_FS", name="GUSBCFG", offset_bytes=0x0C),
+            _synthetic_usb_register(peripheral="OTG_FS", name="GINTSTS", offset_bytes=0x14),
+            _synthetic_usb_register(peripheral="OTG_FS", name="GINTMSK", offset_bytes=0x18),
+            _synthetic_usb_register(peripheral="OTG_FS", name="GCCFG", offset_bytes=0x38),
+            _synthetic_usb_register(peripheral="OTG_FS", name="HCFG", offset_bytes=0x400),
+            _synthetic_usb_register(peripheral="OTG_FS", name="HPRT", offset_bytes=0x440),
+            _synthetic_usb_register(peripheral="OTG_FS", name="DCFG", offset_bytes=0x800),
+            _synthetic_usb_register(peripheral="OTG_FS", name="DCTL", offset_bytes=0x804),
+            _synthetic_usb_register(peripheral="OTG_FS", name="DSTS", offset_bytes=0x808),
+        ),
+        register_fields=st_base_device.register_fields
+        + (
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="GUSBCFG",
+                name="FDMOD",
+                bit_offset=30,
+                bit_width=1,
+            ),
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="GUSBCFG",
+                name="FHMOD",
+                bit_offset=29,
+                bit_width=1,
+            ),
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="GINTSTS",
+                name="CMOD",
+                bit_offset=0,
+                bit_width=1,
+            ),
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="GCCFG",
+                name="PWRDWN",
+                bit_offset=16,
+                bit_width=1,
+            ),
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="DCTL",
+                name="RWUSIG",
+                bit_offset=0,
+                bit_width=1,
+            ),
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="DCTL",
+                name="SDIS",
+                bit_offset=1,
+                bit_width=1,
+            ),
+            _synthetic_usb_field(
+                peripheral="OTG_FS",
+                register_name="DCFG",
+                name="DAD",
+                bit_offset=4,
+                bit_width=7,
+            ),
+        ),
+    )
+    st_usb_semantics = emit_runtime_driver_usb_semantics_header(
+        family_dir="st/stm32f4",
+        device=st_augmented,
+    ).content
+
+    assert "UsbSemanticTraits<PeripheralId::OTG_FS>" in st_usb_semantics
+    assert "kSupportsDeviceMode = true;" in st_usb_semantics
+    assert "kSupportsHostMode = true;" in st_usb_semantics
+    assert "kForceDeviceModeField" in st_usb_semantics
+    assert "kForceHostModeField" in st_usb_semantics
+    assert "kSoftDisconnectField" in st_usb_semantics
+    assert "kAddressField" in st_usb_semantics
+    assert "kUsbSemanticPeripherals" in st_usb_semantics
+
+    same70_result = run(PipelineScope(device="atsame70q21b"), microchip_execution_context)
+    same70_artifacts = {artifact.path: artifact for artifact in same70_result.payload.artifacts}
+    same70_usb_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/usb.hpp"
+    ].content
+
+    assert "UsbSemanticTraits<PeripheralId::USBHS>" in same70_usb_semantics
+    assert "kHasClockFreeze = true;" in same70_usb_semantics
+    assert "kAddressEnableField" in same70_usb_semantics
+    assert "kAddressField" in same70_usb_semantics
+    assert "kClockUsableField" in same70_usb_semantics
 
 
 def test_emit_uart_semantics_accepts_live_st_schema_ids(

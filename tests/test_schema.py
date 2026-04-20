@@ -55,6 +55,19 @@ def test_ir_schema_file_name_encodes_major_version() -> None:
     )
 
 
+def test_runtime_config_schema_is_present_and_named() -> None:
+    schema_path = SCHEMAS_DIR / "runtime-config-request-v1.schema.json"
+    schema = json.loads(schema_path.read_text())
+
+    assert schema["title"] == "RuntimeConfigRequest"
+    assert schema["required"] == ["schema_version", "device", "requests", "outputs"]
+    assert schema["properties"]["schema_version"]["const"] == "runtime-config-request-v1"
+    assert schema["properties"]["requests"]["items"]["$ref"] == "#/$defs/peripheral_request"
+    assert "dma" in schema["$defs"]["peripheral_request"]["properties"]
+    assert "recipes" in schema["$defs"]["output_request"]["properties"]
+    assert "examples" in schema["$defs"]["output_request"]["properties"]
+
+
 def test_normalized_ir_carries_schema_version(execution_context: ExecutionContext) -> None:
     result = run_normalize(PipelineScope(device="stm32g071rb"), execution_context)
     assert result.payload.devices[0].schema_version == IR_SCHEMA_VERSION

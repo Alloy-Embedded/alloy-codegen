@@ -70,6 +70,22 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAN_SEMANTICS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ETH_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ETH_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_USB_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_USB_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_QSPI_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_QSPI_SEMANTICS_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SDMMC_SEMANTICS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SDMMC_SEMANTICS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RTC_SEMANTICS_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RTC_SEMANTICS_HEADER must be defined"
 #endif
@@ -100,6 +116,10 @@
 
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_CONFIG_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_CONFIG_HEADER must be defined"
+#endif
+
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_LOW_POWER_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_LOW_POWER_HEADER must be defined"
 #endif
 
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER
@@ -159,6 +179,10 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ADC_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DAC_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAN_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ETH_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_USB_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_QSPI_SEMANTICS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SDMMC_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RTC_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_WATCHDOG_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER
@@ -167,6 +191,7 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_PROFILES_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_CONFIG_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_LOW_POWER_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPT_STUBS_HEADER
@@ -208,6 +233,7 @@ static_assert(
 );
 static_assert(published_device_runtime::kInterruptStubs.size() > 0u);
 static_assert(std::tuple_size_v<decltype(published_device_runtime::kClockProfiles)> > 0u);
+static_assert(published_device_runtime::kLowPowerModes.size() > 0u);
 static_assert(published_runtime::BackendSchemaId::none == published_runtime::BackendSchemaId::none);
 
 [[maybe_unused]] bool smoke_apply_default_clock_profile() {
@@ -333,6 +359,46 @@ struct FirstCanSemanticSmoke<Values, 0u> {
 };
 
 template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstEthSemanticSmoke {
+    static constexpr bool kPresent = published_driver::EthSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstEthSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstUsbSemanticSmoke {
+    static constexpr bool kPresent = published_driver::UsbSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstUsbSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstQspiSemanticSmoke {
+    static constexpr bool kPresent = published_driver::QspiSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstQspiSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstSdmmcSemanticSmoke {
+    static constexpr bool kPresent = published_driver::SdmmcSemanticTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstSdmmcSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
 struct FirstRtcSemanticSmoke {
     static constexpr bool kPresent = published_driver::RtcSemanticTraits<Values[0]>::kPresent;
 };
@@ -384,6 +450,10 @@ static_assert(FirstAdcSemanticSmoke<published_driver::kAdcSemanticPeripherals>::
 static_assert(FirstConnectorSmoke<published_device_runtime::kConnectors>::kPresent);
 static_assert(FirstDacSemanticSmoke<published_driver::kDacSemanticPeripherals>::kPresent);
 static_assert(FirstCanSemanticSmoke<published_driver::kCanSemanticPeripherals>::kPresent);
+static_assert(FirstEthSemanticSmoke<published_driver::kEthSemanticPeripherals>::kPresent);
+static_assert(FirstUsbSemanticSmoke<published_driver::kUsbSemanticPeripherals>::kPresent);
+static_assert(FirstQspiSemanticSmoke<published_driver::kQspiSemanticPeripherals>::kPresent);
+static_assert(FirstSdmmcSemanticSmoke<published_driver::kSdmmcSemanticPeripherals>::kPresent);
 static_assert(FirstRtcSemanticSmoke<published_driver::kRtcSemanticPeripherals>::kPresent);
 static_assert(FirstWatchdogSemanticSmoke<published_driver::kWatchdogSemanticPeripherals>::kPresent);
 static_assert(FirstTimerSemanticSmoke<published_driver::kTimerSemanticPeripherals>::kPresent);

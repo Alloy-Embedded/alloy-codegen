@@ -31,6 +31,7 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "generated/runtime/devices/<device>/system_clock.hpp",
         "generated/runtime/devices/<device>/clock_profiles.hpp",
         "generated/runtime/devices/<device>/clock_config.hpp",
+        "generated/runtime/devices/<device>/low_power.hpp",
         "generated/runtime/devices/<device>/enable_domains.hpp",
         "generated/runtime/devices/<device>/driver_semantics/common.hpp",
         "generated/runtime/devices/<device>/driver_semantics/gpio.hpp",
@@ -41,6 +42,10 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "generated/runtime/devices/<device>/driver_semantics/adc.hpp",
         "generated/runtime/devices/<device>/driver_semantics/dac.hpp",
         "generated/runtime/devices/<device>/driver_semantics/can.hpp",
+        "generated/runtime/devices/<device>/driver_semantics/eth.hpp",
+        "generated/runtime/devices/<device>/driver_semantics/usb.hpp",
+        "generated/runtime/devices/<device>/driver_semantics/qspi.hpp",
+        "generated/runtime/devices/<device>/driver_semantics/sdmmc.hpp",
         "generated/runtime/devices/<device>/driver_semantics/rtc.hpp",
         "generated/runtime/devices/<device>/driver_semantics/watchdog.hpp",
         "generated/runtime/devices/<device>/driver_semantics/timer.hpp",
@@ -52,6 +57,8 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
         "reports/coverage.json",
         "reports/runtime-provenance.json",
         "reports/runtime-explainability.json",
+        "reports/runtime-capability-summary.json",
+        "reports/runtime-compatibility-matrix.json",
         "reports/publication-record.json",
     )
     forbidden_tokens = (
@@ -118,6 +125,7 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/clock_profiles.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/clock_config.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/low_power.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/enable_domains.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/common.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/gpio.hpp",
@@ -128,6 +136,10 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/can.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/eth.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/usb.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/qspi.hpp",
+        "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/sdmmc.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/rtc.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/watchdog.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp",
@@ -139,6 +151,8 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         "<vendor>/<family>/reports/coverage.json",
         "<vendor>/<family>/reports/runtime-provenance.json",
         "<vendor>/<family>/reports/runtime-explainability.json",
+        "<vendor>/<family>/reports/runtime-capability-summary.json",
+        "<vendor>/<family>/reports/runtime-compatibility-matrix.json",
         "<vendor>/<family>/reports/publication-summary.json",
         "<vendor>/<family>/reports/publication-record.json",
     )
@@ -172,3 +186,32 @@ def test_artifact_layout_doc_matches_active_contract() -> None:
         assert token in content
     for token in forbidden_tokens:
         assert token not in content
+
+
+def test_configuration_layer_doc_covers_supported_cli_flow() -> None:
+    content = _read_doc("configuration-layer.md")
+
+    required_tokens = (
+        "alloy-codegen config-schema",
+        "alloy-codegen config-template --device <device>",
+        "alloy-codegen config-diagnose --file <request.json>",
+        "alloy-codegen config-recipe --file <request.json>",
+        "alloy-codegen config-example --file <request.json>",
+        "runtime-config-request-v1",
+        "runtime-config-recipe-v1",
+        "runtime_headers",
+        "example_id",
+        '"clock_profile": "default-pll-64mhz"',
+        '"peripheral_class": "uart"',
+        '"peripheral": "USART1"',
+        '"tx": "PB6"',
+        '"rx": "PB7"',
+        '"rx": true',
+        '"tx": true',
+        "valid route groups and pin maps",
+        "valid DMA-capable directions",
+        "resolved route groups",
+    )
+
+    for token in required_tokens:
+        assert token in content

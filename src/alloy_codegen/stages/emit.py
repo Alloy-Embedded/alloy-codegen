@@ -44,14 +44,18 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_can_semantics_header,
     emit_runtime_driver_dac_semantics_header,
     emit_runtime_driver_dma_semantics_header,
+    emit_runtime_driver_eth_semantics_header,
     emit_runtime_driver_gpio_semantics_header,
     emit_runtime_driver_i2c_semantics_header,
     emit_runtime_driver_pwm_semantics_header,
+    emit_runtime_driver_qspi_semantics_header,
     emit_runtime_driver_rtc_semantics_header,
+    emit_runtime_driver_sdmmc_semantics_header,
     emit_runtime_driver_semantics_common_header,
     emit_runtime_driver_spi_semantics_header,
     emit_runtime_driver_timer_semantics_header,
     emit_runtime_driver_uart_semantics_header,
+    emit_runtime_driver_usb_semantics_header,
     emit_runtime_driver_watchdog_semantics_header,
 )
 from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
@@ -68,7 +72,10 @@ from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_routes_header,
     emit_runtime_lite_types_header,
 )
+from alloy_codegen.runtime_low_power import emit_runtime_low_power_header
 from alloy_codegen.runtime_reports import (
+    emit_runtime_capability_summary_report,
+    emit_runtime_compatibility_matrix_report,
     emit_runtime_explainability_report,
     emit_runtime_provenance_report,
 )
@@ -124,6 +131,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         ),
         emit_runtime_provenance_report(family_dir=family_dir, devices=devices),
         emit_runtime_explainability_report(family_dir=family_dir, devices=devices),
+        emit_runtime_capability_summary_report(family_dir=family_dir, devices=devices),
+        emit_runtime_compatibility_matrix_report(family_dir=family_dir, devices=devices),
         emit_family_index(family_dir=family_dir, devices=devices),
         emit_family_connectivity(family_dir=family_dir, devices=devices),
         emit_ip_blocks_metadata(family_dir=family_dir, devices=devices),
@@ -198,6 +207,22 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     family_dir=family_dir,
                     device=device,
                 ),
+                emit_runtime_driver_eth_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_usb_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_qspi_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_sdmmc_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
                 emit_runtime_driver_rtc_semantics_header(
                     family_dir=family_dir,
                     device=device,
@@ -259,6 +284,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_clock_config_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_low_power_header(
                     family_dir=family_dir,
                     device=device,
                 ),
