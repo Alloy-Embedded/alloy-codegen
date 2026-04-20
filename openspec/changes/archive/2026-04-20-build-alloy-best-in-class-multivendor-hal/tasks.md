@@ -53,4 +53,4 @@
 - [x] 6.1 Update artifact layout docs with the final emitted set
 - [x] 6.2 Document the downstream consumer contract expected from `alloy`
 - [x] 6.3 Document known gaps that still require paired-alloy work
-- [ ] 6.4 Archive this change once all codegen-owned work is complete
+- [x] 6.4 Archive this change once all codegen-owned work is complete

@@ -2,7 +2,7 @@
 
 - [x] 1.1 Add this SysTick/timer/PWM runtime contract change
 - [x] 1.2 Decide and implement the SysTick synthesis point for Cortex-M devices
-- [ ] 1.3 Expand runtime-lite timing class selection to include `systick`, `timer` and `pwm`
+- [x] 1.3 Expand runtime-lite timing class selection to include `systick`, `timer` and `pwm`
 - [x] 1.4 Normalize timer-like families such as `gpt` and `pit` into the timing publication path
 
 ## 2. SysTick Runtime Contract

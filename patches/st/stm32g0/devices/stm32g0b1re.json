@@ -41,7 +41,8 @@
     { "peripheral": "SPI1", "name": "CR1", "base_address": 1073819648, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
     { "peripheral": "TIM1", "name": "CR1", "base_address": 1073818624, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
     { "peripheral": "RTC", "name": "TR", "base_address": 1073752064, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "IWDG", "name": "KR", "base_address": 1073754112, "offset_bytes": 0, "access": "write-only", "size_bits": 32 }
+    { "peripheral": "IWDG", "name": "KR", "base_address": 1073754112, "offset_bytes": 0, "access": "write-only", "size_bits": 32 },
+    { "peripheral": "USB", "name": "USB_CHEP0R", "base_address": 1073765376, "offset_bytes": 0, "access": "read-write", "size_bits": 32 }
   ],
   "register_fields": [
     { "peripheral": "RCC", "register_name": "CR", "name": "HSION", "bit_offset": 8, "bit_width": 1, "access": "read-write" },
@@ -73,6 +74,6 @@
       "access": "rwx"
     }
   ],
-  "peripherals": ["GPIOA", "GPIOB", "FDCAN1", "DMA1", "DMAMUX1", "USART1", "ADC1", "DAC", "SPI1", "TIM1", "RTC", "IWDG"],
+  "peripherals": ["GPIOA", "GPIOB", "FDCAN1", "DMA1", "DMAMUX1", "USART1", "ADC1", "DAC", "SPI1", "TIM1", "RTC", "IWDG", "USB"],
   "dma_request_refs": ["dma1-usart1-rx", "dma1-usart1-tx"]
 }

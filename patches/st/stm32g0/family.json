@@ -254,6 +254,11 @@
       "name": "UCPD2",
       "rcc_enable_signal": "RCC_APBENR1.UCPD2EN",
       "rcc_reset_signal": "RCC_APBRSTR1.UCPD2RST"
+    },
+    {
+      "name": "USB",
+      "rcc_enable_signal": "RCC_APBENR1.USBEN",
+      "rcc_reset_signal": "RCC_APBRSTR1.USBRST"
     }
   ],
   "register_fields": [
