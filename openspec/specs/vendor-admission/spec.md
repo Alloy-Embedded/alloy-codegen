@@ -4,9 +4,7 @@
 
 Define the policy that governs when a vendor or family is admitted into the supported
 multi-vendor publication set.
-
 ## Requirements
-
 ### Requirement: Foundational vendor set is explicit
 
 The admitted foundational vendor/family set MUST be explicitly documented.
@@ -70,3 +68,30 @@ Vendor/family admission MUST not be judged only by parser success or low-level a
 - **WHEN** a new vendor or family is considered publishable
 - **THEN** admission evaluates system-control coverage, capability coverage, and provenance quality
 - **AND** the family is not considered foundational-ready if those remain heuristic or opaque
+
+### Requirement: Vendor Admission SHALL Require Zero-String Runtime Reuse
+
+A new family or vendor SHALL only be admitted when it reuses or extends the fully typed
+zero-string runtime contract.
+
+#### Scenario: New family reuses existing typed schemas
+- **WHEN** a new family maps onto existing fully typed runtime schemas
+- **THEN** vendor admission succeeds without requiring semantic string fields in runtime C++
+
+#### Scenario: New family needs semantic labels in runtime C++
+- **WHEN** a candidate family can only be represented by adding schema names, signal names,
+  route kinds, or similar semantic strings to runtime-facing headers
+- **THEN** vendor admission fails until those semantics are modeled as typed ids or refs
+
+### Requirement: Vendor Admission SHALL Depend On Runtime-Lite Reuse
+
+A new vendor or family SHALL NOT be considered admission-ready unless it reuses the runtime-lite
+contract expected by foundational drivers, without requiring a new reflection-table hot path in
+`alloy`.
+
+#### Scenario: New family needs custom table-walk runtime glue
+
+- **WHEN** a new family can only be consumed through handwritten reflection-table lookup in the
+  runtime
+- **THEN** vendor admission fails until codegen emits a compatible runtime-lite contract
+
