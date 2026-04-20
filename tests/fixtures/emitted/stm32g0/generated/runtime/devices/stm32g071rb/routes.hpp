@@ -29,6 +29,7 @@ struct RouteOperation {
 
 enum class RouteId : std::uint16_t {
   none,
+  candidate_pa1_spi1_sck,
   candidate_pb6_usart1_tx,
   candidate_pb7_usart1_rx,
 };
@@ -47,6 +48,18 @@ struct RouteTraits {
   static constexpr RouteId kRouteId = RouteId::none;
   static constexpr RouteKindId kRouteKindId = RouteKindId::none;
   static constexpr std::array<RouteOperation, 0> kOperations = {};
+};
+
+template<>
+struct RouteTraits<PinId::PA1, PeripheralId::SPI1, SignalId::signal_sck> {
+  static constexpr bool kPresent = true;
+  static constexpr RouteId kRouteId = RouteId::candidate_pa1_spi1_sck;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::route_kind_alternate_function;
+  static constexpr std::array<RouteOperation, 3> kOperations = {{
+    {BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, OperationKindId::operation_kind_set_bit, OperationSubjectKindId::operation_subject_peripheral, RegisterId::register_rcc_apbenr2, FieldId::none, PinId::none, ClockGateId::gate_spi1, ResetId::none, 1},
+    {BackendSchemaId::schema_alloy_clock_st_rcc_g0_v1_0, OperationKindId::operation_kind_clear_bit, OperationSubjectKindId::operation_subject_peripheral, RegisterId::register_rcc_apbrstr2, FieldId::none, PinId::none, ClockGateId::none, ResetId::reset_spi1, 0},
+    {BackendSchemaId::schema_alloy_pinmux_stm32_af_v1, OperationKindId::operation_kind_write_selector, OperationSubjectKindId::operation_subject_pin, RegisterId::none, FieldId::none, PinId::PA1, ClockGateId::none, ResetId::none, 0},
+  }};
 };
 
 template<>
@@ -73,7 +86,8 @@ struct RouteTraits<PinId::PB7, PeripheralId::USART1, SignalId::signal_rx> {
   }};
 };
 
-inline constexpr std::array<RouteDescriptor, 2> kRuntimeRoutes = {{
+inline constexpr std::array<RouteDescriptor, 3> kRuntimeRoutes = {{
+  {RouteId::candidate_pa1_spi1_sck, PinId::PA1, PeripheralId::SPI1, SignalId::signal_sck, RouteKindId::route_kind_alternate_function},
   {RouteId::candidate_pb6_usart1_tx, PinId::PB6, PeripheralId::USART1, SignalId::signal_tx, RouteKindId::route_kind_alternate_function},
   {RouteId::candidate_pb7_usart1_rx, PinId::PB7, PeripheralId::USART1, SignalId::signal_rx, RouteKindId::route_kind_alternate_function},
 }};

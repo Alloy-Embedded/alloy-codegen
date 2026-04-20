@@ -91,6 +91,10 @@
       "rcc_enable_signal": "RCC_APBENR2.ADCEN",
       "rcc_reset_signal": "RCC_APBRSTR2.ADCRST"
     },
+    { "name": "DAC" },
+    { "name": "RTC" },
+    { "name": "IWDG" },
+    { "name": "WWDG" },
     {
       "name": "DMA1",
       "rcc_enable_signal": "RCC_AHBENR.DMA1EN",

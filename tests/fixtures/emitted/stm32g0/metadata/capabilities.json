@@ -1,6 +1,25 @@
 {
   "capabilities": [
     {
+      "capability_id": "capability-instance:spi1:lqfp64:sck",
+      "ip_name": "spi",
+      "ip_version": null,
+      "name": "available-signal",
+      "package": "lqfp64",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "scope": "instance-overlay",
+      "value": "sck"
+    },
+    {
       "capability_id": "capability-instance:usart1:lqfp64:rx",
       "ip_name": "usart",
       "ip_version": "usart_v3_1",

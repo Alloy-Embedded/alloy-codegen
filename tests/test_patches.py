@@ -30,7 +30,10 @@ def test_all_bootstrap_devices_have_patch_documents(execution_context) -> None:
         assert patch.svd_file.endswith(".svd")
         assert patch.pin_data_file.endswith(".xml")
         assert patch.pins == ()
-        assert all(peripheral.rcc_enable_signal for peripheral in patch.peripherals)
+        assert all(peripheral.name for peripheral in patch.peripherals)
+        assert any(peripheral.rcc_enable_signal for peripheral in patch.peripherals), (
+            "Bootstrap patch should still declare clock-gated peripherals."
+        )
 
 
 def test_device_patch_declares_open_pin_data_source(execution_context) -> None:

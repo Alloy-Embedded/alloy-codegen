@@ -26,7 +26,13 @@
     { "peripheral": "RCC", "name": "CR", "base_address": 1073876992, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
     { "peripheral": "RCC", "name": "CFGR", "base_address": 1073876992, "offset_bytes": 8, "access": "read-write", "size_bits": 32 },
     { "peripheral": "RCC", "name": "PLLCFGR", "base_address": 1073876992, "offset_bytes": 12, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "FLASH", "name": "ACR", "base_address": 1073881088, "offset_bytes": 0, "access": "read-write", "size_bits": 32 }
+    { "peripheral": "FLASH", "name": "ACR", "base_address": 1073881088, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "ADC1", "name": "ISR", "base_address": 1073816576, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "DAC", "name": "CR", "base_address": 1073771520, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "SPI1", "name": "CR1", "base_address": 1073819648, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "TIM1", "name": "CR1", "base_address": 1073818624, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "RTC", "name": "TR", "base_address": 1073752064, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "IWDG", "name": "KR", "base_address": 1073754112, "offset_bytes": 0, "access": "write-only", "size_bits": 32 }
   ],
   "register_fields": [
     { "peripheral": "RCC", "register_name": "CR", "name": "HSION", "bit_offset": 8, "bit_width": 1, "access": "read-write" },
@@ -67,6 +73,6 @@
       "flash_latency": 2
     }
   ],
-  "peripherals": ["GPIOA", "GPIOB", "USART1", "DMA1", "DMAMUX1"],
+  "peripherals": ["GPIOA", "GPIOB", "USART1", "DMA1", "DMAMUX1", "ADC1", "DAC", "SPI1", "TIM1", "RTC", "IWDG"],
   "dma_request_refs": ["dma1-usart1-rx", "dma1-usart1-tx"]
 }

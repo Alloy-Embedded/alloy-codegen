@@ -136,6 +136,18 @@ def _load_device_capability_ids(path: Path) -> tuple[str, ...]:
     return tuple(sorted(capability_ids))
 
 
+def _tracks_capability_regression(capability_id: str) -> bool:
+    """Return whether a capability id is part of the stable runtime regression surface.
+
+    Legacy ``capability:*`` and ``capability-instance:*`` ids are generated from the older
+    connector-facing metadata model and are intentionally excluded from publish-time regression
+    blocking while the runtime-only contract becomes authoritative. Stable runtime capability ids
+    are emitted under the ``runtime-`` prefix.
+    """
+
+    return capability_id.startswith("runtime-")
+
+
 def find_capability_regressions(
     *,
     publication_root: Path,
@@ -165,8 +177,16 @@ def find_capability_regressions(
         )
         if not published_sidecar.exists():
             continue
-        published_ids = set(_load_device_capability_ids(published_sidecar))
-        staged_ids = set(_load_device_capability_ids(staged_sidecar))
+        published_ids = {
+            capability_id
+            for capability_id in _load_device_capability_ids(published_sidecar)
+            if _tracks_capability_regression(capability_id)
+        }
+        staged_ids = {
+            capability_id
+            for capability_id in _load_device_capability_ids(staged_sidecar)
+            if _tracks_capability_regression(capability_id)
+        }
         removed_ids = sorted(published_ids - staged_ids)
         if removed_ids:
             sample = ", ".join(removed_ids[:6])

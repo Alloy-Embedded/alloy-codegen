@@ -4,6 +4,36 @@
       "device": "mimxrt1062",
       "peripherals": [
         {
+          "base_address": 1074548736,
+          "ip_name": "adc",
+          "ip_version": null,
+          "name": "ADC1"
+        },
+        {
+          "base_address": 1074565120,
+          "ip_name": "adc",
+          "ip_version": null,
+          "name": "ADC2"
+        },
+        {
+          "base_address": 1075640320,
+          "ip_name": "can",
+          "ip_version": null,
+          "name": "CAN1"
+        },
+        {
+          "base_address": 1075656704,
+          "ip_name": "can",
+          "ip_version": null,
+          "name": "CAN2"
+        },
+        {
+          "base_address": 1075673088,
+          "ip_name": "can",
+          "ip_version": null,
+          "name": "CAN3"
+        },
+        {
           "base_address": 1074774016,
           "ip_name": "ccm",
           "ip_version": null,
@@ -22,6 +52,18 @@
           "name": "DCDC"
         },
         {
+          "base_address": 1074696192,
+          "ip_name": "dma",
+          "ip_version": null,
+          "name": "DMA0"
+        },
+        {
+          "base_address": 1074712576,
+          "ip_name": "dmamux",
+          "ip_version": null,
+          "name": "DMAMUX1"
+        },
+        {
           "base_address": 1075544064,
           "ip_name": "gpio",
           "ip_version": "imxrt-gpio-v1",
@@ -32,6 +74,18 @@
           "ip_name": "gpio",
           "ip_version": "imxrt-gpio-v1",
           "name": "GPIO4"
+        },
+        {
+          "base_address": 1075755008,
+          "ip_name": "gpt",
+          "ip_version": null,
+          "name": "GPT1"
+        },
+        {
+          "base_address": 1075771392,
+          "ip_name": "gpt",
+          "ip_version": null,
+          "name": "GPT2"
         },
         {
           "base_address": 1077870592,
@@ -56,6 +110,54 @@
           "ip_name": "lpuart",
           "ip_version": "lpuart-v1",
           "name": "LPUART3"
+        },
+        {
+          "base_address": 1074286592,
+          "ip_name": "pit",
+          "ip_version": null,
+          "name": "PIT"
+        },
+        {
+          "base_address": 1077798912,
+          "ip_name": "pwm",
+          "ip_version": null,
+          "name": "PWM1"
+        },
+        {
+          "base_address": 1077815296,
+          "ip_name": "pwm",
+          "ip_version": null,
+          "name": "PWM2"
+        },
+        {
+          "base_address": 1077831680,
+          "ip_name": "pwm",
+          "ip_version": null,
+          "name": "PWM3"
+        },
+        {
+          "base_address": 1077848064,
+          "ip_name": "pwm",
+          "ip_version": null,
+          "name": "PWM4"
+        },
+        {
+          "base_address": 1074515968,
+          "ip_name": "rtwdog",
+          "ip_version": null,
+          "name": "RTWDOG"
+        },
+        {
+          "base_address": 1074499584,
+          "ip_name": "wdog",
+          "ip_version": null,
+          "name": "WDOG1"
+        },
+        {
+          "base_address": 1074597888,
+          "ip_name": "wdog",
+          "ip_version": null,
+          "name": "WDOG2"
         }
       ]
     }

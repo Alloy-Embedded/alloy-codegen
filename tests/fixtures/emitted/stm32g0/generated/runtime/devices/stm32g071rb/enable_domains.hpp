@@ -25,11 +25,14 @@ struct EnableDomainDescriptor {
   RegisterId register_id;
   FieldId field_id;
 };
-inline constexpr std::array<EnableDomainDescriptor, 5> kEnableDomains = {{
+inline constexpr std::array<EnableDomainDescriptor, 8> kEnableDomains = {{
+  {EnableDomainId::gate_adc1, PeripheralId::ADC1, ClockGateId::gate_adc1, ClockNodeId::clock_node_rcc_apbenr2, RegisterId::register_rcc_apbenr2, FieldId::none},
   {EnableDomainId::gate_dma1, PeripheralId::DMA1, ClockGateId::gate_dma1, ClockNodeId::clock_node_rcc_ahbenr, RegisterId::register_rcc_ahbenr, FieldId::field_rcc_ahbenr_dma1en},
   {EnableDomainId::gate_dmamux1, PeripheralId::DMAMUX1, ClockGateId::gate_dmamux1, ClockNodeId::clock_node_rcc_ahbenr, RegisterId::register_rcc_ahbenr, FieldId::field_rcc_ahbenr_dma1en},
   {EnableDomainId::gate_gpioa, PeripheralId::GPIOA, ClockGateId::gate_gpioa, ClockNodeId::clock_node_rcc_iopenr, RegisterId::register_rcc_iopenr, FieldId::field_rcc_iopenr_gpioaen},
   {EnableDomainId::gate_gpiob, PeripheralId::GPIOB, ClockGateId::gate_gpiob, ClockNodeId::clock_node_rcc_iopenr, RegisterId::register_rcc_iopenr, FieldId::field_rcc_iopenr_gpioben},
+  {EnableDomainId::gate_spi1, PeripheralId::SPI1, ClockGateId::gate_spi1, ClockNodeId::clock_node_rcc_apbenr2, RegisterId::register_rcc_apbenr2, FieldId::none},
+  {EnableDomainId::gate_tim1, PeripheralId::TIM1, ClockGateId::gate_tim1, ClockNodeId::clock_node_rcc_apbenr2, RegisterId::register_rcc_apbenr2, FieldId::none},
   {EnableDomainId::gate_usart1, PeripheralId::USART1, ClockGateId::gate_usart1, ClockNodeId::clock_node_rcc_apbenr2, RegisterId::register_rcc_apbenr2, FieldId::field_rcc_apbenr2_usart1en},
 }};
 
@@ -47,6 +50,22 @@ template<PeripheralId Id>
 struct PeripheralEnableDomainTraits {
   static constexpr bool kPresent = false;
   static constexpr EnableDomainId kEnableDomainId = EnableDomainId::none;
+};
+
+template<>
+struct EnableDomainTraits<EnableDomainId::gate_adc1> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralId kPeripheralId = PeripheralId::ADC1;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_adc1;
+  static constexpr ClockNodeId kParentClockNodeId = ClockNodeId::clock_node_rcc_apbenr2;
+  static constexpr RegisterId kRegisterId = RegisterId::register_rcc_apbenr2;
+  static constexpr FieldId kFieldId = FieldId::none;
+};
+
+template<>
+struct PeripheralEnableDomainTraits<PeripheralId::ADC1> {
+  static constexpr bool kPresent = true;
+  static constexpr EnableDomainId kEnableDomainId = EnableDomainId::gate_adc1;
 };
 
 template<>
@@ -111,6 +130,38 @@ template<>
 struct PeripheralEnableDomainTraits<PeripheralId::GPIOB> {
   static constexpr bool kPresent = true;
   static constexpr EnableDomainId kEnableDomainId = EnableDomainId::gate_gpiob;
+};
+
+template<>
+struct EnableDomainTraits<EnableDomainId::gate_spi1> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralId kPeripheralId = PeripheralId::SPI1;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_spi1;
+  static constexpr ClockNodeId kParentClockNodeId = ClockNodeId::clock_node_rcc_apbenr2;
+  static constexpr RegisterId kRegisterId = RegisterId::register_rcc_apbenr2;
+  static constexpr FieldId kFieldId = FieldId::none;
+};
+
+template<>
+struct PeripheralEnableDomainTraits<PeripheralId::SPI1> {
+  static constexpr bool kPresent = true;
+  static constexpr EnableDomainId kEnableDomainId = EnableDomainId::gate_spi1;
+};
+
+template<>
+struct EnableDomainTraits<EnableDomainId::gate_tim1> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralId kPeripheralId = PeripheralId::TIM1;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_tim1;
+  static constexpr ClockNodeId kParentClockNodeId = ClockNodeId::clock_node_rcc_apbenr2;
+  static constexpr RegisterId kRegisterId = RegisterId::register_rcc_apbenr2;
+  static constexpr FieldId kFieldId = FieldId::none;
+};
+
+template<>
+struct PeripheralEnableDomainTraits<PeripheralId::TIM1> {
+  static constexpr bool kPresent = true;
+  static constexpr EnableDomainId kEnableDomainId = EnableDomainId::gate_tim1;
 };
 
 template<>

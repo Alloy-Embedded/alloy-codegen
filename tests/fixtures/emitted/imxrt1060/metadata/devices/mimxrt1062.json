@@ -1714,6 +1714,312 @@
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.adc.nxp-adc",
+      "base_address": 1074548736,
+      "instance": 1,
+      "ip_name": "adc",
+      "ip_version": null,
+      "name": "ADC1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.adc.nxp-adc",
+      "base_address": 1074565120,
+      "instance": 2,
+      "ip_name": "adc",
+      "ip_version": null,
+      "name": "ADC2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.can.nxp-can",
+      "base_address": 1075640320,
+      "instance": 1,
+      "ip_name": "can",
+      "ip_version": null,
+      "name": "CAN1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.can.nxp-can",
+      "base_address": 1075656704,
+      "instance": 2,
+      "ip_name": "can",
+      "ip_version": null,
+      "name": "CAN2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.can.nxp-can",
+      "base_address": 1075673088,
+      "instance": 3,
+      "ip_name": "can",
+      "ip_version": null,
+      "name": "CAN3",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.dma.nxp-dma",
+      "base_address": 1074696192,
+      "instance": 0,
+      "ip_name": "dma",
+      "ip_version": null,
+      "name": "DMA0",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.dma-router.nxp-dmamux",
+      "base_address": 1074712576,
+      "instance": 1,
+      "ip_name": "dmamux",
+      "ip_version": null,
+      "name": "DMAMUX1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.gpt.nxp-gpt",
+      "base_address": 1075755008,
+      "instance": 1,
+      "ip_name": "gpt",
+      "ip_version": null,
+      "name": "GPT1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.gpt.nxp-gpt",
+      "base_address": 1075771392,
+      "instance": 2,
+      "ip_name": "gpt",
+      "ip_version": null,
+      "name": "GPT2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.pit.nxp-pit",
+      "base_address": 1074286592,
+      "instance": 0,
+      "ip_name": "pit",
+      "ip_version": null,
+      "name": "PIT",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.pwm.nxp-pwm",
+      "base_address": 1077798912,
+      "instance": 1,
+      "ip_name": "pwm",
+      "ip_version": null,
+      "name": "PWM1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.pwm.nxp-pwm",
+      "base_address": 1077815296,
+      "instance": 2,
+      "ip_name": "pwm",
+      "ip_version": null,
+      "name": "PWM2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.pwm.nxp-pwm",
+      "base_address": 1077831680,
+      "instance": 3,
+      "ip_name": "pwm",
+      "ip_version": null,
+      "name": "PWM3",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.pwm.nxp-pwm",
+      "base_address": 1077848064,
+      "instance": 4,
+      "ip_name": "pwm",
+      "ip_version": null,
+      "name": "PWM4",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.watchdog.nxp-rtwdog",
+      "base_address": 1074515968,
+      "instance": 0,
+      "ip_name": "rtwdog",
+      "ip_version": null,
+      "name": "RTWDOG",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.watchdog.nxp-wdog",
+      "base_address": 1074499584,
+      "instance": 1,
+      "ip_name": "wdog",
+      "ip_version": null,
+      "name": "WDOG1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.watchdog.nxp-wdog",
+      "base_address": 1074597888,
+      "instance": 2,
+      "ip_name": "wdog",
+      "ip_version": null,
+      "name": "WDOG2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
     }
   ],
   "pins": [
@@ -3272,6 +3578,278 @@
       },
       "register_id": "register:dcdc:reg3",
       "size_bits": 32
+    },
+    {
+      "access": null,
+      "name": "HC0",
+      "offset_bytes": 0,
+      "peripheral": "ADC1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:adc1:hc0",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "HC0",
+      "offset_bytes": 0,
+      "peripheral": "ADC2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:adc2:hc0",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCR",
+      "offset_bytes": 0,
+      "peripheral": "CAN1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:can1:mcr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCR",
+      "offset_bytes": 0,
+      "peripheral": "CAN2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:can2:mcr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCR",
+      "offset_bytes": 0,
+      "peripheral": "CAN3",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:can3:mcr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "CR",
+      "offset_bytes": 0,
+      "peripheral": "DMA0",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:dma0:cr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "CHCFG0",
+      "offset_bytes": 0,
+      "peripheral": "DMAMUX1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:dmamux1:chcfg0",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "CR",
+      "offset_bytes": 0,
+      "peripheral": "GPT1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:gpt1:cr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "CR",
+      "offset_bytes": 0,
+      "peripheral": "GPT2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:gpt2:cr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCR",
+      "offset_bytes": 0,
+      "peripheral": "PIT",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:pit:mcr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCTRL",
+      "offset_bytes": 0,
+      "peripheral": "PWM1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:pwm1:mctrl",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCTRL",
+      "offset_bytes": 0,
+      "peripheral": "PWM2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:pwm2:mctrl",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCTRL",
+      "offset_bytes": 0,
+      "peripheral": "PWM3",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:pwm3:mctrl",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "MCTRL",
+      "offset_bytes": 0,
+      "peripheral": "PWM4",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:pwm4:mctrl",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "CS",
+      "offset_bytes": 0,
+      "peripheral": "RTWDOG",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:rtwdog:cs",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "WCR",
+      "offset_bytes": 0,
+      "peripheral": "WDOG1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:wdog1:wcr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "WCR",
+      "offset_bytes": 0,
+      "peripheral": "WDOG2",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:wdog2:wcr",
+      "size_bits": null
     }
   ],
   "route_operations": [

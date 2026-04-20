@@ -9,10 +9,10 @@
       "value": "true"
     },
     {
-      "capability_id": "runtime-support:dac",
+      "capability_id": "runtime-support:can",
       "name": "runtime-supported",
       "peripheral": null,
-      "peripheral_class": "dac",
+      "peripheral_class": "can",
       "scope": "runtime_contract",
       "value": "true"
     },
@@ -33,6 +33,22 @@
       "value": "true"
     },
     {
+      "capability_id": "capability:gpio:imxrt-gpio-v1:io00",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "gpio",
+      "scope": "ip_block",
+      "value": "io00"
+    },
+    {
+      "capability_id": "capability:gpio:imxrt-gpio-v1:io01",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "gpio",
+      "scope": "ip_block",
+      "value": "io01"
+    },
+    {
       "capability_id": "runtime-support:gpio",
       "name": "runtime-supported",
       "peripheral": null,
@@ -41,12 +57,60 @@
       "value": "true"
     },
     {
-      "capability_id": "runtime-support:rtc",
+      "capability_id": "capability-instance:gpio1:bga196:io00",
+      "name": "available-signal",
+      "peripheral": "GPIO1",
+      "peripheral_class": "gpio",
+      "scope": "instance_overlay",
+      "value": "io00"
+    },
+    {
+      "capability_id": "capability-instance:gpio1:bga196:io01",
+      "name": "available-signal",
+      "peripheral": "GPIO1",
+      "peripheral_class": "gpio",
+      "scope": "instance_overlay",
+      "value": "io01"
+    },
+    {
+      "capability_id": "capability-instance:gpio4:bga196:io00",
+      "name": "available-signal",
+      "peripheral": "GPIO4",
+      "peripheral_class": "gpio",
+      "scope": "instance_overlay",
+      "value": "io00"
+    },
+    {
+      "capability_id": "capability-instance:gpio4:bga196:io01",
+      "name": "available-signal",
+      "peripheral": "GPIO4",
+      "peripheral_class": "gpio",
+      "scope": "instance_overlay",
+      "value": "io01"
+    },
+    {
+      "capability_id": "runtime-support:pwm",
       "name": "runtime-supported",
       "peripheral": null,
-      "peripheral_class": "rtc",
+      "peripheral_class": "pwm",
       "scope": "runtime_contract",
       "value": "true"
+    },
+    {
+      "capability_id": "capability:lpspi:lpspi-v1:cs",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "cs"
+    },
+    {
+      "capability_id": "capability:lpspi:lpspi-v1:sck",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "sck"
     },
     {
       "capability_id": "runtime-support:spi",
@@ -57,9 +121,17 @@
       "value": "true"
     },
     {
-      "capability_id": "capability-instance:spi1:lqfp64:sck",
+      "capability_id": "capability-instance:lpspi1:bga196:cs",
       "name": "available-signal",
-      "peripheral": "SPI1",
+      "peripheral": "LPSPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "cs"
+    },
+    {
+      "capability_id": "capability-instance:lpspi1:bga196:sck",
+      "name": "available-signal",
+      "peripheral": "LPSPI1",
       "peripheral_class": "spi",
       "scope": "instance_overlay",
       "value": "sck"
@@ -73,7 +145,7 @@
       "value": "true"
     },
     {
-      "capability_id": "capability:usart:usart-v3-1:rx",
+      "capability_id": "capability:lpuart:lpuart-v1:rx",
       "name": "signal-role",
       "peripheral": null,
       "peripheral_class": "uart",
@@ -81,7 +153,7 @@
       "value": "rx"
     },
     {
-      "capability_id": "capability:usart:usart-v3-1:tx",
+      "capability_id": "capability:lpuart:lpuart-v1:tx",
       "name": "signal-role",
       "peripheral": null,
       "peripheral_class": "uart",
@@ -97,33 +169,17 @@
       "value": "true"
     },
     {
-      "capability_id": "runtime-dma:USART1:DMA1:DMA1_CH1:RX",
-      "name": "dma-compatible-signal",
-      "peripheral": "USART1",
-      "peripheral_class": "uart",
-      "scope": "dma_binding",
-      "value": "RX"
-    },
-    {
-      "capability_id": "runtime-dma:USART1:DMA1:DMA1_CH2:TX",
-      "name": "dma-compatible-signal",
-      "peripheral": "USART1",
-      "peripheral_class": "uart",
-      "scope": "dma_binding",
-      "value": "TX"
-    },
-    {
-      "capability_id": "capability-instance:usart1:lqfp64:rx",
+      "capability_id": "capability-instance:lpuart1:bga196:rx",
       "name": "available-signal",
-      "peripheral": "USART1",
+      "peripheral": "LPUART1",
       "peripheral_class": "uart",
       "scope": "instance_overlay",
       "value": "rx"
     },
     {
-      "capability_id": "capability-instance:usart1:lqfp64:tx",
+      "capability_id": "capability-instance:lpuart1:bga196:tx",
       "name": "available-signal",
-      "peripheral": "USART1",
+      "peripheral": "LPUART1",
       "peripheral_class": "uart",
       "scope": "instance_overlay",
       "value": "tx"
@@ -137,8 +193,8 @@
       "value": "true"
     }
   ],
-  "device": "stm32g071rb",
-  "family": "stm32g0",
+  "device": "mimxrt1062",
+  "family": "imxrt1060",
   "schema_version": "1.1.0",
-  "vendor": "st"
+  "vendor": "nxp"
 }

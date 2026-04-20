@@ -399,11 +399,7 @@ def test_validation_fails_gate_c_when_candidate_capabilities_lack_instance_overl
         route_group_id=candidate.route_group_id,
         requirement_ids=candidate.requirement_ids,
         operation_ids=candidate.operation_ids,
-        capability_ids=tuple(
-            capability_id
-            for capability_id in candidate.capability_ids
-            if not capability_id.startswith("capability-instance:")
-        ),
+        capability_ids=("capability-instance:usart1:lqfp64:tx",),
         provenance=candidate.provenance,
     )
     broken_device = _clone_device(

@@ -145,6 +145,57 @@
       "rcc_enable_signal": "CCM_CCGR7.CG3",
       "rcc_reset_signal": null,
       "ip_version": "flexspi-v1"
+    },
+    {
+      "name": "ADC1"
+    },
+    {
+      "name": "ADC2"
+    },
+    {
+      "name": "CAN1"
+    },
+    {
+      "name": "CAN2"
+    },
+    {
+      "name": "CAN3"
+    },
+    {
+      "name": "DMA0"
+    },
+    {
+      "name": "DMAMUX1"
+    },
+    {
+      "name": "GPT1"
+    },
+    {
+      "name": "GPT2"
+    },
+    {
+      "name": "PIT"
+    },
+    {
+      "name": "PWM1"
+    },
+    {
+      "name": "PWM2"
+    },
+    {
+      "name": "PWM3"
+    },
+    {
+      "name": "PWM4"
+    },
+    {
+      "name": "RTWDOG"
+    },
+    {
+      "name": "WDOG1"
+    },
+    {
+      "name": "WDOG2"
     }
   ],
   "registers": [

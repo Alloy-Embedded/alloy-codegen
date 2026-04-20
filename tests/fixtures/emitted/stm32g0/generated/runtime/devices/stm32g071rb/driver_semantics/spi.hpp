@@ -60,7 +60,58 @@ struct SpiSemanticTraits {
   static constexpr RuntimeFieldRef kRdField = kInvalidFieldRef;
 };
 
-inline constexpr std::array<PeripheralId, 0> kSpiSemanticPeripherals = {};
+template<>
+struct SpiSemanticTraits<PeripheralId::SPI1> {
+  static constexpr bool kPresent = true;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_spi_st_spi;
+  static constexpr RuntimeRegisterRef kCr1Register = RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true};
+  static constexpr RuntimeRegisterRef kCr2Register = RuntimeRegisterRef{RegisterId::none, 0x40013000u, 4u, true};
+  static constexpr RuntimeRegisterRef kSrRegister = RuntimeRegisterRef{RegisterId::none, 0x40013000u, 8u, true};
+  static constexpr RuntimeRegisterRef kDrRegister = RuntimeRegisterRef{RegisterId::none, 0x40013000u, 12u, true};
+  static constexpr RuntimeRegisterRef kCrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kMrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kCsrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kTdrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeRegisterRef kRdrRegister = kInvalidRegisterRef;
+  static constexpr RuntimeFieldRef kCphaField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kCpolField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 1u, 1u, true};
+  static constexpr RuntimeFieldRef kMstrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 2u, 1u, true};
+  static constexpr RuntimeFieldRef kBrField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 3u, 3u, true};
+  static constexpr RuntimeFieldRef kSpeField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 6u, 1u, true};
+  static constexpr RuntimeFieldRef kLsbfirstField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 7u, 1u, true};
+  static constexpr RuntimeFieldRef kSsiField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 8u, 1u, true};
+  static constexpr RuntimeFieldRef kSsmField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 9u, 1u, true};
+  static constexpr RuntimeFieldRef kDffField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_spi1_cr1, 0x40013000u, 0u, true}, 11u, 1u, true};
+  static constexpr RuntimeFieldRef kDsField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x40013000u, 4u, true}, 8u, 4u, true};
+  static constexpr RuntimeFieldRef kFrxthField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x40013000u, 4u, true}, 12u, 1u, true};
+  static constexpr RuntimeFieldRef kTxeField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x40013000u, 8u, true}, 1u, 1u, true};
+  static constexpr RuntimeFieldRef kRxneField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x40013000u, 8u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kBsyField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x40013000u, 8u, true}, 7u, 1u, true};
+  static constexpr RuntimeFieldRef kDrDataField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x40013000u, 12u, true}, 0u, 16u, true};
+  static constexpr RuntimeFieldRef kSpienField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSpidisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSwrstField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kPsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kPcsdecField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kModfdisField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kPcsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kDlybcsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kNcphaField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kBitsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kScbrField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kDlybsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kDlybctField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTdreField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRdrfField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTxemptyField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTdField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kTdrPcsField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kRdField = kInvalidFieldRef;
+};
+
+inline constexpr std::array<PeripheralId, 1> kSpiSemanticPeripherals = {{
+  PeripheralId::SPI1,
+}};
 }
 }
 }

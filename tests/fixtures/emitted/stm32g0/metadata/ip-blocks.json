@@ -4,6 +4,18 @@
       "device": "stm32g071rb",
       "peripherals": [
         {
+          "base_address": 1073816576,
+          "ip_name": "adc",
+          "ip_version": null,
+          "name": "ADC1"
+        },
+        {
+          "base_address": 1073771520,
+          "ip_name": "dac",
+          "ip_version": null,
+          "name": "DAC"
+        },
+        {
           "base_address": 1073872896,
           "ip_name": "dma",
           "ip_version": "bdma_v1_0",
@@ -34,10 +46,34 @@
           "name": "GPIOB"
         },
         {
+          "base_address": 1073754112,
+          "ip_name": "iwdg",
+          "ip_version": null,
+          "name": "IWDG"
+        },
+        {
           "base_address": 1073876992,
           "ip_name": "rcc",
           "ip_version": "rcc_g0_v1_0",
           "name": "RCC"
+        },
+        {
+          "base_address": 1073752064,
+          "ip_name": "rtc",
+          "ip_version": null,
+          "name": "RTC"
+        },
+        {
+          "base_address": 1073819648,
+          "ip_name": "spi",
+          "ip_version": null,
+          "name": "SPI1"
+        },
+        {
+          "base_address": 1073818624,
+          "ip_name": "tim",
+          "ip_version": null,
+          "name": "TIM1"
         },
         {
           "base_address": 1073821696,

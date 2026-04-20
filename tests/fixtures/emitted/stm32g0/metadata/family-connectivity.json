@@ -120,6 +120,42 @@
   ],
   "peripherals": [
     {
+      "backend_schema_id": "alloy.adc.st-adc",
+      "base_address": 1073816576,
+      "instance": 1,
+      "ip_name": "adc",
+      "ip_version": null,
+      "name": "ADC1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_APBENR2.ADCEN",
+      "rcc_reset_signal": "RCC_APBRSTR2.ADCRST"
+    },
+    {
+      "backend_schema_id": "alloy.dac.st-dac",
+      "base_address": 1073771520,
+      "instance": 0,
+      "ip_name": "dac",
+      "ip_version": null,
+      "name": "DAC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
       "backend_schema_id": "alloy.dma.st-bdma-v1-0",
       "base_address": 1073872896,
       "instance": 1,
@@ -210,6 +246,24 @@
       "rcc_reset_signal": "RCC_IOPRSTR.GPIOBRST"
     },
     {
+      "backend_schema_id": "alloy.watchdog.st-iwdg",
+      "base_address": 1073754112,
+      "instance": 0,
+      "ip_name": "iwdg",
+      "ip_version": null,
+      "name": "IWDG",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
       "backend_schema_id": "alloy.rcc.st-rcc-g0-v1-0",
       "base_address": 1073876992,
       "instance": 0,
@@ -226,6 +280,60 @@
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.rtc.st-rtc",
+      "base_address": 1073752064,
+      "instance": 0,
+      "ip_name": "rtc",
+      "ip_version": null,
+      "name": "RTC",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.spi.st-spi",
+      "base_address": 1073819648,
+      "instance": 1,
+      "ip_name": "spi",
+      "ip_version": null,
+      "name": "SPI1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_APBENR2.SPI1EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.SPI1RST"
+    },
+    {
+      "backend_schema_id": "alloy.timer.st-tim",
+      "base_address": 1073818624,
+      "instance": 1,
+      "ip_name": "tim",
+      "ip_version": null,
+      "name": "TIM1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "rcc_enable_signal": "RCC_APBENR2.TIM1EN",
+      "rcc_reset_signal": "RCC_APBRSTR2.TIM1RST"
     },
     {
       "backend_schema_id": "alloy.uart.st-usart-v3-1",
@@ -298,6 +406,20 @@
             "source_path": "STM32G071R(6-8-B)Tx.xml"
           },
           "signal": "IN1"
+        },
+        {
+          "af_number": 0,
+          "function": "spi1_sck",
+          "peripheral": "SPI1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "SCK"
         }
       ]
     },

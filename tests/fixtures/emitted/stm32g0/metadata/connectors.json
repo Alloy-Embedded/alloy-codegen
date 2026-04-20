@@ -3,6 +3,38 @@
     {
       "connection_candidates": [
         {
+          "candidate_id": "candidate:pa1:spi1:sck",
+          "capability_ids": [
+            "capability-instance:spi1:lqfp64:sck"
+          ],
+          "operation_ids": [
+            "operation:clock-enable:spi1",
+            "operation:reset-release:spi1",
+            "operation:route:pa1:spi1:sck"
+          ],
+          "peripheral": "SPI1",
+          "pin": "PA1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "requirement_ids": [
+            "requirement:package:lqfp64",
+            "requirement:bonded-pin:lqfp64:pa1",
+            "requirement:clock-enable:spi1",
+            "requirement:reset-release:spi1",
+            "requirement:source-select:pa1:spi1:sck"
+          ],
+          "route_group_id": null,
+          "route_kind": "alternate-function",
+          "route_selector": "selector:0",
+          "signal": "sck"
+        },
+        {
           "candidate_id": "candidate:pb6:usart1:tx",
           "capability_ids": [
             "capability:usart:usart-v3-1:tx",
@@ -96,6 +128,31 @@
       "device": "stm32g071rb",
       "package": "lqfp64",
       "route_operations": [
+        {
+          "kind": "set-bit",
+          "operation_id": "operation:clock-enable:adc1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbenr2",
+          "register_name": "APBENR2",
+          "register_offset": 64,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "ADC1",
+          "subject_kind": "peripheral",
+          "target": "RCC_APBENR2.ADCEN",
+          "target_ref_id": "gate:adc1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
+        },
         {
           "kind": "set-bit",
           "operation_id": "operation:clock-enable:dma1",
@@ -202,6 +259,56 @@
         },
         {
           "kind": "set-bit",
+          "operation_id": "operation:clock-enable:spi1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbenr2",
+          "register_name": "APBENR2",
+          "register_offset": 64,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "SPI1",
+          "subject_kind": "peripheral",
+          "target": "RCC_APBENR2.SPI1EN",
+          "target_ref_id": "gate:spi1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "set-bit",
+          "operation_id": "operation:clock-enable:tim1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbenr2",
+          "register_name": "APBENR2",
+          "register_offset": 64,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "TIM1",
+          "subject_kind": "peripheral",
+          "target": "RCC_APBENR2.TIM1EN",
+          "target_ref_id": "gate:tim1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "set-bit",
           "operation_id": "operation:clock-enable:usart1",
           "provenance": {
             "patch_ids": [
@@ -224,6 +331,31 @@
           "target_ref_kind": "clock-gate",
           "value": "1",
           "value_int": 1,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "clear-bit",
+          "operation_id": "operation:reset-release:adc1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbrstr2",
+          "register_name": "APBRSTR2",
+          "register_offset": 48,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "ADC1",
+          "subject_kind": "peripheral",
+          "target": "RCC_APBRSTR2.ADCRST",
+          "target_ref_id": "reset:adc1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
           "value_ref_kind": "int"
         },
         {
@@ -332,6 +464,56 @@
         },
         {
           "kind": "clear-bit",
+          "operation_id": "operation:reset-release:spi1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbrstr2",
+          "register_name": "APBRSTR2",
+          "register_offset": 48,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "SPI1",
+          "subject_kind": "peripheral",
+          "target": "RCC_APBRSTR2.SPI1RST",
+          "target_ref_id": "reset:spi1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "clear-bit",
+          "operation_id": "operation:reset-release:tim1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbrstr2",
+          "register_name": "APBRSTR2",
+          "register_offset": 48,
+          "register_peripheral": "RCC",
+          "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+          "subject_id": "TIM1",
+          "subject_kind": "peripheral",
+          "target": "RCC_APBRSTR2.TIM1RST",
+          "target_ref_id": "reset:tim1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "clear-bit",
           "operation_id": "operation:reset-release:usart1",
           "provenance": {
             "patch_ids": [
@@ -355,6 +537,31 @@
           "value": "0",
           "value_int": 0,
           "value_ref_kind": "int"
+        },
+        {
+          "kind": "write-selector",
+          "operation_id": "operation:route:pa1:spi1:sck",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "register_name": null,
+          "register_offset": null,
+          "register_peripheral": null,
+          "schema_id": "alloy.pinmux.stm32-af-v1",
+          "subject_id": "PA1",
+          "subject_kind": "pin",
+          "target": "pinmux.PA1",
+          "target_ref_id": "PA1",
+          "target_ref_kind": "pin",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "write-selector",
@@ -418,6 +625,24 @@
             "source_id": "stm32-open-pin-data",
             "source_path": "STM32G071R(6-8-B)Tx.xml"
           },
+          "requirement_id": "requirement:bonded-pin:lqfp64:pa1",
+          "target": "PA1",
+          "target_ref_id": "PA1",
+          "target_ref_kind": "pin",
+          "value": "lqfp64",
+          "value_ref_id": "lqfp64",
+          "value_ref_kind": "package"
+        },
+        {
+          "kind": "bonded-pin",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
           "requirement_id": "requirement:bonded-pin:lqfp64:pb6",
           "target": "PB6",
           "target_ref_id": "PB6",
@@ -443,6 +668,24 @@
           "value": "lqfp64",
           "value_ref_id": "lqfp64",
           "value_ref_kind": "package"
+        },
+        {
+          "kind": "clock-enable",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "requirement_id": "requirement:clock-enable:adc1",
+          "target": "RCC_APBENR2.ADCEN",
+          "target_ref_id": "gate:adc1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
         },
         {
           "kind": "clock-enable",
@@ -526,6 +769,42 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "requirement_id": "requirement:clock-enable:spi1",
+          "target": "RCC_APBENR2.SPI1EN",
+          "target_ref_id": "gate:spi1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "clock-enable",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "requirement_id": "requirement:clock-enable:tim1",
+          "target": "RCC_APBENR2.TIM1EN",
+          "target_ref_id": "gate:tim1",
+          "target_ref_kind": "clock-gate",
+          "value": "1",
+          "value_int": 1,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "clock-enable",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
           "requirement_id": "requirement:clock-enable:usart1",
           "target": "RCC_APBENR2.USART1EN",
           "target_ref_id": "gate:usart1",
@@ -551,6 +830,24 @@
           "value": "selected",
           "value_ref_id": "selected",
           "value_ref_kind": "state"
+        },
+        {
+          "kind": "reset-release",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "requirement_id": "requirement:reset-release:adc1",
+          "target": "RCC_APBRSTR2.ADCRST",
+          "target_ref_id": "reset:adc1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
         },
         {
           "kind": "reset-release",
@@ -634,6 +931,42 @@
             "source_id": "cmsis-svd-data",
             "source_path": "STM32G071.svd"
           },
+          "requirement_id": "requirement:reset-release:spi1",
+          "target": "RCC_APBRSTR2.SPI1RST",
+          "target_ref_id": "reset:spi1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "reset-release",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "requirement_id": "requirement:reset-release:tim1",
+          "target": "RCC_APBRSTR2.TIM1RST",
+          "target_ref_id": "reset:tim1",
+          "target_ref_kind": "reset",
+          "value": "0",
+          "value_int": 0,
+          "value_ref_kind": "int"
+        },
+        {
+          "kind": "reset-release",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
           "requirement_id": "requirement:reset-release:usart1",
           "target": "RCC_APBRSTR2.USART1RST",
           "target_ref_id": "reset:usart1",
@@ -641,6 +974,25 @@
           "value": "0",
           "value_int": 0,
           "value_ref_kind": "int"
+        },
+        {
+          "kind": "source-select",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "requirement_id": "requirement:source-select:pa1:spi1:sck",
+          "target": "pinmux.PA1",
+          "target_ref_id": "PA1",
+          "target_ref_kind": "pin",
+          "value": "selector:0",
+          "value_int": 0,
+          "value_ref_id": "selector:0",
+          "value_ref_kind": "selector"
         },
         {
           "kind": "source-select",
@@ -769,6 +1121,20 @@
         "source_path": "STM32G071R(6-8-B)Tx.xml"
       },
       "signal": "IN7"
+    },
+    {
+      "direction": "output",
+      "endpoint_id": "endpoint:spi:sck",
+      "peripheral_class": "spi",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "signal": "SCK"
     },
     {
       "direction": "input",

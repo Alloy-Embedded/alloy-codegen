@@ -644,7 +644,7 @@ def test_publish_blocks_when_capability_regression_is_detected(
     capability_path = "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.json"
     published_capability_path = execution_context.publication_root / capability_path
     published_payload = json.loads(published_capability_path.read_text(encoding="utf-8"))
-    removed_capability_id = "regression-only:removed-capability"
+    removed_capability_id = "runtime-regression:removed-capability"
     published_payload["capabilities"].append(
         {
             "capability_id": removed_capability_id,
@@ -686,6 +686,55 @@ def test_publish_blocks_when_capability_regression_is_detected(
         / "stm32g071rb"
         / "capabilities.json"
     ).exists()
+
+
+def test_publish_ignores_legacy_instance_capability_regressions(
+    execution_context: ExecutionContext,
+) -> None:
+    scope = PipelineScope(device="stm32g071rb")
+    baseline_result = run(scope, execution_context)
+    assert baseline_result.status == "completed"
+
+    published_capability_path = (
+        execution_context.publication_root
+        / "st"
+        / "stm32g0"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32g071rb"
+        / "capabilities.json"
+    )
+    published_payload = json.loads(published_capability_path.read_text(encoding="utf-8"))
+    published_payload["capabilities"].append(
+        {
+            "capability_id": "capability-instance:legacy-probe:lqfp64:tx",
+            "scope": "instance_overlay",
+            "peripheral_class": "uart",
+            "name": "legacy-probe",
+            "value": "true",
+            "peripheral": "usart1",
+        }
+    )
+    published_payload["capabilities"].append(
+        {
+            "capability_id": "capability:usart:legacy-schema:tx",
+            "scope": "ip_block",
+            "peripheral_class": "uart",
+            "name": "legacy-probe",
+            "value": "true",
+            "peripheral": None,
+        }
+    )
+    published_capability_path.write_text(
+        json.dumps(published_payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    result = run(scope, execution_context)
+
+    assert result.status == "completed"
+    assert result.payload.publication_mode == "published"
 
 
 def test_publish_does_not_modify_publication_root_when_consumer_verification_fails(

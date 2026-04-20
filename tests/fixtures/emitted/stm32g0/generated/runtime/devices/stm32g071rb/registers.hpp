@@ -12,6 +12,8 @@ namespace devices {
 namespace stm32g071rb {
 enum class RegisterId : std::uint16_t {
   none,
+  register_adc1_isr,
+  register_dac_cr,
   register_flash_acr,
   register_gpioa_moder,
   register_gpioa_afrl,
@@ -19,6 +21,7 @@ enum class RegisterId : std::uint16_t {
   register_gpiob_moder,
   register_gpiob_afrl,
   register_gpiob_afrh,
+  register_iwdg_kr,
   register_rcc_cr,
   register_rcc_cfgr,
   register_rcc_pllcfgr,
@@ -28,6 +31,9 @@ enum class RegisterId : std::uint16_t {
   register_rcc_iopenr,
   register_rcc_ahbenr,
   register_rcc_apbenr2,
+  register_rtc_tr,
+  register_spi1_cr1,
+  register_tim1_cr1,
   register_usart1_cr1,
   register_usart1_cr2,
   register_usart1_brr,
@@ -43,6 +49,24 @@ struct RegisterTraits {
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_adc1_isr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40012400u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_dac_cr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40007400u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
 };
 
 template<>
@@ -106,6 +130,15 @@ struct RegisterTraits<RegisterId::register_gpiob_afrh> {
   static constexpr std::uint32_t kOffsetBytes = 36u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_iwdg_kr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40003000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_write_only;
+  static constexpr int kSizeBits = 32;
 };
 
 template<>
@@ -190,6 +223,33 @@ struct RegisterTraits<RegisterId::register_rcc_apbenr2> {
 };
 
 template<>
+struct RegisterTraits<RegisterId::register_rtc_tr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40002800u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_spi1_cr1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40013000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_tim1_cr1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40012C00u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
 struct RegisterTraits<RegisterId::register_usart1_cr1> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x40013800u;
@@ -243,7 +303,9 @@ struct RegisterTraits<RegisterId::register_usart1_tdr> {
   static constexpr int kSizeBits = -1;
 };
 
-inline constexpr std::array<RegisterId, 22> kRegisters = {{
+inline constexpr std::array<RegisterId, 28> kRegisters = {{
+  RegisterId::register_adc1_isr,
+  RegisterId::register_dac_cr,
   RegisterId::register_flash_acr,
   RegisterId::register_gpioa_moder,
   RegisterId::register_gpioa_afrl,
@@ -251,6 +313,7 @@ inline constexpr std::array<RegisterId, 22> kRegisters = {{
   RegisterId::register_gpiob_moder,
   RegisterId::register_gpiob_afrl,
   RegisterId::register_gpiob_afrh,
+  RegisterId::register_iwdg_kr,
   RegisterId::register_rcc_cr,
   RegisterId::register_rcc_cfgr,
   RegisterId::register_rcc_pllcfgr,
@@ -260,6 +323,9 @@ inline constexpr std::array<RegisterId, 22> kRegisters = {{
   RegisterId::register_rcc_iopenr,
   RegisterId::register_rcc_ahbenr,
   RegisterId::register_rcc_apbenr2,
+  RegisterId::register_rtc_tr,
+  RegisterId::register_spi1_cr1,
+  RegisterId::register_tim1_cr1,
   RegisterId::register_usart1_cr1,
   RegisterId::register_usart1_cr2,
   RegisterId::register_usart1_brr,

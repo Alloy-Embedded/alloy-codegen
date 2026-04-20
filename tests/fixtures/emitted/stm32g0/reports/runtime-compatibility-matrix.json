@@ -1,0 +1,174 @@
+{
+  "devices": [
+    {
+      "classes": [
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "adc",
+          "peripheral_count": 1,
+          "peripherals": [
+            "ADC1"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "dac",
+          "peripheral_count": 1,
+          "peripherals": [
+            "DAC"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "dma",
+          "peripheral_count": 1,
+          "peripherals": [
+            "DMA1"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "dma-router",
+          "peripheral_count": 1,
+          "peripherals": [
+            "DMAMUX1"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "gpio",
+          "peripheral_count": 2,
+          "peripherals": [
+            "GPIOA",
+            "GPIOB"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "rtc",
+          "peripheral_count": 1,
+          "peripherals": [
+            "RTC"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "available-signal",
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 1,
+          "peripheral_class": "spi",
+          "peripheral_count": 1,
+          "peripherals": [
+            "SPI1"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "timer",
+          "peripheral_count": 1,
+          "peripherals": [
+            "TIM1"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "available-signal",
+            "dma-compatible-signal",
+            "runtime-supported",
+            "signal-role"
+          ],
+          "class_capability_count": 3,
+          "dma_signals": [
+            "RX",
+            "TX"
+          ],
+          "instance_capability_count": 4,
+          "peripheral_class": "uart",
+          "peripheral_count": 1,
+          "peripherals": [
+            "USART1"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "watchdog",
+          "peripheral_count": 1,
+          "peripherals": [
+            "IWDG"
+          ],
+          "present": true
+        }
+      ],
+      "device": "stm32g071rb",
+      "package": "lqfp64"
+    }
+  ],
+  "driver_classes": [
+    "adc",
+    "dac",
+    "dma",
+    "dma-router",
+    "gpio",
+    "rtc",
+    "spi",
+    "timer",
+    "uart",
+    "watchdog"
+  ],
+  "family": "stm32g0",
+  "family_dir": "st/stm32g0",
+  "report_id": "runtime-compatibility-matrix-v1",
+  "vendor": "st"
+}

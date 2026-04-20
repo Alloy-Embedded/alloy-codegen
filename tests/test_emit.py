@@ -1563,6 +1563,82 @@ def test_emit_can_semantics_supports_st_bxcan_devices(
     assert "static constexpr bool kPresent = true;" in artifact.content
 
 
+def test_emit_can_semantics_supports_st_can_alias_schema(
+    execution_context: ExecutionContext,
+) -> None:
+    normalized = run_normalize(PipelineScope(device="stm32f401re"), execution_context)
+    base_device = normalized.payload.devices[0]
+    provenance = _synthetic_bxcan_provenance()
+    augmented = replace(
+        base_device,
+        peripherals=base_device.peripherals
+        + (
+            PeripheralInstance(
+                name="CAN1",
+                ip_name="can",
+                ip_version=None,
+                instance=1,
+                base_address=0x40006400,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.can.st-can",
+            ),
+        ),
+        registers=base_device.registers
+        + tuple(
+            _synthetic_bxcan_register(peripheral="CAN1", name=name, offset_bytes=offset)
+            for name, offset in (
+                ("MCR", 0x0),
+                ("MSR", 0x4),
+                ("TSR", 0x8),
+                ("RF0R", 0xC),
+                ("IER", 0x14),
+                ("ESR", 0x18),
+                ("BTR", 0x1C),
+                ("TI0R", 0x180),
+                ("FMR", 0x200),
+                ("FM1R", 0x204),
+                ("FS1R", 0x20C),
+                ("FFA1R", 0x214),
+                ("FA1R", 0x21C),
+            )
+        ),
+        register_fields=base_device.register_fields
+        + tuple(
+            _synthetic_bxcan_field(
+                peripheral="CAN1",
+                register_name=register_name,
+                name=name,
+                bit_offset=bit_offset,
+                bit_width=bit_width,
+            )
+            for register_name, name, bit_offset, bit_width in (
+                ("MCR", "INRQ", 0, 1),
+                ("BTR", "BRP", 0, 10),
+                ("BTR", "TS1", 16, 4),
+                ("BTR", "TS2", 20, 3),
+                ("BTR", "SJW", 24, 2),
+                ("BTR", "SILM", 31, 1),
+                ("RF0R", "FMP0", 0, 2),
+                ("RF0R", "FOVR0", 4, 1),
+                ("RF0R", "RFOM0", 5, 1),
+                ("IER", "TMEIE", 0, 1),
+                ("IER", "FMPIE0", 1, 1),
+                ("TSR", "TXOK0", 1, 1),
+                ("TSR", "CODE", 24, 2),
+            )
+        ),
+    )
+    artifact = emit_runtime_driver_can_semantics_header(
+        family_dir="st/stm32f4",
+        device=augmented,
+    )
+
+    assert "CanSemanticTraits<PeripheralId::CAN1>" in artifact.content
+    assert "static constexpr bool kHasFlexibleDataRate = false;" in artifact.content
+
+
 def test_emit_connector_metadata_supports_microchip_family(
     microchip_execution_context: ExecutionContext,
 ) -> None:

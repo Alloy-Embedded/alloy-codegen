@@ -31,6 +31,129 @@
       "source_hz": 24000000
     }
   ],
+  "peripherals": [
+    "ADC1",
+    "ADC2",
+    "CAN1",
+    "CAN2",
+    "CAN3",
+    "DMA0",
+    "DMAMUX1",
+    "GPT1",
+    "GPT2",
+    "PIT",
+    "PWM1",
+    "PWM2",
+    "PWM3",
+    "PWM4",
+    "RTWDOG",
+    "WDOG1",
+    "WDOG2"
+  ],
+  "registers": [
+    {
+      "peripheral": "ADC1",
+      "name": "HC0",
+      "base_address": 1074548736,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "ADC2",
+      "name": "HC0",
+      "base_address": 1074565120,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "CAN1",
+      "name": "MCR",
+      "base_address": 1075640320,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "CAN2",
+      "name": "MCR",
+      "base_address": 1075656704,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "CAN3",
+      "name": "MCR",
+      "base_address": 1075673088,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "DMA0",
+      "name": "CR",
+      "base_address": 1074696192,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "DMAMUX1",
+      "name": "CHCFG0",
+      "base_address": 1074712576,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "GPT1",
+      "name": "CR",
+      "base_address": 1075755008,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "GPT2",
+      "name": "CR",
+      "base_address": 1075771392,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "PIT",
+      "name": "MCR",
+      "base_address": 1074286592,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "PWM1",
+      "name": "MCTRL",
+      "base_address": 1077798912,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "PWM2",
+      "name": "MCTRL",
+      "base_address": 1077815296,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "PWM3",
+      "name": "MCTRL",
+      "base_address": 1077831680,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "PWM4",
+      "name": "MCTRL",
+      "base_address": 1077848064,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "RTWDOG",
+      "name": "CS",
+      "base_address": 1074515968,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "WDOG1",
+      "name": "WCR",
+      "base_address": 1074499584,
+      "offset_bytes": 0
+    },
+    {
+      "peripheral": "WDOG2",
+      "name": "WCR",
+      "base_address": 1074597888,
+      "offset_bytes": 0
+    }
+  ],
   "memories": [
     {
       "name": "OCRAM",

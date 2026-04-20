@@ -8,26 +8,44 @@ namespace generated {
 namespace runtime {
 enum class BackendSchemaId : std::uint16_t {
   none,
+  schema_alloy_adc_nxp_adc,
+  schema_alloy_can_nxp_can,
   schema_alloy_ccm_nxp_ccm,
   schema_alloy_ccm_analog_nxp_ccm_analog,
   schema_alloy_clock_nxp_ccm,
   schema_alloy_dcdc_nxp_dcdc,
+  schema_alloy_dma_router_nxp_dmamux,
+  schema_alloy_dma_nxp_dma,
   schema_alloy_gpio_nxp_imxrt_gpio_v1,
+  schema_alloy_gpt_nxp_gpt,
   schema_alloy_lpi2c1_nxp_lpi2c_v1,
   schema_alloy_pinmux_imxrt_iomuxc_v1,
+  schema_alloy_pit_nxp_pit,
+  schema_alloy_pwm_nxp_pwm,
   schema_alloy_spi_nxp_lpspi_v1,
   schema_alloy_uart_nxp_lpuart_v1,
+  schema_alloy_watchdog_nxp_rtwdog,
+  schema_alloy_watchdog_nxp_wdog,
 };
 
 enum class PeripheralClassId : std::uint16_t {
   none,
+  class_adc,
+  class_can,
   class_ccm,
   class_ccm_analog,
   class_dcdc,
+  class_dma,
+  class_dma_router,
   class_gpio,
+  class_gpt,
   class_lpi2c1,
+  class_pit,
+  class_pwm,
   class_spi,
+  class_timer,
   class_uart,
+  class_watchdog,
 };
 
 enum class SignalId : std::uint16_t {

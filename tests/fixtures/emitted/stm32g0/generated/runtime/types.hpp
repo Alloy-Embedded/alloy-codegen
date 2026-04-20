@@ -8,24 +8,36 @@ namespace generated {
 namespace runtime {
 enum class BackendSchemaId : std::uint16_t {
   none,
+  schema_alloy_adc_st_adc,
   schema_alloy_clock_st_rcc_g0_v1_0,
+  schema_alloy_dac_st_dac,
   schema_alloy_dma_router_st_dmamux_v1_0,
   schema_alloy_dma_st_bdma_v1_0,
   schema_alloy_flash_st_flash,
   schema_alloy_gpio_st_stm32g07x_gpio_v1_0,
   schema_alloy_pinmux_stm32_af_v1,
   schema_alloy_rcc_st_rcc_g0_v1_0,
+  schema_alloy_rtc_st_rtc,
+  schema_alloy_spi_st_spi,
+  schema_alloy_timer_st_tim,
   schema_alloy_uart_st_usart_v3_1,
+  schema_alloy_watchdog_st_iwdg,
 };
 
 enum class PeripheralClassId : std::uint16_t {
   none,
+  class_adc,
+  class_dac,
   class_dma,
   class_dma_router,
   class_flash,
   class_gpio,
   class_rcc,
+  class_rtc,
+  class_spi,
+  class_timer,
   class_uart,
+  class_watchdog,
 };
 
 enum class SignalId : std::uint16_t {
@@ -37,9 +49,12 @@ enum class SignalId : std::uint16_t {
   signal_IN6,
   signal_IN7,
   signal_RX,
+  signal_SCK,
   signal_TX,
   signal_gpio,
   signal_rx,
+  signal_sck,
+  signal_spi1_sck,
   signal_tx,
   signal_usart1_rx,
   signal_usart1_tx,
@@ -57,6 +72,7 @@ enum class AccessKindId : std::uint16_t {
   access_kind_read_write,
   access_kind_rwx,
   access_kind_rx,
+  access_kind_write_only,
 };
 
 enum class StartupKindId : std::uint16_t {

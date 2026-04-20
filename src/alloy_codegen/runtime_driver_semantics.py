@@ -5054,7 +5054,7 @@ def _build_can_rows(context: _SemanticContext) -> tuple[CanSemanticRow, ...]:
                     schema_id=schema_id,
                 )
             )
-        elif schema_id.startswith("alloy.can.st-bxcan"):
+        elif schema_id == "alloy.can.st-can" or schema_id.startswith("alloy.can.st-bxcan"):
             rows.append(
                 _st_bxcan_can_row(
                     context,
