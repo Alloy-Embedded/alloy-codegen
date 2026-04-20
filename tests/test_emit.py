@@ -493,6 +493,9 @@ def test_emit_includes_metadata_artifacts_with_content(
         "SystemClockProfileTraits<SystemClockProfileId::" in runtime_system_clock_artifact.content
     )
     assert "apply_default_system_clock" in runtime_system_clock_artifact.content
+    assert 'static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for ' in (
+        runtime_connectors_artifact.content
+    )
     assert runtime_clock_profiles_artifact.artifact_kind == "generated-cpp"
     assert "using ClockProfileId = SystemClockProfileId;" in runtime_clock_profiles_artifact.content
     assert "kClockProfiles" in runtime_clock_profiles_artifact.content
@@ -670,6 +673,11 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemClockProfileId::plla_150mhz" in same70_system_clock
     assert "FieldId::field_pmc_ckgr_mor_key" in same70_system_clock
     assert "FieldId::field_efc_eefc_fmr_fws" in same70_system_clock
+    assert 'static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for ' in (
+        same70_artifacts[
+            "microchip/same70/generated/runtime/devices/atsame70q21b/connectors.hpp"
+        ].content
+    )
     assert (
         "kDefaultClockProfileId = ClockProfileId::default_safe_internal_12mhz"
         in same70_clock_profiles
@@ -724,6 +732,9 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemClockProfileId::default_arm_pll_600mhz" in nxp_system_clock
     assert "FieldId::field_ccm_analog_pll_arm_div_select" in nxp_system_clock
     assert "FieldId::field_dcdc_reg3_trg" in nxp_system_clock
+    assert 'static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for ' in (
+        nxp_artifacts["nxp/imxrt1060/generated/runtime/devices/mimxrt1062/connectors.hpp"].content
+    )
     assert "kMaxClockProfileId = ClockProfileId::default_arm_pll_600mhz" in nxp_clock_profiles
     assert "apply_clock_profile_default_arm_pll_600mhz" in nxp_clock_config
     assert "apply_default_clock_profile" in nxp_clock_config

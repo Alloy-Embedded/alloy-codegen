@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from itertools import chain
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
@@ -22,6 +23,27 @@ from .runtime_lite_emission import (
 )
 
 CONNECTORS_HEADER = "connectors.hpp"
+
+
+def _connector_diagnostic_message(
+    *,
+    peripheral_name: str,
+    signal_name: str,
+    pin_names: tuple[str, ...],
+    source_ids: tuple[str, ...],
+    patch_ids: tuple[str, ...],
+) -> str:
+    valid_pins = ", ".join(pin_names) if pin_names else "<none>"
+    provenance_parts = list(source_ids)
+    if patch_ids:
+        provenance_parts.append(f"patches={', '.join(patch_ids)}")
+    provenance = "; ".join(part for part in provenance_parts if part)
+    if provenance:
+        return (
+            f"Invalid connector for {peripheral_name} {signal_name}. "
+            f"Valid pins: {valid_pins}. Provenance: {provenance}."
+        )
+    return f"Invalid connector for {peripheral_name} {signal_name}. Valid pins: {valid_pins}."
 
 
 def runtime_connectors_required_paths(
@@ -45,6 +67,10 @@ def emit_runtime_connectors_header(
 
     semantics_catalog = _runtime_lite_semantics_catalog((device,))
     runtime_candidates = _runtime_lite_candidates(device)
+    all_pin_refs = tuple(
+        f"PinId::{_enum_identifier(pin.name)}"
+        for pin in sorted(device.pins, key=lambda item: item.name)
+    )
     connector_enum_map = {
         candidate.candidate_id: _enum_identifier(candidate.candidate_id)
         for candidate in runtime_candidates
@@ -74,6 +100,11 @@ def emit_runtime_connectors_header(
         "  static constexpr RouteKindId kRouteKindId = RouteKindId::none;",
         "  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;",
         "};",
+        "",
+        "namespace detail {",
+        "template<auto Value>",
+        "inline constexpr bool kInvalidConnector = false;",
+        "}  // namespace detail",
         "",
         "template<PeripheralId Peripheral, SignalId Signal>",
         "struct ConnectorSignalTraits {",
@@ -147,6 +178,37 @@ def emit_runtime_connectors_header(
             f"    ConnectorId::{connector_enum_map[candidate.candidate_id]},"
             for candidate in endpoint_candidates
         ]
+        valid_pin_refs = {
+            f"PinId::{_enum_identifier(candidate.pin)}" for candidate in endpoint_candidates
+        }
+        invalid_pin_refs = [pin_ref for pin_ref in all_pin_refs if pin_ref not in valid_pin_refs]
+        source_ids = tuple(
+            sorted(
+                {
+                    candidate.provenance.source_id
+                    for candidate in endpoint_candidates
+                    if candidate.provenance.source_id
+                }
+            )
+        )
+        patch_ids = tuple(
+            sorted(
+                {
+                    patch_id
+                    for patch_id in chain.from_iterable(
+                        candidate.provenance.patch_ids for candidate in endpoint_candidates
+                    )
+                    if patch_id
+                }
+            )
+        )
+        diagnostic_message = _connector_diagnostic_message(
+            peripheral_name=peripheral_name,
+            signal_name=signal_name,
+            pin_names=tuple(candidate.pin for candidate in endpoint_candidates),
+            source_ids=source_ids,
+            patch_ids=patch_ids,
+        )
         connector_trait_lines.extend(
             [
                 "template<>",
@@ -163,6 +225,24 @@ def emit_runtime_connectors_header(
                 "",
             ]
         )
+        if invalid_pin_refs:
+            connector_trait_lines.extend(
+                [
+                    "template<PinId Pin>",
+                    f"struct ConnectorTraits<Pin, {peripheral_ref}, {signal_ref}> {{",
+                    "  static constexpr bool kPresent = false;",
+                    "  static constexpr ConnectorId kConnectorId = ConnectorId::none;",
+                    "  static constexpr RouteId kRouteId = RouteId::none;",
+                    ("  static constexpr RouteKindId kRouteKindId = RouteKindId::none;"),
+                    (
+                        "  static constexpr ConnectionGroupId kConnectionGroupId = "
+                        "ConnectionGroupId::none;"
+                    ),
+                    f'  static_assert(detail::kInvalidConnector<Pin>, "{diagnostic_message}");',
+                    "};",
+                    "",
+                ]
+            )
 
     body = "\n".join(
         [

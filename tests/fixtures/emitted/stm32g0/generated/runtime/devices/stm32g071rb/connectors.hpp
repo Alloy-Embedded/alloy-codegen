@@ -36,6 +36,11 @@ struct ConnectorTraits {
   static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
 };
 
+namespace detail {
+template<auto Value>
+inline constexpr bool kInvalidConnector = false;
+}  // namespace detail
+
 template<PeripheralId Peripheral, SignalId Signal>
 struct ConnectorSignalTraits {
   static constexpr bool kPresent = false;
@@ -72,6 +77,16 @@ struct ConnectorSignalTraits<PeripheralId::USART1, SignalId::signal_rx> {
   }};
 };
 
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::USART1, SignalId::signal_rx> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for USART1 rx. Valid pins: PB7. Provenance: stm32-open-pin-data; patches=st-stm32g0-family-bootstrap-v1, st-stm32g0-stm32g071rb-bootstrap.");
+};
+
 template<>
 struct ConnectorSignalTraits<PeripheralId::USART1, SignalId::signal_tx> {
   static constexpr bool kPresent = true;
@@ -81,6 +96,16 @@ struct ConnectorSignalTraits<PeripheralId::USART1, SignalId::signal_tx> {
   static constexpr std::array<ConnectorId, 1> kConnectors = {{
     ConnectorId::candidate_pb6_usart1_tx,
   }};
+};
+
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::USART1, SignalId::signal_tx> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for USART1 tx. Valid pins: PB6. Provenance: stm32-open-pin-data; patches=st-stm32g0-family-bootstrap-v1, st-stm32g0-stm32g071rb-bootstrap.");
 };
 
 inline constexpr std::array<ConnectorDescriptor, 2> kConnectors = {{

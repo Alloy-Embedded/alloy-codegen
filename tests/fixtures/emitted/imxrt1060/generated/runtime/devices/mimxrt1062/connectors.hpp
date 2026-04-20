@@ -42,6 +42,11 @@ struct ConnectorTraits {
   static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
 };
 
+namespace detail {
+template<auto Value>
+inline constexpr bool kInvalidConnector = false;
+}  // namespace detail
+
 template<PeripheralId Peripheral, SignalId Signal>
 struct ConnectorSignalTraits {
   static constexpr bool kPresent = false;
@@ -132,6 +137,16 @@ struct ConnectorSignalTraits<PeripheralId::GPIO1, SignalId::signal_io00> {
   }};
 };
 
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::GPIO1, SignalId::signal_io00> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for GPIO1 io00. Valid pins: GPIO_AD_B0_00. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
+};
+
 template<>
 struct ConnectorSignalTraits<PeripheralId::GPIO1, SignalId::signal_io01> {
   static constexpr bool kPresent = true;
@@ -141,6 +156,16 @@ struct ConnectorSignalTraits<PeripheralId::GPIO1, SignalId::signal_io01> {
   static constexpr std::array<ConnectorId, 1> kConnectors = {{
     ConnectorId::candidate_gpio_ad_b0_01_gpio1_io01,
   }};
+};
+
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::GPIO1, SignalId::signal_io01> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for GPIO1 io01. Valid pins: GPIO_AD_B0_01. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
 };
 
 template<>
@@ -154,6 +179,16 @@ struct ConnectorSignalTraits<PeripheralId::GPIO4, SignalId::signal_io00> {
   }};
 };
 
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::GPIO4, SignalId::signal_io00> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for GPIO4 io00. Valid pins: GPIO_EMC_00. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
+};
+
 template<>
 struct ConnectorSignalTraits<PeripheralId::GPIO4, SignalId::signal_io01> {
   static constexpr bool kPresent = true;
@@ -163,6 +198,16 @@ struct ConnectorSignalTraits<PeripheralId::GPIO4, SignalId::signal_io01> {
   static constexpr std::array<ConnectorId, 1> kConnectors = {{
     ConnectorId::candidate_gpio_emc_01_gpio4_io01,
   }};
+};
+
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::GPIO4, SignalId::signal_io01> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for GPIO4 io01. Valid pins: GPIO_EMC_01. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
 };
 
 template<>
@@ -176,6 +221,16 @@ struct ConnectorSignalTraits<PeripheralId::LPSPI1, SignalId::signal_pcs0> {
   }};
 };
 
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::LPSPI1, SignalId::signal_pcs0> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for LPSPI1 pcs0. Valid pins: GPIO_EMC_01. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
+};
+
 template<>
 struct ConnectorSignalTraits<PeripheralId::LPSPI1, SignalId::signal_sck> {
   static constexpr bool kPresent = true;
@@ -185,6 +240,16 @@ struct ConnectorSignalTraits<PeripheralId::LPSPI1, SignalId::signal_sck> {
   static constexpr std::array<ConnectorId, 1> kConnectors = {{
     ConnectorId::candidate_gpio_emc_00_lpspi1_sck,
   }};
+};
+
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::LPSPI1, SignalId::signal_sck> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for LPSPI1 sck. Valid pins: GPIO_EMC_00. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
 };
 
 template<>
@@ -198,6 +263,16 @@ struct ConnectorSignalTraits<PeripheralId::LPUART1, SignalId::signal_rx> {
   }};
 };
 
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::LPUART1, SignalId::signal_rx> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for LPUART1 rx. Valid pins: GPIO_AD_B0_01. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
+};
+
 template<>
 struct ConnectorSignalTraits<PeripheralId::LPUART1, SignalId::signal_tx> {
   static constexpr bool kPresent = true;
@@ -207,6 +282,16 @@ struct ConnectorSignalTraits<PeripheralId::LPUART1, SignalId::signal_tx> {
   static constexpr std::array<ConnectorId, 1> kConnectors = {{
     ConnectorId::candidate_gpio_ad_b0_00_lpuart1_tx,
   }};
+};
+
+template<PinId Pin>
+struct ConnectorTraits<Pin, PeripheralId::LPUART1, SignalId::signal_tx> {
+  static constexpr bool kPresent = false;
+  static constexpr ConnectorId kConnectorId = ConnectorId::none;
+  static constexpr RouteId kRouteId = RouteId::none;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::none;
+  static constexpr ConnectionGroupId kConnectionGroupId = ConnectionGroupId::none;
+  static_assert(detail::kInvalidConnector<Pin>, "Invalid connector for LPUART1 tx. Valid pins: GPIO_AD_B0_00. Provenance: nxp-mcux-sdk; patches=nxp-imxrt1060-family-bootstrap-v1, nxp-imxrt1060-mimxrt1062-bootstrap.");
 };
 
 inline constexpr std::array<ConnectorDescriptor, 8> kConnectors = {{

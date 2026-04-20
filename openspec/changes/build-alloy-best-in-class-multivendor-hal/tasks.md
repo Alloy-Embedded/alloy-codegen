@@ -18,7 +18,7 @@
 ## Phase 2: Connector Tables & Interrupt Stubs
 
 - [x] 2.1 Emit `connectors.hpp` per device with typed valid combinations
-- [ ] 2.2 Emit provenance-rich invalid-combination diagnostics in connector specializations
+- [x] 2.2 Emit provenance-rich invalid-combination diagnostics in connector specializations
 - [x] 2.3 Emit `interrupt_stubs.hpp` per device
 - [x] 2.4 Add artifact-contract and smoke coverage for both headers
 - [x] 2.5 Add goldens covering connector tables and interrupt stubs

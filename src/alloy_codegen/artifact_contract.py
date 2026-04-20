@@ -54,6 +54,8 @@ def find_runtime_cpp_string_violations(
                 continue
             if stripped.startswith('extern "C"'):
                 continue
+            if stripped.startswith("static_assert("):
+                continue
             if '"' in line:
                 violations.append(
                     f"{artifact.path}:{lineno} contains a string literal in runtime C++ output"
@@ -321,6 +323,11 @@ def find_runtime_lite_contract_violations(
             elif "kConnectors" not in connectors_content:
                 violations.append(
                     f"{device_runtime_paths['connectors']} does not emit connector descriptors"
+                )
+            elif "static_assert(detail::kInvalidConnector<Pin>" not in connectors_content:
+                violations.append(
+                    f"{device_runtime_paths['connectors']} does not emit invalid-connector "
+                    "diagnostics"
                 )
 
         if (

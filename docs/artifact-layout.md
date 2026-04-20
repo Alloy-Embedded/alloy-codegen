@@ -140,7 +140,8 @@ Successful publication writes:
 - `generated/runtime/devices/<device>/interrupt_stubs.hpp` is the typed weak-interrupt
   declaration contract aligned with the generated startup surface.
 - `generated/runtime/devices/<device>/connectors.hpp` is the typed valid-connector contract
-  aligned with emitted routes and connection groups.
+  aligned with emitted routes and connection groups, and it also carries compile-time
+  invalid-connector diagnostics with valid alternatives and provenance.
 - `generated/runtime/devices/<device>/clock_profiles.hpp` publishes the stable per-device
   clock-profile ids, descriptors, and named default/safe/max profile facts.
 - `generated/runtime/devices/<device>/clock_config.hpp` publishes ready-to-call typed

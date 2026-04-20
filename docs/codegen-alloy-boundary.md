@@ -88,7 +88,8 @@ The published C++ contract is runtime-first:
   interrupt declaration surface plus typed interrupt-stub descriptors
 - `generated/runtime/devices/<device>/connectors.hpp` carries typed valid
   pin-peripheral-signal combinations so Alloy does not need connector scans or handwritten
-  compatibility tables
+  compatibility tables, and it now carries compile-time invalid-connector diagnostics with
+  alternative pins plus provenance
 - `generated/runtime/devices/<device>/clock_profiles.hpp` carries the stable, typed
   profile ids and default/safe/max-profile metadata derived from the canonical clock graph
 - `generated/runtime/devices/<device>/clock_config.hpp` carries ready-to-call typed profile
