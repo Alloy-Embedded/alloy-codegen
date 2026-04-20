@@ -175,3 +175,41 @@ def test_cli_diff_json_output_reports_capability_delta(
     for entry in payload["added"] + payload["removed"]:
         assert "provenance" in entry
         assert "source_ids" in entry["provenance"]
+
+
+def test_cli_diff_json_output_reports_cross_vendor_capability_delta(
+    capsys,
+    fixture_source_root: Path,
+    fixture_pin_source_root: Path,
+    fixture_microchip_extract_root: Path,
+) -> None:
+    exit_code = cli_module.main(
+        [
+            "diff",
+            "--from",
+            "stm32g071rb",
+            "--to",
+            "atsame70q21b",
+            "--source",
+            f"cmsis-svd-data={fixture_source_root}",
+            "--source",
+            f"stm32-open-pin-data={fixture_pin_source_root}",
+            "--source",
+            f"microchip-dfp-extract={fixture_microchip_extract_root}",
+            "--json",
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert payload["command"] == "diff"
+    assert payload["from"]["device"] == "stm32g071rb"
+    assert payload["to"]["device"] == "atsame70q21b"
+    assert any(entry["peripheral_class"] == "can" for entry in payload["added"])
+    assert any(
+        entry["peripheral_class"] == "uart"
+        for entry in payload["added"] + payload["removed"] + payload["modified"]
+    )
+    for entry in payload["added"] + payload["removed"]:
+        assert entry["provenance"]["source_ids"] or entry["provenance"]["patch_ids"]

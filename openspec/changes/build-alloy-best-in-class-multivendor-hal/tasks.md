@@ -42,10 +42,10 @@
 
 ## Phase 5: Validation Moat
 
-- [ ] 5.1 Fail publish when any required codegen-owned artifact is missing
+- [x] 5.1 Fail publish when any required codegen-owned artifact is missing
 - [x] 5.2 Fail publish when runtime-supported peripherals have incomplete capability coverage
-- [ ] 5.3 Add cross-publication capability regression detection
-- [ ] 5.4 Add cross-device capability parity/diff tests
+- [x] 5.3 Add cross-publication capability regression detection
+- [x] 5.4 Add cross-device capability parity/diff tests
 - [ ] 5.5 Ensure consumer verification compiles or links the complete generated set
 
 ## Phase 6: Docs & Downstream Handoff

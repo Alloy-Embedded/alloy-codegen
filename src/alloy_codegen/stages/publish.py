@@ -17,6 +17,7 @@ from alloy_codegen.emission import (
 from alloy_codegen.publication import (
     compute_target_artifact_revision,
     emit_publication_record,
+    find_capability_regressions,
     prepare_staging_root,
     promote_staging_root,
 )
@@ -169,6 +170,33 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         artifact_root=staging_root,
         artifacts=emit_result.payload.artifacts,
     )
+    capability_regressions = find_capability_regressions(
+        publication_root=execution_context.publication_root,
+        staging_root=staging_root,
+        family_dir=f"{emit_result.scope.resolved_vendor()}/{emit_result.scope.resolved_family()}",
+    )
+    if capability_regressions:
+        sample = "; ".join(capability_regressions[:3])
+        if len(capability_regressions) > 3:
+            sample = f"{sample}; ..."
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(
+                "Publication is blocked because capability regression was detected against the "
+                f"previous published contract: {sample}",
+            ),
+        )
     runtime_lite_consumer_verification = verify_runtime_lite_smoke_consumer(
         scope=emit_result.scope,
         alloy_root=execution_context.alloy_root,

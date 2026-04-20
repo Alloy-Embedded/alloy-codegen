@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import shutil
 from pathlib import Path
 
@@ -111,6 +112,68 @@ def prepare_staging_root(publication_root: Path) -> Path:
         shutil.rmtree(staging_root)
     staging_root.mkdir(parents=True, exist_ok=True)
     return staging_root
+
+
+def _load_device_capability_ids(path: Path) -> tuple[str, ...]:
+    """Load one published runtime capability sidecar and return stable capability ids."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise StageExecutionError(
+            f"Invalid published capability sidecar {path}: {exc.msg}"
+        ) from exc
+    capabilities = payload.get("capabilities")
+    if not isinstance(capabilities, list):
+        raise StageExecutionError(f"Published capability sidecar {path} has no capability list.")
+    capability_ids: list[str] = []
+    for entry in capabilities:
+        capability_id = entry.get("capability_id") if isinstance(entry, dict) else None
+        if not isinstance(capability_id, str) or not capability_id:
+            raise StageExecutionError(
+                f"Published capability sidecar {path} has an invalid capability_id entry."
+            )
+        capability_ids.append(capability_id)
+    return tuple(sorted(capability_ids))
+
+
+def find_capability_regressions(
+    *,
+    publication_root: Path,
+    staging_root: Path,
+    family_dir: str,
+) -> tuple[str, ...]:
+    """Compare staged and previously published capability sidecars for removed capability ids."""
+    published_family_root = publication_root / family_dir
+    staged_family_root = staging_root / family_dir
+    if not published_family_root.exists() or not staged_family_root.exists():
+        return ()
+
+    staged_sidecars = sorted(
+        staged_family_root.glob("generated/runtime/devices/*/capabilities.json"),
+        key=lambda item: item.as_posix(),
+    )
+    regressions: list[str] = []
+    for staged_sidecar in staged_sidecars:
+        device = staged_sidecar.parent.name
+        published_sidecar = (
+            published_family_root
+            / "generated"
+            / "runtime"
+            / "devices"
+            / device
+            / "capabilities.json"
+        )
+        if not published_sidecar.exists():
+            continue
+        published_ids = set(_load_device_capability_ids(published_sidecar))
+        staged_ids = set(_load_device_capability_ids(staged_sidecar))
+        removed_ids = sorted(published_ids - staged_ids)
+        if removed_ids:
+            sample = ", ".join(removed_ids[:6])
+            if len(removed_ids) > 6:
+                sample = f"{sample}, ..."
+            regressions.append(f"{device} removed capability ids: {sample}")
+    return tuple(regressions)
 
 
 def _replace_path(*, source_path: Path, destination_path: Path) -> None:
