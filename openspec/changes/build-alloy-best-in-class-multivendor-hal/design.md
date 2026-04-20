@@ -24,6 +24,44 @@ Non-Goals:
 - decidir ownership model do consumidor
 - decidir a função CMake final no repo `alloy`
 
+## Gap Audit
+
+### Already emitted
+
+- `generated/devices/<device>/device.ld`
+- `generated/devices/<device>/startup.cpp`
+- `generated/devices/<device>/startup_vectors.cpp`
+- `generated/runtime/devices/<device>/startup.hpp`
+- `generated/runtime/devices/<device>/interrupts.hpp`
+- `generated/runtime/devices/<device>/interrupt_stubs.hpp`
+- `generated/runtime/devices/<device>/system_clock.hpp`
+- `generated/runtime/devices/<device>/system_sequences.hpp`
+- `generated/runtime/devices/<device>/capabilities.hpp`
+- `generated/runtime/devices/<device>/capabilities.json`
+- `generated/runtime/devices/<device>/driver_semantics/*.hpp`
+
+### Still missing in this spec
+
+- `generated/runtime/devices/<device>/connectors.hpp`
+- `generated/runtime/devices/<device>/clock_profiles.hpp`
+- `generated/runtime/devices/<device>/clock_config.hpp`
+- CLI surfaces `alloy explain` and `alloy diff`
+- linker-script consumer validation on GNU-ld-compatible toolchains
+
+### Downstream heuristics already replaceable
+
+- handwritten per-device linker scripts can be replaced by `device.ld`
+- ad-hoc interrupt declaration surfaces can be replaced by `interrupt_stubs.hpp`
+- startup memory-role reconstruction can be replaced by `startup.hpp` plus `system_sequences.hpp`
+- runtime feature detection by string tables can be replaced by `capabilities.hpp` and
+  `capabilities.json`
+
+### Downstream heuristics still not replaceable yet
+
+- pin/peripheral/signal validity checks still need `connectors.hpp`
+- profile selection and application still need emitted `clock_profiles.hpp` / `clock_config.hpp`
+- device-to-device portability diagnostics still need the `alloy diff` CLI
+
 ## Decisions
 
 ### Decision 1: linker script é artefato do gerador
@@ -88,5 +126,8 @@ O consumo destes artefatos no `alloy` deve ser tratado em OpenSpecs pareadas lá
 - linker script wiring
 - `board::init()` / clock application
 - GPIO/UART/SPI/I2C/DMA/ADC/Timer/PWM drivers
+- startup / interrupt override wiring for `interrupt_stubs.hpp`
+- consumption of `capabilities.json` in build/tooling paths
+- connector diagnostics surfaced through the public HAL once `connectors.hpp` existir
 - ownership model
 - CMake user API

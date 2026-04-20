@@ -1,0 +1,88 @@
+{
+  "capabilities": [
+    {
+      "capability_id": "runtime-support:dma",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "dma",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:dma-router",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "dma-router",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:gpio",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "gpio",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:rx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:tx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:uart",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:USART1:DMA1:DMA1_CH1:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "USART1",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:USART1:DMA1:DMA1_CH2:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "USART1",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:usart1:lqfp64:rx",
+      "name": "available-signal",
+      "peripheral": "USART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:usart1:lqfp64:tx",
+      "name": "available-signal",
+      "peripheral": "USART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    }
+  ],
+  "device": "stm32g071rb",
+  "family": "stm32g0",
+  "schema_version": "1.1.0",
+  "vendor": "st"
+}

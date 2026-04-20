@@ -32,6 +32,8 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/startup.hpp`
   - `generated/runtime/devices/<device>/system_clock.hpp`
   - `generated/runtime/devices/<device>/interrupts.hpp`
+  - `generated/runtime/devices/<device>/interrupt_stubs.hpp`
+  - `generated/runtime/devices/<device>/capabilities.json`
   - `generated/runtime/devices/<device>/resets.hpp`
   - `generated/runtime/devices/<device>/enable_domains.hpp`
   - `generated/runtime/devices/<device>/clock_graph.hpp`
@@ -77,6 +79,12 @@ The published C++ contract is runtime-first:
   foundational drivers, including DMA, ADC, DAC, timer, and PWM
 - `generated/runtime/devices/<device>/startup.hpp` carries the typed startup descriptor surface
   that Alloy consumes for startup metadata
+- `generated/runtime/devices/<device>/interrupts.hpp` carries typed interrupt-to-peripheral
+  bindings for the runtime contract
+- `generated/runtime/devices/<device>/interrupt_stubs.hpp` carries the weak `extern "C"`
+  interrupt declaration surface plus typed interrupt-stub descriptors
+- `generated/runtime/devices/<device>/capabilities.json` carries the same runtime capability
+  facts as the header contract, but in a tool-friendly sidecar for diff, CMake, and diagnostics
 - `generated/runtime/devices/<device>/enable_domains.hpp` carries typed enable-domain facts
   derived from published runtime gate controls so Alloy does not need to reconstruct peripheral
   activation policy from low-level clock tables

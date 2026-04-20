@@ -66,10 +66,12 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/startup.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/interrupts.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/interrupt_stubs.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/resets.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/enable_domains.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_graph.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/capabilities.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/capabilities.json",
                 f"{family_dir}/generated/runtime/devices/{device_name}/system_sequences.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/common.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/driver_semantics/gpio.hpp",
@@ -238,6 +240,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "runtime"
                 / "devices"
                 / device_name
+                / "capabilities.json"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
                 / "dma_bindings.hpp"
             ).exists()
             assert (
@@ -257,6 +268,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "startup.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "interrupt_stubs.hpp"
             ).exists()
             assert (
                 publication_root

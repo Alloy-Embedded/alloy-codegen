@@ -209,6 +209,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_interrupts_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/interrupts.hpp"
     ]
+    runtime_interrupt_stubs_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/interrupt_stubs.hpp"
+    ]
     runtime_resets_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp"
     ]
@@ -220,6 +223,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     ]
     runtime_capabilities_contract_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp"
+    ]
+    runtime_capabilities_json_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.json"
     ]
     runtime_system_sequences_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_sequences.hpp"
@@ -438,6 +444,10 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert runtime_interrupts_artifact.artifact_kind == "generated-cpp"
     assert "enum class InterruptId" in runtime_interrupts_artifact.content
     assert "kInterruptDescriptors" in runtime_interrupts_artifact.content
+    assert runtime_interrupt_stubs_artifact.artifact_kind == "generated-cpp"
+    assert 'extern "C"' in runtime_interrupt_stubs_artifact.content
+    assert "kInterruptStubs" in runtime_interrupt_stubs_artifact.content
+    assert "InterruptStubTraits<InterruptId::" in runtime_interrupt_stubs_artifact.content
     assert runtime_resets_artifact.artifact_kind == "generated-cpp"
     assert "kResetDescriptors" in runtime_resets_artifact.content
     assert runtime_enable_domains_artifact.artifact_kind == "generated-cpp"
@@ -455,6 +465,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     )
     assert "kCapabilities" in runtime_capabilities_contract_artifact.content
     assert "CapabilityNameId::runtime_supported" in runtime_capabilities_contract_artifact.content
+    assert runtime_capabilities_json_artifact.artifact_kind == "generated-runtime-metadata"
+    assert '"device": "stm32g071rb"' in runtime_capabilities_json_artifact.content
+    assert '"capabilities": [' in runtime_capabilities_json_artifact.content
     assert runtime_system_sequences_artifact.artifact_kind == "generated-cpp"
     assert "enum class SystemSequenceId" in runtime_system_sequences_artifact.content
     assert "kSystemSequenceSteps" in runtime_system_sequences_artifact.content
@@ -833,6 +846,11 @@ def test_emit_matches_golden_artifacts(
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/interrupts.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "interrupts.hpp"
     ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/interrupt_stubs.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "interrupt_stubs.hpp"
+    ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "resets.hpp"
     ).read_text(encoding="utf-8")
@@ -850,6 +868,11 @@ def test_emit_matches_golden_artifacts(
         "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp"
     ].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "capabilities.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.json"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "capabilities.json"
     ).read_text(encoding="utf-8")
     assert artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_sequences.hpp"

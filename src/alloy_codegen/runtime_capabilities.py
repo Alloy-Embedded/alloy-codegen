@@ -14,6 +14,7 @@ from .emission import (
     _enum_identifier,
     _enum_rows,
     _std_array_lines,
+    _text_artifact,
 )
 from .runtime_lite_emission import (
     _device_runtime_generated_path,
@@ -24,6 +25,7 @@ from .runtime_lite_emission import (
 )
 
 CAPABILITIES_HEADER = "capabilities.hpp"
+CAPABILITIES_JSON = "capabilities.json"
 _CPP_RESERVED_ENUM_IDENTIFIERS = frozenset(
     {
         "alignas",
@@ -239,10 +241,46 @@ def runtime_capabilities_required_paths(
     family_dir: str,
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> tuple[str, ...]:
-    return tuple(
-        _device_runtime_generated_path(family_dir, device.identity.device, CAPABILITIES_HEADER)
-        for device in devices
-        if _runtime_lite_peripherals(device)
+    paths: list[str] = []
+    for device in devices:
+        if not _runtime_lite_peripherals(device):
+            continue
+        paths.append(
+            _device_runtime_generated_path(family_dir, device.identity.device, CAPABILITIES_HEADER)
+        )
+        paths.append(
+            _device_runtime_generated_path(family_dir, device.identity.device, CAPABILITIES_JSON)
+        )
+    return tuple(paths)
+
+
+def emit_runtime_capabilities_json(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    rows = runtime_capability_rows(device)
+    payload = {
+        "schema_version": device.schema_version,
+        "vendor": device.identity.vendor,
+        "family": device.identity.family,
+        "device": device.identity.device,
+        "capabilities": [
+            {
+                "capability_id": row.capability_id,
+                "scope": row.scope,
+                "peripheral_class": row.peripheral_class,
+                "name": row.name,
+                "value": row.value,
+                "peripheral": row.peripheral,
+            }
+            for row in rows
+        ],
+    }
+    return _text_artifact(
+        path=_device_runtime_generated_path(family_dir, device.identity.device, CAPABILITIES_JSON),
+        artifact_kind="generated-runtime-metadata",
+        payload=payload,
     )
 
 

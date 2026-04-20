@@ -455,10 +455,12 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupts.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupt_stubs.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/resets.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/enable_domains.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_graph.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/capabilities.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/capabilities.json" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_sequences.hpp" in artifacts
     assert not any(p.startswith(f"{family_dir}/generated/peripherals/") for p in artifacts)
     assert not any(p.startswith(f"{family_dir}/generated/ip/") for p in artifacts)
@@ -491,6 +493,9 @@ def test_emit_nxp_imxrt1060_artifact_content(
     runtime_interrupts = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupts.hpp"
     ]
+    runtime_interrupt_stubs = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupt_stubs.hpp"
+    ]
     runtime_resets = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/resets.hpp"]
     runtime_enable_domains = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/enable_domains.hpp"
@@ -500,6 +505,9 @@ def test_emit_nxp_imxrt1060_artifact_content(
     ]
     runtime_capabilities = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/capabilities.hpp"
+    ]
+    runtime_capabilities_json = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/capabilities.json"
     ]
     runtime_system_sequences = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/system_sequences.hpp"
@@ -516,11 +524,14 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "kVectorSlots" in runtime_startup.content
     assert "kStartupDescriptors" in runtime_startup.content
     assert "kInterruptDescriptors" in runtime_interrupts.content
+    assert "kInterruptStubs" in runtime_interrupt_stubs.content
+    assert "InterruptStubTraits<InterruptId::" in runtime_interrupt_stubs.content
     assert "kResetDescriptors" in runtime_resets.content
     assert "kEnableDomains" in runtime_enable_domains.content
     assert "EnableDomainTraits<EnableDomainId::" in runtime_enable_domains.content
     assert "kClockDependencies" in runtime_clock_graph.content
     assert "kCapabilities" in runtime_capabilities.content
+    assert '"device": "mimxrt1062"' in runtime_capabilities_json.content
     assert "kSystemSequenceSteps" in runtime_system_sequences.content
 
 

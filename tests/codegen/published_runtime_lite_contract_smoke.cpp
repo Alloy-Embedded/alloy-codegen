@@ -98,6 +98,10 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPT_STUBS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPT_STUBS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER must be defined"
 #endif
@@ -150,6 +154,7 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_CLOCK_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPTS_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPT_STUBS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ENABLE_DOMAINS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_GRAPH_HEADER
@@ -185,6 +190,7 @@ static_assert(
     published_device_runtime::PeripheralClockBindingTraits<
         published_device_runtime::kClockBoundPeripherals[0]>::kPresent
 );
+static_assert(published_device_runtime::kInterruptStubs.size() > 0u);
 static_assert(published_runtime::BackendSchemaId::none == published_runtime::BackendSchemaId::none);
 
 template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>

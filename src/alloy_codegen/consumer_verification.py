@@ -209,6 +209,10 @@ def verify_runtime_lite_smoke_consumer(
             f'"{vendor}/{family}/generated/runtime/devices/{device}/interrupts.hpp"'
         ),
         (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_INTERRUPT_STUBS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/interrupt_stubs.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RESETS_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/resets.hpp"'
         ),

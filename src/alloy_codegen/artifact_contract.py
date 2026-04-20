@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
 from alloy_codegen.runtime_capabilities import (
@@ -13,6 +15,7 @@ from alloy_codegen.runtime_driver_semantics import (
     runtime_driver_semantics_required_paths,
 )
 from alloy_codegen.runtime_enable_domains import runtime_enable_domains_required_paths
+from alloy_codegen.runtime_interrupt_stubs import runtime_interrupt_stubs_required_paths
 from alloy_codegen.runtime_interrupts import runtime_interrupts_required_paths
 from alloy_codegen.runtime_linker_script import runtime_linker_script_required_paths
 from alloy_codegen.runtime_lite_emission import (
@@ -46,6 +49,8 @@ def find_runtime_cpp_string_violations(
         for lineno, line in enumerate(artifact.content.splitlines(), start=1):
             stripped = line.strip()
             if stripped.startswith("#include") or stripped.startswith("#pragma once"):
+                continue
+            if stripped.startswith('extern "C"'):
                 continue
             if '"' in line:
                 violations.append(
@@ -82,6 +87,10 @@ def find_runtime_lite_contract_violations(
         devices=devices,
     )
     required_paths = required_paths + runtime_interrupts_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_interrupt_stubs_required_paths(
         family_dir=family_dir,
         devices=devices,
     )
@@ -205,10 +214,12 @@ def find_runtime_lite_contract_violations(
             "startup": f"{device_runtime_root}/startup.hpp",
             "system_clock": f"{device_runtime_root}/system_clock.hpp",
             "interrupts": f"{device_runtime_root}/interrupts.hpp",
+            "interrupt_stubs": f"{device_runtime_root}/interrupt_stubs.hpp",
             "resets": f"{device_runtime_root}/resets.hpp",
             "enable_domains": f"{device_runtime_root}/enable_domains.hpp",
             "clock_graph": f"{device_runtime_root}/clock_graph.hpp",
             "capabilities": f"{device_runtime_root}/capabilities.hpp",
+            "capabilities_json": f"{device_runtime_root}/capabilities.json",
             "system_sequences": f"{device_runtime_root}/system_sequences.hpp",
         }
         content_by_key = {
@@ -364,6 +375,27 @@ def find_runtime_lite_contract_violations(
             violations.append(
                 f"{device_runtime_paths['interrupts']} does not emit kInterruptDescriptors"
             )
+        if (
+            content_by_key["interrupt_stubs"]
+            and "kInterruptStubs" not in content_by_key["interrupt_stubs"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['interrupt_stubs']} does not emit kInterruptStubs"
+            )
+        if (
+            content_by_key["interrupt_stubs"]
+            and 'extern "C"' not in content_by_key["interrupt_stubs"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['interrupt_stubs']} does not declare extern C stubs"
+            )
+        if (
+            content_by_key["interrupt_stubs"]
+            and "InterruptStubTraits<InterruptId::" not in content_by_key["interrupt_stubs"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['interrupt_stubs']} does not emit interrupt stub traits"
+            )
         if content_by_key["resets"] and "kResetDescriptors" not in content_by_key["resets"]:
             violations.append(f"{device_runtime_paths['resets']} does not emit kResetDescriptors")
         if _runtime_lite_gate_ids(device):
@@ -424,6 +456,34 @@ def find_runtime_lite_contract_violations(
             violations.append(
                 f"{device_runtime_paths['capabilities']} does not emit class capability traits"
             )
+        capabilities_json_content = content_by_key["capabilities_json"]
+        if capabilities_json_content is None:
+            violations.append(
+                f"missing runtime capability sidecar: {device_runtime_paths['capabilities_json']}"
+            )
+        else:
+            try:
+                capabilities_payload = json.loads(capabilities_json_content)
+            except json.JSONDecodeError as exc:
+                violations.append(
+                    f"{device_runtime_paths['capabilities_json']} is not valid JSON: {exc.msg}"
+                )
+            else:
+                if capabilities_payload.get("device") != device.identity.device:
+                    violations.append(
+                        f"{device_runtime_paths['capabilities_json']} does not name the device"
+                    )
+                capability_rows = capabilities_payload.get("capabilities")
+                if not isinstance(capability_rows, list):
+                    violations.append(
+                        f"{device_runtime_paths['capabilities_json']} "
+                        "does not emit a capabilities list"
+                    )
+                elif len(capability_rows) != len(runtime_capability_rows(device)):
+                    violations.append(
+                        f"{device_runtime_paths['capabilities_json']} capability row count "
+                        "does not match the typed runtime contract"
+                    )
         if (
             content_by_key["system_sequences"]
             and "enum class SystemSequenceId" not in content_by_key["system_sequences"]

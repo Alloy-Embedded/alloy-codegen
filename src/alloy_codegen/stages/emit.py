@@ -29,7 +29,10 @@ from alloy_codegen.emission import (
 )
 from alloy_codegen.manifests import ArtifactManifest
 from alloy_codegen.reporting import EmissionPlan, EmittedArtifact
-from alloy_codegen.runtime_capabilities import emit_runtime_capabilities_header
+from alloy_codegen.runtime_capabilities import (
+    emit_runtime_capabilities_header,
+    emit_runtime_capabilities_json,
+)
 from alloy_codegen.runtime_clock_graph import emit_runtime_clock_graph_header
 from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_adc_semantics_header,
@@ -47,6 +50,7 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_watchdog_semantics_header,
 )
 from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
+from alloy_codegen.runtime_interrupt_stubs import emit_runtime_interrupt_stubs_header
 from alloy_codegen.runtime_interrupts import emit_runtime_interrupts_header
 from alloy_codegen.runtime_linker_script import emit_runtime_linker_script
 from alloy_codegen.runtime_lite_emission import (
@@ -205,6 +209,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     family_dir=family_dir,
                     device=device,
                 ),
+                emit_runtime_interrupt_stubs_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
                 emit_runtime_resets_header(
                     family_dir=family_dir,
                     device=device,
@@ -218,6 +226,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_capabilities_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_capabilities_json(
                     family_dir=family_dir,
                     device=device,
                 ),

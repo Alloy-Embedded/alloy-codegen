@@ -29,6 +29,8 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/interrupts.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/interrupt_stubs.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/capabilities.json`
 - `<vendor>/<family>/generated/runtime/devices/<device>/resets.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/enable_domains.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_graph.hpp`
@@ -91,6 +93,8 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/interrupts.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/interrupt_stubs.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/capabilities.json`
 - `<vendor>/<family>/generated/runtime/devices/<device>/resets.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/enable_domains.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_graph.hpp`
@@ -127,6 +131,10 @@ Successful publication writes:
   runtime facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
   `adc`, `dac`, `timer`, and `pwm`.
 - `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
+- `generated/runtime/devices/<device>/interrupt_stubs.hpp` is the typed weak-interrupt
+  declaration contract aligned with the generated startup surface.
+- `generated/runtime/devices/<device>/capabilities.json` is the machine-readable sidecar for
+  the per-device runtime capability contract.
 - `generated/devices/<device>/device.ld` is the generated linker script carrying the
   device-scoped memory layout and default section placement contract.
 - `generated/runtime/devices/<device>/enable_domains.hpp` exposes typed enable-domain facts for
