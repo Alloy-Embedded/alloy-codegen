@@ -4341,6 +4341,234 @@ def _st_fdcan_can_row(
     )
 
 
+def _st_bxcan_can_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> CanSemanticRow:
+    peripheral = context.peripheral_by_name[peripheral_name]
+    return CanSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        has_flexible_data_rate=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            fallback_offset=0x0,
+        ),
+        nominal_timing_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            fallback_offset=0x1C,
+        ),
+        data_timing_reg=_invalid_register_ref(peripheral.base_address),
+        test_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            fallback_offset=0x1C,
+        ),
+        error_counter_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ESR",
+            fallback_offset=0x18,
+        ),
+        protocol_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MSR",
+            fallback_offset=0x4,
+        ),
+        interrupt_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MSR",
+            fallback_offset=0x4,
+        ),
+        interrupt_enable_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            fallback_offset=0x14,
+        ),
+        interrupt_line_select_reg=_invalid_register_ref(peripheral.base_address),
+        interrupt_line_enable_reg=_invalid_register_ref(peripheral.base_address),
+        global_filter_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="FMR",
+            fallback_offset=0x200,
+        ),
+        standard_filter_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="FM1R",
+            fallback_offset=0x204,
+        ),
+        extended_filter_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="FS1R",
+            fallback_offset=0x20C,
+        ),
+        extended_id_mask_reg=_invalid_register_ref(peripheral.base_address),
+        rx_fifo0_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            fallback_offset=0x0C,
+        ),
+        rx_fifo0_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            fallback_offset=0x0C,
+        ),
+        rx_fifo0_ack_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            fallback_offset=0x0C,
+        ),
+        tx_buffer_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TSR",
+            fallback_offset=0x08,
+        ),
+        tx_fifo_queue_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TSR",
+            fallback_offset=0x08,
+        ),
+        tx_buffer_add_request_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TI0R",
+            fallback_offset=0x180,
+        ),
+        tx_buffer_pending_reg=_invalid_register_ref(peripheral.base_address),
+        tx_event_fifo_config_reg=_invalid_register_ref(peripheral.base_address),
+        tx_event_fifo_status_reg=_invalid_register_ref(peripheral.base_address),
+        tx_event_fifo_ack_reg=_invalid_register_ref(peripheral.base_address),
+        init_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            field_names=("INRQ",),
+        ),
+        config_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            field_names=("INRQ",),
+        ),
+        restricted_operation_field=_invalid_field_ref(peripheral.base_address),
+        restricted_operation_ack_field=_invalid_field_ref(peripheral.base_address),
+        bus_monitor_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            field_names=("SILM",),
+        ),
+        fd_operation_enable_field=_invalid_field_ref(peripheral.base_address),
+        bit_rate_switch_enable_field=_invalid_field_ref(peripheral.base_address),
+        nominal_prescaler_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            field_names=("BRP",),
+        ),
+        nominal_time_seg1_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            field_names=("TS1",),
+        ),
+        nominal_time_seg2_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            field_names=("TS2",),
+        ),
+        nominal_sync_jump_width_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="BTR",
+            field_names=("SJW",),
+        ),
+        data_prescaler_field=_invalid_field_ref(peripheral.base_address),
+        data_time_seg1_field=_invalid_field_ref(peripheral.base_address),
+        data_time_seg2_field=_invalid_field_ref(peripheral.base_address),
+        data_sync_jump_width_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_new_interrupt_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            field_names=("FMP0",),
+        ),
+        tx_complete_interrupt_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TSR",
+            field_names=("TXOK0",),
+        ),
+        tx_event_fifo_new_interrupt_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_new_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("FMPIE0",),
+        ),
+        tx_complete_interrupt_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IER",
+            field_names=("TMEIE",),
+        ),
+        tx_event_fifo_new_interrupt_enable_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_fill_level_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            field_names=("FMP0",),
+        ),
+        rx_fifo0_get_index_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_message_lost_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            field_names=("FOVR0",),
+        ),
+        rx_fifo0_ack_index_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RF0R",
+            field_names=("RFOM0",),
+        ),
+        tx_fifo_queue_put_index_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="TSR",
+            field_names=("CODE",),
+        ),
+        tx_fifo_queue_free_level_field=_invalid_field_ref(peripheral.base_address),
+        tx_buffer_add_request_pattern=_indexed_field_ref(
+            base_address=peripheral.base_address,
+            base_offset_bytes=0x180,
+            stride_bytes=0x10,
+            bit_offset=0,
+            bit_width=1,
+        ),
+        tx_buffer_pending_pattern=_invalid_indexed_field_ref(peripheral.base_address),
+    )
+
+
 def _microchip_mcan_can_row(
     context: _SemanticContext,
     *,
@@ -4354,15 +4582,273 @@ def _microchip_mcan_can_row(
     )
 
 
+def _nxp_flexcan_can_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> CanSemanticRow:
+    peripheral = context.peripheral_by_name[peripheral_name]
+    fden_field = _resolve_field_ref(
+        context,
+        peripheral_name=peripheral_name,
+        register_name="MCR",
+        field_names=("FDEN",),
+    )
+    data_timing_reg = _resolve_register_ref(
+        context,
+        peripheral_name=peripheral_name,
+        register_name="CBT",
+    )
+    bit_rate_switch_field = _resolve_field_ref(
+        context,
+        peripheral_name=peripheral_name,
+        register_name="CBT",
+        field_names=("BTF",),
+    )
+    has_flexible_data_rate = fden_field.valid or data_timing_reg.valid
+    return CanSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        has_flexible_data_rate=has_flexible_data_rate,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            fallback_offset=0x0,
+        ),
+        nominal_timing_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            fallback_offset=0x4,
+        ),
+        data_timing_reg=data_timing_reg,
+        test_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            fallback_offset=0x4,
+        ),
+        error_counter_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ECR",
+            fallback_offset=0x1C,
+        ),
+        protocol_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="ESR1",
+            fallback_offset=0x20,
+        ),
+        interrupt_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("IFLAG1", "ESR1"),
+            fallback_offset=0x30,
+        ),
+        interrupt_enable_reg=_resolve_register_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("IMASK1", "CTRL1"),
+            fallback_offset=0x28,
+        ),
+        interrupt_line_select_reg=_invalid_register_ref(peripheral.base_address),
+        interrupt_line_enable_reg=_invalid_register_ref(peripheral.base_address),
+        global_filter_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RXFGMASK",
+            fallback_offset=0x48,
+        ),
+        standard_filter_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RXMGMASK",
+            fallback_offset=0x10,
+        ),
+        extended_filter_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RX14MASK",
+            fallback_offset=0x14,
+        ),
+        extended_id_mask_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RX15MASK",
+            fallback_offset=0x18,
+        ),
+        rx_fifo0_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            fallback_offset=0x0,
+        ),
+        rx_fifo0_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RXFIR",
+            fallback_offset=0x4C,
+        ),
+        rx_fifo0_ack_reg=_invalid_register_ref(peripheral.base_address),
+        tx_buffer_config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            fallback_offset=0x0,
+        ),
+        tx_fifo_queue_status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="IFLAG1",
+            fallback_offset=0x30,
+        ),
+        tx_buffer_add_request_reg=_invalid_register_ref(peripheral.base_address),
+        tx_buffer_pending_reg=_invalid_register_ref(peripheral.base_address),
+        tx_event_fifo_config_reg=_invalid_register_ref(peripheral.base_address),
+        tx_event_fifo_status_reg=_invalid_register_ref(peripheral.base_address),
+        tx_event_fifo_ack_reg=_invalid_register_ref(peripheral.base_address),
+        init_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            field_names=("HALT",),
+        ),
+        config_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            field_names=("FRZ",),
+        ),
+        restricted_operation_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            field_names=("LOM",),
+        ),
+        restricted_operation_ack_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MCR",
+            field_names=("FRZACK",),
+        ),
+        bus_monitor_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            field_names=("LOM",),
+        ),
+        fd_operation_enable_field=fden_field,
+        bit_rate_switch_enable_field=bit_rate_switch_field,
+        nominal_prescaler_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            field_names=("PRESDIV",),
+        ),
+        nominal_time_seg1_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            field_names=("PSEG1",),
+        ),
+        nominal_time_seg2_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            field_names=("PSEG2",),
+        ),
+        nominal_sync_jump_width_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL1",
+            field_names=("RJW",),
+        ),
+        data_prescaler_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CBT",
+            field_names=("EPRESDIV",),
+        ),
+        data_time_seg1_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CBT",
+            field_names=("EPSEG1",),
+        ),
+        data_time_seg2_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CBT",
+            field_names=("EPSEG2",),
+        ),
+        data_sync_jump_width_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CBT",
+            field_names=("ERJW",),
+        ),
+        rx_fifo0_new_interrupt_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("IFLAG1",),
+            field_names=("BUF5I", "BUF4TO1I", "BUF4TO0I"),
+        ),
+        tx_complete_interrupt_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("IFLAG1",),
+            field_names=("BUF0I", "BUF4TO0I"),
+        ),
+        tx_event_fifo_new_interrupt_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_new_interrupt_enable_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("IMASK1",),
+            field_names=("BUF31TO0M", "BUFLM"),
+        ),
+        tx_complete_interrupt_enable_field=_resolve_field_ref_any(
+            context,
+            peripheral_name=peripheral_name,
+            register_names=("IMASK1",),
+            field_names=("BUF31TO0M", "BUFLM"),
+        ),
+        tx_event_fifo_new_interrupt_enable_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_fill_level_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_get_index_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RXFIR",
+            field_names=("IDHIT",),
+        ),
+        rx_fifo0_message_lost_field=_invalid_field_ref(peripheral.base_address),
+        rx_fifo0_ack_index_field=_invalid_field_ref(peripheral.base_address),
+        tx_fifo_queue_put_index_field=_invalid_field_ref(peripheral.base_address),
+        tx_fifo_queue_free_level_field=_invalid_field_ref(peripheral.base_address),
+        tx_buffer_add_request_pattern=_invalid_indexed_field_ref(peripheral.base_address),
+        tx_buffer_pending_pattern=_invalid_indexed_field_ref(peripheral.base_address),
+    )
+
+
 def _build_can_rows(context: _SemanticContext) -> tuple[CanSemanticRow, ...]:
     rows: list[CanSemanticRow] = []
     for peripheral in context.runtime_peripherals_by_class.get("can", ()):
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
-        if schema_id.startswith("alloy.fdcan.st-") or schema_id.startswith("alloy.can.st-fdcan-"):
+        if schema_id.startswith("alloy.fdcan.st-") or schema_id.startswith("alloy.can.st-fdcan"):
             rows.append(
                 _st_fdcan_can_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+        elif schema_id.startswith("alloy.can.st-bxcan"):
+            rows.append(
+                _st_bxcan_can_row(
                     context,
                     peripheral_name=peripheral.name,
                     schema_id=schema_id,
@@ -4371,6 +4857,14 @@ def _build_can_rows(context: _SemanticContext) -> tuple[CanSemanticRow, ...]:
         elif schema_id.startswith("alloy.can.microchip-mcan-"):
             rows.append(
                 _microchip_mcan_can_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+        elif schema_id.startswith("alloy.can.nxp-can"):
+            rows.append(
+                _nxp_flexcan_can_row(
                     context,
                     peripheral_name=peripheral.name,
                     schema_id=schema_id,

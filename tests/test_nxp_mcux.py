@@ -18,6 +18,7 @@ from alloy_codegen.ir.model import (
 )
 from alloy_codegen.runtime_driver_semantics import (
     _context,
+    emit_runtime_driver_can_semantics_header,
     emit_runtime_driver_watchdog_semantics_header,
 )
 from alloy_codegen.scope import PipelineScope
@@ -66,6 +67,55 @@ def _nxp_watchdog_field(
     bit_width: int,
 ) -> RegisterFieldDescriptor:
     provenance = _nxp_watchdog_provenance()
+    register_id = f"register_{peripheral.lower()}_{register_name.lower()}"
+    return RegisterFieldDescriptor(
+        field_id=f"field_{peripheral.lower()}_{register_name.lower()}_{name.lower()}",
+        register_id=register_id,
+        peripheral=peripheral,
+        register_name=register_name,
+        name=name,
+        bit_offset=bit_offset,
+        bit_width=bit_width,
+        access="read-write",
+        provenance=provenance,
+    )
+
+
+def _nxp_can_provenance() -> Provenance:
+    return Provenance(
+        source_id="test-fixture",
+        source_path="tests/test_nxp_mcux.py",
+        patch_ids=("nxp-can-regression",),
+    )
+
+
+def _nxp_can_register(
+    *,
+    peripheral: str,
+    name: str,
+    offset_bytes: int,
+) -> RegisterDescriptor:
+    provenance = _nxp_can_provenance()
+    return RegisterDescriptor(
+        register_id=f"register_{peripheral.lower()}_{name.lower()}",
+        peripheral=peripheral,
+        name=name,
+        offset_bytes=offset_bytes,
+        access="read-write",
+        size_bits=32,
+        provenance=provenance,
+    )
+
+
+def _nxp_can_field(
+    *,
+    peripheral: str,
+    register_name: str,
+    name: str,
+    bit_offset: int,
+    bit_width: int,
+) -> RegisterFieldDescriptor:
+    provenance = _nxp_can_provenance()
     register_id = f"register_{peripheral.lower()}_{register_name.lower()}"
     return RegisterFieldDescriptor(
         field_id=f"field_{peripheral.lower()}_{register_name.lower()}_{name.lower()}",
@@ -853,6 +903,150 @@ def test_emit_nxp_watchdog_semantics_supports_live_watchdogs(
     assert "WatchdogSemanticTraits<PeripheralId::WDOG2>" in artifact.content
     assert "WatchdogSemanticTraits<PeripheralId::RTWDOG>" in artifact.content
     assert "kWatchdogSemanticPeripherals" in artifact.content
+
+
+def test_emit_nxp_can_semantics_supports_live_flexcan(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    base_device = result.payload.devices[0]
+    provenance = _nxp_can_provenance()
+    augmented = replace(
+        base_device,
+        peripherals=base_device.peripherals
+        + (
+            PeripheralInstance(
+                name="CAN1",
+                ip_name="can",
+                ip_version=None,
+                instance=1,
+                base_address=0x401D0000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.can.nxp-can",
+            ),
+            PeripheralInstance(
+                name="CAN2",
+                ip_name="can",
+                ip_version=None,
+                instance=2,
+                base_address=0x401D4000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.can.nxp-can",
+            ),
+            PeripheralInstance(
+                name="CAN3",
+                ip_name="can",
+                ip_version=None,
+                instance=3,
+                base_address=0x401D8000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.can.nxp-can",
+            ),
+        ),
+        registers=base_device.registers
+        + tuple(
+            _nxp_can_register(peripheral=peripheral, name=name, offset_bytes=offset)
+            for peripheral in ("CAN1", "CAN2", "CAN3")
+            for name, offset in (
+                ("MCR", 0x00),
+                ("CTRL1", 0x04),
+                ("RXMGMASK", 0x10),
+                ("RX14MASK", 0x14),
+                ("RX15MASK", 0x18),
+                ("ECR", 0x1C),
+                ("ESR1", 0x20),
+                ("IMASK1", 0x28),
+                ("IFLAG1", 0x30),
+                ("RXFGMASK", 0x48),
+                ("RXFIR", 0x4C),
+            )
+        )
+        + (_nxp_can_register(peripheral="CAN3", name="CBT", offset_bytes=0x50),),
+        register_fields=base_device.register_fields
+        + tuple(
+            _nxp_can_field(
+                peripheral=peripheral,
+                register_name=register_name,
+                name=name,
+                bit_offset=bit_offset,
+                bit_width=bit_width,
+            )
+            for peripheral in ("CAN1", "CAN2", "CAN3")
+            for register_name, name, bit_offset, bit_width in (
+                ("MCR", "HALT", 28, 1),
+                ("MCR", "FRZ", 30, 1),
+                ("MCR", "FRZACK", 24, 1),
+                ("CTRL1", "LOM", 12, 1),
+                ("CTRL1", "PRESDIV", 24, 8),
+                ("CTRL1", "PSEG1", 19, 3),
+                ("CTRL1", "PSEG2", 16, 3),
+                ("CTRL1", "RJW", 22, 2),
+                ("IMASK1", "BUF31TO0M", 0, 32),
+                ("IFLAG1", "BUF0I", 0, 1),
+                ("IFLAG1", "BUF5I", 5, 1),
+                ("RXFIR", "IDHIT", 0, 9),
+            )
+        )
+        + (
+            _nxp_can_field(
+                peripheral="CAN3",
+                register_name="MCR",
+                name="FDEN",
+                bit_offset=11,
+                bit_width=1,
+            ),
+            _nxp_can_field(
+                peripheral="CAN3",
+                register_name="CBT",
+                name="EPRESDIV",
+                bit_offset=21,
+                bit_width=10,
+            ),
+            _nxp_can_field(
+                peripheral="CAN3",
+                register_name="CBT",
+                name="EPSEG1",
+                bit_offset=10,
+                bit_width=5,
+            ),
+            _nxp_can_field(
+                peripheral="CAN3",
+                register_name="CBT",
+                name="EPSEG2",
+                bit_offset=5,
+                bit_width=5,
+            ),
+            _nxp_can_field(
+                peripheral="CAN3",
+                register_name="CBT",
+                name="ERJW",
+                bit_offset=16,
+                bit_width=5,
+            ),
+            _nxp_can_field(
+                peripheral="CAN3",
+                register_name="CBT",
+                name="BTF",
+                bit_offset=31,
+                bit_width=1,
+            ),
+        ),
+    )
+    artifact = emit_runtime_driver_can_semantics_header(
+        family_dir="nxp/imxrt1060",
+        device=augmented,
+    )
+
+    assert "CanSemanticTraits<PeripheralId::CAN1>" in artifact.content
+    assert "CanSemanticTraits<PeripheralId::CAN2>" in artifact.content
+    assert "CanSemanticTraits<PeripheralId::CAN3>" in artifact.content
+    assert "static constexpr bool kPresent = true;" in artifact.content
 
 
 def test_publish_nxp_imxrt1060_completes_successfully(
