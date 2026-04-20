@@ -53,6 +53,7 @@ def _device_artifact_paths(
         paths.extend(
             (
                 f"{family_dir}/metadata/devices/{device_name}.json",
+                f"{family_dir}/generated/devices/{device_name}/device.ld",
                 f"{family_dir}/generated/devices/{device_name}/startup.cpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/peripheral_instances.hpp",
@@ -156,6 +157,9 @@ def test_foundational_families_publish_with_same_generic_workflow(
         assert (publication_root / family_dir / "reports" / "coverage.json").exists()
         assert (publication_root / family_dir / "generated" / "runtime" / "types.hpp").exists()
         for device_name in device_names:
+            assert (
+                publication_root / family_dir / "generated" / "devices" / device_name / "device.ld"
+            ).exists()
             assert (
                 publication_root
                 / family_dir

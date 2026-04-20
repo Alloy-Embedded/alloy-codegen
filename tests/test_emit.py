@@ -139,6 +139,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     connectors_artifact = artifacts["st/stm32g0/metadata/connectors.json"]
     system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
     device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
+    linker_script_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/device.ld"]
     startup_source_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     startup_vectors_artifact = artifacts[
         "st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"
@@ -355,6 +356,10 @@ def test_emit_includes_metadata_artifacts_with_content(
         for pin_entry in packages_payload["packages"][0]["pinouts"][0]["pin_index"]
     )
 
+    assert linker_script_artifact.artifact_kind == "generated-linker-script"
+    assert "MEMORY" in linker_script_artifact.content
+    assert "SECTIONS" in linker_script_artifact.content
+    assert "__stack_top" in linker_script_artifact.content
     assert startup_source_artifact.artifact_kind == "generated-cpp"
     assert "Reset_Handler" in startup_source_artifact.content
     assert "_vectors" in startup_source_artifact.content
@@ -644,6 +649,9 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     nxp_capabilities = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/capabilities.hpp"
     ].content
+    nxp_linker_script = nxp_artifacts[
+        "nxp/imxrt1060/generated/devices/mimxrt1062/device.ld"
+    ].content
     nxp_resets = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/resets.hpp"
     ].content
@@ -671,6 +679,16 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "PeripheralEnableDomainTraits<PeripheralId::LPUART1>" in nxp_enable_domains
     assert "SystemSequenceId::default_bringup" in nxp_system_sequences
     assert "SystemClockProfileId::default_arm_pll_600mhz" in nxp_system_sequences
+    assert nxp_linker_script == (
+        Path(__file__).parent
+        / "fixtures"
+        / "emitted"
+        / "imxrt1060"
+        / "generated"
+        / "devices"
+        / "mimxrt1062"
+        / "device.ld"
+    ).read_text(encoding="utf-8")
 
 
 def test_emit_matches_golden_artifacts(
@@ -799,6 +817,9 @@ def test_emit_matches_golden_artifacts(
         ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "startup.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/device.ld"].content == (
+        fixture_root / "generated" / "devices" / "stm32g071rb" / "device.ld"
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
         fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"

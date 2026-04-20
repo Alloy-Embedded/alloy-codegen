@@ -14,6 +14,7 @@ from alloy_codegen.runtime_driver_semantics import (
 )
 from alloy_codegen.runtime_enable_domains import runtime_enable_domains_required_paths
 from alloy_codegen.runtime_interrupts import runtime_interrupts_required_paths
+from alloy_codegen.runtime_linker_script import runtime_linker_script_required_paths
 from alloy_codegen.runtime_lite_emission import (
     RUNTIME_LITE_PERIPHERAL_CLASSES,
     _runtime_lite_gate_ids,
@@ -104,6 +105,10 @@ def find_runtime_lite_contract_violations(
         family_dir=family_dir,
         devices=devices,
     )
+    required_paths = required_paths + runtime_linker_script_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
     for path in required_paths:
         if path not in artifacts_by_path:
             violations.append(f"missing runtime-lite artifact: {path}")
@@ -168,12 +173,14 @@ def find_runtime_lite_contract_violations(
             continue
 
         device_runtime_root = f"{family_dir}/generated/runtime/devices/{device.identity.device}"
+        device_generated_root = f"{family_dir}/generated/devices/{device.identity.device}"
         runtime_candidates = tuple(
             candidate
             for candidate in device.connection_candidates
             if candidate.peripheral in {peripheral.name for peripheral in runtime_peripherals}
         )
         device_runtime_paths = {
+            "linker_script": f"{device_generated_root}/device.ld",
             "peripheral_instances": f"{device_runtime_root}/peripheral_instances.hpp",
             "pins": f"{device_runtime_root}/pins.hpp",
             "registers": f"{device_runtime_root}/registers.hpp",
@@ -208,6 +215,20 @@ def find_runtime_lite_contract_violations(
             key: artifacts_by_path[path].content if path in artifacts_by_path else None
             for key, path in device_runtime_paths.items()
         }
+
+        linker_script_content = content_by_key["linker_script"]
+        if linker_script_content and "MEMORY" not in linker_script_content:
+            violations.append(
+                f"{device_runtime_paths['linker_script']} does not emit a MEMORY block"
+            )
+        if linker_script_content and "SECTIONS" not in linker_script_content:
+            violations.append(
+                f"{device_runtime_paths['linker_script']} does not emit a SECTIONS block"
+            )
+        if linker_script_content and "__stack_top" not in linker_script_content:
+            violations.append(
+                f"{device_runtime_paths['linker_script']} does not publish __stack_top"
+            )
 
         if (
             content_by_key["peripheral_instances"]

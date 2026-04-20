@@ -8,7 +8,7 @@ memory layout, derived exclusively from `MemoryRegion` facts in the canonical IR
 #### Scenario: Linker script covers flash, SRAM, and startup sections
 
 - **WHEN** the pipeline emits artifacts for any supported device
-- **THEN** `generated/device.ld` is present and contains a `MEMORY {}` block with at
+- **THEN** `generated/devices/<device>/device.ld` is present and contains a `MEMORY {}` block with at
   least one nonvolatile (flash) region and one volatile (SRAM) region
 - **AND** the `SECTIONS {}` block places `.text` in flash, `.data` with correct
   `AT>` load address, `.bss` zero-init region, and a `__stack_top` symbol
@@ -16,7 +16,8 @@ memory layout, derived exclusively from `MemoryRegion` facts in the canonical IR
 
 #### Scenario: Linker script is valid for the device toolchain
 
-- **WHEN** the consumer smoke test links an object file against the generated `device.ld`
+- **WHEN** the consumer validation step runs against the generated
+  `generated/devices/<device>/device.ld`
 - **THEN** the link succeeds without warnings about overlapping regions or missing symbols
 
 ### Requirement: Publication emits clock configuration code per device

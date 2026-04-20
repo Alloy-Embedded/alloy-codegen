@@ -51,6 +51,7 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/driver_semantics/timer.hpp`
     - compare/capture/encoder timer traits
   - `generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
+  - `generated/devices/<device>/device.ld`
   - `generated/devices/<device>/startup.cpp`
   - `generated/devices/<device>/startup_vectors.cpp`
 - reports:
@@ -82,6 +83,8 @@ The published C++ contract is runtime-first:
 - `generated/runtime/devices/<device>/system_sequences.hpp` carries typed default bring-up
   ordering metadata so Alloy can sequence startup descriptors, startup controls, and default
   clock profiles without reconstructing vendor policy from tables
+- `generated/devices/<device>/device.ld` carries the linker-visible memory layout so Alloy does
+  not need handwritten device linker scripts for supported devices
 - `generated/devices/<device>/startup.cpp` and `startup_vectors.cpp` remain published as build
   inputs, not as a descriptor contract
 - JSON metadata and reports remain available for tooling, validation, and inspection

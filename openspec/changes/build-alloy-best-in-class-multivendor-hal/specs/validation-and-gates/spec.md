@@ -28,7 +28,7 @@ manifest, and interrupt stubs — compiles and links into a valid object file.
 #### Scenario: Smoke build links against the generated linker script
 
 - **WHEN** consumer verification runs for a foundational device
-- **THEN** it links a smoke object against `device.ld`
+- **THEN** it validates or links a smoke object against `generated/devices/<device>/device.ld`
 - **AND** the link succeeds with correct section placement (`.text` in flash,
   `.data` load-from-flash, `.bss` zeroed, `__stack_top` defined)
 

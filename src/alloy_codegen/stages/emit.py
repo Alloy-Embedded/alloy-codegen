@@ -48,6 +48,7 @@ from alloy_codegen.runtime_driver_semantics import (
 )
 from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
 from alloy_codegen.runtime_interrupts import emit_runtime_interrupts_header
+from alloy_codegen.runtime_linker_script import emit_runtime_linker_script
 from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_clock_bindings_header,
     emit_runtime_lite_dma_bindings_header,
@@ -126,6 +127,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         artifacts.extend(
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
+                emit_runtime_linker_script(family_dir=family_dir, device=device),
                 emit_startup_source(family_dir=family_dir, device=device),
                 emit_startup_vectors_source(family_dir=family_dir, device=device),
                 emit_runtime_lite_peripheral_instances_header(

@@ -48,6 +48,7 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
   - publishes compare/capture/encoder timer traits
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
+- `<vendor>/<family>/generated/devices/<device>/device.ld`
 - `<vendor>/<family>/generated/devices/<device>/startup.cpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `<vendor>/<family>/reports/validation-report.json`
@@ -109,6 +110,7 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
   - publishes compare/capture/encoder timer traits
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
+- `<vendor>/<family>/generated/devices/<device>/device.ld`
 - `<vendor>/<family>/generated/devices/<device>/startup.cpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
 - `<vendor>/<family>/reports/validation-report.json`
@@ -125,6 +127,8 @@ Successful publication writes:
   runtime facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
   `adc`, `dac`, `timer`, and `pwm`.
 - `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
+- `generated/devices/<device>/device.ld` is the generated linker script carrying the
+  device-scoped memory layout and default section placement contract.
 - `generated/runtime/devices/<device>/enable_domains.hpp` exposes typed enable-domain facts for
   peripherals whose activation is governed by published runtime clock-gate controls.
 - `generated/runtime/devices/<device>/system_sequences.hpp` is the typed foundational
