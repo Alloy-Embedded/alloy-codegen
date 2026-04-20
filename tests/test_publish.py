@@ -38,8 +38,18 @@ def test_publish_includes_materialized_summary(
     assert result.payload.target_artifact_revision is not None
     assert result.payload.consumer_verification is not None
     assert result.payload.consumer_verification.succeeded is True
+    assert result.payload.consumer_verification.linker_script_verification is not None
+    assert (
+        result.payload.consumer_verification.linker_script_verification.succeeded is True
+        or result.payload.consumer_verification.linker_script_verification.skipped_reason
+        is not None
+    )
     assert any(
         argument.startswith("-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER=")
+        for argument in result.payload.consumer_verification.command
+    )
+    assert any(
+        argument.endswith("/generated/devices/stm32g071rb/startup.cpp")
         for argument in result.payload.consumer_verification.command
     )
     assert summary is not None
@@ -68,6 +78,7 @@ def test_publish_includes_materialized_summary(
     assert payload["target_artifact_revision"] == result.payload.target_artifact_revision
     assert payload["consumer_verification"]["consumer_id"] == "alloy-published-runtime-lite-smoke"
     assert payload["consumer_verification"]["succeeded"] is True
+    assert payload["consumer_verification"]["linker_script_verification"] is not None
     assert payload["materialized_artifact_count"] >= 10
     assert any(
         artifact["path"] == "st/stm32g0/reports/publication-record.json"

@@ -357,8 +357,10 @@ def parse_memory_patches(atdf_path: Path) -> tuple[MemoryPatch, ...]:
 
     memories: list[MemoryPatch] = []
     for address_space in address_spaces.findall("address-space"):
-        if address_space.get("id") != "base":
-            continue
+        address_space_id = address_space.get("id")
+        normalized_address_space = None
+        if address_space_id not in {None, "", "base"}:
+            normalized_address_space = str(address_space_id).lower()
         for segment in address_space.findall("memory-segment"):
             name = segment.get("name")
             start = segment.get("start")
@@ -375,6 +377,7 @@ def parse_memory_patches(atdf_path: Path) -> tuple[MemoryPatch, ...]:
                         rw=segment.get("rw"),
                         executable=segment.get("exec"),
                     ),
+                    address_space=normalized_address_space,
                 )
             )
     return tuple(memories)

@@ -692,6 +692,7 @@
           "base_address": { "type": "integer" },
           "size_bytes": { "type": "integer" },
           "access": { "type": "string" },
+          "address_space": { "type": ["string", "null"] },
           "startup_roles": {
             "type": "array",
             "items": { "type": "string" }

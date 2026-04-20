@@ -107,7 +107,9 @@ The published C++ contract is runtime-first:
   ordering metadata so Alloy can sequence startup descriptors, startup controls, and default
   clock profiles without reconstructing vendor policy from tables
 - `generated/devices/<device>/device.ld` carries the linker-visible memory layout so Alloy does
-  not need handwritten device linker scripts for supported devices
+  not need handwritten device linker scripts for supported devices, and it preserves
+  `address_space` distinctions in the emitted region naming when a Harvard-style memory model is
+  present in the canonical IR
 - `generated/devices/<device>/startup.cpp` and `startup_vectors.cpp` remain published as build
   inputs, not as a descriptor contract
 - JSON metadata and reports remain available for tooling, validation, and inspection

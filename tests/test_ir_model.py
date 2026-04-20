@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     CapabilityDescriptor,
@@ -436,3 +438,13 @@ def test_canonical_device_ir_serializes_connector_driven_domains_when_present() 
     assert payload["dma_bindings"][0]["binding_id"] == "dma-binding:usart1:tx:dma1:dma1_ch1"
     assert payload["dma_routes"][0]["route_id"] == "dma-usart1-tx"
     assert payload["dma_conflict_groups"][0]["conflict_group_id"] == "dma1-shared"
+
+
+def test_canonical_device_ir_serializes_memory_address_space_when_present() -> None:
+    device = _base_device()
+    memory = replace(device.memories[0], address_space="prog")
+    enriched = replace(device, memories=(memory,))
+
+    payload = enriched.to_dict()
+
+    assert payload["memories"][0]["address_space"] == "prog"

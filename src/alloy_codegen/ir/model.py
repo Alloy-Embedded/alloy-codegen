@@ -38,6 +38,7 @@ class MemoryRegion:
     size_bytes: int
     access: str
     provenance: Provenance
+    address_space: str | None = field(default=None, metadata={"omit_if_empty": True})
     startup_roles: tuple[str, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},

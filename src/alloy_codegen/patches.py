@@ -19,6 +19,7 @@ class MemoryPatch:
     base_address: int
     size_bytes: int
     access: str
+    address_space: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -1134,6 +1135,7 @@ def load_device_patch(
                 base_address=item["base_address"],
                 size_bytes=item["size_bytes"],
                 access=item["access"],
+                address_space=item.get("address_space"),
             )
             for item in payload.get("memories", ())
         ),

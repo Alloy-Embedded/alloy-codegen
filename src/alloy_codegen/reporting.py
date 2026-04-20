@@ -149,6 +149,23 @@ class EmissionPlan:
 
 
 @dataclass(frozen=True, slots=True)
+class LinkerScriptVerification:
+    """Result of validating a generated linker script with a smoke link step."""
+
+    attempted: bool
+    succeeded: bool
+    linker_script: str
+    source_file: str
+    object_file: str
+    output_file: str
+    map_file: str
+    command: tuple[str, ...] = ()
+    stdout: str = ""
+    stderr: str = ""
+    skipped_reason: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class ConsumerVerification:
     """Result of compiling a published-artifact smoke consumer."""
 
@@ -162,6 +179,7 @@ class ConsumerVerification:
     succeeded: bool
     stdout: str
     stderr: str
+    linker_script_verification: LinkerScriptVerification | None = None
 
 
 @dataclass(frozen=True, slots=True)

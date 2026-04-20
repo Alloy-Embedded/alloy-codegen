@@ -149,7 +149,8 @@ Successful publication writes:
 - `generated/runtime/devices/<device>/capabilities.json` is the machine-readable sidecar for
   the per-device runtime capability contract.
 - `generated/devices/<device>/device.ld` is the generated linker script carrying the
-  device-scoped memory layout and default section placement contract.
+  device-scoped memory layout and default section placement contract, including address-space-aware
+  region naming when the canonical IR exposes Harvard-style memory spaces.
 - `generated/runtime/devices/<device>/enable_domains.hpp` exposes typed enable-domain facts for
   peripherals whose activation is governed by published runtime clock-gate controls.
 - `generated/runtime/devices/<device>/system_sequences.hpp` is the typed foundational

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.errors import StageExecutionError
-from alloy_codegen.reporting import ConsumerVerification
+from alloy_codegen.reporting import ConsumerVerification, LinkerScriptVerification
 from alloy_codegen.scope import PipelineScope
 
 
@@ -43,6 +43,173 @@ def _runtime_lite_smoke_source_path() -> Path:
     )
 
 
+def _gnu_ld_compatible_driver(compiler: str) -> str | None:
+    """Return the compiler driver when it can forward GNU-ld-compatible linker scripts."""
+    completed = subprocess.run(
+        (compiler, "-Wl,--version"),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    version_output = f"{completed.stdout}\n{completed.stderr}"
+    if completed.returncode == 0 and (
+        "GNU ld" in version_output or "LLD" in version_output or "GNU gold" in version_output
+    ):
+        return compiler
+    return None
+
+
+def _write_linker_smoke_source(path: Path) -> None:
+    path.write_text(
+        "\n".join(
+            [
+                'extern "C" void _start();',
+                '[[gnu::section(".vectors"), gnu::used]] void* alloy_codegen_vectors[] = {',
+                "    reinterpret_cast<void*>(&_start),",
+                "};",
+                "[[gnu::used]] int alloy_codegen_smoke_data = 7;",
+                "[[gnu::used]] int alloy_codegen_smoke_bss;",
+                'extern "C" [[gnu::used]] void _start() {',
+                "    alloy_codegen_smoke_bss = alloy_codegen_smoke_data;",
+                "    for (;;) {",
+                "    }",
+                "}",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+
+def _verify_linker_script(
+    *,
+    compiler: str,
+    build_dir: Path,
+    linker_script: Path,
+) -> LinkerScriptVerification:
+    verifier = _gnu_ld_compatible_driver(compiler)
+    source_path = build_dir / "device-ld-smoke.cpp"
+    object_path = build_dir / "device-ld-smoke.o"
+    output_path = build_dir / "device-ld-smoke.elf"
+    map_path = build_dir / "device-ld-smoke.map"
+    if verifier is None:
+        return LinkerScriptVerification(
+            attempted=False,
+            succeeded=True,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            skipped_reason="GNU-ld-compatible linker driver is not available on this host.",
+        )
+
+    _write_linker_smoke_source(source_path)
+    compile_command = (
+        verifier,
+        "-std=c++23",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-c",
+        str(source_path),
+        "-o",
+        str(object_path),
+    )
+    compile_result = subprocess.run(compile_command, capture_output=True, text=True, check=False)
+    if compile_result.returncode != 0:
+        return LinkerScriptVerification(
+            attempted=True,
+            succeeded=False,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            command=compile_command,
+            stdout=compile_result.stdout,
+            stderr=compile_result.stderr,
+        )
+
+    link_command = (
+        verifier,
+        str(object_path),
+        "-nostdlib",
+        f"-Wl,-T,{linker_script}",
+        f"-Wl,-Map,{map_path}",
+        "-Wl,-e,_start",
+        "-o",
+        str(output_path),
+    )
+    link_result = subprocess.run(link_command, capture_output=True, text=True, check=False)
+    if link_result.returncode != 0:
+        return LinkerScriptVerification(
+            attempted=True,
+            succeeded=False,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            command=link_command,
+            stdout=link_result.stdout,
+            stderr=link_result.stderr,
+        )
+
+    map_text = map_path.read_text(encoding="utf-8") if map_path.exists() else ""
+    if "__stack_top" not in map_text:
+        return LinkerScriptVerification(
+            attempted=True,
+            succeeded=False,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            command=link_command,
+            stdout=link_result.stdout,
+            stderr="linked output did not expose __stack_top in the map file",
+        )
+    if ".text" not in map_text or ".data" not in map_text or ".bss" not in map_text:
+        return LinkerScriptVerification(
+            attempted=True,
+            succeeded=False,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            command=link_command,
+            stdout=link_result.stdout,
+            stderr="linked output map does not contain the expected .text/.data/.bss sections",
+        )
+    if "load address" not in map_text:
+        return LinkerScriptVerification(
+            attempted=True,
+            succeeded=False,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            command=link_command,
+            stdout=link_result.stdout,
+            stderr="linked output map does not show a load address for initialized data",
+        )
+    return LinkerScriptVerification(
+        attempted=True,
+        succeeded=True,
+        linker_script=str(linker_script),
+        source_file=str(source_path),
+        object_file=str(object_path),
+        output_file=str(output_path),
+        map_file=str(map_path),
+        command=link_command,
+        stdout=link_result.stdout,
+        stderr=link_result.stderr,
+    )
+
+
 def _compile_smoke_source(
     *,
     scope: PipelineScope,
@@ -51,13 +218,12 @@ def _compile_smoke_source(
     compiler: str,
     consumer_id: str,
     source_path: Path,
+    startup_source: Path,
     command: tuple[str, ...],
+    linker_script_verification: LinkerScriptVerification | None = None,
 ) -> ConsumerVerification:
     family_root = _family_root(publication_root, scope)
     device = _published_device(scope, family_root)
-    startup_source = family_root / "generated" / "devices" / device / "startup.cpp"
-    if not startup_source.exists():
-        startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
     build_dir = build_root / consumer_id / device
     build_dir.mkdir(parents=True, exist_ok=True)
     executable_path = build_dir / "smoke-consumer"
@@ -70,9 +236,11 @@ def _compile_smoke_source(
         build_dir=str(build_dir),
         executable_path=str(executable_path),
         command=command,
-        succeeded=completed.returncode == 0,
+        succeeded=completed.returncode == 0
+        and (linker_script_verification is None or linker_script_verification.succeeded),
         stdout=completed.stdout,
         stderr=completed.stderr,
+        linker_script_verification=linker_script_verification,
     )
 
 
@@ -102,6 +270,10 @@ def verify_runtime_lite_smoke_consumer(
     device = _published_device(scope, family_root)
     vendor = scope.resolved_vendor()
     family = scope.resolved_family()
+    startup_source = family_root / "generated" / "devices" / device / "startup.cpp"
+    if not startup_source.exists():
+        startup_source = family_root / "generated" / "devices" / device / "startup_vectors.cpp"
+    linker_script = family_root / "generated" / "devices" / device / "device.ld"
     build_dir = build_root / consumer_id / device
     build_dir.mkdir(parents=True, exist_ok=True)
     executable_path = build_dir / "smoke-consumer"
@@ -250,8 +422,14 @@ def verify_runtime_lite_smoke_consumer(
             f"{vendor}::{family}::generated::runtime::devices::{device}"
         ),
         str(smoke_source),
+        str(startup_source),
         "-o",
         str(executable_path),
+    )
+    linker_script_verification = _verify_linker_script(
+        compiler=compiler,
+        build_dir=build_dir,
+        linker_script=linker_script,
     )
     return _compile_smoke_source(
         scope=scope,
@@ -260,5 +438,7 @@ def verify_runtime_lite_smoke_consumer(
         compiler=compiler,
         consumer_id=consumer_id,
         source_path=smoke_source,
+        startup_source=startup_source,
         command=command,
+        linker_script_verification=linker_script_verification,
     )

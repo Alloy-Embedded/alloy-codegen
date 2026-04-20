@@ -6,6 +6,9 @@ from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.ir.model import (
+    CanonicalDeviceIR,
+    DeviceIdentity,
+    MemoryRegion,
     PeripheralInstance,
     Provenance,
     RegisterDescriptor,
@@ -16,6 +19,7 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_timer_semantics_header,
     emit_runtime_driver_uart_semantics_header,
 )
+from alloy_codegen.runtime_linker_script import emit_runtime_linker_script
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run
 from alloy_codegen.stages.normalize import run as run_normalize
@@ -114,6 +118,64 @@ def _synthetic_bxcan_field(
         access="read-write",
         provenance=provenance,
     )
+
+
+def _synthetic_linker_provenance() -> Provenance:
+    return Provenance(
+        source_id="test-fixture",
+        source_path="tests/test_emit.py",
+        patch_ids=("harvard-linker-script",),
+    )
+
+
+def test_emit_linker_script_disambiguates_harvard_address_spaces() -> None:
+    provenance = _synthetic_linker_provenance()
+    device = CanonicalDeviceIR(
+        schema_version="1.1.0",
+        identity=DeviceIdentity(
+            vendor="microchip",
+            family="avr-da",
+            device="avr128da64",
+            package="tqfp64",
+            core="avr",
+            summary="synthetic harvard device",
+        ),
+        memories=(
+            MemoryRegion(
+                name="flash",
+                kind="flash",
+                base_address=0x0000,
+                size_bytes=0x20000,
+                access="rx",
+                provenance=provenance,
+                address_space="prog",
+                startup_roles=("nonvolatile", "copy-source", "vector-source"),
+            ),
+            MemoryRegion(
+                name="sram",
+                kind="ram",
+                base_address=0x0000,
+                size_bytes=0x4000,
+                access="rw",
+                provenance=provenance,
+                address_space="data",
+                startup_roles=("copy-target", "zero-target", "stack-target"),
+            ),
+        ),
+        packages=(),
+        pins=(),
+        peripherals=(),
+        interrupts=(),
+        dma_requests=(),
+        provenance=provenance,
+    )
+
+    artifact = emit_runtime_linker_script(family_dir="microchip/avr-da", device=device)
+
+    assert "PROG_FLASH" in artifact.content
+    assert "DATA_SRAM" in artifact.content
+    assert "address_space=prog" in artifact.content
+    assert "address_space=data" in artifact.content
 
 
 def test_emit_includes_metadata_artifacts_with_content(

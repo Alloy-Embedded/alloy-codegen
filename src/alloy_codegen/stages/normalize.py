@@ -159,6 +159,7 @@ def _memory_to_ir(memory: MemoryPatch, provenance: Provenance) -> MemoryRegion:
         size_bytes=memory.size_bytes,
         access=memory.access,
         provenance=provenance,
+        address_space=memory.address_space,
     )
 
 

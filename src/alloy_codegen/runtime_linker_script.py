@@ -35,12 +35,15 @@ def _text_artifact(*, path: str, content: str) -> EmittedArtifact:
     )
 
 
-def _memory_sort_key(memory: MemoryRegion) -> tuple[int, int, str]:
-    return (memory.base_address, memory.size_bytes, memory.name.lower())
+def _memory_sort_key(memory: MemoryRegion) -> tuple[str, int, int, str]:
+    return (memory.address_space or "", memory.base_address, memory.size_bytes, memory.name.lower())
 
 
 def _memory_region_name(memory: MemoryRegion) -> str:
-    name = "".join(ch if ch.isalnum() else "_" for ch in memory.name.upper())
+    raw_name = memory.name
+    if memory.address_space:
+        raw_name = f"{memory.address_space}_{raw_name}"
+    name = "".join(ch if ch.isalnum() else "_" for ch in raw_name.upper())
     if not name:
         name = "REGION"
     if name[0].isdigit():
