@@ -20,6 +20,7 @@ struct TimerSemanticTraits {
   static constexpr std::uint32_t kChannelCount = 0u;
   static constexpr bool kHasCompare = false;
   static constexpr bool kHasCapture = false;
+  static constexpr bool kHasEncoder = false;
   static constexpr bool kHasPwm = false;
   static constexpr bool kHasOnePulse = false;
   static constexpr bool kHasCenterAligned = false;
@@ -47,6 +48,12 @@ struct TimerSemanticTraits {
   static constexpr RuntimeFieldRef kCenterAlignedField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kAutoReloadPreloadField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kClockSourceField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kEncoderModeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kEncoderEnableField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kEncoderPositionEnableField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;
 };
 
 template<PeripheralId Id, std::size_t ChannelIndex>
@@ -54,6 +61,7 @@ struct TimerChannelSemanticTraits {
   static constexpr bool kPresent = false;
   static constexpr bool kSupportsCompare = false;
   static constexpr bool kSupportsCapture = false;
+  static constexpr bool kSupportsEncoderInput = false;
   static constexpr bool kSupportsPwm = false;
   static constexpr bool kSupportsComplementaryOutput = false;
   static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;

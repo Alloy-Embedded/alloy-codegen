@@ -5,7 +5,11 @@ from dataclasses import replace
 from pathlib import Path
 
 from alloy_codegen.context import ExecutionContext
-from alloy_codegen.runtime_driver_semantics import emit_runtime_driver_uart_semantics_header
+from alloy_codegen.ir.model import Provenance, RegisterDescriptor
+from alloy_codegen.runtime_driver_semantics import (
+    emit_runtime_driver_timer_semantics_header,
+    emit_runtime_driver_uart_semantics_header,
+)
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run
 from alloy_codegen.stages.normalize import run as run_normalize
@@ -30,6 +34,32 @@ def _normalize_manifest_payload(
         elif fixture_pin_source_root in local_path.parents:
             source["local_path"] = str(local_path.relative_to(fixture_pin_source_root))
     return normalized
+
+
+def _synthetic_timer_provenance() -> Provenance:
+    return Provenance(
+        source_id="test-fixture",
+        source_path="tests/test_emit.py",
+        patch_ids=("timer-advanced-semantics-regression",),
+    )
+
+
+def _synthetic_timer_register(
+    *,
+    peripheral: str,
+    name: str,
+    offset_bytes: int,
+) -> RegisterDescriptor:
+    provenance = _synthetic_timer_provenance()
+    return RegisterDescriptor(
+        register_id=f"register_{peripheral.lower()}_{name.lower()}",
+        peripheral=peripheral,
+        name=name,
+        offset_bytes=offset_bytes,
+        access="read-write",
+        size_bits=32,
+        provenance=provenance,
+    )
 
 
 def test_emit_includes_metadata_artifacts_with_content(
@@ -102,6 +132,15 @@ def test_emit_includes_metadata_artifacts_with_content(
     ]
     runtime_dac_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/dac.hpp"
+    ]
+    runtime_can_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/can.hpp"
+    ]
+    runtime_rtc_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/rtc.hpp"
+    ]
+    runtime_watchdog_semantics_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/watchdog.hpp"
     ]
     runtime_timer_semantics_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/timer.hpp"
@@ -313,9 +352,20 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "struct DacSemanticTraits" in runtime_dac_semantics_artifact.content
     assert "struct DacChannelSemanticTraits" in runtime_dac_semantics_artifact.content
     assert "kDacSemanticPeripherals" in runtime_dac_semantics_artifact.content
+    assert runtime_can_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct CanSemanticTraits" in runtime_can_semantics_artifact.content
+    assert "kCanSemanticPeripherals" in runtime_can_semantics_artifact.content
+    assert runtime_rtc_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct RtcSemanticTraits" in runtime_rtc_semantics_artifact.content
+    assert "kRtcSemanticPeripherals" in runtime_rtc_semantics_artifact.content
+    assert runtime_watchdog_semantics_artifact.artifact_kind == "generated-cpp"
+    assert "struct WatchdogSemanticTraits" in runtime_watchdog_semantics_artifact.content
+    assert "kWatchdogSemanticPeripherals" in runtime_watchdog_semantics_artifact.content
     assert runtime_timer_semantics_artifact.artifact_kind == "generated-cpp"
     assert "struct TimerSemanticTraits" in runtime_timer_semantics_artifact.content
     assert "struct TimerChannelSemanticTraits" in runtime_timer_semantics_artifact.content
+    assert "kHasEncoder" in runtime_timer_semantics_artifact.content
+    assert "kSupportsEncoderInput" in runtime_timer_semantics_artifact.content
     assert "kTimerSemanticPeripherals" in runtime_timer_semantics_artifact.content
     assert runtime_pwm_semantics_artifact.artifact_kind == "generated-cpp"
     assert "struct PwmSemanticTraits" in runtime_pwm_semantics_artifact.content
@@ -426,6 +476,15 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_dac_semantics = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/dac.hpp"
     ].content
+    same70_can_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/can.hpp"
+    ].content
+    same70_rtc_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/rtc.hpp"
+    ].content
+    same70_watchdog_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/watchdog.hpp"
+    ].content
     same70_timer_semantics = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/timer.hpp"
     ].content
@@ -464,8 +523,11 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "PeripheralInstanceTraits<PeripheralId::DACC>" in same70_peripheral_instances
     assert "PeripheralInstanceTraits<PeripheralId::TC0>" in same70_peripheral_instances
     assert "PeripheralInstanceTraits<PeripheralId::PWM0>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::MCAN0>" in same70_peripheral_instances
+    assert "PeripheralInstanceTraits<PeripheralId::MCAN1>" in same70_peripheral_instances
     assert "PeripheralClassId::class_adc" in same70_peripheral_instances
     assert "PeripheralClassId::class_dac" in same70_peripheral_instances
+    assert "PeripheralClassId::class_can" in same70_peripheral_instances
     assert "PeripheralClassId::class_timer" in same70_peripheral_instances
     assert "PeripheralClassId::class_pwm" in same70_peripheral_instances
     assert "BindingTraits<PeripheralId::AFEC0" in same70_dma_bindings
@@ -478,12 +540,23 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "DacSemanticTraits<PeripheralId::DACC>" in same70_dac_semantics
     assert "DacChannelSemanticTraits<PeripheralId::DACC, 0u>" in same70_dac_semantics
     assert "kDacSemanticPeripherals" in same70_dac_semantics
+    assert "CanSemanticTraits<PeripheralId::MCAN0>" in same70_can_semantics
+    assert "CanSemanticTraits<PeripheralId::MCAN1>" in same70_can_semantics
+    assert "kCanSemanticPeripherals" in same70_can_semantics
+    assert "RtcSemanticTraits<PeripheralId::RTC>" in same70_rtc_semantics
+    assert "kRtcSemanticPeripherals" in same70_rtc_semantics
+    assert "WatchdogSemanticTraits<PeripheralId::WDT>" in same70_watchdog_semantics
+    assert "WatchdogSemanticTraits<PeripheralId::RSWDT>" in same70_watchdog_semantics
+    assert "kWatchdogSemanticPeripherals" in same70_watchdog_semantics
     assert "PeripheralId::AFEC0" in same70_dma_semantics
     assert "PeripheralId::DACC" in same70_dma_semantics
     assert "PeripheralId::PWM0" in same70_dma_semantics
     assert "PeripheralId::SPI0" in same70_dma_semantics
     assert "PeripheralId::TWIHS0" in same70_dma_semantics
     assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
+    assert "kHasEncoder = true;" in same70_timer_semantics
+    assert "kEncoderEnableField" in same70_timer_semantics
+    assert "kDirectionField" in same70_timer_semantics
     assert "TimerChannelSemanticTraits<PeripheralId::TC0, 0u>" in same70_timer_semantics
     assert "PwmSemanticTraits<PeripheralId::PWM0>" in same70_pwm_semantics
     assert "PwmChannelSemanticTraits<PeripheralId::PWM0, 0u>" in same70_pwm_semantics
@@ -653,6 +726,9 @@ def test_emit_matches_golden_artifacts(
         "dma.hpp",
         "adc.hpp",
         "dac.hpp",
+        "can.hpp",
+        "rtc.hpp",
+        "watchdog.hpp",
         "timer.hpp",
         "pwm.hpp",
     ):
@@ -710,6 +786,130 @@ def test_emit_matches_golden_artifacts(
     ].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_clock.hpp"
     ).read_text(encoding="utf-8")
+
+
+def test_emit_can_semantics_cover_wave1_vendors(
+    execution_context: ExecutionContext,
+) -> None:
+    st_result = run(PipelineScope(device="stm32g0b1re"), execution_context)
+    st_artifacts = {artifact.path: artifact for artifact in st_result.payload.artifacts}
+    st_can_semantics = st_artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g0b1re/driver_semantics/can.hpp"
+    ].content
+
+    assert "CanSemanticTraits<PeripheralId::FDCAN1>" in st_can_semantics
+    assert "kCanSemanticPeripherals" in st_can_semantics
+
+
+def test_emit_timer_advanced_semantics_cover_wave1_vendors(
+    execution_context: ExecutionContext,
+    microchip_execution_context: ExecutionContext,
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    st_base_device = run_normalize(
+        PipelineScope(device="stm32g071rb"), execution_context
+    ).payload.devices[0]
+    gpio = next(
+        peripheral for peripheral in st_base_device.peripherals if peripheral.name == "GPIOA"
+    )
+    st_augmented = replace(
+        st_base_device,
+        peripherals=st_base_device.peripherals
+        + (
+            replace(
+                gpio,
+                name="TIM1",
+                ip_name="timer",
+                instance=1,
+                base_address=0x40012C00,
+                backend_schema_id="alloy.timer.st-gptimer2-v1-0",
+                provenance=_synthetic_timer_provenance(),
+            ),
+        ),
+        registers=st_base_device.registers
+        + (
+            _synthetic_timer_register(peripheral="TIM1", name="CR1", offset_bytes=0x00),
+            _synthetic_timer_register(peripheral="TIM1", name="SMCR", offset_bytes=0x08),
+            _synthetic_timer_register(peripheral="TIM1", name="DIER", offset_bytes=0x0C),
+            _synthetic_timer_register(peripheral="TIM1", name="SR", offset_bytes=0x10),
+            _synthetic_timer_register(peripheral="TIM1", name="EGR", offset_bytes=0x14),
+            _synthetic_timer_register(peripheral="TIM1", name="CCMR1_INPUT", offset_bytes=0x18),
+            _synthetic_timer_register(peripheral="TIM1", name="CCMR2_INPUT", offset_bytes=0x1C),
+            _synthetic_timer_register(peripheral="TIM1", name="CCER", offset_bytes=0x20),
+            _synthetic_timer_register(peripheral="TIM1", name="CNT", offset_bytes=0x24),
+            _synthetic_timer_register(peripheral="TIM1", name="PSC", offset_bytes=0x28),
+            _synthetic_timer_register(peripheral="TIM1", name="ARR", offset_bytes=0x2C),
+            _synthetic_timer_register(peripheral="TIM1", name="CCR1", offset_bytes=0x34),
+            _synthetic_timer_register(peripheral="TIM1", name="CCR2", offset_bytes=0x38),
+            _synthetic_timer_register(peripheral="TIM1", name="CCR3", offset_bytes=0x3C),
+            _synthetic_timer_register(peripheral="TIM1", name="CCR4", offset_bytes=0x40),
+        ),
+    )
+    st_timer_semantics = emit_runtime_driver_timer_semantics_header(
+        family_dir="st/stm32g0",
+        device=st_augmented,
+    ).content
+
+    assert "TimerSemanticTraits<PeripheralId::TIM1>" in st_timer_semantics
+    assert "kHasEncoder = true;" in st_timer_semantics
+    assert "kEncoderModeField" in st_timer_semantics
+    assert "kDirectionField" in st_timer_semantics
+    assert "TimerChannelSemanticTraits<PeripheralId::TIM1, 0u>" in st_timer_semantics
+    assert "TimerChannelSemanticTraits<PeripheralId::TIM1, 1u>" in st_timer_semantics
+    assert "kSupportsEncoderInput = true;" in st_timer_semantics
+
+    same70_result = run(PipelineScope(device="atsame70q21b"), microchip_execution_context)
+    same70_artifacts = {artifact.path: artifact for artifact in same70_result.payload.artifacts}
+    same70_timer_semantics = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/timer.hpp"
+    ].content
+
+    assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
+    assert "kHasEncoder = true;" in same70_timer_semantics
+    assert "kEncoderEnableField" in same70_timer_semantics
+    assert "kEncoderPositionEnableField" in same70_timer_semantics
+    assert "kEncoderSpeedEnableField" in same70_timer_semantics
+    assert "kEncoderPhaseEdgeField" in same70_timer_semantics
+    assert "kDirectionField" in same70_timer_semantics
+
+    nxp_base_device = run_normalize(
+        PipelineScope(device="mimxrt1062"), nxp_execution_context
+    ).payload.devices[0]
+    nxp_gpio = next(
+        peripheral for peripheral in nxp_base_device.peripherals if peripheral.name == "GPIO1"
+    )
+    nxp_augmented = replace(
+        nxp_base_device,
+        peripherals=nxp_base_device.peripherals
+        + (
+            replace(
+                nxp_gpio,
+                name="GPT1",
+                ip_name="GPT",
+                instance=1,
+                base_address=0x401EC000,
+                backend_schema_id="alloy.gpt.nxp-gpt",
+                provenance=_synthetic_timer_provenance(),
+            ),
+            replace(
+                nxp_gpio,
+                name="PIT",
+                ip_name="PIT",
+                instance=0,
+                base_address=0x40084000,
+                backend_schema_id="alloy.pit.nxp-pit",
+                provenance=_synthetic_timer_provenance(),
+            ),
+        ),
+    )
+    nxp_timer_semantics = emit_runtime_driver_timer_semantics_header(
+        family_dir="nxp/imxrt1060",
+        device=nxp_augmented,
+    ).content
+
+    assert "TimerSemanticTraits<PeripheralId::GPT1>" in nxp_timer_semantics
+    assert "TimerSemanticTraits<PeripheralId::PIT>" in nxp_timer_semantics
+    assert "kHasEncoder = false;" in nxp_timer_semantics
 
 
 def test_emit_uart_semantics_accepts_live_st_schema_ids(

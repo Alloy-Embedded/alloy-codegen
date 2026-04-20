@@ -189,6 +189,9 @@ def find_runtime_lite_contract_violations(
             "dma_semantics": f"{device_runtime_root}/driver_semantics/dma.hpp",
             "adc_semantics": f"{device_runtime_root}/driver_semantics/adc.hpp",
             "dac_semantics": f"{device_runtime_root}/driver_semantics/dac.hpp",
+            "can_semantics": f"{device_runtime_root}/driver_semantics/can.hpp",
+            "rtc_semantics": f"{device_runtime_root}/driver_semantics/rtc.hpp",
+            "watchdog_semantics": f"{device_runtime_root}/driver_semantics/watchdog.hpp",
             "timer_semantics": f"{device_runtime_root}/driver_semantics/timer.hpp",
             "pwm_semantics": f"{device_runtime_root}/driver_semantics/pwm.hpp",
             "systick": f"{device_runtime_root}/systick.hpp",
@@ -504,6 +507,56 @@ def find_runtime_lite_contract_violations(
             elif "DacChannelSemanticTraits<PeripheralId::" not in dac_content:
                 violations.append(
                     f"{device_runtime_paths['dac_semantics']} does not emit dac channel traits"
+                )
+
+        can_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "can"
+        )
+        if can_peripherals:
+            can_content = content_by_key["can_semantics"]
+            if can_content is None:
+                violations.append(
+                    f"missing can driver semantics header: {device_runtime_paths['can_semantics']}"
+                )
+            elif "CanSemanticTraits<PeripheralId::" not in can_content:
+                violations.append(
+                    f"{device_runtime_paths['can_semantics']} does not emit can semantic traits"
+                )
+
+        rtc_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "rtc"
+        )
+        if rtc_peripherals:
+            rtc_content = content_by_key["rtc_semantics"]
+            if rtc_content is None:
+                violations.append(
+                    f"missing rtc driver semantics header: {device_runtime_paths['rtc_semantics']}"
+                )
+            elif "RtcSemanticTraits<PeripheralId::" not in rtc_content:
+                violations.append(
+                    f"{device_runtime_paths['rtc_semantics']} does not emit rtc semantic traits"
+                )
+
+        watchdog_peripherals = tuple(
+            peripheral
+            for peripheral in runtime_peripherals
+            if runtime_lite_peripheral_class_name(peripheral.ip_name) == "watchdog"
+        )
+        if watchdog_peripherals:
+            watchdog_content = content_by_key["watchdog_semantics"]
+            if watchdog_content is None:
+                violations.append(
+                    "missing watchdog driver semantics header: "
+                    f"{device_runtime_paths['watchdog_semantics']}"
+                )
+            elif "WatchdogSemanticTraits<PeripheralId::" not in watchdog_content:
+                violations.append(
+                    f"{device_runtime_paths['watchdog_semantics']} does not emit "
+                    "watchdog semantic traits"
                 )
 
         timer_peripherals = tuple(

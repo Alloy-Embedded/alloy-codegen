@@ -42,7 +42,11 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dma.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/can.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/rtc.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/watchdog.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
+  - publishes compare/capture/encoder timer traits
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup.cpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`
@@ -99,7 +103,11 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dma.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/adc.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/dac.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/can.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/rtc.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/watchdog.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/timer.hpp`
+  - publishes compare/capture/encoder timer traits
 - `<vendor>/<family>/generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
 - `<vendor>/<family>/generated/devices/<device>/startup.cpp`
 - `<vendor>/<family>/generated/devices/<device>/startup_vectors.cpp`

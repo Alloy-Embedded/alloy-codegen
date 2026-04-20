@@ -173,6 +173,18 @@ def verify_runtime_lite_smoke_consumer(
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/dac.hpp"'
         ),
         (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CAN_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/can.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_RTC_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/rtc.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_WATCHDOG_SEMANTICS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/watchdog.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_TIMER_SEMANTICS_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/timer.hpp"'
         ),

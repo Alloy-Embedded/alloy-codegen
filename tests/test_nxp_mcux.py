@@ -10,7 +10,16 @@ import pytest
 
 from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.context import ExecutionContext
-from alloy_codegen.runtime_driver_semantics import _context
+from alloy_codegen.ir.model import (
+    PeripheralInstance,
+    Provenance,
+    RegisterDescriptor,
+    RegisterFieldDescriptor,
+)
+from alloy_codegen.runtime_driver_semantics import (
+    _context,
+    emit_runtime_driver_watchdog_semantics_header,
+)
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.fetch import run as run_fetch
@@ -20,6 +29,55 @@ from alloy_codegen.stages.validate import run as run_validate
 
 IMXRT1060_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "imxrt1060"
 IMXRT1060_EMITTED_DIR = Path(__file__).parent / "fixtures" / "emitted" / "imxrt1060"
+
+
+def _nxp_watchdog_provenance() -> Provenance:
+    return Provenance(
+        source_id="test-fixture",
+        source_path="tests/test_nxp_mcux.py",
+        patch_ids=("nxp-watchdog-regression",),
+    )
+
+
+def _nxp_watchdog_register(
+    *,
+    peripheral: str,
+    name: str,
+    offset_bytes: int,
+) -> RegisterDescriptor:
+    provenance = _nxp_watchdog_provenance()
+    return RegisterDescriptor(
+        register_id=f"register_{peripheral.lower()}_{name.lower()}",
+        peripheral=peripheral,
+        name=name,
+        offset_bytes=offset_bytes,
+        access="read-write",
+        size_bits=32,
+        provenance=provenance,
+    )
+
+
+def _nxp_watchdog_field(
+    *,
+    peripheral: str,
+    register_name: str,
+    name: str,
+    bit_offset: int,
+    bit_width: int,
+) -> RegisterFieldDescriptor:
+    provenance = _nxp_watchdog_provenance()
+    register_id = f"register_{peripheral.lower()}_{register_name.lower()}"
+    return RegisterFieldDescriptor(
+        field_id=f"field_{peripheral.lower()}_{register_name.lower()}_{name.lower()}",
+        register_id=register_id,
+        peripheral=peripheral,
+        register_name=register_name,
+        name=name,
+        bit_offset=bit_offset,
+        bit_width=bit_width,
+        access="read-write",
+        provenance=provenance,
+    )
 
 
 @pytest.mark.parametrize("device_name", registered_device_names("nxp", "imxrt1060"))
@@ -471,6 +529,9 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "dma.hpp",
         "adc.hpp",
         "dac.hpp",
+        "can.hpp",
+        "rtc.hpp",
+        "watchdog.hpp",
         "timer.hpp",
         "pwm.hpp",
     ):
@@ -547,6 +608,251 @@ def test_emit_nxp_timer_and_pwm_semantics_do_not_require_connection_candidates(
     assert {peripheral.name for peripheral in context.runtime_peripherals_by_class["pwm"]} >= {
         "PWM1",
     }
+
+
+def test_emit_nxp_watchdog_semantics_supports_live_watchdogs(
+    nxp_execution_context: ExecutionContext,
+) -> None:
+    result = run_normalize(PipelineScope(device="mimxrt1062"), nxp_execution_context)
+    base_device = result.payload.devices[0]
+    provenance = _nxp_watchdog_provenance()
+
+    augmented = replace(
+        base_device,
+        peripherals=base_device.peripherals
+        + (
+            PeripheralInstance(
+                name="WDOG1",
+                ip_name="WDOG",
+                ip_version=None,
+                instance=1,
+                base_address=0x400B8000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.watchdog.nxp-wdog",
+            ),
+            PeripheralInstance(
+                name="WDOG2",
+                ip_name="WDOG",
+                ip_version=None,
+                instance=2,
+                base_address=0x400D0000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.watchdog.nxp-wdog",
+            ),
+            PeripheralInstance(
+                name="RTWDOG",
+                ip_name="RTWDOG",
+                ip_version=None,
+                instance=0,
+                base_address=0x400BC000,
+                rcc_enable_signal=None,
+                rcc_reset_signal=None,
+                provenance=provenance,
+                backend_schema_id="alloy.watchdog.nxp-rtwdog",
+            ),
+        ),
+        registers=base_device.registers
+        + (
+            _nxp_watchdog_register(peripheral="WDOG1", name="WCR", offset_bytes=0x00),
+            _nxp_watchdog_register(peripheral="WDOG1", name="WRSR", offset_bytes=0x04),
+            _nxp_watchdog_register(peripheral="WDOG1", name="WSR", offset_bytes=0x08),
+            _nxp_watchdog_register(peripheral="WDOG1", name="WICR", offset_bytes=0x0C),
+            _nxp_watchdog_register(peripheral="WDOG2", name="WCR", offset_bytes=0x00),
+            _nxp_watchdog_register(peripheral="WDOG2", name="WRSR", offset_bytes=0x04),
+            _nxp_watchdog_register(peripheral="WDOG2", name="WSR", offset_bytes=0x08),
+            _nxp_watchdog_register(peripheral="WDOG2", name="WICR", offset_bytes=0x0C),
+            _nxp_watchdog_register(peripheral="RTWDOG", name="CS", offset_bytes=0x00),
+            _nxp_watchdog_register(peripheral="RTWDOG", name="CNT", offset_bytes=0x04),
+            _nxp_watchdog_register(peripheral="RTWDOG", name="TOVAL", offset_bytes=0x08),
+            _nxp_watchdog_register(peripheral="RTWDOG", name="WIN", offset_bytes=0x0C),
+        ),
+        register_fields=base_device.register_fields
+        + (
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WCR",
+                name="WDE",
+                bit_offset=2,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WCR",
+                name="WT",
+                bit_offset=8,
+                bit_width=8,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WCR",
+                name="WDW",
+                bit_offset=7,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WCR",
+                name="SRS",
+                bit_offset=4,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WICR",
+                name="WIE",
+                bit_offset=15,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WRSR",
+                name="TOUT",
+                bit_offset=0,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WRSR",
+                name="SFTW",
+                bit_offset=1,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG1",
+                register_name="WSR",
+                name="WSR",
+                bit_offset=0,
+                bit_width=16,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WCR",
+                name="WDE",
+                bit_offset=2,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WCR",
+                name="WT",
+                bit_offset=8,
+                bit_width=8,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WCR",
+                name="WDW",
+                bit_offset=7,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WCR",
+                name="SRS",
+                bit_offset=4,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WICR",
+                name="WIE",
+                bit_offset=15,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WRSR",
+                name="TOUT",
+                bit_offset=0,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WRSR",
+                name="SFTW",
+                bit_offset=1,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="WDOG2",
+                register_name="WSR",
+                name="WSR",
+                bit_offset=0,
+                bit_width=16,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="CS",
+                name="EN",
+                bit_offset=7,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="CS",
+                name="PRES",
+                bit_offset=8,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="CS",
+                name="INT",
+                bit_offset=6,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="CS",
+                name="FLG",
+                bit_offset=14,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="CS",
+                name="UPDATE",
+                bit_offset=5,
+                bit_width=1,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="CNT",
+                name="CNTLOW",
+                bit_offset=0,
+                bit_width=16,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="TOVAL",
+                name="TOVALLOW",
+                bit_offset=0,
+                bit_width=16,
+            ),
+            _nxp_watchdog_field(
+                peripheral="RTWDOG",
+                register_name="WIN",
+                name="WINLOW",
+                bit_offset=0,
+                bit_width=16,
+            ),
+        ),
+        connection_candidates=tuple(),
+    )
+
+    artifact = emit_runtime_driver_watchdog_semantics_header(
+        family_dir="nxp/imxrt1060",
+        device=augmented,
+    )
+
+    assert "WatchdogSemanticTraits<PeripheralId::WDOG1>" in artifact.content
+    assert "WatchdogSemanticTraits<PeripheralId::WDOG2>" in artifact.content
+    assert "WatchdogSemanticTraits<PeripheralId::RTWDOG>" in artifact.content
+    assert "kWatchdogSemanticPeripherals" in artifact.content
 
 
 def test_publish_nxp_imxrt1060_completes_successfully(

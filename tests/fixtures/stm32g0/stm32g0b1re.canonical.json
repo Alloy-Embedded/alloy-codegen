@@ -394,7 +394,7 @@
           "st-stm32g0-stm32g0b1re-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.fdcan.st-fdcan-v1-0"
+      "backend_schema_id": "alloy.can.st-fdcan-v1-0"
     },
     {
       "name": "FLASH",
@@ -1547,7 +1547,7 @@
     {
       "ip_name": "fdcan",
       "ip_version": "fdcan_v1_0",
-      "peripheral_class": "fdcan",
+      "peripheral_class": "can",
       "register_profile": "fdcan:fdcan_v1_0",
       "signal_roles": [
         "rx",
@@ -1565,7 +1565,7 @@
           "st-stm32g0-stm32g0b1re-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.fdcan.st-fdcan-v1-0"
+      "backend_schema_id": "alloy.can.st-fdcan-v1-0"
     },
     {
       "ip_name": "gpio",
@@ -1606,7 +1606,7 @@
     {
       "capability_id": "capability-instance:fdcan1:lqfp64:rx",
       "scope": "instance-overlay",
-      "peripheral_class": "fdcan",
+      "peripheral_class": "can",
       "name": "available-signal",
       "value": "rx",
       "provenance": {
@@ -1625,7 +1625,7 @@
     {
       "capability_id": "capability-instance:fdcan1:lqfp64:tx",
       "scope": "instance-overlay",
-      "peripheral_class": "fdcan",
+      "peripheral_class": "can",
       "name": "available-signal",
       "value": "tx",
       "provenance": {
@@ -1644,7 +1644,7 @@
     {
       "capability_id": "capability:fdcan:fdcan-v1-0:rx",
       "scope": "ip-block",
-      "peripheral_class": "fdcan",
+      "peripheral_class": "can",
       "name": "signal-role",
       "value": "rx",
       "provenance": {
@@ -1663,7 +1663,7 @@
     {
       "capability_id": "capability:fdcan:fdcan-v1-0:tx",
       "scope": "ip-block",
-      "peripheral_class": "fdcan",
+      "peripheral_class": "can",
       "name": "signal-role",
       "value": "tx",
       "provenance": {
@@ -1786,8 +1786,8 @@
   ],
   "signal_endpoints": [
     {
-      "endpoint_id": "endpoint:fdcan:rx",
-      "peripheral_class": "fdcan",
+      "endpoint_id": "endpoint:can:rx",
+      "peripheral_class": "can",
       "signal": "RX",
       "direction": "input",
       "provenance": {
@@ -1800,8 +1800,8 @@
       }
     },
     {
-      "endpoint_id": "endpoint:fdcan:tx",
-      "peripheral_class": "fdcan",
+      "endpoint_id": "endpoint:can:tx",
+      "peripheral_class": "can",
       "signal": "TX",
       "direction": "output",
       "provenance": {
@@ -2566,7 +2566,7 @@
       "signal": "rx",
       "route_kind": "alternate-function",
       "route_selector": "selector:3",
-      "route_group_id": "group:fdcan1:lqfp64:all-signals",
+      "route_group_id": "group:fdcan1:lqfp64:tx-rx",
       "requirement_ids": [
         "requirement:package:lqfp64",
         "requirement:bonded-pin:lqfp64:pa11",
@@ -2599,7 +2599,7 @@
       "signal": "tx",
       "route_kind": "alternate-function",
       "route_selector": "selector:3",
-      "route_group_id": "group:fdcan1:lqfp64:all-signals",
+      "route_group_id": "group:fdcan1:lqfp64:tx-rx",
       "requirement_ids": [
         "requirement:package:lqfp64",
         "requirement:bonded-pin:lqfp64:pa12",
@@ -2628,18 +2628,18 @@
   ],
   "connection_groups": [
     {
-      "group_id": "group:fdcan1:lqfp64:all-signals",
+      "group_id": "group:fdcan1:lqfp64:tx-rx",
       "peripheral": "FDCAN1",
       "signals": [
-        "rx",
-        "tx"
+        "tx",
+        "rx"
       ],
       "candidate_ids": [
         "candidate:pa11:fdcan1:rx",
         "candidate:pa12:fdcan1:tx"
       ],
       "package": "lqfp64",
-      "conflict_group": "conflict:fdcan1:lqfp64:all-signals",
+      "conflict_group": "conflict:fdcan1:lqfp64:tx-rx",
       "provenance": {
         "source_id": "stm32-open-pin-data",
         "source_path": "STM32G0B1R(B-C-E)Tx.xml",

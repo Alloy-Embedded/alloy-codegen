@@ -45,7 +45,11 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/driver_semantics/dma.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/adc.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/dac.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/can.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/rtc.hpp`
+  - `generated/runtime/devices/<device>/driver_semantics/watchdog.hpp`
   - `generated/runtime/devices/<device>/driver_semantics/timer.hpp`
+    - compare/capture/encoder timer traits
   - `generated/runtime/devices/<device>/driver_semantics/pwm.hpp`
   - `generated/devices/<device>/startup.cpp`
   - `generated/devices/<device>/startup_vectors.cpp`

@@ -150,6 +150,17 @@ def test_publish_microchip_family_scope(
         / "atsame70q21b"
         / "startup.hpp"
     ).exists()
+    assert (
+        microchip_execution_context.publication_root
+        / "microchip"
+        / "same70"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "atsame70q21b"
+        / "driver_semantics"
+        / "can.hpp"
+    ).exists()
 
 
 def test_publish_stm32f4_family_scope(
@@ -173,6 +184,17 @@ def test_publish_stm32f4_family_scope(
         / "driver_semantics"
         / "dac.hpp"
     ).exists()
+    assert (
+        execution_context.publication_root
+        / "st"
+        / "stm32f4"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32f405rg"
+        / "driver_semantics"
+        / "rtc.hpp"
+    ).exists()
 
 
 def test_publish_nxp_family_scope(
@@ -195,6 +217,17 @@ def test_publish_nxp_family_scope(
         / "mimxrt1064"
         / "driver_semantics"
         / "adc.hpp"
+    ).exists()
+    assert (
+        nxp_execution_context.publication_root
+        / "nxp"
+        / "imxrt1060"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "mimxrt1064"
+        / "driver_semantics"
+        / "watchdog.hpp"
     ).exists()
 
 

@@ -1,14 +1,14 @@
 ## 1. Spec and Scope
 
-- [ ] 1.1 Add the coverage-and-UX follow-up change
-- [ ] 1.2 Sequence coverage work into staged vendor-safe waves
+- [x] 1.1 Add the coverage-and-UX follow-up change
+- [x] 1.2 Sequence coverage work into staged vendor-safe waves
 
 ## 2. Peripheral Coverage Expansion
 
-- [ ] 2.1 Publish CAN/FDCAN runtime semantics
-- [ ] 2.2 Publish RTC runtime semantics
-- [ ] 2.3 Publish watchdog as a public runtime driver contract
-- [ ] 2.4 Publish advanced timer capture/compare/encoder semantics
+- [x] 2.1 Publish CAN/FDCAN runtime semantics
+- [x] 2.2 Publish RTC runtime semantics
+- [x] 2.3 Publish watchdog as a public runtime driver contract
+- [x] 2.4 Publish advanced timer capture/compare/encoder semantics
 - [ ] 2.5 Publish USB runtime semantics
 - [ ] 2.6 Publish ETH runtime semantics
 - [ ] 2.7 Publish QSPI/OSPI runtime semantics
@@ -26,5 +26,4 @@
 
 - [ ] 4.1 Publish capability summaries and compatibility matrices
 - [ ] 4.2 Add onboarding docs for the configuration layer
-- [ ] 4.3 Validate with `openspec validate expand-best-in-class-generator-coverage-and-ux --strict`
-
+- [x] 4.3 Validate with `openspec validate expand-best-in-class-generator-coverage-and-ux --strict`
