@@ -205,6 +205,14 @@ def verify_runtime_lite_smoke_consumer(
             f'"{vendor}/{family}/generated/runtime/devices/{device}/system_clock.hpp"'
         ),
         (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_PROFILES_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/clock_profiles.hpp"'
+        ),
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_CONFIG_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/clock_config.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_STARTUP_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/startup.hpp"'
         ),

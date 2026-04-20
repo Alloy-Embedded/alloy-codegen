@@ -10,6 +10,7 @@ from alloy_codegen.runtime_capabilities import (
     runtime_capabilities_required_paths,
     runtime_capability_rows,
 )
+from alloy_codegen.runtime_clock_config import runtime_clock_config_required_paths
 from alloy_codegen.runtime_clock_graph import runtime_clock_graph_required_paths
 from alloy_codegen.runtime_connectors import runtime_connectors_required_paths
 from alloy_codegen.runtime_driver_semantics import (
@@ -76,6 +77,10 @@ def find_runtime_lite_contract_violations(
         devices=devices,
     )
     required_paths = required_paths + runtime_system_clock_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
+    required_paths = required_paths + runtime_clock_config_required_paths(
         family_dir=family_dir,
         devices=devices,
     )
@@ -219,6 +224,8 @@ def find_runtime_lite_contract_violations(
             "systick": f"{device_runtime_root}/systick.hpp",
             "startup": f"{device_runtime_root}/startup.hpp",
             "system_clock": f"{device_runtime_root}/system_clock.hpp",
+            "clock_profiles": f"{device_runtime_root}/clock_profiles.hpp",
+            "clock_config": f"{device_runtime_root}/clock_config.hpp",
             "interrupts": f"{device_runtime_root}/interrupts.hpp",
             "interrupt_stubs": f"{device_runtime_root}/interrupt_stubs.hpp",
             "resets": f"{device_runtime_root}/resets.hpp",
@@ -358,6 +365,49 @@ def find_runtime_lite_contract_violations(
         ):
             violations.append(
                 f"{device_runtime_paths['system_clock']} does not emit default bring-up helper"
+            )
+        if (
+            content_by_key["clock_profiles"]
+            and "using ClockProfileId = SystemClockProfileId;"
+            not in content_by_key["clock_profiles"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_profiles']} does not publish ClockProfileId"
+            )
+        if (
+            content_by_key["clock_profiles"]
+            and "kClockProfiles" not in content_by_key["clock_profiles"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_profiles']} does not emit kClockProfiles"
+            )
+        if (
+            content_by_key["clock_profiles"]
+            and "kMaxClockProfileId" not in content_by_key["clock_profiles"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_profiles']} does not emit max profile metadata"
+            )
+        if (
+            content_by_key["clock_config"]
+            and "apply_default_clock_profile" not in content_by_key["clock_config"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_config']} does not emit default clock-profile helper"
+            )
+        if (
+            content_by_key["clock_config"]
+            and "apply_max_clock_profile" not in content_by_key["clock_config"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_config']} does not emit max clock-profile helper"
+            )
+        if (
+            content_by_key["clock_config"]
+            and "apply_clock_profile<" not in content_by_key["clock_config"]
+        ):
+            violations.append(
+                f"{device_runtime_paths['clock_config']} does not emit typed profile application"
             )
         if (
             device.identity.vendor == "microchip"

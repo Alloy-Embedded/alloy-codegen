@@ -29,7 +29,7 @@ ready-to-use clock profile function, derived from the canonical clock graph.
 
 - **WHEN** the pipeline emits artifacts for any supported device with a non-trivial clock tree
 - **THEN** `generated/runtime/devices/<device>/clock_config.hpp` is present
-- **AND** it defines at least one `constexpr void apply_clock_profile_*()` function
+- **AND** it defines at least one `inline bool apply_clock_profile_*()` helper
 - **AND** `generated/runtime/devices/<device>/clock_profiles.hpp` enumerates the
   available `ClockProfileId` values for that device
 - **AND** the consumer smoke test includes and calls a profile function without error

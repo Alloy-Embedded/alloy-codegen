@@ -35,6 +35,9 @@ Non-Goals:
 - `generated/runtime/devices/<device>/interrupts.hpp`
 - `generated/runtime/devices/<device>/interrupt_stubs.hpp`
 - `generated/runtime/devices/<device>/system_clock.hpp`
+- `generated/runtime/devices/<device>/clock_profiles.hpp`
+- `generated/runtime/devices/<device>/clock_config.hpp`
+- `generated/runtime/devices/<device>/connectors.hpp`
 - `generated/runtime/devices/<device>/system_sequences.hpp`
 - `generated/runtime/devices/<device>/capabilities.hpp`
 - `generated/runtime/devices/<device>/capabilities.json`
@@ -42,9 +45,6 @@ Non-Goals:
 
 ### Still missing in this spec
 
-- `generated/runtime/devices/<device>/connectors.hpp`
-- `generated/runtime/devices/<device>/clock_profiles.hpp`
-- `generated/runtime/devices/<device>/clock_config.hpp`
 - CLI surfaces `alloy explain` and `alloy diff`
 - linker-script consumer validation on GNU-ld-compatible toolchains
 
@@ -58,8 +58,6 @@ Non-Goals:
 
 ### Downstream heuristics still not replaceable yet
 
-- pin/peripheral/signal validity checks still need `connectors.hpp`
-- profile selection and application still need emitted `clock_profiles.hpp` / `clock_config.hpp`
 - device-to-device portability diagnostics still need the `alloy diff` CLI
 
 ## Decisions

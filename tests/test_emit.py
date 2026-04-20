@@ -236,6 +236,12 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_system_clock_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
     ]
+    runtime_clock_profiles_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_profiles.hpp"
+    ]
+    runtime_clock_config_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_config.hpp"
+    ]
     assert not any(path.startswith("st/stm32g0/generated/ip/") for path in artifacts), (
         "Legacy IP headers should not be published"
     )
@@ -487,6 +493,14 @@ def test_emit_includes_metadata_artifacts_with_content(
         "SystemClockProfileTraits<SystemClockProfileId::" in runtime_system_clock_artifact.content
     )
     assert "apply_default_system_clock" in runtime_system_clock_artifact.content
+    assert runtime_clock_profiles_artifact.artifact_kind == "generated-cpp"
+    assert "using ClockProfileId = SystemClockProfileId;" in runtime_clock_profiles_artifact.content
+    assert "kClockProfiles" in runtime_clock_profiles_artifact.content
+    assert "kMaxClockProfileId" in runtime_clock_profiles_artifact.content
+    assert runtime_clock_config_artifact.artifact_kind == "generated-cpp"
+    assert "apply_default_clock_profile" in runtime_clock_config_artifact.content
+    assert "apply_max_clock_profile" in runtime_clock_config_artifact.content
+    assert "apply_clock_profile_default_pll_64mhz" in runtime_clock_config_artifact.content
 
 
 def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
@@ -582,6 +596,12 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     same70_system_clock = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/system_clock.hpp"
     ].content
+    same70_clock_profiles = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/clock_profiles.hpp"
+    ].content
+    same70_clock_config = same70_artifacts[
+        "microchip/same70/generated/runtime/devices/atsame70q21b/clock_config.hpp"
+    ].content
     same70_capabilities = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/capabilities.hpp"
     ].content
@@ -650,6 +670,13 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemClockProfileId::plla_150mhz" in same70_system_clock
     assert "FieldId::field_pmc_ckgr_mor_key" in same70_system_clock
     assert "FieldId::field_efc_eefc_fmr_fws" in same70_system_clock
+    assert (
+        "kDefaultClockProfileId = ClockProfileId::default_safe_internal_12mhz"
+        in same70_clock_profiles
+    )
+    assert "kMaxClockProfileId = ClockProfileId::plla_150mhz" in same70_clock_profiles
+    assert "apply_clock_profile_plla_150mhz" in same70_clock_config
+    assert "apply_max_clock_profile" in same70_clock_config
     assert "kCapabilities" in same70_capabilities
     assert "CapabilityNameId::dma_compatible_signal" in same70_capabilities
     assert "CapabilityNameId::runtime_supported" in same70_capabilities
@@ -665,6 +692,12 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     ].content
     nxp_system_clock = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/system_clock.hpp"
+    ].content
+    nxp_clock_profiles = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/clock_profiles.hpp"
+    ].content
+    nxp_clock_config = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/clock_config.hpp"
     ].content
     nxp_capabilities = nxp_artifacts[
         "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/capabilities.hpp"
@@ -691,6 +724,9 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "SystemClockProfileId::default_arm_pll_600mhz" in nxp_system_clock
     assert "FieldId::field_ccm_analog_pll_arm_div_select" in nxp_system_clock
     assert "FieldId::field_dcdc_reg3_trg" in nxp_system_clock
+    assert "kMaxClockProfileId = ClockProfileId::default_arm_pll_600mhz" in nxp_clock_profiles
+    assert "apply_clock_profile_default_arm_pll_600mhz" in nxp_clock_config
+    assert "apply_default_clock_profile" in nxp_clock_config
     assert "PeripheralClassCapabilityTraits<PeripheralClassId::class_gpio>" in nxp_capabilities
     assert "kCapabilities" in nxp_capabilities
     assert "CapabilityNameId::runtime_supported" in nxp_capabilities
@@ -893,6 +929,16 @@ def test_emit_matches_golden_artifacts(
         "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
     ].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_clock.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_profiles.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_profiles.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_config.hpp"
+    ].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_config.hpp"
     ).read_text(encoding="utf-8")
 
 
@@ -1230,6 +1276,18 @@ def test_emit_connector_metadata_supports_microchip_family(
     assert (
         artifacts[
             "microchip/same70/generated/runtime/devices/atsame70q21b/system_clock.hpp"
+        ].content
+        is not None
+    )
+    assert (
+        artifacts[
+            "microchip/same70/generated/runtime/devices/atsame70q21b/clock_profiles.hpp"
+        ].content
+        is not None
+    )
+    assert (
+        artifacts[
+            "microchip/same70/generated/runtime/devices/atsame70q21b/clock_config.hpp"
         ].content
         is not None
     )

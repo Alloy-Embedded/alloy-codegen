@@ -25,11 +25,11 @@
 
 ## Phase 3: Clock Configuration Helpers
 
-- [ ] 3.1 Create `src/alloy_codegen/runtime_clock_config.py`
-- [ ] 3.2 Emit `clock_profiles.hpp` per device
-- [ ] 3.3 Emit `clock_config.hpp` with generated application sequences
-- [ ] 3.4 Add artifact-contract and smoke coverage for clock config artifacts
-- [ ] 3.5 Add foundational-family goldens for default and max-frequency profiles
+- [x] 3.1 Create `src/alloy_codegen/runtime_clock_config.py`
+- [x] 3.2 Emit `clock_profiles.hpp` per device
+- [x] 3.3 Emit `clock_config.hpp` with generated application sequences
+- [x] 3.4 Add artifact-contract and smoke coverage for clock config artifacts
+- [x] 3.5 Add foundational-family goldens for default and max-frequency profiles
 
 ## Phase 4: Capability Sidecars & Diagnostics CLI
 
@@ -50,7 +50,7 @@
 
 ## Phase 6: Docs & Downstream Handoff
 
-- [ ] 6.1 Update artifact layout docs with the final emitted set
+- [x] 6.1 Update artifact layout docs with the final emitted set
 - [x] 6.2 Document the downstream consumer contract expected from `alloy`
 - [x] 6.3 Document known gaps that still require paired-alloy work
 - [ ] 6.4 Archive this change once all codegen-owned work is complete

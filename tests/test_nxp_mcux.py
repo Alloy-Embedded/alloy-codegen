@@ -452,6 +452,8 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/register_fields.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_clock.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_profiles.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_config.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/connectors.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp" in artifacts
@@ -489,6 +491,12 @@ def test_emit_nxp_imxrt1060_artifact_content(
     runtime_clock_bindings = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
     ]
+    runtime_clock_profiles = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_profiles.hpp"
+    ]
+    runtime_clock_config = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_config.hpp"
+    ]
     runtime_routes = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp"]
     runtime_connectors = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/connectors.hpp"
@@ -524,6 +532,10 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "RegisterTraits<RegisterId::" in runtime_registers.content
     assert "RegisterFieldTraits<FieldId::" in runtime_register_fields.content
     assert "PeripheralClockBindingTraits<PeripheralId::" in runtime_clock_bindings.content
+    assert "kClockProfiles" in runtime_clock_profiles.content
+    assert "kMaxClockProfileId" in runtime_clock_profiles.content
+    assert "apply_default_clock_profile" in runtime_clock_config.content
+    assert "apply_clock_profile_default_arm_pll_600mhz" in runtime_clock_config.content
     assert "RouteTraits<" in runtime_routes.content
     assert "ConnectorTraits<PinId::" in runtime_connectors.content
     assert "kConnectors" in runtime_connectors.content
@@ -570,6 +582,8 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "registers.hpp",
         "register_fields.hpp",
         "clock_bindings.hpp",
+        "clock_profiles.hpp",
+        "clock_config.hpp",
         "connectors.hpp",
         "systick.hpp",
         "startup.hpp",

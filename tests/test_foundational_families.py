@@ -62,6 +62,8 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/register_fields.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/clock_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/system_clock.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/clock_profiles.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/clock_config.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/connectors.hpp",
@@ -233,6 +235,24 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "system_clock.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "clock_profiles.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "clock_config.hpp"
             ).exists()
             assert (
                 publication_root
