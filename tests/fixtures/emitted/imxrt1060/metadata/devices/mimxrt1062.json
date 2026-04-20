@@ -1717,7 +1717,7 @@
     },
     {
       "backend_schema_id": "alloy.adc.nxp-adc",
-      "base_address": 1074548736,
+      "base_address": 1074544640,
       "instance": 1,
       "ip_name": "adc",
       "ip_version": null,
@@ -1735,7 +1735,7 @@
     },
     {
       "backend_schema_id": "alloy.adc.nxp-adc",
-      "base_address": 1074565120,
+      "base_address": 1074561024,
       "instance": 2,
       "ip_name": "adc",
       "ip_version": null,
@@ -1753,7 +1753,7 @@
     },
     {
       "backend_schema_id": "alloy.can.nxp-can",
-      "base_address": 1075640320,
+      "base_address": 1075642368,
       "instance": 1,
       "ip_name": "can",
       "ip_version": null,
@@ -1771,7 +1771,7 @@
     },
     {
       "backend_schema_id": "alloy.can.nxp-can",
-      "base_address": 1075656704,
+      "base_address": 1075658752,
       "instance": 2,
       "ip_name": "can",
       "ip_version": null,
@@ -1789,7 +1789,7 @@
     },
     {
       "backend_schema_id": "alloy.can.nxp-can",
-      "base_address": 1075673088,
+      "base_address": 1075675136,
       "instance": 3,
       "ip_name": "can",
       "ip_version": null,
@@ -1807,7 +1807,7 @@
     },
     {
       "backend_schema_id": "alloy.dma.nxp-dma",
-      "base_address": 1074696192,
+      "base_address": 1074692096,
       "instance": 0,
       "ip_name": "dma",
       "ip_version": null,
@@ -1825,7 +1825,7 @@
     },
     {
       "backend_schema_id": "alloy.dma-router.nxp-dmamux",
-      "base_address": 1074712576,
+      "base_address": 1074708480,
       "instance": 1,
       "ip_name": "dmamux",
       "ip_version": null,
@@ -1843,7 +1843,7 @@
     },
     {
       "backend_schema_id": "alloy.gpt.nxp-gpt",
-      "base_address": 1075755008,
+      "base_address": 1075757056,
       "instance": 1,
       "ip_name": "gpt",
       "ip_version": null,
@@ -1861,7 +1861,7 @@
     },
     {
       "backend_schema_id": "alloy.gpt.nxp-gpt",
-      "base_address": 1075771392,
+      "base_address": 1075773440,
       "instance": 2,
       "ip_name": "gpt",
       "ip_version": null,
@@ -1879,7 +1879,7 @@
     },
     {
       "backend_schema_id": "alloy.pit.nxp-pit",
-      "base_address": 1074286592,
+      "base_address": 1074282496,
       "instance": 0,
       "ip_name": "pit",
       "ip_version": null,
@@ -1897,7 +1897,7 @@
     },
     {
       "backend_schema_id": "alloy.pwm.nxp-pwm",
-      "base_address": 1077798912,
+      "base_address": 1077788672,
       "instance": 1,
       "ip_name": "pwm",
       "ip_version": null,
@@ -1915,7 +1915,7 @@
     },
     {
       "backend_schema_id": "alloy.pwm.nxp-pwm",
-      "base_address": 1077815296,
+      "base_address": 1077805056,
       "instance": 2,
       "ip_name": "pwm",
       "ip_version": null,
@@ -1933,7 +1933,7 @@
     },
     {
       "backend_schema_id": "alloy.pwm.nxp-pwm",
-      "base_address": 1077831680,
+      "base_address": 1077821440,
       "instance": 3,
       "ip_name": "pwm",
       "ip_version": null,
@@ -1951,7 +1951,7 @@
     },
     {
       "backend_schema_id": "alloy.pwm.nxp-pwm",
-      "base_address": 1077848064,
+      "base_address": 1077837824,
       "instance": 4,
       "ip_name": "pwm",
       "ip_version": null,
@@ -1969,7 +1969,7 @@
     },
     {
       "backend_schema_id": "alloy.watchdog.nxp-rtwdog",
-      "base_address": 1074515968,
+      "base_address": 1074511872,
       "instance": 0,
       "ip_name": "rtwdog",
       "ip_version": null,
@@ -1987,7 +1987,7 @@
     },
     {
       "backend_schema_id": "alloy.watchdog.nxp-wdog",
-      "base_address": 1074499584,
+      "base_address": 1074495488,
       "instance": 1,
       "ip_name": "wdog",
       "ip_version": null,
@@ -2005,7 +2005,7 @@
     },
     {
       "backend_schema_id": "alloy.watchdog.nxp-wdog",
-      "base_address": 1074597888,
+      "base_address": 1074593792,
       "instance": 2,
       "ip_name": "wdog",
       "ip_version": null,

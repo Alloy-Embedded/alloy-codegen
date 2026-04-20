@@ -73,7 +73,7 @@ struct PeripheralInstanceTraits<PeripheralId::ADC1> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_adc;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_adc_nxp_adc;
   static constexpr int kInstance = 1;
-  static constexpr std::uintptr_t kBaseAddress = 0x400C5000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400C4000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -85,7 +85,7 @@ struct PeripheralInstanceTraits<PeripheralId::ADC2> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_adc;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_adc_nxp_adc;
   static constexpr int kInstance = 2;
-  static constexpr std::uintptr_t kBaseAddress = 0x400C9000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400C8000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -97,7 +97,7 @@ struct PeripheralInstanceTraits<PeripheralId::CAN1> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_can;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_can_nxp_can;
   static constexpr int kInstance = 1;
-  static constexpr std::uintptr_t kBaseAddress = 0x401CF800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401D0000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -109,7 +109,7 @@ struct PeripheralInstanceTraits<PeripheralId::CAN2> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_can;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_can_nxp_can;
   static constexpr int kInstance = 2;
-  static constexpr std::uintptr_t kBaseAddress = 0x401D3800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401D4000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -121,7 +121,7 @@ struct PeripheralInstanceTraits<PeripheralId::CAN3> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_can;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_can_nxp_can;
   static constexpr int kInstance = 3;
-  static constexpr std::uintptr_t kBaseAddress = 0x401D7800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401D8000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -133,7 +133,7 @@ struct PeripheralInstanceTraits<PeripheralId::DMA0> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_dma;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_dma_nxp_dma;
   static constexpr int kInstance = 0;
-  static constexpr std::uintptr_t kBaseAddress = 0x400E9000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400E8000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -145,7 +145,7 @@ struct PeripheralInstanceTraits<PeripheralId::DMAMUX1> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_dma_router;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_dma_router_nxp_dmamux;
   static constexpr int kInstance = 1;
-  static constexpr std::uintptr_t kBaseAddress = 0x400ED000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400EC000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -181,7 +181,7 @@ struct PeripheralInstanceTraits<PeripheralId::GPT1> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_timer;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_gpt_nxp_gpt;
   static constexpr int kInstance = 1;
-  static constexpr std::uintptr_t kBaseAddress = 0x401EB800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401EC000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -193,7 +193,7 @@ struct PeripheralInstanceTraits<PeripheralId::GPT2> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_timer;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_gpt_nxp_gpt;
   static constexpr int kInstance = 2;
-  static constexpr std::uintptr_t kBaseAddress = 0x401EF800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401F0000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -241,7 +241,7 @@ struct PeripheralInstanceTraits<PeripheralId::PIT> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_timer;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_pit_nxp_pit;
   static constexpr int kInstance = 0;
-  static constexpr std::uintptr_t kBaseAddress = 0x40085000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x40084000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -253,7 +253,7 @@ struct PeripheralInstanceTraits<PeripheralId::PWM1> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_pwm;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_pwm_nxp_pwm;
   static constexpr int kInstance = 1;
-  static constexpr std::uintptr_t kBaseAddress = 0x403DE800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403DC000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -265,7 +265,7 @@ struct PeripheralInstanceTraits<PeripheralId::PWM2> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_pwm;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_pwm_nxp_pwm;
   static constexpr int kInstance = 2;
-  static constexpr std::uintptr_t kBaseAddress = 0x403E2800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403E0000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -277,7 +277,7 @@ struct PeripheralInstanceTraits<PeripheralId::PWM3> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_pwm;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_pwm_nxp_pwm;
   static constexpr int kInstance = 3;
-  static constexpr std::uintptr_t kBaseAddress = 0x403E6800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403E4000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -289,7 +289,7 @@ struct PeripheralInstanceTraits<PeripheralId::PWM4> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_pwm;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_pwm_nxp_pwm;
   static constexpr int kInstance = 4;
-  static constexpr std::uintptr_t kBaseAddress = 0x403EA800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403E8000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -301,7 +301,7 @@ struct PeripheralInstanceTraits<PeripheralId::RTWDOG> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_watchdog;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_watchdog_nxp_rtwdog;
   static constexpr int kInstance = 0;
-  static constexpr std::uintptr_t kBaseAddress = 0x400BD000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400BC000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -313,7 +313,7 @@ struct PeripheralInstanceTraits<PeripheralId::WDOG1> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_watchdog;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_watchdog_nxp_wdog;
   static constexpr int kInstance = 1;
-  static constexpr std::uintptr_t kBaseAddress = 0x400B9000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400B8000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -325,7 +325,7 @@ struct PeripheralInstanceTraits<PeripheralId::WDOG2> {
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_watchdog;
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_watchdog_nxp_wdog;
   static constexpr int kInstance = 2;
-  static constexpr std::uintptr_t kBaseAddress = 0x400D1000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400D0000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;

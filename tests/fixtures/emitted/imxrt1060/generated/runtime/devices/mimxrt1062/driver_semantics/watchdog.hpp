@@ -52,9 +52,9 @@ struct WatchdogSemanticTraits<PeripheralId::RTWDOG> {
   static constexpr std::uint32_t kStartKeyValue = 0x00000000u;
   static constexpr std::uint32_t kRefreshKeyValue = 0x0000A602u;
   static constexpr std::uint32_t kUnlockKeyValue = 0x0000C520u;
-  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_rtwdog_cs, 0x400BD000u, 0u, true};
-  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_rtwdog_cs, 0x400BD000u, 0u, true};
-  static constexpr RuntimeRegisterRef kStatusRegister = RuntimeRegisterRef{RegisterId::register_rtwdog_cs, 0x400BD000u, 0u, true};
+  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_rtwdog_cs, 0x400BC000u, 0u, true};
+  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_rtwdog_cs, 0x400BC000u, 0u, true};
+  static constexpr RuntimeRegisterRef kStatusRegister = RuntimeRegisterRef{RegisterId::register_rtwdog_cs, 0x400BC000u, 0u, true};
   static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kReloadRegister = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kWindowRegister = kInvalidRegisterRef;
@@ -84,8 +84,8 @@ struct WatchdogSemanticTraits<PeripheralId::WDOG1> {
   static constexpr std::uint32_t kStartKeyValue = 0x00000000u;
   static constexpr std::uint32_t kRefreshKeyValue = 0x00005555u;
   static constexpr std::uint32_t kUnlockKeyValue = 0x0000C520u;
-  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_wdog1_wcr, 0x400B9000u, 0u, true};
-  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_wdog1_wcr, 0x400B9000u, 0u, true};
+  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_wdog1_wcr, 0x400B8000u, 0u, true};
+  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_wdog1_wcr, 0x400B8000u, 0u, true};
   static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kReloadRegister = kInvalidRegisterRef;
@@ -116,8 +116,8 @@ struct WatchdogSemanticTraits<PeripheralId::WDOG2> {
   static constexpr std::uint32_t kStartKeyValue = 0x00000000u;
   static constexpr std::uint32_t kRefreshKeyValue = 0x00005555u;
   static constexpr std::uint32_t kUnlockKeyValue = 0x0000C520u;
-  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_wdog2_wcr, 0x400D1000u, 0u, true};
-  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_wdog2_wcr, 0x400D1000u, 0u, true};
+  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_wdog2_wcr, 0x400D0000u, 0u, true};
+  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_wdog2_wcr, 0x400D0000u, 0u, true};
   static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kReloadRegister = kInvalidRegisterRef;

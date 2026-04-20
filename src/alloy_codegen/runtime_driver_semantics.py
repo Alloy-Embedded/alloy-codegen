@@ -606,6 +606,7 @@ class EthSemanticRow:
     tx_complete_interrupt_field: RuntimeFieldRef
     rx_complete_interrupt_enable_field: RuntimeFieldRef
     tx_complete_interrupt_enable_field: RuntimeFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -5312,6 +5313,7 @@ def _microchip_gmac_eth_row(
 
 def _build_eth_rows(context: _SemanticContext) -> tuple[EthSemanticRow, ...]:
     rows: list[EthSemanticRow] = []
+    handled: set[str] = set()
     for peripheral in context.runtime_peripherals_by_class.get("eth", ()):
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
@@ -5326,6 +5328,55 @@ def _build_eth_rows(context: _SemanticContext) -> tuple[EthSemanticRow, ...]:
                     schema_id=schema_id,
                 )
             )
+            handled.add(peripheral.name)
+
+    # Emit stub rows for ETH peripherals whose schema is not yet implemented so
+    # the artifact contract (`EthSemanticTraits<PeripheralId::`) is satisfied.
+    for peripheral in context.runtime_peripherals_by_class.get("eth", ()):
+        if peripheral.name in handled:
+            continue
+        base = context.peripheral_by_name[peripheral.name].base_address
+        invalid_reg = _invalid_register_ref(base)
+        invalid_field = _invalid_field_ref(base)
+        rows.append(
+            EthSemanticRow(
+                peripheral_name=peripheral.name,
+                schema_id=peripheral.backend_schema_id or "",
+                supports_mii=False,
+                supports_rmii=False,
+                has_dma_engine=False,
+                has_statistics_counters=False,
+                control_reg=invalid_reg,
+                config_reg=invalid_reg,
+                status_reg=invalid_reg,
+                user_io_reg=invalid_reg,
+                dma_config_reg=invalid_reg,
+                tx_status_reg=invalid_reg,
+                rx_status_reg=invalid_reg,
+                interrupt_status_reg=invalid_reg,
+                interrupt_enable_reg=invalid_reg,
+                interrupt_disable_reg=invalid_reg,
+                interrupt_mask_reg=invalid_reg,
+                rx_descriptor_base_reg=invalid_reg,
+                tx_descriptor_base_reg=invalid_reg,
+                rx_enable_field=invalid_field,
+                tx_enable_field=invalid_field,
+                management_port_enable_field=invalid_field,
+                clear_statistics_field=invalid_field,
+                write_enable_statistics_field=invalid_field,
+                tx_start_field=invalid_field,
+                speed_field=invalid_field,
+                full_duplex_field=invalid_field,
+                mdc_clock_divider_field=invalid_field,
+                rmii_enable_field=invalid_field,
+                management_done_field=invalid_field,
+                rx_complete_interrupt_field=invalid_field,
+                tx_complete_interrupt_field=invalid_field,
+                rx_complete_interrupt_enable_field=invalid_field,
+                tx_complete_interrupt_enable_field=invalid_field,
+                is_stub=True,
+            )
+        )
     return tuple(rows)
 
 
@@ -8433,7 +8484,8 @@ def _emit_peripheral_semantics_header(
                 "",
             ]
         )
-        peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+        if not getattr(row, "is_stub", False):
+            peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
     body = "\n".join(
         [
             *trait_lines,
@@ -9117,6 +9169,45 @@ def _usb_specialization_builder(context: _SemanticContext):
 
 def _eth_specialization_builder(context: _SemanticContext):
     def _build(row: EthSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+                "  static constexpr bool kSupportsMii = false;",
+                "  static constexpr bool kSupportsRmii = false;",
+                "  static constexpr bool kHasDmaEngine = false;",
+                "  static constexpr bool kHasStatisticsCounters = false;",
+                "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kConfigRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kUserIoRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kDmaConfigRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kTxStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kRxStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptEnableRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptDisableRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptMaskRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kRxDescriptorBaseRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kTxDescriptorBaseRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kRxEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kManagementPortEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearStatisticsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kWriteEnableStatisticsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxStartField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kFullDuplexField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kMdcClockDividerField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRmiiEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kManagementDoneField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxCompleteInterruptField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxCompleteInterruptField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxCompleteInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kControlRegister": row.control_reg,
             "kConfigRegister": row.config_reg,

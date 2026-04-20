@@ -91,6 +91,7 @@ enum class AccessKindId : std::uint16_t {
 
 enum class StartupKindId : std::uint16_t {
   none,
+  startup_kind_copy_source_region,
   startup_kind_copy_target_region,
   startup_kind_initial_stack_pointer,
   startup_kind_vector_table,

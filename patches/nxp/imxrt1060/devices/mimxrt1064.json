@@ -54,104 +54,104 @@
     {
       "peripheral": "ADC1",
       "name": "HC0",
-      "base_address": 1074548736,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074544640
     },
     {
       "peripheral": "ADC2",
       "name": "HC0",
-      "base_address": 1074565120,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074561024
     },
     {
       "peripheral": "CAN1",
       "name": "MCR",
-      "base_address": 1075640320,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1075642368
     },
     {
       "peripheral": "CAN2",
       "name": "MCR",
-      "base_address": 1075656704,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1075658752
     },
     {
       "peripheral": "CAN3",
       "name": "MCR",
-      "base_address": 1075673088,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1075675136
     },
     {
       "peripheral": "DMA0",
       "name": "CR",
-      "base_address": 1074696192,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074692096
     },
     {
       "peripheral": "DMAMUX1",
       "name": "CHCFG0",
-      "base_address": 1074712576,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074708480
     },
     {
       "peripheral": "GPT1",
       "name": "CR",
-      "base_address": 1075755008,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1075757056
     },
     {
       "peripheral": "GPT2",
       "name": "CR",
-      "base_address": 1075771392,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1075773440
     },
     {
       "peripheral": "PIT",
       "name": "MCR",
-      "base_address": 1074286592,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074282496
     },
     {
       "peripheral": "PWM1",
       "name": "MCTRL",
-      "base_address": 1077798912,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1077788672
     },
     {
       "peripheral": "PWM2",
       "name": "MCTRL",
-      "base_address": 1077815296,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1077805056
     },
     {
       "peripheral": "PWM3",
       "name": "MCTRL",
-      "base_address": 1077831680,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1077821440
     },
     {
       "peripheral": "PWM4",
       "name": "MCTRL",
-      "base_address": 1077848064,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1077837824
     },
     {
       "peripheral": "RTWDOG",
       "name": "CS",
-      "base_address": 1074515968,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074511872
     },
     {
       "peripheral": "WDOG1",
       "name": "WCR",
-      "base_address": 1074499584,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074495488
     },
     {
       "peripheral": "WDOG2",
       "name": "WCR",
-      "base_address": 1074597888,
-      "offset_bytes": 0
+      "offset_bytes": 0,
+      "base_address": 1074593792
     }
   ],
   "memories": [

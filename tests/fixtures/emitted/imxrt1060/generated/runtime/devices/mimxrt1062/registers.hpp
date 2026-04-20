@@ -69,7 +69,7 @@ struct RegisterTraits {
 template<>
 struct RegisterTraits<RegisterId::register_adc1_hc0> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400C5000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400C4000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -78,7 +78,7 @@ struct RegisterTraits<RegisterId::register_adc1_hc0> {
 template<>
 struct RegisterTraits<RegisterId::register_adc2_hc0> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400C9000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400C8000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -87,7 +87,7 @@ struct RegisterTraits<RegisterId::register_adc2_hc0> {
 template<>
 struct RegisterTraits<RegisterId::register_can1_mcr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x401CF800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401D0000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -96,7 +96,7 @@ struct RegisterTraits<RegisterId::register_can1_mcr> {
 template<>
 struct RegisterTraits<RegisterId::register_can2_mcr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x401D3800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401D4000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -105,7 +105,7 @@ struct RegisterTraits<RegisterId::register_can2_mcr> {
 template<>
 struct RegisterTraits<RegisterId::register_can3_mcr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x401D7800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401D8000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -222,7 +222,7 @@ struct RegisterTraits<RegisterId::register_dcdc_reg3> {
 template<>
 struct RegisterTraits<RegisterId::register_dma0_cr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400E9000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400E8000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -231,7 +231,7 @@ struct RegisterTraits<RegisterId::register_dma0_cr> {
 template<>
 struct RegisterTraits<RegisterId::register_dmamux1_chcfg0> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400ED000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400EC000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -294,7 +294,7 @@ struct RegisterTraits<RegisterId::register_gpio4_psr> {
 template<>
 struct RegisterTraits<RegisterId::register_gpt1_cr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x401EB800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401EC000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -303,7 +303,7 @@ struct RegisterTraits<RegisterId::register_gpt1_cr> {
 template<>
 struct RegisterTraits<RegisterId::register_gpt2_cr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x401EF800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x401F0000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -384,7 +384,7 @@ struct RegisterTraits<RegisterId::register_lpuart3_data> {
 template<>
 struct RegisterTraits<RegisterId::register_pit_mcr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x40085000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x40084000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -393,7 +393,7 @@ struct RegisterTraits<RegisterId::register_pit_mcr> {
 template<>
 struct RegisterTraits<RegisterId::register_pwm1_mctrl> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x403DE800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403DC000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -402,7 +402,7 @@ struct RegisterTraits<RegisterId::register_pwm1_mctrl> {
 template<>
 struct RegisterTraits<RegisterId::register_pwm2_mctrl> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x403E2800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403E0000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -411,7 +411,7 @@ struct RegisterTraits<RegisterId::register_pwm2_mctrl> {
 template<>
 struct RegisterTraits<RegisterId::register_pwm3_mctrl> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x403E6800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403E4000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -420,7 +420,7 @@ struct RegisterTraits<RegisterId::register_pwm3_mctrl> {
 template<>
 struct RegisterTraits<RegisterId::register_pwm4_mctrl> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x403EA800u;
+  static constexpr std::uintptr_t kBaseAddress = 0x403E8000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -429,7 +429,7 @@ struct RegisterTraits<RegisterId::register_pwm4_mctrl> {
 template<>
 struct RegisterTraits<RegisterId::register_rtwdog_cs> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400BD000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400BC000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -438,7 +438,7 @@ struct RegisterTraits<RegisterId::register_rtwdog_cs> {
 template<>
 struct RegisterTraits<RegisterId::register_wdog1_wcr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400B9000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400B8000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
@@ -447,7 +447,7 @@ struct RegisterTraits<RegisterId::register_wdog1_wcr> {
 template<>
 struct RegisterTraits<RegisterId::register_wdog2_wcr> {
   static constexpr bool kPresent = true;
-  static constexpr std::uintptr_t kBaseAddress = 0x400D1000u;
+  static constexpr std::uintptr_t kBaseAddress = 0x400D0000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
