@@ -34,6 +34,7 @@ from alloy_codegen.runtime_capabilities import (
     emit_runtime_capabilities_json,
 )
 from alloy_codegen.runtime_clock_graph import emit_runtime_clock_graph_header
+from alloy_codegen.runtime_connectors import emit_runtime_connectors_header
 from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_adc_semantics_header,
     emit_runtime_driver_can_semantics_header,
@@ -153,6 +154,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_lite_routes_header(family_dir=family_dir, device=device),
+                emit_runtime_connectors_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
                 emit_runtime_driver_semantics_common_header(
                     family_dir=family_dir,
                     device=device,

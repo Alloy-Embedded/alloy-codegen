@@ -34,6 +34,10 @@
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER must be defined"
 #endif
 
+#ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CONNECTORS_HEADER
+    #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CONNECTORS_HEADER must be defined"
+#endif
+
 #ifndef ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER
     #error "ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER must be defined"
 #endif
@@ -138,6 +142,7 @@
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CLOCK_BINDINGS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_DMA_BINDINGS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_ROUTES_HEADER
+#include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CONNECTORS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_UART_SEMANTICS_HEADER
 #include ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_I2C_SEMANTICS_HEADER
@@ -172,6 +177,7 @@ static_assert(published_device_runtime::kPins.size() > 0u);
 static_assert(published_device_runtime::kRegisters.size() > 0u);
 static_assert(published_device_runtime::kRegisterFields.size() > 0u);
 static_assert(published_device_runtime::kClockBoundPeripherals.size() > 0u);
+static_assert(published_device_runtime::kConnectors.size() > 0u);
 
 constexpr auto kFirstPeripheral = published_device_runtime::kRuntimePeripherals[0];
 constexpr auto kFirstPin = published_device_runtime::kPins[0];
@@ -240,6 +246,18 @@ struct FirstAdcSemanticSmoke {
 
 template<const auto& Values>
 struct FirstAdcSemanticSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstConnectorSmoke {
+    static constexpr auto kConnector = Values[0];
+    static constexpr bool kPresent = published_device_runtime::ConnectorTraits<
+        kConnector.pin_id, kConnector.peripheral_id, kConnector.signal_id>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstConnectorSmoke<Values, 0u> {
     static constexpr bool kPresent = true;
 };
 
@@ -348,6 +366,7 @@ static_assert(FirstUartSemanticSmoke<published_driver::kUartSemanticPeripherals>
 static_assert(FirstI2cSemanticSmoke<published_driver::kI2cSemanticPeripherals>::kPresent);
 static_assert(FirstSpiSemanticSmoke<published_driver::kSpiSemanticPeripherals>::kPresent);
 static_assert(FirstAdcSemanticSmoke<published_driver::kAdcSemanticPeripherals>::kPresent);
+static_assert(FirstConnectorSmoke<published_device_runtime::kConnectors>::kPresent);
 static_assert(FirstDacSemanticSmoke<published_driver::kDacSemanticPeripherals>::kPresent);
 static_assert(FirstCanSemanticSmoke<published_driver::kCanSemanticPeripherals>::kPresent);
 static_assert(FirstRtcSemanticSmoke<published_driver::kRtcSemanticPeripherals>::kPresent);

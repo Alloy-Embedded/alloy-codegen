@@ -25,6 +25,7 @@ The local artifact root is controlled by `ExecutionContext.artifact_root` or
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/connectors.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
@@ -89,6 +90,7 @@ Successful publication writes:
 - `<vendor>/<family>/generated/runtime/devices/<device>/clock_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/dma_bindings.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/routes.hpp`
+- `<vendor>/<family>/generated/runtime/devices/<device>/connectors.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/systick.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/startup.hpp`
 - `<vendor>/<family>/generated/runtime/devices/<device>/system_clock.hpp`
@@ -133,6 +135,8 @@ Successful publication writes:
 - `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
 - `generated/runtime/devices/<device>/interrupt_stubs.hpp` is the typed weak-interrupt
   declaration contract aligned with the generated startup surface.
+- `generated/runtime/devices/<device>/connectors.hpp` is the typed valid-connector contract
+  aligned with emitted routes and connection groups.
 - `generated/runtime/devices/<device>/capabilities.json` is the machine-readable sidecar for
   the per-device runtime capability contract.
 - `generated/devices/<device>/device.ld` is the generated linker script carrying the

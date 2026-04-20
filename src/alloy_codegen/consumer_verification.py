@@ -145,6 +145,10 @@ def verify_runtime_lite_smoke_consumer(
             f'"{vendor}/{family}/generated/runtime/devices/{device}/routes.hpp"'
         ),
         (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_CONNECTORS_HEADER="
+            f'"{vendor}/{family}/generated/runtime/devices/{device}/connectors.hpp"'
+        ),
+        (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_GPIO_SEMANTICS_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/driver_semantics/gpio.hpp"'
         ),

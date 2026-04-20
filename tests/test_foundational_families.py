@@ -64,6 +64,7 @@ def _device_artifact_paths(
                 f"{family_dir}/generated/runtime/devices/{device_name}/system_clock.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/dma_bindings.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/routes.hpp",
+                f"{family_dir}/generated/runtime/devices/{device_name}/connectors.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/startup.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/interrupts.hpp",
                 f"{family_dir}/generated/runtime/devices/{device_name}/interrupt_stubs.hpp",
@@ -259,6 +260,15 @@ def test_foundational_families_publish_with_same_generic_workflow(
                 / "devices"
                 / device_name
                 / "routes.hpp"
+            ).exists()
+            assert (
+                publication_root
+                / family_dir
+                / "generated"
+                / "runtime"
+                / "devices"
+                / device_name
+                / "connectors.hpp"
             ).exists()
             assert (
                 publication_root

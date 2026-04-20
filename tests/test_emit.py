@@ -164,6 +164,9 @@ def test_emit_includes_metadata_artifacts_with_content(
     runtime_routes_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"
     ]
+    runtime_connectors_artifact = artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/connectors.hpp"
+    ]
     runtime_driver_common_artifact = artifacts[
         "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/common.hpp"
     ]
@@ -393,6 +396,10 @@ def test_emit_includes_metadata_artifacts_with_content(
     assert "ControllerTraits<DmaControllerId" in runtime_dma_bindings_artifact.content
     assert runtime_routes_artifact.artifact_kind == "generated-cpp"
     assert "RouteTraits<" in runtime_routes_artifact.content
+    assert runtime_connectors_artifact.artifact_kind == "generated-cpp"
+    assert "ConnectorTraits<PinId::" in runtime_connectors_artifact.content
+    assert "ConnectorSignalTraits<PeripheralId::" in runtime_connectors_artifact.content
+    assert "kConnectors" in runtime_connectors_artifact.content
     assert "ConnectionGroupTraits<" in runtime_routes_artifact.content
     assert runtime_driver_common_artifact.artifact_kind == "generated-cpp"
     assert "struct RuntimeRegisterRef" in runtime_driver_common_artifact.content
@@ -801,6 +808,9 @@ def test_emit_matches_golden_artifacts(
     ).read_text(encoding="utf-8")
     assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"].content == (
         fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "routes.hpp"
+    ).read_text(encoding="utf-8")
+    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/connectors.hpp"].content == (
+        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "connectors.hpp"
     ).read_text(encoding="utf-8")
     for name in (
         "common.hpp",

@@ -28,6 +28,7 @@ Published `alloy-devices` trees may contain:
   - `generated/runtime/devices/<device>/clock_bindings.hpp`
   - `generated/runtime/devices/<device>/dma_bindings.hpp`
   - `generated/runtime/devices/<device>/routes.hpp`
+  - `generated/runtime/devices/<device>/connectors.hpp`
   - `generated/runtime/devices/<device>/systick.hpp`
   - `generated/runtime/devices/<device>/startup.hpp`
   - `generated/runtime/devices/<device>/system_clock.hpp`
@@ -83,6 +84,9 @@ The published C++ contract is runtime-first:
   bindings for the runtime contract
 - `generated/runtime/devices/<device>/interrupt_stubs.hpp` carries the weak `extern "C"`
   interrupt declaration surface plus typed interrupt-stub descriptors
+- `generated/runtime/devices/<device>/connectors.hpp` carries typed valid
+  pin-peripheral-signal combinations so Alloy does not need connector scans or handwritten
+  compatibility tables
 - `generated/runtime/devices/<device>/capabilities.json` carries the same runtime capability
   facts as the header contract, but in a tool-friendly sidecar for diff, CMake, and diagnostics
 - `generated/runtime/devices/<device>/enable_domains.hpp` carries typed enable-domain facts

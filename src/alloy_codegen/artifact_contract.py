@@ -11,6 +11,7 @@ from alloy_codegen.runtime_capabilities import (
     runtime_capability_rows,
 )
 from alloy_codegen.runtime_clock_graph import runtime_clock_graph_required_paths
+from alloy_codegen.runtime_connectors import runtime_connectors_required_paths
 from alloy_codegen.runtime_driver_semantics import (
     runtime_driver_semantics_required_paths,
 )
@@ -106,6 +107,10 @@ def find_runtime_lite_contract_violations(
         family_dir=family_dir,
         devices=devices,
     )
+    required_paths = required_paths + runtime_connectors_required_paths(
+        family_dir=family_dir,
+        devices=devices,
+    )
     required_paths = required_paths + runtime_capabilities_required_paths(
         family_dir=family_dir,
         devices=devices,
@@ -197,6 +202,7 @@ def find_runtime_lite_contract_violations(
             "clock_bindings": f"{device_runtime_root}/clock_bindings.hpp",
             "dma_bindings": f"{device_runtime_root}/dma_bindings.hpp",
             "routes": f"{device_runtime_root}/routes.hpp",
+            "connectors": f"{device_runtime_root}/connectors.hpp",
             "driver_common": f"{device_runtime_root}/driver_semantics/common.hpp",
             "gpio_semantics": f"{device_runtime_root}/driver_semantics/gpio.hpp",
             "uart_semantics": f"{device_runtime_root}/driver_semantics/uart.hpp",
@@ -296,6 +302,19 @@ def find_runtime_lite_contract_violations(
                 )
             elif "RouteTraits<" not in routes_content:
                 violations.append(f"{device_runtime_paths['routes']} does not emit route traits")
+            connectors_content = content_by_key["connectors"]
+            if connectors_content is None:
+                violations.append(
+                    f"missing runtime-lite connectors header: {device_runtime_paths['connectors']}"
+                )
+            elif "ConnectorTraits<PinId::" not in connectors_content:
+                violations.append(
+                    f"{device_runtime_paths['connectors']} does not emit connector traits"
+                )
+            elif "kConnectors" not in connectors_content:
+                violations.append(
+                    f"{device_runtime_paths['connectors']} does not emit connector descriptors"
+                )
 
         if (
             content_by_key["driver_common"]

@@ -453,6 +453,7 @@ def test_emit_nxp_imxrt1060_produces_required_artifacts(
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/system_clock.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp" in artifacts
+    assert f"{family_dir}/generated/runtime/devices/mimxrt1062/connectors.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupts.hpp" in artifacts
     assert f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupt_stubs.hpp" in artifacts
@@ -489,6 +490,9 @@ def test_emit_nxp_imxrt1060_artifact_content(
         f"{family_dir}/generated/runtime/devices/mimxrt1062/clock_bindings.hpp"
     ]
     runtime_routes = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/routes.hpp"]
+    runtime_connectors = artifacts[
+        f"{family_dir}/generated/runtime/devices/mimxrt1062/connectors.hpp"
+    ]
     runtime_startup = artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/startup.hpp"]
     runtime_interrupts = artifacts[
         f"{family_dir}/generated/runtime/devices/mimxrt1062/interrupts.hpp"
@@ -521,6 +525,8 @@ def test_emit_nxp_imxrt1060_artifact_content(
     assert "RegisterFieldTraits<FieldId::" in runtime_register_fields.content
     assert "PeripheralClockBindingTraits<PeripheralId::" in runtime_clock_bindings.content
     assert "RouteTraits<" in runtime_routes.content
+    assert "ConnectorTraits<PinId::" in runtime_connectors.content
+    assert "kConnectors" in runtime_connectors.content
     assert "kVectorSlots" in runtime_startup.content
     assert "kStartupDescriptors" in runtime_startup.content
     assert "kInterruptDescriptors" in runtime_interrupts.content
@@ -564,6 +570,7 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "registers.hpp",
         "register_fields.hpp",
         "clock_bindings.hpp",
+        "connectors.hpp",
         "systick.hpp",
         "startup.hpp",
         "interrupts.hpp",
