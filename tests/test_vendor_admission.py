@@ -8,7 +8,9 @@ from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.publish import run as run_publish
 from alloy_codegen.vendor_admission import (
     FOUNDATIONAL_FAMILIES,
+    CandidateFamilySchemaStatus,
     FoundationalFamilyStatus,
+    evaluate_candidate_family_schema_admission,
     evaluate_vendor_admission,
 )
 
@@ -119,3 +121,46 @@ def test_vendor_admission_gate_blocks_incomplete_foundational_family() -> None:
     blockers = evaluate_vendor_admission(statuses)
 
     assert blockers == ("st/stm32f4 is not contract-complete",)
+
+
+def test_candidate_family_schema_admission_accepts_typed_schema_reuse() -> None:
+    statuses = (
+        CandidateFamilySchemaStatus(
+            vendor="espressif",
+            family="esp32c3",
+            reuses_typed_runtime_schemas=True,
+        ),
+    )
+
+    assert evaluate_candidate_family_schema_admission(statuses) == ()
+
+
+def test_candidate_family_schema_admission_accepts_localized_schema_support() -> None:
+    statuses = (
+        CandidateFamilySchemaStatus(
+            vendor="microchip",
+            family="avr-da",
+            reuses_typed_runtime_schemas=False,
+            localized_runtime_schemas=("alloy.pinmux.avr-portmux-v1",),
+        ),
+    )
+
+    assert evaluate_candidate_family_schema_admission(statuses) == ()
+
+
+def test_candidate_family_schema_admission_blocks_runtime_string_glue_and_family_branches() -> None:
+    statuses = (
+        CandidateFamilySchemaStatus(
+            vendor="vendorx",
+            family="foo32",
+            reuses_typed_runtime_schemas=False,
+            requires_family_runtime_branches=True,
+            requires_runtime_string_glue=True,
+        ),
+    )
+
+    assert evaluate_candidate_family_schema_admission(statuses) == (
+        "vendorx/foo32 still requires runtime string glue",
+        "vendorx/foo32 still requires family-specific runtime branches",
+        "vendorx/foo32 does not reuse typed schemas and does not declare localized schema support",
+    )

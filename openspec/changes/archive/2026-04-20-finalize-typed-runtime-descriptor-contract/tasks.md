@@ -33,7 +33,7 @@
 - [x] 5.2 Validate that route operations are executable from typed references alone
 - [x] 5.3 Validate that interrupt and DMA bindings are typed and complete for foundational families
 - [x] 5.4 Block publication when a foundational family still requires runtime string parsing
-- [ ] 5.5 Update vendor admission so new families must reuse schemas or add localized schema support only
+- [x] 5.5 Update vendor admission so new families must reuse schemas or add localized schema support only
 
 ## 6. Regression Coverage
 

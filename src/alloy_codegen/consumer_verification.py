@@ -81,6 +81,25 @@ def _write_linker_smoke_source(path: Path) -> None:
     )
 
 
+def _linker_script_requires_distinct_data_load_address(linker_script: Path) -> bool:
+    script_text = linker_script.read_text(encoding="utf-8")
+    text_region: str | None = None
+    data_region: str | None = None
+    for line in script_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith('REGION_ALIAS("REGION_TEXT",'):
+            text_region = (
+                stripped.removeprefix('REGION_ALIAS("REGION_TEXT",').removesuffix(");").strip()
+            )
+        if stripped.startswith('REGION_ALIAS("REGION_DATA",'):
+            data_region = (
+                stripped.removeprefix('REGION_ALIAS("REGION_DATA",').removesuffix(");").strip()
+            )
+    if text_region is None or data_region is None:
+        return True
+    return text_region != data_region
+
+
 def _verify_linker_script(
     *,
     compiler: str,
@@ -183,7 +202,10 @@ def _verify_linker_script(
             stdout=link_result.stdout,
             stderr="linked output map does not contain the expected .text/.data/.bss sections",
         )
-    if "load address" not in map_text:
+    if (
+        _linker_script_requires_distinct_data_load_address(linker_script)
+        and "load address" not in map_text
+    ):
         return LinkerScriptVerification(
             attempted=True,
             succeeded=False,

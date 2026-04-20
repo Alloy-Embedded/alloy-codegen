@@ -47,6 +47,26 @@ class FoundationalFamilyStatus:
         return self.key in STABLE_CYCLE_FAMILIES
 
 
+@dataclass(frozen=True, slots=True)
+class CandidateFamilySchemaStatus:
+    """Schema-admission state for a new family that is not yet foundational."""
+
+    vendor: str
+    family: str
+    reuses_typed_runtime_schemas: bool
+    localized_runtime_schemas: tuple[str, ...] = ()
+    requires_family_runtime_branches: bool = False
+    requires_runtime_string_glue: bool = False
+
+    @property
+    def key(self) -> tuple[str, str]:
+        return (self.vendor.lower(), self.family.lower())
+
+    @property
+    def has_localized_schema_support(self) -> bool:
+        return bool(self.localized_runtime_schemas)
+
+
 def evaluate_vendor_admission(statuses: tuple[FoundationalFamilyStatus, ...]) -> tuple[str, ...]:
     """Return blocker messages that keep the vendor-admission gate closed."""
 
@@ -67,5 +87,26 @@ def evaluate_vendor_admission(statuses: tuple[FoundationalFamilyStatus, ...]) ->
             continue
         if status.stable_publication_cycles < 2:
             blockers.append(f"{vendor}/{family} has fewer than two stable publication cycles")
+
+    return tuple(blockers)
+
+
+def evaluate_candidate_family_schema_admission(
+    statuses: tuple[CandidateFamilySchemaStatus, ...],
+) -> tuple[str, ...]:
+    """Return blockers for candidate families that do not satisfy typed schema admission."""
+
+    blockers: list[str] = []
+    for status in statuses:
+        family_key = f"{status.vendor}/{status.family}"
+        if status.requires_runtime_string_glue:
+            blockers.append(f"{family_key} still requires runtime string glue")
+        if status.requires_family_runtime_branches:
+            blockers.append(f"{family_key} still requires family-specific runtime branches")
+        if not status.reuses_typed_runtime_schemas and not status.has_localized_schema_support:
+            blockers.append(
+                f"{family_key} does not reuse typed schemas "
+                "and does not declare localized schema support"
+            )
 
     return tuple(blockers)
