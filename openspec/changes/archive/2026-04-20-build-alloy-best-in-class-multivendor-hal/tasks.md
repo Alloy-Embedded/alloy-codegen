@@ -9,9 +9,9 @@
 
 - [x] 1.1 Create `src/alloy_codegen/runtime_linker_script.py`
 - [x] 1.2 Emit `generated/devices/<device>/device.ld` from `MemoryRegion` + startup roles
-- [ ] 1.3 Support Harvard layouts where `address_space` is meaningful
+- [x] 1.3 Support Harvard layouts where `address_space` is meaningful
 - [x] 1.4 Add linker-script required paths/content checks in `artifact_contract.py`
-- [ ] 1.5 Extend `consumer_verification.py` to validate or link against
+- [x] 1.5 Extend `consumer_verification.py` to validate or link against
       `generated/devices/<device>/device.ld` on toolchains that support GNU ld scripts
 - [x] 1.6 Add emitted linker-script goldens for foundational families
 
@@ -46,7 +46,7 @@
 - [x] 5.2 Fail publish when runtime-supported peripherals have incomplete capability coverage
 - [x] 5.3 Add cross-publication capability regression detection
 - [x] 5.4 Add cross-device capability parity/diff tests
-- [ ] 5.5 Ensure consumer verification compiles or links the complete generated set
+- [x] 5.5 Ensure consumer verification compiles or links the complete generated set
 
 ## Phase 6: Docs & Downstream Handoff
 
