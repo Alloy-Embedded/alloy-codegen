@@ -171,6 +171,10 @@ Successful publication writes:
   sources, patches, and inference rules.
 - `reports/runtime-explainability.json` explains accepted runtime routes, bindings, capabilities,
   and any heuristic or partial coverage that remains visible in the published contract.
+- `alloy-codegen explain --device <device> --fact <fact>` reads those runtime provenance and
+  explainability reports through the validated device pipeline and returns a fact-scoped trace.
+- `alloy-codegen diff --from <device1> --to <device2>` compares emitted runtime capability rows
+  between two devices and attaches provenance for added, removed, and modified capability facts.
 - `artifact-manifest.json` is the traceability entrypoint for generator version, schema
   version, source manifest, patch manifest, and validation hashes.
 

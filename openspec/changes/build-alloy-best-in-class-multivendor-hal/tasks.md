@@ -36,9 +36,9 @@
 - [x] 4.1 Emit `capabilities.hpp` per device
 - [x] 4.2 Emit `capabilities.json` per device
 - [x] 4.3 Ensure capability emission consumes `CapabilityDescriptor` directly from the IR
-- [ ] 4.4 Implement `alloy explain --device <name> --fact <fact>`
-- [ ] 4.5 Implement `alloy diff --from <device1> --to <device2>`
-- [ ] 4.6 Add artifact-contract, smoke, and docs coverage for the new artifacts/CLI
+- [x] 4.4 Implement `alloy explain --device <name> --fact <fact>`
+- [x] 4.5 Implement `alloy diff --from <device1> --to <device2>`
+- [x] 4.6 Add artifact-contract, smoke, and docs coverage for the new artifacts/CLI
 
 ## Phase 5: Validation Moat
 

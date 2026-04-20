@@ -9,6 +9,12 @@ from collections.abc import Sequence
 
 from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, supported_families
 from alloy_codegen.context import ExecutionContext
+from alloy_codegen.diagnostics_cli import (
+    diff_runtime_capabilities,
+    explain_runtime_fact,
+    format_diff_result,
+    format_explain_result,
+)
 from alloy_codegen.errors import AlloyCodegenError
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages import STAGE_RUNNERS
@@ -45,19 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Emit machine-readable JSON instead of human-readable text.",
     )
 
-    for stage_name in STAGE_RUNNERS:
-        stage_parser = subparsers.add_parser(stage_name, help=f"Run the {stage_name} stage.")
-        stage_parser.add_argument(
-            "--vendor",
-            default=None,
-            help="Vendor scope. Defaults to bootstrap vendor.",
-        )
-        stage_parser.add_argument(
-            "--family",
-            default=None,
-            help="Family scope. Defaults to bootstrap family.",
-        )
-        stage_parser.add_argument("--device", default=None, help="Optional device scope.")
+    def add_context_args(stage_parser: argparse.ArgumentParser) -> None:
         stage_parser.add_argument(
             "--source",
             action="append",
@@ -98,6 +92,37 @@ def build_parser() -> argparse.ArgumentParser:
             action="store_true",
             help="Emit machine-readable JSON instead of human-readable text.",
         )
+
+    for stage_name in STAGE_RUNNERS:
+        stage_parser = subparsers.add_parser(stage_name, help=f"Run the {stage_name} stage.")
+        stage_parser.add_argument(
+            "--vendor",
+            default=None,
+            help="Vendor scope. Defaults to bootstrap vendor.",
+        )
+        stage_parser.add_argument(
+            "--family",
+            default=None,
+            help="Family scope. Defaults to bootstrap family.",
+        )
+        stage_parser.add_argument("--device", default=None, help="Optional device scope.")
+        add_context_args(stage_parser)
+
+    explain_parser = subparsers.add_parser(
+        "explain",
+        help="Explain one emitted runtime fact for a device.",
+    )
+    explain_parser.add_argument("--device", required=True, help="Device to inspect.")
+    explain_parser.add_argument("--fact", required=True, help="Fact or decision id to explain.")
+    add_context_args(explain_parser)
+
+    diff_parser = subparsers.add_parser(
+        "diff",
+        help="Compare runtime capability deltas between two devices.",
+    )
+    diff_parser.add_argument("--from", dest="from_device", required=True, help="Baseline device.")
+    diff_parser.add_argument("--to", dest="to_device", required=True, help="Target device.")
+    add_context_args(diff_parser)
 
     return parser
 
@@ -154,8 +179,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(format_targets_payload(payload))
         return 0
-
-    scope = PipelineScope(vendor=args.vendor, family=args.family, device=args.device)
     source_overrides = parse_source_overrides(args.source)
     context = ExecutionContext.default().with_overrides(
         source_overrides=source_overrides,
@@ -165,6 +188,46 @@ def main(argv: Sequence[str] | None = None) -> int:
         publication_root=args.publication_root,
         alloy_root=args.alloy_root,
     )
+
+    if args.stage == "explain":
+        try:
+            result = explain_runtime_fact(
+                device_name=args.device,
+                fact=args.fact,
+                context=context,
+            )
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        else:
+            print(format_explain_result(result))
+        return 0
+
+    if args.stage == "diff":
+        try:
+            result = diff_runtime_capabilities(
+                from_device=args.from_device,
+                to_device=args.to_device,
+                context=context,
+            )
+        except AlloyCodegenError as exc:
+            if args.json:
+                print(json.dumps({"error": str(exc)}, sort_keys=True))
+            else:
+                print(f"error: {exc}", file=sys.stderr)
+            return 1
+        if args.json:
+            print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        else:
+            print(format_diff_result(result))
+        return 0
+
+    scope = PipelineScope(vendor=args.vendor, family=args.family, device=args.device)
 
     try:
         result = STAGE_RUNNERS[args.stage](scope, context)

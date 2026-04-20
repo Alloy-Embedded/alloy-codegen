@@ -109,3 +109,69 @@ def test_cli_targets_returns_non_zero_for_unknown_filter(capsys) -> None:
 
     assert exit_code == 1
     assert "Unsupported vendor/family filter" in payload["error"]
+
+
+def test_cli_explain_json_output_traces_runtime_fact(
+    capsys,
+    fixture_source_root: Path,
+    fixture_pin_source_root: Path,
+) -> None:
+    exit_code = cli_module.main(
+        [
+            "explain",
+            "--device",
+            "stm32g071rb",
+            "--fact",
+            "system-clock-profile:default_pll_64mhz",
+            "--source",
+            f"cmsis-svd-data={fixture_source_root}",
+            "--source",
+            f"stm32-open-pin-data={fixture_pin_source_root}",
+            "--json",
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert payload["command"] == "explain"
+    assert payload["scope"]["device"] == "stm32g071rb"
+    assert payload["fact"] == "system-clock-profile:default_pll_64mhz"
+    assert payload["exact_match"] is True
+    assert any(
+        match["id"] == "system-clock-profile:default-pll-64mhz"
+        and match["kind"] == "system_clock_profile"
+        for match in payload["matches"]
+    )
+
+
+def test_cli_diff_json_output_reports_capability_delta(
+    capsys,
+    fixture_source_root: Path,
+    fixture_pin_source_root: Path,
+) -> None:
+    exit_code = cli_module.main(
+        [
+            "diff",
+            "--from",
+            "stm32g071rb",
+            "--to",
+            "stm32f401re",
+            "--source",
+            f"cmsis-svd-data={fixture_source_root}",
+            "--source",
+            f"stm32-open-pin-data={fixture_pin_source_root}",
+            "--json",
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+
+    assert exit_code == 0
+    assert payload["command"] == "diff"
+    assert payload["from"]["device"] == "stm32g071rb"
+    assert payload["to"]["device"] == "stm32f401re"
+    assert payload["added"] or payload["removed"] or payload["modified"]
+    for entry in payload["added"] + payload["removed"]:
+        assert "provenance" in entry
+        assert "source_ids" in entry["provenance"]
