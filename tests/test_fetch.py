@@ -60,6 +60,23 @@ def test_fetch_and_patch_are_byte_stable(execution_context: ExecutionContext) ->
     assert patch_a == patch_b
 
 
+def test_fetch_rp2040_uses_fixture_pico_sdk_root(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    result = run_fetch(PipelineScope(device="rp2040"), rp2040_execution_context)
+    sources = result.payload.source_manifest.sources
+
+    assert result.stage == "fetch"
+    assert {source.source_id for source in sources} == {"pico-sdk"}
+    assert any(
+        source.source_id == "pico-sdk"
+        and source.local_path.endswith("rp2040.svd")
+        and source.upstream_path == "src/rp2040/hardware_regs/rp2040.svd"
+        and source.revision.startswith("content-sha256:")
+        for source in sources
+    )
+
+
 def test_fetch_microchip_uses_fixture_extract_root(
     microchip_execution_context: ExecutionContext,
 ) -> None:

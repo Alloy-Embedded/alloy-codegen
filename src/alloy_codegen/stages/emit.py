@@ -47,6 +47,7 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_eth_semantics_header,
     emit_runtime_driver_gpio_semantics_header,
     emit_runtime_driver_i2c_semantics_header,
+    emit_runtime_driver_pio_semantics_header,
     emit_runtime_driver_pwm_semantics_header,
     emit_runtime_driver_qspi_semantics_header,
     emit_runtime_driver_rtc_semantics_header,
@@ -236,6 +237,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     device=device,
                 ),
                 emit_runtime_driver_pwm_semantics_header(
+                    family_dir=family_dir,
+                    device=device,
+                ),
+                emit_runtime_driver_pio_semantics_header(
                     family_dir=family_dir,
                     device=device,
                 ),

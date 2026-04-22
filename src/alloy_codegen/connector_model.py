@@ -30,7 +30,11 @@ from alloy_codegen.ir.model import (
 
 PERIPHERAL_CLASS_ALIASES = {
     "gpio": "gpio",
-    "pio": "gpio",
+    # NOTE: "pio" is intentionally NOT aliased to "gpio".
+    # Microchip SAM peripherals named PIO* (e.g. PIOA) are already mapped to
+    # ip_name="gpio" by _infer_ip_metadata via the GPIOA-style special case.
+    # RP2040 PIO0/PIO1 (Programmable I/O state machines) are a different class
+    # entirely and must NOT be treated as GPIO controllers.
     "usart": "uart",
     "uart": "uart",
     "lpuart": "uart",
@@ -165,6 +169,26 @@ SYSTEM_VECTOR_BASELINES = {
         (14, "PendSV_Handler", None, "system-exception"),
         (15, "SysTick_Handler", None, "system-exception"),
     ),
+    # RP2040 is dual-core Cortex-M0+; the emitted vector table targets core 0
+    # only (single-core-perspective). The exception model is identical to M0+.
+    "cortex-m0plus-dual": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "Reserved_Handler_4", None, "reserved"),
+        (5, "Reserved_Handler_5", None, "reserved"),
+        (6, "Reserved_Handler_6", None, "reserved"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "Reserved_Handler_12", None, "reserved"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
 MICROCHIP_PMC_PID_TARGET_PATTERN = re.compile(r"^PMC\.PID(?P<pid>\d+)$")
@@ -212,6 +236,8 @@ def _pinmux_backend_schema_id(vendor: str) -> str:
             return "alloy.pinmux.sam-pio-v1"
         case "nxp":
             return "alloy.pinmux.imxrt-iomuxc-v1"
+        case "raspberrypi":
+            return "alloy.pinmux.rp2040-funcsel-v1"
         case _:
             return f"alloy.pinmux.{_sanitize(vendor)}-generic-v1"
 

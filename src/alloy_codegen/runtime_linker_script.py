@@ -162,6 +162,23 @@ def emit_runtime_linker_script(
         comment_lines.extend(address_space_note)
         comment_lines.append("*/")
 
+    has_xip_flash = any(m.kind.lower() == "xip-flash" for m in memories)
+    boot2_section_lines: list[str] = []
+    if has_xip_flash:
+        boot2_section_lines = [
+            "  /* RP2040 XIP boot stage-2 loader (256 bytes, device-specific). Replace with",
+            "     a real boot2 from pico-sdk for your flash chip before running on hardware. */",
+            "  .boot2 :",
+            "  {",
+            "    __boot2_start__ = .;",
+            "    KEEP(*(.boot2))",
+            "    . = ALIGN(256);",
+            "    __boot2_end__ = .;",
+            "  } > REGION_TEXT",
+            "  __boot2_size__ = __boot2_end__ - __boot2_start__;",
+            "",
+        ]
+
     content = "\n".join(
         [
             *comment_lines,
@@ -180,6 +197,7 @@ def emit_runtime_linker_script(
             "",
             "SECTIONS",
             "{",
+            *boot2_section_lines,
             "  .vectors :",
             "  {",
             "    KEEP(*(.vectors))",

@@ -25,6 +25,7 @@ from alloy_codegen.stages.normalize import (
 G0_FIXTURE_DIR = Path(__file__).parent / "fixtures" / BOOTSTRAP_FAMILY
 F4_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "stm32f4"
 SAME70_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "same70"
+RP2040_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "rp2040"
 
 
 @pytest.mark.parametrize("device_name", bootstrap_device_names())
@@ -447,3 +448,49 @@ def test_derive_pin_constraints_classifies_signal_semantics() -> None:
     assert ("PB4", "debug-only", "TDI") in constraints
     assert ("PB5", "debug-shared", "SWDIO") in constraints
     assert ("PC0", "analog-only", "in10") in constraints
+
+
+@pytest.mark.parametrize("device_name", registered_device_names("raspberrypi", "rp2040"))
+def test_normalize_matches_rp2040_fixture(
+    device_name: str,
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    fixture_path = RP2040_FIXTURE_DIR / f"{device_name}.canonical.json"
+    expected = json.loads(fixture_path.read_text())
+
+    result = run(PipelineScope(device=device_name), rp2040_execution_context)
+
+    assert result.payload.devices[0].to_dict() == expected
+
+
+def test_normalize_rp2040_uses_correct_family_identity(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(device="rp2040"), rp2040_execution_context)
+    device = result.payload.devices[0]
+
+    assert device.identity.vendor == "raspberrypi"
+    assert device.identity.family == "rp2040"
+    assert device.schema_version == "1.1.0"
+
+
+def test_normalize_rp2040_has_expected_memories(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    device = run(PipelineScope(device="rp2040"), rp2040_execution_context).payload.devices[0]
+
+    memory_kinds = {mem.kind for mem in device.memories}
+    assert "sram" in memory_kinds
+    assert "xip-flash" in memory_kinds
+
+
+def test_normalize_rp2040_has_dma_requests(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    device = run(PipelineScope(device="rp2040"), rp2040_execution_context).payload.devices[0]
+
+    dma_request_lines = {req.request_line for req in device.dma_requests}
+    assert "UART0_RX" in dma_request_lines
+    assert "UART0_TX" in dma_request_lines
+    assert "SPI0_RX" in dma_request_lines
+    assert "ADC" in dma_request_lines

@@ -54,6 +54,7 @@ USB_DRIVER_HEADER = "driver_semantics/usb.hpp"
 QSPI_DRIVER_HEADER = "driver_semantics/qspi.hpp"
 SDMMC_DRIVER_HEADER = "driver_semantics/sdmmc.hpp"
 COMMON_DRIVER_HEADER = "driver_semantics/common.hpp"
+PIO_DRIVER_HEADER = "driver_semantics/pio.hpp"
 
 _IO_SIGNAL_PATTERN = re.compile(r"^io(?P<index>\d+)$", re.IGNORECASE)
 
@@ -193,6 +194,7 @@ class UartSemanticRow:
     us_txempty_field: RuntimeFieldRef
     us_txchr_field: RuntimeFieldRef
     us_rxchr_field: RuntimeFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -268,6 +270,7 @@ class I2cSemanticRow:
     txrdy_field: RuntimeFieldRef
     nack_field: RuntimeFieldRef
     arblst_field: RuntimeFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -319,6 +322,7 @@ class SpiSemanticRow:
     td_field: RuntimeFieldRef
     tdr_pcs_field: RuntimeFieldRef
     rd_field: RuntimeFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -379,6 +383,7 @@ class AdcSemanticRow:
     channel_enable_pattern: RuntimeIndexedFieldRef
     channel_disable_pattern: RuntimeIndexedFieldRef
     channel_status_pattern: RuntimeIndexedFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -470,6 +475,7 @@ class RtcSemanticRow:
     write_protect_disable_key0: int
     write_protect_disable_key1: int
     write_protect_enable_key: int
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -504,6 +510,7 @@ class WatchdogSemanticRow:
     start_key_value: int
     refresh_key_value: int
     unlock_key_value: int
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -801,6 +808,7 @@ class TimerSemanticRow:
     encoder_speed_enable_field: RuntimeFieldRef
     encoder_phase_edge_field: RuntimeFieldRef
     direction_field: RuntimeFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -854,6 +862,7 @@ class PwmSemanticRow:
     load_field: RuntimeFieldRef
     clear_load_field: RuntimeFieldRef
     clock_prescaler_field: RuntimeFieldRef
+    is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
 @dataclass(frozen=True, slots=True)
@@ -922,6 +931,7 @@ def _driver_semantics_paths(
                 _device_runtime_generated_path(family_dir, device_name, USB_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, QSPI_DRIVER_HEADER),
                 _device_runtime_generated_path(family_dir, device_name, SDMMC_DRIVER_HEADER),
+                _device_runtime_generated_path(family_dir, device_name, PIO_DRIVER_HEADER),
             )
         )
     return tuple(paths)
@@ -1902,6 +1912,51 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
             rows.append(
                 _nxp_uart_row(context, peripheral_name=peripheral.name, schema_id=schema_id)
             )
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (UartSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # UART IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            rows.append(
+                UartSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    cr1_reg=invalid_reg, cr2_reg=invalid_reg, brr_reg=invalid_reg,
+                    isr_reg=invalid_reg, rdr_reg=invalid_reg, tdr_reg=invalid_reg,
+                    sr_reg=invalid_reg, dr_reg=invalid_reg, cr_reg=invalid_reg,
+                    mr_reg=invalid_reg, brgr_reg=invalid_reg, thr_reg=invalid_reg,
+                    us_cr_reg=invalid_reg, us_mr_reg=invalid_reg,
+                    us_brgr_reg=invalid_reg, us_thr_reg=invalid_reg,
+                    ue_field=invalid_field, re_field=invalid_field,
+                    te_field=invalid_field, pce_field=invalid_field,
+                    ps_field=invalid_field, m0_field=invalid_field,
+                    m1_field=invalid_field, m_field=invalid_field,
+                    stop_field=invalid_field, tdr_field=invalid_field,
+                    rdr_field=invalid_field, txe_isr_field=invalid_field,
+                    rxne_isr_field=invalid_field, tc_isr_field=invalid_field,
+                    txe_sr_field=invalid_field, rxne_sr_field=invalid_field,
+                    tc_sr_field=invalid_field, dr_field=invalid_field,
+                    rstrx_field=invalid_field, rsttx_field=invalid_field,
+                    rxdis_field=invalid_field, txdis_field=invalid_field,
+                    rststa_field=invalid_field, par_field=invalid_field,
+                    chmode_field=invalid_field, cd_field=invalid_field,
+                    rxen_field=invalid_field, txen_field=invalid_field,
+                    txrdy_field=invalid_field, rxrdy_field=invalid_field,
+                    txempty_field=invalid_field, txchr_field=invalid_field,
+                    rxchr_field=invalid_field,
+                    us_rstrx_field=invalid_field, us_rsttx_field=invalid_field,
+                    us_rxdis_field=invalid_field, us_txdis_field=invalid_field,
+                    us_rststa_field=invalid_field, us_usart_mode_field=invalid_field,
+                    us_usclks_field=invalid_field, us_chrl_field=invalid_field,
+                    us_cd_field=invalid_field, us_rxen_field=invalid_field,
+                    us_txen_field=invalid_field, us_txrdy_field=invalid_field,
+                    us_rxrdy_field=invalid_field, us_txempty_field=invalid_field,
+                    us_txchr_field=invalid_field, us_rxchr_field=invalid_field,
+                    is_stub=True,
+                )
+            )
     return tuple(rows)
 
 
@@ -2325,6 +2380,51 @@ def _build_i2c_rows(context: _SemanticContext) -> tuple[I2cSemanticRow, ...]:
             )
         elif schema_id == "alloy.lpi2c1.nxp-lpi2c-v1":
             rows.append(_nxp_i2c_row(context, peripheral_name=peripheral.name, schema_id=schema_id))
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (I2cSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # I2C IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            rows.append(
+                I2cSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    cr1_reg=invalid_reg, cr2_reg=invalid_reg, ccr_reg=invalid_reg,
+                    trise_reg=invalid_reg, sr1_reg=invalid_reg, sr2_reg=invalid_reg,
+                    dr_reg=invalid_reg, icr_reg=invalid_reg, cr_reg=invalid_reg,
+                    mmr_reg=invalid_reg, iadr_reg=invalid_reg, cwgr_reg=invalid_reg,
+                    sr_reg=invalid_reg, rhr_reg=invalid_reg, thr_reg=invalid_reg,
+                    pe_field=invalid_field, ack_field=invalid_field,
+                    start_field=invalid_field, stop_field=invalid_field,
+                    freq_field=invalid_field, ccr_field=invalid_field,
+                    fs_field=invalid_field, duty_field=invalid_field,
+                    trise_field=invalid_field, sb_field=invalid_field,
+                    addr_field=invalid_field, txe_field=invalid_field,
+                    rxne_field=invalid_field, btf_field=invalid_field,
+                    af_field=invalid_field, berr_field=invalid_field,
+                    arlo_field=invalid_field, busy_field=invalid_field,
+                    dr_data_field=invalid_field, sadd_field=invalid_field,
+                    rd_wrn_field=invalid_field, nbytes_field=invalid_field,
+                    autoend_field=invalid_field, txis_field=invalid_field,
+                    tc_field=invalid_field, stopf_field=invalid_field,
+                    txdata_field=invalid_field, rxdata_field=invalid_field,
+                    nackf_field=invalid_field, berr_isr_field=invalid_field,
+                    arlo_isr_field=invalid_field, stopcf_field=invalid_field,
+                    nackcf_field=invalid_field, berrcf_field=invalid_field,
+                    arlocf_field=invalid_field, msen_field=invalid_field,
+                    msdis_field=invalid_field, svdis_field=invalid_field,
+                    swrst_field=invalid_field, iadrsz_field=invalid_field,
+                    mread_field=invalid_field, dadr_field=invalid_field,
+                    iadr_field=invalid_field, cldiv_field=invalid_field,
+                    chdiv_field=invalid_field, ckdiv_field=invalid_field,
+                    hold_field=invalid_field, txcomp_field=invalid_field,
+                    rxrdy_field=invalid_field, txrdy_field=invalid_field,
+                    nack_field=invalid_field, arblst_field=invalid_field,
+                    is_stub=True,
+                )
+            )
     return tuple(rows)
 
 
@@ -2566,6 +2666,40 @@ def _build_spi_rows(context: _SemanticContext) -> tuple[SpiSemanticRow, ...]:
             )
         elif schema_id == "alloy.spi.nxp-lpspi-v1":
             rows.append(_nxp_spi_row(context, peripheral_name=peripheral.name, schema_id=schema_id))
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (SpiSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # SPI IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            rows.append(
+                SpiSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    cr1_reg=invalid_reg, cr2_reg=invalid_reg, sr_reg=invalid_reg,
+                    dr_reg=invalid_reg, cr_reg=invalid_reg, mr_reg=invalid_reg,
+                    csr_reg=invalid_reg, tdr_reg=invalid_reg, rdr_reg=invalid_reg,
+                    cpha_field=invalid_field, cpol_field=invalid_field,
+                    mstr_field=invalid_field, br_field=invalid_field,
+                    spe_field=invalid_field, lsbfirst_field=invalid_field,
+                    ssi_field=invalid_field, ssm_field=invalid_field,
+                    dff_field=invalid_field, ds_field=invalid_field,
+                    frxth_field=invalid_field, txe_field=invalid_field,
+                    rxne_field=invalid_field, bsy_field=invalid_field,
+                    dr_data_field=invalid_field, spien_field=invalid_field,
+                    spidis_field=invalid_field, swrst_field=invalid_field,
+                    ps_field=invalid_field, pcsdec_field=invalid_field,
+                    modfdis_field=invalid_field, pcs_field=invalid_field,
+                    dlybcs_field=invalid_field, ncpha_field=invalid_field,
+                    bits_field=invalid_field, scbr_field=invalid_field,
+                    dlybs_field=invalid_field, dlybct_field=invalid_field,
+                    tdre_field=invalid_field, rdrf_field=invalid_field,
+                    txempty_field=invalid_field, td_field=invalid_field,
+                    tdr_pcs_field=invalid_field, rd_field=invalid_field,
+                    is_stub=True,
+                )
+            )
     return tuple(rows)
 
 
@@ -3325,6 +3459,53 @@ def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
             )
         elif schema_id == "alloy.adc.nxp-adc":
             rows.append(_nxp_adc_row(context, peripheral_name=peripheral.name, schema_id=schema_id))
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (AdcSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # ADC IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            invalid_indexed = _invalid_indexed_field_ref(base)
+            rows.append(
+                AdcSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    channel_count=0,
+                    result_bits=0,
+                    has_dma=False,
+                    has_hardware_trigger=False,
+                    has_channel_bitmask_select=False,
+                    control_reg=invalid_reg,
+                    status_reg=invalid_reg,
+                    config_reg=invalid_reg,
+                    sample_time_reg=invalid_reg,
+                    sequence_reg=invalid_reg,
+                    data_reg=invalid_reg,
+                    enable_field=invalid_field,
+                    disable_field=invalid_field,
+                    ready_field=invalid_field,
+                    start_field=invalid_field,
+                    stop_field=invalid_field,
+                    continuous_field=invalid_field,
+                    resolution_field=invalid_field,
+                    align_field=invalid_field,
+                    dma_enable_field=invalid_field,
+                    dma_mode_field=invalid_field,
+                    external_trigger_enable_field=invalid_field,
+                    external_trigger_select_field=invalid_field,
+                    end_of_conversion_field=invalid_field,
+                    end_of_sequence_field=invalid_field,
+                    overrun_field=invalid_field,
+                    data_field=invalid_field,
+                    channel_select_field=invalid_field,
+                    channel_bit_pattern=invalid_indexed,
+                    channel_enable_pattern=invalid_indexed,
+                    channel_disable_pattern=invalid_indexed,
+                    channel_status_pattern=invalid_indexed,
+                    is_stub=True,
+                )
+            )
     return tuple(rows)
 
 
@@ -4166,6 +4347,62 @@ def _build_rtc_rows(context: _SemanticContext) -> tuple[RtcSemanticRow, ...]:
                     context,
                     peripheral_name=peripheral.name,
                     schema_id=schema_id,
+                )
+            )
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (RtcSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # RTC IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            rows.append(
+                RtcSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    has_calendar=False,
+                    has_alarm=False,
+                    has_write_protection=False,
+                    control_reg=invalid_reg,
+                    mode_reg=invalid_reg,
+                    status_reg=invalid_reg,
+                    time_reg=invalid_reg,
+                    date_reg=invalid_reg,
+                    alarm_time_reg=invalid_reg,
+                    alarm_date_reg=invalid_reg,
+                    interrupt_enable_reg=invalid_reg,
+                    interrupt_disable_reg=invalid_reg,
+                    interrupt_mask_reg=invalid_reg,
+                    clear_reg=invalid_reg,
+                    write_protect_reg=invalid_reg,
+                    prescaler_reg=invalid_reg,
+                    hour_mode_field=invalid_field,
+                    init_field=invalid_field,
+                    init_ready_field=invalid_field,
+                    shadow_bypass_field=invalid_field,
+                    update_time_field=invalid_field,
+                    update_calendar_field=invalid_field,
+                    update_ack_field=invalid_field,
+                    alarm_enable_field=invalid_field,
+                    alarm_interrupt_enable_field=invalid_field,
+                    second_interrupt_enable_field=invalid_field,
+                    time_event_interrupt_enable_field=invalid_field,
+                    calendar_event_interrupt_enable_field=invalid_field,
+                    status_alarm_field=invalid_field,
+                    status_second_field=invalid_field,
+                    status_time_event_field=invalid_field,
+                    status_calendar_event_field=invalid_field,
+                    status_tamper_error_field=invalid_field,
+                    clear_alarm_field=invalid_field,
+                    clear_second_field=invalid_field,
+                    clear_time_event_field=invalid_field,
+                    clear_calendar_event_field=invalid_field,
+                    clear_tamper_error_field=invalid_field,
+                    write_protect_key_field=invalid_field,
+                    write_protect_disable_key0=0,
+                    write_protect_disable_key1=0,
+                    write_protect_enable_key=0,
+                    is_stub=True,
                 )
             )
     return tuple(rows)
@@ -7030,6 +7267,46 @@ def _build_watchdog_rows(context: _SemanticContext) -> tuple[WatchdogSemanticRow
                     schema_id=schema_id,
                 )
             )
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (WatchdogSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # Watchdog IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            rows.append(
+                WatchdogSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    has_window=False,
+                    control_reg=invalid_reg,
+                    config_reg=invalid_reg,
+                    status_reg=invalid_reg,
+                    prescaler_reg=invalid_reg,
+                    reload_reg=invalid_reg,
+                    window_reg=invalid_reg,
+                    enable_field=invalid_field,
+                    disable_field=invalid_field,
+                    restart_field=invalid_field,
+                    key_field=invalid_field,
+                    timeout_field=invalid_field,
+                    window_field=invalid_field,
+                    prescaler_field=invalid_field,
+                    early_warning_interrupt_enable_field=invalid_field,
+                    reset_enable_field=invalid_field,
+                    status_prescaler_update_field=invalid_field,
+                    status_reload_update_field=invalid_field,
+                    status_window_update_field=invalid_field,
+                    status_timeout_field=invalid_field,
+                    status_error_field=invalid_field,
+                    required_config_field=invalid_field,
+                    required_config_value=0,
+                    start_key_value=0,
+                    refresh_key_value=0,
+                    unlock_key_value=0,
+                    is_stub=True,
+                )
+            )
     return tuple(rows)
 
 
@@ -7734,6 +8011,87 @@ def _build_timer_rows(
             channel_rows.extend(
                 _nxp_pit_timer_channel_rows(context, peripheral_name=peripheral.name)
             )
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (TimerSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # Timer IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            timer_rows.append(
+                TimerSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    counter_bits=0,
+                    channel_count=0,
+                    has_compare=False,
+                    has_capture=False,
+                    has_encoder=False,
+                    has_pwm=False,
+                    has_one_pulse=False,
+                    has_center_aligned=False,
+                    has_complementary_outputs=False,
+                    has_deadtime=False,
+                    has_break_input=False,
+                    control_reg=invalid_reg,
+                    status_reg=invalid_reg,
+                    event_reg=invalid_reg,
+                    counter_reg=invalid_reg,
+                    prescaler_reg=invalid_reg,
+                    period_reg=invalid_reg,
+                    enable_field=invalid_field,
+                    disable_field=invalid_field,
+                    module_disable_field=invalid_field,
+                    software_reset_field=invalid_field,
+                    start_field=invalid_field,
+                    stop_field=invalid_field,
+                    update_interrupt_enable_field=invalid_field,
+                    update_flag_field=invalid_field,
+                    update_generation_field=invalid_field,
+                    prescaler_field=invalid_field,
+                    period_field=invalid_field,
+                    one_pulse_field=invalid_field,
+                    center_aligned_field=invalid_field,
+                    auto_reload_preload_field=invalid_field,
+                    clock_source_field=invalid_field,
+                    encoder_mode_field=invalid_field,
+                    encoder_enable_field=invalid_field,
+                    encoder_position_enable_field=invalid_field,
+                    encoder_speed_enable_field=invalid_field,
+                    encoder_phase_edge_field=invalid_field,
+                    direction_field=invalid_field,
+                    is_stub=True,
+                )
+            )
+            # Add a single stub channel row so the artifact contract check for
+            # TimerChannelSemanticTraits<PeripheralId:: is satisfied.
+            channel_rows.append(
+                TimerChannelSemanticRow(
+                    peripheral_name=peripheral.name,
+                    channel_index=0,
+                    supports_compare=False,
+                    supports_capture=False,
+                    supports_encoder_input=False,
+                    supports_pwm=False,
+                    supports_complementary_output=False,
+                    control_reg=invalid_reg,
+                    status_reg=invalid_reg,
+                    compare_reg=invalid_reg,
+                    secondary_compare_reg=invalid_reg,
+                    period_reg=invalid_reg,
+                    counter_reg=invalid_reg,
+                    capture_reg=invalid_reg,
+                    enable_field=invalid_field,
+                    interrupt_enable_field=invalid_field,
+                    interrupt_flag_field=invalid_field,
+                    mode_field=invalid_field,
+                    preload_field=invalid_field,
+                    output_enable_field=invalid_field,
+                    output_polarity_field=invalid_field,
+                    complementary_output_enable_field=invalid_field,
+                    capture_select_field=invalid_field,
+                )
+            )
     return tuple(timer_rows), tuple(channel_rows)
 
 
@@ -8246,6 +8604,8 @@ def _build_pwm_rows(
                 )
             )
             channel_rows.extend(_st_pwm_channel_rows(context, peripheral_name=peripheral.name))
+        # Non-ST timers (NXP GPT, RP2040 TIMER, etc.) are handled in their own
+        # timer builder and should NOT emit PWM rows here.
 
     for peripheral in dedicated_pwm_candidates:
         schema_id = peripheral.backend_schema_id
@@ -8271,6 +8631,62 @@ def _build_pwm_rows(
                 )
             )
             channel_rows.extend(_nxp_pwm_channel_rows(context, peripheral_name=peripheral.name))
+        else:
+            # Emit a fully-invalid stub row so that the artifact contract
+            # (PwmSemanticTraits<PeripheralId::) is satisfied for devices whose
+            # dedicated PWM IP schema is not yet implemented in alloy.
+            base = context.peripheral_by_name[peripheral.name].base_address
+            invalid_reg = _invalid_register_ref(base)
+            invalid_field = _invalid_field_ref(base)
+            pwm_rows.append(
+                PwmSemanticRow(
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    counter_bits=0,
+                    channel_count=0,
+                    has_complementary_outputs=False,
+                    has_deadtime=False,
+                    has_fault_input=False,
+                    has_center_aligned=False,
+                    has_synchronized_update=False,
+                    control_reg=invalid_reg,
+                    output_enable_reg=invalid_reg,
+                    status_reg=invalid_reg,
+                    clock_reg=invalid_reg,
+                    sync_reg=invalid_reg,
+                    master_output_enable_field=invalid_field,
+                    load_field=invalid_field,
+                    clear_load_field=invalid_field,
+                    clock_prescaler_field=invalid_field,
+                    is_stub=True,
+                )
+            )
+            # Add a single stub channel row so the artifact contract check for
+            # PwmChannelSemanticTraits<PeripheralId:: is satisfied.
+            channel_rows.append(
+                PwmChannelSemanticRow(
+                    peripheral_name=peripheral.name,
+                    channel_index=0,
+                    supports_complementary_output=False,
+                    supports_deadtime=False,
+                    control_reg=invalid_reg,
+                    compare_reg=invalid_reg,
+                    secondary_compare_reg=invalid_reg,
+                    period_reg=invalid_reg,
+                    deadtime_reg=invalid_reg,
+                    enable_field=invalid_field,
+                    interrupt_enable_field=invalid_field,
+                    interrupt_flag_field=invalid_field,
+                    mode_field=invalid_field,
+                    polarity_field=invalid_field,
+                    complementary_output_enable_field=invalid_field,
+                    center_aligned_field=invalid_field,
+                    period_field=invalid_field,
+                    duty_field=invalid_field,
+                    deadtime_rise_field=invalid_field,
+                    deadtime_fall_field=invalid_field,
+                )
+            )
     return tuple(pwm_rows), tuple(channel_rows)
 
 
@@ -8520,6 +8936,78 @@ def _emit_peripheral_semantics_header(
 
 def _uart_specialization_builder(context: _SemanticContext):
     def _build(row: UartSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kIsrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kRdrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kTdrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kDrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kMrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kBrgrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kThrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kUsCrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kUsMrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kUsBrgrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kUsThrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kUeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kReField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPceField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kM0Field = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kM1Field = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kMField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTdrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRdrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxeIsrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxneIsrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTcIsrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxeSrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxneSrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTcSrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRstrxField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRsttxField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRststaField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kParField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kChmodeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCdField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxenField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxenField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxrdyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxrdyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxemptyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxchrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxchrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRstrxField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRsttxField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRxdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsTxdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRststaField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsUsartModeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsUsclksField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsChrlField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsCdField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRxenField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsTxenField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsTxrdyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRxrdyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;",
+            ]
         return [
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
@@ -8595,6 +9083,80 @@ def _uart_specialization_builder(context: _SemanticContext):
 
 def _i2c_specialization_builder(context: _SemanticContext):
     def _build(row: I2cSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCcrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kTriseRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSr1Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSr2Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kDrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kIcrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kMmrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kIadrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCwgrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kRhrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kThrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kPeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAckField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStartField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kFreqField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCcrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kFsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDutyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTriseField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSbField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAddrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxneField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBtfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBerrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kArloField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBusyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDrDataField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSaddField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRdWrnField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kNbytesField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAutoendField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTcField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStopfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxdataField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxdataField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kNackfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBerrIsrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kArloIsrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStopcfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kNackcfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBerrcfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kArlocfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kMsenField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kMsdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSvdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSwrstField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kIadrszField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kMreadField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDadrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kIadrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCldivField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kChdivField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCkdivField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kHoldField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxcompField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxrdyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxrdyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kNackField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kArblstField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kCr1Register": row.cr1_reg,
             "kCr2Register": row.cr2_reg,
@@ -8685,6 +9247,56 @@ def _i2c_specialization_builder(context: _SemanticContext):
 
 def _spi_specialization_builder(context: _SemanticContext):
     def _build(row: SpiSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kDrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kMrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCsrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kTdrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kRdrRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kCphaField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCpolField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kMstrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSpeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kLsbfirstField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSsiField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSsmField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDffField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kFrxthField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRxneField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBsyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDrDataField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSpienField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSpidisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSwrstField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPcsdecField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kModfdisField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPcsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDlybcsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kNcphaField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kBitsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kScbrField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDlybsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDlybctField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTdreField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRdrfField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTxemptyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTdField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTdrPcsField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRdField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kCr1Register": row.cr1_reg,
             "kCr2Register": row.cr2_reg,
@@ -8751,6 +9363,45 @@ def _spi_specialization_builder(context: _SemanticContext):
 
 def _adc_specialization_builder(context: _SemanticContext):
     def _build(row: AdcSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr std::uint32_t kChannelCount = 0u;",
+                "  static constexpr std::uint32_t kResultBits = 0u;",
+                "  static constexpr bool kHasDma = false;",
+                "  static constexpr bool kHasHardwareTrigger = false;",
+                "  static constexpr bool kHasChannelBitmaskSelect = false;",
+                "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kConfigRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSampleTimeRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSequenceRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kDataRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kReadyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStartField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kContinuousField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kResolutionField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAlignField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDmaModeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kExternalTriggerEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kExternalTriggerSelectField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEndOfConversionField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEndOfSequenceField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kOverrunField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDataField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kChannelSelectField = kInvalidFieldRef;",
+                "  static constexpr RuntimeIndexedFieldRef kChannelBitPattern = kInvalidIndexedFieldRef;",
+                "  static constexpr RuntimeIndexedFieldRef kChannelEnablePattern = kInvalidIndexedFieldRef;",
+                "  static constexpr RuntimeIndexedFieldRef kChannelDisablePattern = kInvalidIndexedFieldRef;",
+                "  static constexpr RuntimeIndexedFieldRef kChannelStatusPattern = kInvalidIndexedFieldRef;",
+            ]
         register_members = {
             "kControlRegister": row.control_reg,
             "kStatusRegister": row.status_reg,
@@ -8907,6 +9558,55 @@ def _dac_channel_specialization_lines(
 
 def _rtc_specialization_builder(context: _SemanticContext):
     def _build(row: RtcSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr bool kHasCalendar = false;",
+                "  static constexpr bool kHasAlarm = false;",
+                "  static constexpr bool kHasWriteProtection = false;",
+                "  static constexpr std::uint32_t kWriteProtectDisableKey0 = 0u;",
+                "  static constexpr std::uint32_t kWriteProtectDisableKey1 = 0u;",
+                "  static constexpr std::uint32_t kWriteProtectEnableKey = 0u;",
+                "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kModeRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kTimeRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kDateRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kAlarmTimeRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kAlarmDateRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptEnableRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptDisableRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kInterruptMaskRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kClearRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kWriteProtectRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kHourModeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kInitField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kInitReadyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kShadowBypassField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUpdateTimeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUpdateCalendarField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUpdateAckField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAlarmEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAlarmInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSecondInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTimeEventInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCalendarEventInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusAlarmField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusSecondField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusTimeEventField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusCalendarEventField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusTamperErrorField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearAlarmField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearSecondField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearTimeEventField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearCalendarEventField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearTamperErrorField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kWriteProtectKeyField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kControlRegister": row.control_reg,
             "kModeRegister": row.mode_reg,
@@ -8974,6 +9674,39 @@ def _rtc_specialization_builder(context: _SemanticContext):
 
 def _watchdog_specialization_builder(context: _SemanticContext):
     def _build(row: WatchdogSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr bool kHasWindow = false;",
+                "  static constexpr std::uint32_t kRequiredConfigValue = 0u;",
+                "  static constexpr std::uint32_t kStartKeyValue = 0u;",
+                "  static constexpr std::uint32_t kRefreshKeyValue = 0u;",
+                "  static constexpr std::uint32_t kUnlockKeyValue = 0u;",
+                "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kConfigRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kReloadRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kWindowRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRestartField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kKeyField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kTimeoutField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kWindowField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPrescalerField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEarlyWarningInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kResetEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusPrescalerUpdateField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusReloadUpdateField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusWindowUpdateField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusTimeoutField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStatusErrorField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kRequiredConfigField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kControlRegister": row.control_reg,
             "kConfigRegister": row.config_reg,
@@ -9409,6 +10142,51 @@ def _sdmmc_specialization_builder(context: _SemanticContext):
 
 def _timer_specialization_builder(context: _SemanticContext):
     def _build(row: TimerSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr std::uint32_t kCounterBits = 0u;",
+                "  static constexpr std::uint32_t kChannelCount = 0u;",
+                "  static constexpr bool kHasCompare = false;",
+                "  static constexpr bool kHasCapture = false;",
+                "  static constexpr bool kHasEncoder = false;",
+                "  static constexpr bool kHasPwm = false;",
+                "  static constexpr bool kHasOnePulse = false;",
+                "  static constexpr bool kHasCenterAligned = false;",
+                "  static constexpr bool kHasComplementaryOutputs = false;",
+                "  static constexpr bool kHasDeadtime = false;",
+                "  static constexpr bool kHasBreakInput = false;",
+                "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kEventRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kCounterRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kPrescalerRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kPeriodRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kModuleDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kSoftwareResetField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStartField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUpdateInterruptEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUpdateFlagField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kUpdateGenerationField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPrescalerField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPeriodField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kOnePulseField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kCenterAlignedField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kAutoReloadPreloadField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClockSourceField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEncoderModeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEncoderEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEncoderPositionEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kControlRegister": row.control_reg,
             "kStatusRegister": row.status_reg,
@@ -9563,6 +10341,29 @@ def _timer_channel_specialization_lines(
 
 def _pwm_specialization_builder(context: _SemanticContext):
     def _build(row: PwmSemanticRow) -> list[str]:
+        if row.is_stub:
+            # Peripheral is present on hardware but schema not yet implemented —
+            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            return [
+                "  static constexpr bool kPresent = false;",
+                f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                "  static constexpr std::uint32_t kCounterBits = 0u;",
+                "  static constexpr std::uint32_t kChannelCount = 0u;",
+                "  static constexpr bool kHasComplementaryOutputs = false;",
+                "  static constexpr bool kHasDeadtime = false;",
+                "  static constexpr bool kHasFaultInput = false;",
+                "  static constexpr bool kHasCenterAligned = false;",
+                "  static constexpr bool kHasSynchronizedUpdate = false;",
+                "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kOutputEnableRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kClockRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeRegisterRef kSyncRegister = kInvalidRegisterRef;",
+                "  static constexpr RuntimeFieldRef kMasterOutputEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kLoadField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClearLoadField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kClockPrescalerField = kInvalidFieldRef;",
+            ]
         register_members = {
             "kControlRegister": row.control_reg,
             "kOutputEnableRegister": row.output_enable_reg,
@@ -10157,7 +10958,8 @@ def emit_runtime_driver_dac_semantics_header(
                 "",
             ]
         )
-        dac_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+        if not getattr(row, "is_stub", False):
+            dac_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
     body = "\n".join(
         [
             *trait_lines,
@@ -10710,7 +11512,8 @@ def emit_runtime_driver_timer_semantics_header(
                 "",
             ]
         )
-        timer_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+        if not row.is_stub:
+            timer_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
     body = "\n".join(
         [
             *trait_lines,
@@ -10793,7 +11596,8 @@ def emit_runtime_driver_pwm_semantics_header(
                 "",
             ]
         )
-        pwm_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+        if not row.is_stub:
+            pwm_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
     body = "\n".join(
         [
             *trait_lines,
@@ -10832,6 +11636,28 @@ def emit_runtime_driver_pwm_semantics_header(
     )
 
 
+def emit_runtime_driver_pio_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+) -> EmittedArtifact:
+    # PIO (Programmable I/O) state-machine semantics are not yet described in alloy.
+    # Emit a pure stub: kPresent = false guards all access.
+    # An empty peripherals array is emitted so consumers can iterate safely.
+    return _emit_peripheral_semantics_header(
+        family_dir=family_dir,
+        device=device,
+        header_name=PIO_DRIVER_HEADER,
+        trait_name="PioSemanticTraits",
+        array_name="kPioSemanticPeripherals",
+        rows=(),
+        default_lines=[
+            "  static constexpr bool kPresent = false;",
+        ],
+        specialization_builder=lambda _row: [],
+    )
+
+
 __all__ = [
     "emit_runtime_driver_adc_semantics_header",
     "emit_runtime_driver_can_semantics_header",
@@ -10840,6 +11666,7 @@ __all__ = [
     "emit_runtime_driver_eth_semantics_header",
     "emit_runtime_driver_gpio_semantics_header",
     "emit_runtime_driver_i2c_semantics_header",
+    "emit_runtime_driver_pio_semantics_header",
     "emit_runtime_driver_qspi_semantics_header",
     "emit_runtime_driver_sdmmc_semantics_header",
     "emit_runtime_driver_usb_semantics_header",

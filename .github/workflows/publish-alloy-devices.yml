@@ -40,6 +40,8 @@ jobs:
             family: same70
           - vendor: nxp
             family: imxrt1060
+          - vendor: raspberrypi
+            family: rp2040
     env:
       ALLOY_DEVICES_REPOSITORY: ${{ github.repository_owner }}/alloy-devices
 

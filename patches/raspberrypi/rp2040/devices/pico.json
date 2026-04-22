@@ -1,0 +1,54 @@
+{
+  "patch_id": "raspberrypi-pico-bootstrap",
+  "device": "pico",
+  "svd_file": "rp2040.svd",
+  "package": "pico",
+  "core": "cortex-m0plus-dual",
+  "summary": "Raspberry Pi Pico development board (RP2040 SoC, 2 MB QSPI flash, onboard LED on GP25).",
+  "memories": [
+    {
+      "name": "SRAM",
+      "kind": "sram",
+      "base_address": 536870912,
+      "size_bytes": 270336,
+      "access": "rwx"
+    },
+    {
+      "name": "XIP_FLASH",
+      "kind": "xip-flash",
+      "base_address": 268435456,
+      "size_bytes": 2097152,
+      "access": "rx"
+    }
+  ],
+  "dma_request_refs": [
+    "dma-uart0-rx", "dma-uart0-tx",
+    "dma-uart1-rx", "dma-uart1-tx",
+    "dma-spi0-rx",  "dma-spi0-tx",
+    "dma-spi1-rx",  "dma-spi1-tx",
+    "dma-adc"
+  ],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-rosc-6mhz",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 6000000,
+      "hclk_hz": 6000000,
+      "pclk_hz": 6000000,
+      "source_hz": 6000000
+    },
+    {
+      "profile_id": "default-pll-125mhz",
+      "kind": "default",
+      "source_kind": "pll-external",
+      "sysclk_hz": 125000000,
+      "hclk_hz": 125000000,
+      "pclk_hz": 125000000,
+      "source_hz": 12000000,
+      "pll_n": 125,
+      "pll_p": 6,
+      "pll_q": 2
+    }
+  ]
+}

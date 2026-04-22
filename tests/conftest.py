@@ -88,3 +88,25 @@ def nxp_execution_context(
         publication_root=str(tmp_path / "publication"),
         alloy_root=str(alloy_root),
     )
+
+
+@pytest.fixture
+def fixture_pico_sdk_root() -> Path:
+    return ROOT / "tests" / "fixtures" / "pico-sdk"
+
+
+@pytest.fixture
+def rp2040_execution_context(
+    fixture_pico_sdk_root: Path,
+    tmp_path: Path,
+) -> ExecutionContext:
+    default_context = ExecutionContext.default()
+    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
+    return default_context.with_overrides(
+        source_overrides={
+            "pico-sdk": str(fixture_pico_sdk_root),
+        },
+        artifact_root=str(tmp_path / "artifacts"),
+        publication_root=str(tmp_path / "publication"),
+        alloy_root=str(alloy_root),
+    )

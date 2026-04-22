@@ -318,6 +318,7 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
         signal.peripheral is None
         or signal.peripheral.startswith("GPIO")
         or signal.af_number is not None
+        or canonical_peripheral_class(signal.peripheral) in {"adc", "dac", "comp", "opamp"}
         for pin in device.pins
         for signal in pin.signals
     )

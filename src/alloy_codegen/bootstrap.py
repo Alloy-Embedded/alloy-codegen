@@ -20,6 +20,7 @@ DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = {
     ("st", "stm32f4"): ("stm32f401re", "stm32f405rg"),
     ("microchip", "same70"): ("atsame70n21b", "atsame70q21b"),
     ("nxp", "imxrt1060"): ("mimxrt1062", "mimxrt1064"),
+    ("raspberrypi", "rp2040"): ("pico", "rp2040"),
 }
 
 SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -27,6 +28,7 @@ SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
     ("st", "stm32f4"): ("cmsis-svd-data", "stm32-open-pin-data"),
     ("microchip", "same70"): ("microchip-dfp-pack", "microchip-dfp-extract"),
     ("nxp", "imxrt1060"): ("nxp-mcux-soc-svd", "nxp-mcux-sdk"),
+    ("raspberrypi", "rp2040"): ("pico-sdk",),
 }
 
 # Flat reverse map for auto-resolving family from device name.

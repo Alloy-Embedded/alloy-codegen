@@ -5419,6 +5419,34 @@ def emit_startup_source(
         symbol_name = slot_map.get(slot)
         vector_rows.append("    nullptr," if symbol_name is None else f"    {symbol_name},")
 
+    has_xip_flash = any(m.kind.lower() == "xip-flash" for m in device.memories)
+
+    boot2_placeholder_lines: list[str] = []
+    if has_xip_flash:
+        boot2_placeholder_lines = [
+            "/* Boot stage-2 placeholder (256 bytes). Replace with a pico-sdk boot2 for your",
+            "   flash chip (e.g. boot2_w25q080.S). */",
+            "#if defined(__arm__) || defined(__thumb__)",
+            '__attribute__((section(".boot2"), used))',
+            "static const unsigned char __boot2_placeholder[256] = {0};",
+            "#endif",
+            "",
+        ]
+
+    xip_init_decl_lines: list[str] = []
+    xip_init_call_lines: list[str] = []
+    if has_xip_flash:
+        xip_init_decl_lines = [
+            "void xip_init() __attribute__((weak));",
+            "void xip_init() {}",
+            "",
+        ]
+        xip_init_call_lines = [
+            "    // XIP flash initialisation must run before .data copy (RP2040 XIP).",
+            "    // Single-core-perspective: core 1 is not started in this generated startup.",
+            "    xip_init();",
+        ]
+
     content = "\n".join(
         [
             "#include <cstdint>",
@@ -5463,9 +5491,11 @@ def emit_startup_source(
             "    return 0;",
             "}",
             "#endif",
+            *boot2_placeholder_lines,
             "void SystemInit() __attribute__((weak));",
             "void SystemInit() {}",
             "",
+            *xip_init_decl_lines,
             "__attribute__((noreturn)) void Default_Handler() {",
             "    while (true) {",
             "#if defined(__arm__) || defined(__thumb__)",
@@ -5486,6 +5516,7 @@ def emit_startup_source(
                 )
             ],
             "__attribute__((noreturn)) void Reset_Handler() {",
+            *xip_init_call_lines,
             "    auto* copy_source = &_sidata;",
             "    auto* copy_target = &_sdata;",
             "    while (copy_target < &_edata) {",

@@ -38,6 +38,7 @@ from alloy_codegen.patches import (
     DevicePatch,
     DmaControllerPatch,
     DmaRequestPatch,
+    FamilyPatchCatalog,
     MemoryPatch,
     PeripheralClockBindingPatch,
     PeripheralPatch,
@@ -48,6 +49,7 @@ from alloy_codegen.patches import (
     ResetPatch,
     SystemClockProfilePatch,
     load_device_patch,
+    load_family_patch_catalog,
 )
 from alloy_codegen.reporting import NormalizationBundle
 from alloy_codegen.scope import PipelineScope
@@ -92,6 +94,9 @@ from alloy_codegen.sources.nxp_mcux import (
 from alloy_codegen.sources.nxp_mcux import (
     resolve_svd_path as resolve_nxp_svd_path,
 )
+from alloy_codegen.sources.pico_sdk import (
+    resolve_svd_path as resolve_pico_svd_path,
+)
 from alloy_codegen.sources.raw import (
     RawDeviceDocument,
     RawInterrupt,
@@ -112,8 +117,10 @@ from alloy_codegen.stages.patch import run as run_patch
 
 INSTANCE_PATTERN = re.compile(r"^(?P<ip>[A-Z]+?)(?P<instance>\d+)$")
 RAW_PERIPHERAL_ALIASES = {
-    "ADC": "ADC1",
-    "DMA": "DMA1",
+    # "ADC" and "DMA" (no instance suffix) are intentionally excluded here so
+    # that RP2040, which genuinely names its peripherals "ADC" and "DMA", is not
+    # silently remapped to "ADC1"/"DMA1".  STM32/NXP upstream SVDs already carry
+    # numbered names (ADC1, DMA1, …) so no alias is needed for those families.
     "DMAMUX": "DMAMUX1",
     "LPUART": "LPUART1",
     "PIOA": "GPIOA",
@@ -1401,6 +1408,207 @@ def _build_nxp_device_ir(
     )
 
 
+def _build_rp2040_pins(
+    *,
+    family_catalog: FamilyPatchCatalog,
+    allowed_peripherals: set[str],
+    package: str,
+    provenance: Provenance,
+) -> tuple[PinDefinition, ...]:
+    """Build canonical PinDefinitions from RP2040 family catalog pin signals.
+
+    Pins with no matching signals after filtering are silently skipped, matching
+    the NXP pattern where pads with no signal assignments are excluded.  Pins
+    whose ``packages`` list does not include *package* are also excluded, which
+    lets board-level device entries (e.g. "pico") restrict the visible pin set
+    to only those physically accessible on the board header.
+    """
+    signals_by_pin: dict[str, list[PinSignalPatch]] = {}
+    for entry in family_catalog.pin_signals:
+        if entry.signal.peripheral is None or entry.signal.peripheral in allowed_peripherals:
+            signals_by_pin.setdefault(entry.pin_name, []).append(entry.signal)
+
+    pins: list[PinDefinition] = []
+    for pin_entry in sorted(family_catalog.pins, key=lambda p: p.number):
+        # Skip pins not present in this package (e.g., board-internal GP23/GP24/GP29 on Pico).
+        if pin_entry.packages and package not in pin_entry.packages:
+            continue
+        pin_signals = signals_by_pin.get(pin_entry.name, [])
+        if not pin_signals:
+            continue
+        pins.append(
+            PinDefinition(
+                name=pin_entry.name,
+                port=pin_entry.port,
+                number=pin_entry.number,
+                signals=tuple(_pin_signal_to_ir(sig, provenance) for sig in pin_signals),
+                provenance=provenance,
+            )
+        )
+    return tuple(pins)
+
+
+def build_rp2040_canonical_ir(
+    raw: RawDeviceDocument,
+    patch: DevicePatch,
+    family_catalog: FamilyPatchCatalog,
+    *,
+    vendor: str,
+    family: str,
+    svd_source_id: str = "pico-sdk",
+) -> CanonicalDeviceIR:
+    """Build canonical IR from pico-sdk SVD and RP2040 family patch catalog.
+
+    Unlike STM32/Microchip paths there is no separate pin-data XML.  Pin
+    signals come entirely from the family patch catalog, which encodes the
+    RP2040 FUNCSEL table.  ADC analog inputs (GP26-GP29) have af_number=null
+    by design; the validation layer exempts known analog peripheral classes
+    from the alternate-functions-explicit rule.
+    """
+    patch_ids: tuple[str, ...] = (
+        (patch.family_patch_id, patch.patch_id)
+        if patch.family_patch_id is not None
+        else (patch.patch_id,)
+    )
+    svd_provenance = Provenance(
+        source_id=svd_source_id,
+        source_path=patch.svd_file,
+        patch_ids=patch_ids,
+    )
+    patch_provenance = Provenance(
+        source_id="bootstrap-patch",
+        source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
+        patch_ids=patch_ids,
+    )
+    raw_peripherals = _merge_patch_registers(raw.peripherals, patch_registers=patch.registers)
+    peripheral_patches = _peripheral_patch_map(patch)
+    discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw_peripherals}
+    (
+        clock_nodes,
+        clock_selectors,
+        clock_gates,
+        resets,
+        peripheral_clock_bindings,
+    ) = _filter_clock_patch_descriptors(patch=patch, peripheral_names=discovered_peripherals)
+
+    # Emit pin signals only for peripherals that have rcc_enable_signal configured
+    # (i.e., UART0/1, SPI0/1, I2C0/1, ADC — not PIO, TIMER, WATCHDOG, etc.).
+    # This ensures the referenced-peripherals-have-rcc-enable validation passes.
+    rcc_enable_peripherals = {
+        p.name for p in patch.peripherals if p.rcc_enable_signal is not None
+    }
+    pins = _build_rp2040_pins(
+        family_catalog=family_catalog,
+        allowed_peripherals=discovered_peripherals & rcc_enable_peripherals,
+        package=patch.package,
+        provenance=svd_provenance,
+    )
+    # RP2040 has no dedicated package-pad data source.  Derive package pads from
+    # the set of pins that produced at least one signal (same pattern as NXP).
+    # Only include pads for pins that belong to this package (respects board-level
+    # restrictions such as the Pico's "pico" package excluding GP23/GP24/GP29).
+    pin_names_with_signals = {pin.name for pin in pins}
+    package_pads = tuple(
+        PackagePad(
+            pad_id=pin_entry.name,
+            package=patch.package,
+            position_label=pin_entry.name,
+            physical_index=None,
+            pad_kind="io",
+            bonded_pin=pin_entry.name,
+            provenance=svd_provenance,
+            bonding_state="bonded",
+        )
+        for pin_entry in sorted(family_catalog.pins, key=lambda p: p.number)
+        if pin_entry.name in pin_names_with_signals
+        and (not pin_entry.packages or patch.package in pin_entry.packages)
+    )
+    return CanonicalDeviceIR(
+        schema_version=IR_SCHEMA_VERSION,
+        identity=DeviceIdentity(
+            vendor=vendor,
+            family=family,
+            device=patch.device,
+            package=patch.package,
+            core=patch.core,
+            summary=patch.summary,
+        ),
+        memories=tuple(_memory_to_ir(m, patch_provenance) for m in patch.memories),
+        packages=(
+            PackageDefinition(
+                name=patch.package,
+                pin_count=patch.pin_count,
+                provenance=svd_provenance,
+            ),
+        ),
+        registers=_registers_from_raw_peripherals(raw_peripherals, provenance=svd_provenance),
+        register_fields=_register_fields_from_raw_peripherals(
+            raw_peripherals,
+            provenance=svd_provenance,
+            patch_fields=patch.register_fields,
+            patch_provenance=patch_provenance,
+        ),
+        pins=pins,
+        peripherals=tuple(
+            _peripheral_to_ir(
+                peripheral_name=_canonical_peripheral_name(p.name),
+                base_address=p.base_address,
+                patch_metadata=peripheral_patches.get(_canonical_peripheral_name(p.name)),
+                ip_version=None,
+                provenance=svd_provenance,
+            )
+            for p in raw_peripherals
+        ),
+        interrupts=_normalize_interrupts(raw.interrupts, provenance=svd_provenance),
+        dma_controllers=tuple(
+            _dma_controller_to_ir(ctrl, patch_provenance) for ctrl in patch.dma_controllers
+        ),
+        dma_requests=tuple(
+            _dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests
+        ),
+        provenance=svd_provenance,
+        package_pads=package_pads,
+        pin_constraints=_derive_pin_constraints(
+            package_pads=package_pads,
+            pins=pins,
+            provenance=svd_provenance,
+        ),
+        clock_nodes=tuple(_clock_node_to_ir(n, patch_provenance) for n in clock_nodes),
+        clock_selectors=tuple(
+            _clock_selector_to_ir(s, patch_provenance) for s in clock_selectors
+        ),
+        clock_gates=tuple(_clock_gate_to_ir(g, patch_provenance) for g in clock_gates),
+        resets=tuple(_reset_to_ir(r, patch_provenance) for r in resets),
+        system_clock_profiles=tuple(
+            _system_clock_profile_to_ir(p, patch_provenance) for p in patch.system_clock_profiles
+        ),
+        peripheral_clock_bindings=tuple(
+            _peripheral_clock_binding_to_ir(b, patch_provenance)
+            for b in peripheral_clock_bindings
+        ),
+    )
+
+
+def _build_rp2040_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
+    svd_path = resolve_pico_svd_path(execution_context, device_name, vendor=vendor, family=family)
+    raw = parse_raw_device_document(svd_path)
+    return build_rp2040_canonical_ir(
+        raw,
+        patch,
+        family_catalog,
+        vendor=vendor,
+        family=family,
+    )
+
+
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:
     """Run the bootstrap normalize stage."""
     execution_context = context or ExecutionContext.default()
@@ -1432,6 +1640,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         if vendor == "nxp" and family == "imxrt1060":
             devices.append(
                 _build_nxp_device_ir(
+                    execution_context=execution_context,
+                    device_name=device_name,
+                    vendor=vendor,
+                    family=family,
+                )
+            )
+            continue
+        if vendor == "raspberrypi" and family == "rp2040":
+            devices.append(
+                _build_rp2040_device_ir(
                     execution_context=execution_context,
                     device_name=device_name,
                     vendor=vendor,
