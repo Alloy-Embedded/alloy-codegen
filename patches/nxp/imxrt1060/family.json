@@ -196,6 +196,12 @@
     },
     {
       "name": "WDOG2"
+    },
+    {
+      "name": "ENET"
+    },
+    {
+      "name": "USB1"
     }
   ],
   "registers": [

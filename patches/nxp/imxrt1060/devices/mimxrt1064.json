@@ -48,7 +48,9 @@
     "PWM4",
     "RTWDOG",
     "WDOG1",
-    "WDOG2"
+    "WDOG2",
+    "ENET",
+    "USB1"
   ],
   "registers": [
     {
@@ -152,6 +154,18 @@
       "name": "WCR",
       "offset_bytes": 0,
       "base_address": 1074593792
+    },
+    {
+      "peripheral": "ENET",
+      "name": "ECR",
+      "offset_bytes": 36,
+      "base_address": 1076723712
+    },
+    {
+      "peripheral": "USB1",
+      "name": "USBCMD",
+      "offset_bytes": 320,
+      "base_address": 1076756480
     }
   ],
   "memories": [

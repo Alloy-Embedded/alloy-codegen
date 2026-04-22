@@ -88,5 +88,25 @@
         <register><name>PSR</name><addressOffset>0x08</addressOffset></register>
       </registers>
     </peripheral>
+    <peripheral>
+      <name>ENET</name>
+      <baseAddress>0x402D8000</baseAddress>
+      <registers>
+        <register>
+          <name>ECR</name>
+          <addressOffset>0x024</addressOffset>
+        </register>
+      </registers>
+    </peripheral>
+    <peripheral>
+      <name>USB1</name>
+      <baseAddress>0x402E0000</baseAddress>
+      <registers>
+        <register>
+          <name>USBCMD</name>
+          <addressOffset>0x140</addressOffset>
+        </register>
+      </registers>
+    </peripheral>
   </peripherals>
 </device>

@@ -31,6 +31,7 @@ enum class RegisterId : std::uint16_t {
   register_dcdc_reg3,
   register_dma0_cr,
   register_dmamux1_chcfg0,
+  register_enet_ecr,
   register_gpio1_dr,
   register_gpio1_gdir,
   register_gpio1_psr,
@@ -53,6 +54,7 @@ enum class RegisterId : std::uint16_t {
   register_pwm3_mctrl,
   register_pwm4_mctrl,
   register_rtwdog_cs,
+  register_usb1_usbcmd,
   register_wdog1_wcr,
   register_wdog2_wcr,
 };
@@ -233,6 +235,15 @@ struct RegisterTraits<RegisterId::register_dmamux1_chcfg0> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x400EC000u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_enet_ecr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x402D8000u;
+  static constexpr std::uint32_t kOffsetBytes = 36u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
 };
@@ -436,6 +447,15 @@ struct RegisterTraits<RegisterId::register_rtwdog_cs> {
 };
 
 template<>
+struct RegisterTraits<RegisterId::register_usb1_usbcmd> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x402E0000u;
+  static constexpr std::uint32_t kOffsetBytes = 320u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+};
+
+template<>
 struct RegisterTraits<RegisterId::register_wdog1_wcr> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x400B8000u;
@@ -453,7 +473,7 @@ struct RegisterTraits<RegisterId::register_wdog2_wcr> {
   static constexpr int kSizeBits = -1;
 };
 
-inline constexpr std::array<RegisterId, 43> kRegisters = {{
+inline constexpr std::array<RegisterId, 45> kRegisters = {{
   RegisterId::register_adc1_hc0,
   RegisterId::register_adc2_hc0,
   RegisterId::register_can1_mcr,
@@ -473,6 +493,7 @@ inline constexpr std::array<RegisterId, 43> kRegisters = {{
   RegisterId::register_dcdc_reg3,
   RegisterId::register_dma0_cr,
   RegisterId::register_dmamux1_chcfg0,
+  RegisterId::register_enet_ecr,
   RegisterId::register_gpio1_dr,
   RegisterId::register_gpio1_gdir,
   RegisterId::register_gpio1_psr,
@@ -495,6 +516,7 @@ inline constexpr std::array<RegisterId, 43> kRegisters = {{
   RegisterId::register_pwm3_mctrl,
   RegisterId::register_pwm4_mctrl,
   RegisterId::register_rtwdog_cs,
+  RegisterId::register_usb1_usbcmd,
   RegisterId::register_wdog1_wcr,
   RegisterId::register_wdog2_wcr,
 }};

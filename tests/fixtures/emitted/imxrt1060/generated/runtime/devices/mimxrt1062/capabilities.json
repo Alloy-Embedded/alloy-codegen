@@ -33,6 +33,14 @@
       "value": "true"
     },
     {
+      "capability_id": "runtime-support:eth",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "eth",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
       "capability_id": "capability:gpio:imxrt-gpio-v1:io00",
       "name": "signal-role",
       "peripheral": null,
@@ -183,6 +191,14 @@
       "peripheral_class": "uart",
       "scope": "instance_overlay",
       "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:usb",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "usb",
+      "scope": "runtime_contract",
+      "value": "true"
     },
     {
       "capability_id": "runtime-support:watchdog",

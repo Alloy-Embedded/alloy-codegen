@@ -376,6 +376,42 @@
       "backend_schema_id": "alloy.gpio.nxp-imxrt-gpio-v1"
     },
     {
+      "name": "ENET",
+      "ip_name": "enet",
+      "ip_version": null,
+      "instance": 0,
+      "base_address": 1076723712,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.eth.nxp-enet"
+    },
+    {
+      "name": "USB1",
+      "ip_name": "usb",
+      "ip_version": null,
+      "instance": 1,
+      "base_address": 1076756480,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.usb.nxp-usb"
+    },
+    {
       "name": "CCM",
       "ip_name": "ccm",
       "ip_version": null,
@@ -1029,6 +1065,38 @@
       "peripheral": "GPIO1",
       "name": "PSR",
       "offset_bytes": 8,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:enet:ecr",
+      "peripheral": "ENET",
+      "name": "ECR",
+      "offset_bytes": 36,
+      "access": null,
+      "size_bits": null,
+      "provenance": {
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml",
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usb1:usbcmd",
+      "peripheral": "USB1",
+      "name": "USBCMD",
+      "offset_bytes": 320,
       "access": null,
       "size_bits": null,
       "provenance": {
