@@ -74,10 +74,10 @@ jobs:
 
       - name: Vendor admission gate
         run: |
-          # Vendor 4 admission is blocked until all foundational families pass gates T7, T8, T9.
-          # Only st, microchip, and nxp are currently admitted. Any other vendor directory in
-          # patches/ means vendor-4 work has started without a completed admission spec.
-          ADMITTED_VENDORS="st microchip nxp"
+          # Admitted vendors: st, microchip, nxp (foundational), raspberrypi (admitted via
+          # openspec/changes/archive/2026-04-22-add-raspberrypi-rp2040-target).
+          # Any other vendor directory in patches/ requires a completed vendor-admission proposal.
+          ADMITTED_VENDORS="st microchip nxp raspberrypi"
           UNKNOWN=()
           for vendor_dir in patches/*/; do
             vendor="$(basename "$vendor_dir")"
