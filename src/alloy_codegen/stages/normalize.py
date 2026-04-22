@@ -1494,9 +1494,7 @@ def build_rp2040_canonical_ir(
     # Emit pin signals only for peripherals that have rcc_enable_signal configured
     # (i.e., UART0/1, SPI0/1, I2C0/1, ADC — not PIO, TIMER, WATCHDOG, etc.).
     # This ensures the referenced-peripherals-have-rcc-enable validation passes.
-    rcc_enable_peripherals = {
-        p.name for p in patch.peripherals if p.rcc_enable_signal is not None
-    }
+    rcc_enable_peripherals = {p.name for p in patch.peripherals if p.rcc_enable_signal is not None}
     pins = _build_rp2040_pins(
         family_catalog=family_catalog,
         allowed_peripherals=discovered_peripherals & rcc_enable_peripherals,
@@ -1563,9 +1561,7 @@ def build_rp2040_canonical_ir(
         dma_controllers=tuple(
             _dma_controller_to_ir(ctrl, patch_provenance) for ctrl in patch.dma_controllers
         ),
-        dma_requests=tuple(
-            _dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests
-        ),
+        dma_requests=tuple(_dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests),
         provenance=svd_provenance,
         package_pads=package_pads,
         pin_constraints=_derive_pin_constraints(
@@ -1574,17 +1570,14 @@ def build_rp2040_canonical_ir(
             provenance=svd_provenance,
         ),
         clock_nodes=tuple(_clock_node_to_ir(n, patch_provenance) for n in clock_nodes),
-        clock_selectors=tuple(
-            _clock_selector_to_ir(s, patch_provenance) for s in clock_selectors
-        ),
+        clock_selectors=tuple(_clock_selector_to_ir(s, patch_provenance) for s in clock_selectors),
         clock_gates=tuple(_clock_gate_to_ir(g, patch_provenance) for g in clock_gates),
         resets=tuple(_reset_to_ir(r, patch_provenance) for r in resets),
         system_clock_profiles=tuple(
             _system_clock_profile_to_ir(p, patch_provenance) for p in patch.system_clock_profiles
         ),
         peripheral_clock_bindings=tuple(
-            _peripheral_clock_binding_to_ir(b, patch_provenance)
-            for b in peripheral_clock_bindings
+            _peripheral_clock_binding_to_ir(b, patch_provenance) for b in peripheral_clock_bindings
         ),
     )
 

@@ -123,9 +123,7 @@ def resolve_svd_path(
     source_root = ensure_source_root(context)
     svd_file = patch.svd_file
     if svd_file is None:
-        raise StageExecutionError(
-            f"Device patch for '{device_name}' does not declare a svd_file."
-        )
+        raise StageExecutionError(f"Device patch for '{device_name}' does not declare a svd_file.")
     svd_path = source_root / RP2040_SVD_SUBTREE / svd_file
     if not svd_path.exists():
         raise StageExecutionError(
