@@ -14,6 +14,7 @@ enum class RegisterId : std::uint16_t {
   none,
   register_adc1_isr,
   register_dac_cr,
+  register_dma1_isr,
   register_flash_acr,
   register_gpioa_moder,
   register_gpioa_afrl,
@@ -66,6 +67,15 @@ struct RegisterTraits<RegisterId::register_dac_cr> {
   static constexpr std::uintptr_t kBaseAddress = 0x40007400u;
   static constexpr std::uint32_t kOffsetBytes = 0u;
   static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_dma1_isr> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40020000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_only;
   static constexpr int kSizeBits = 32;
 };
 
@@ -303,9 +313,10 @@ struct RegisterTraits<RegisterId::register_usart1_tdr> {
   static constexpr int kSizeBits = -1;
 };
 
-inline constexpr std::array<RegisterId, 28> kRegisters = {{
+inline constexpr std::array<RegisterId, 29> kRegisters = {{
   RegisterId::register_adc1_isr,
   RegisterId::register_dac_cr,
+  RegisterId::register_dma1_isr,
   RegisterId::register_flash_acr,
   RegisterId::register_gpioa_moder,
   RegisterId::register_gpioa_afrl,

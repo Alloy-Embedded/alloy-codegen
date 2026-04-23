@@ -2481,6 +2481,22 @@
       "size_bits": null
     },
     {
+      "access": "read-only",
+      "name": "ISR",
+      "offset_bytes": 0,
+      "peripheral": "DMA1",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd"
+      },
+      "register_id": "register:dma1:isr",
+      "size_bits": 32
+    },
+    {
       "access": null,
       "name": "CR1",
       "offset_bytes": 0,

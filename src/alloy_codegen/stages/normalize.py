@@ -806,12 +806,36 @@ def _merge_patch_registers(
                     "Patch register for missing peripheral requires base_address: "
                     f"{patch_register.peripheral}.{patch_register.name}"
                 )
-            by_name[canonical_name] = RawPeripheral(
-                name=canonical_name,
-                base_address=patch_register.base_address,
-                registers=(raw_register,),
+            # Check whether an SVD peripheral with a different name already
+            # occupies the same base address (e.g. the upstream SVD ships "ADC"
+            # or "DMA" while the patch expects "ADC1" / "DMA1").  When that
+            # happens we rename the SVD peripheral in-place so the rest of the
+            # pipeline sees only the patch-canonical name.
+            base_addr = patch_register.base_address
+            same_base_name = next(
+                (name for name, p in by_name.items() if p.base_address == base_addr),
+                None,
             )
-            order.append(canonical_name)
+            if same_base_name is not None:
+                old_peripheral = by_name.pop(same_base_name)
+                order[order.index(same_base_name)] = canonical_name
+                by_name[canonical_name] = RawPeripheral(
+                    name=canonical_name,
+                    base_address=base_addr,
+                    registers=tuple(
+                        sorted(
+                            (*old_peripheral.registers, raw_register),
+                            key=lambda item: (item.offset_bytes, item.name),
+                        )
+                    ),
+                )
+            else:
+                by_name[canonical_name] = RawPeripheral(
+                    name=canonical_name,
+                    base_address=base_addr,
+                    registers=(raw_register,),
+                )
+                order.append(canonical_name)
             continue
         if (
             patch_register.base_address is not None

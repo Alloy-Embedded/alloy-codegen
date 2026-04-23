@@ -37,6 +37,7 @@
     { "peripheral": "RCC", "name": "PLLCFGR", "base_address": 1073876992, "offset_bytes": 12, "access": "read-write", "size_bits": 32 },
     { "peripheral": "FLASH", "name": "ACR", "base_address": 1073881088, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
     { "peripheral": "ADC1", "name": "ISR", "base_address": 1073816576, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "DMA1", "name": "ISR", "base_address": 1073872896, "offset_bytes": 0, "access": "read-only", "size_bits": 32 },
     { "peripheral": "DMAMUX1", "name": "C0CR", "base_address": 1073874944, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
     { "peripheral": "SPI1", "name": "CR1", "base_address": 1073819648, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
     { "peripheral": "TIM1", "name": "CR1", "base_address": 1073818624, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },

@@ -124,12 +124,22 @@ def resolve_svd_path(
     svd_file = patch.svd_file
     if svd_file is None:
         raise StageExecutionError(f"Device patch for '{device_name}' does not declare a svd_file.")
-    svd_path = source_root / RP2040_SVD_SUBTREE / svd_file
+    svd_dir = source_root / RP2040_SVD_SUBTREE
+    svd_path = svd_dir / svd_file
     if not svd_path.exists():
-        raise StageExecutionError(
-            f"Missing SVD file '{svd_file}' for device '{device_name}' "
-            f"under pico-sdk '{RP2040_SVD_SUBTREE}'."
-        )
+        # The real pico-sdk ships 'RP2040.svd' (uppercase) while device patches
+        # canonically reference 'rp2040.svd' (lowercase).  On case-sensitive
+        # filesystems (Linux CI) we need a case-insensitive fallback.
+        svd_lower = svd_file.lower()
+        for candidate in svd_dir.iterdir():
+            if candidate.name.lower() == svd_lower:
+                svd_path = candidate
+                break
+        else:
+            raise StageExecutionError(
+                f"Missing SVD file '{svd_file}' for device '{device_name}' "
+                f"under pico-sdk '{RP2040_SVD_SUBTREE}'."
+            )
     return svd_path
 
 
