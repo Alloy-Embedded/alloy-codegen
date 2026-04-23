@@ -27,9 +27,11 @@
       <baseAddress>0x40023800</baseAddress>
       <registers>
         <register><name>AHB1RSTR</name><addressOffset>0x10</addressOffset></register>
+        <register><name>AHB2RSTR</name><addressOffset>0x14</addressOffset></register>
         <register><name>APB1RSTR</name><addressOffset>0x20</addressOffset></register>
         <register><name>APB2RSTR</name><addressOffset>0x24</addressOffset></register>
         <register><name>AHB1ENR</name><addressOffset>0x30</addressOffset></register>
+        <register><name>AHB2ENR</name><addressOffset>0x34</addressOffset></register>
         <register><name>APB1ENR</name><addressOffset>0x40</addressOffset></register>
         <register><name>APB2ENR</name><addressOffset>0x44</addressOffset></register>
       </registers>
@@ -78,6 +80,14 @@
       <interrupt>
         <name>USART2</name>
         <value>38</value>
+      </interrupt>
+    </peripheral>
+    <peripheral>
+      <name>OTG_FS</name>
+      <baseAddress>0x50000000</baseAddress>
+      <interrupt>
+        <name>OTG_FS</name>
+        <value>67</value>
       </interrupt>
     </peripheral>
   </peripherals>

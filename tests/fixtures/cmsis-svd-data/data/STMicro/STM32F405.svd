@@ -90,5 +90,12 @@
         <value>67</value>
       </interrupt>
     </peripheral>
+    <peripheral>
+      <name>Ethernet_MAC</name>
+      <baseAddress>0x40028000</baseAddress>
+      <registers>
+        <register><name>MACCR</name><addressOffset>0x00</addressOffset></register>
+      </registers>
+    </peripheral>
   </peripherals>
 </device>

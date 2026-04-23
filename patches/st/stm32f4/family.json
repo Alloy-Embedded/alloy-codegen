@@ -133,6 +133,9 @@
       "name": "OTG_FS",
       "rcc_enable_signal": "RCC_AHB2ENR.OTGFSEN",
       "rcc_reset_signal": "RCC_AHB2RSTR.OTGFSRST"
+    },
+    {
+      "name": "Ethernet_MAC"
     }
   ],
   "register_fields": [

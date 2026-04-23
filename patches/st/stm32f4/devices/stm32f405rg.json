@@ -83,6 +83,6 @@
       "access": "rwx"
     }
   ],
-  "peripherals": ["GPIOA", "GPIOB", "USART1", "USART2", "DMA1", "DMA2", "OTG_FS", "ADC1", "DAC", "SPI1", "TIM1", "RTC", "IWDG", "CAN1"],
+  "peripherals": ["GPIOA", "GPIOB", "USART1", "USART2", "DMA1", "DMA2", "OTG_FS", "Ethernet_MAC", "ADC1", "DAC", "SPI1", "TIM1", "RTC", "IWDG", "CAN1"],
   "dma_request_refs": ["dma2-usart1-rx", "dma2-usart1-tx"]
 }

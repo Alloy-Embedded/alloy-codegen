@@ -81,6 +81,6 @@
       "flash_latency": 2
     }
   ],
-  "peripherals": ["GPIOA", "GPIOB", "USART1", "USART2", "DMA1", "DMA2", "ADC1", "SPI1", "TIM1", "RTC", "IWDG"],
+  "peripherals": ["GPIOA", "GPIOB", "USART1", "USART2", "DMA1", "DMA2", "OTG_FS", "ADC1", "SPI1", "TIM1", "RTC", "IWDG"],
   "dma_request_refs": ["dma1-usart2-rx", "dma1-usart2-tx"]
 }
