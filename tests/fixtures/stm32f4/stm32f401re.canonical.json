@@ -506,7 +506,7 @@
           "st-stm32f4-stm32f401re-bootstrap"
         ]
       },
-      "shared_group": null,
+      "shared_group": "interrupt-group:dma1",
       "alias_names": [
         "DMA1_Stream0_IRQHandler"
       ]
@@ -577,6 +577,40 @@
       "shared_group": null,
       "alias_names": [
         "OTG_FS_IRQHandler"
+      ]
+    },
+    {
+      "name": "DMA1_Stream5",
+      "line": 16,
+      "peripheral": "DMA1",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f401re.json",
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ]
+      },
+      "shared_group": "interrupt-group:dma1",
+      "alias_names": [
+        "DMA1_Stream5_IRQHandler"
+      ]
+    },
+    {
+      "name": "DMA1_Stream6",
+      "line": 17,
+      "peripheral": "DMA1",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f401re.json",
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ]
+      },
+      "shared_group": "interrupt-group:dma1",
+      "alias_names": [
+        "DMA1_Stream6_IRQHandler"
       ]
     }
   ],
@@ -3342,7 +3376,7 @@
       "line": 11,
       "vector_slot": 27,
       "symbol_name": "DMA1_Stream0_IRQHandler",
-      "shared_group": null,
+      "shared_group": "interrupt-group:dma1",
       "provenance": {
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F401.svd",
@@ -3353,6 +3387,46 @@
       },
       "alias_names": [
         "DMA1_Stream0_IRQHandler"
+      ]
+    },
+    {
+      "binding_id": "interrupt-binding:dma1:dma1-stream5",
+      "peripheral": "DMA1",
+      "interrupt": "DMA1_Stream5",
+      "line": 16,
+      "vector_slot": 32,
+      "symbol_name": "DMA1_Stream5_IRQHandler",
+      "shared_group": "interrupt-group:dma1",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f401re.json",
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ]
+      },
+      "alias_names": [
+        "DMA1_Stream5_IRQHandler"
+      ]
+    },
+    {
+      "binding_id": "interrupt-binding:dma1:dma1-stream6",
+      "peripheral": "DMA1",
+      "interrupt": "DMA1_Stream6",
+      "line": 17,
+      "vector_slot": 33,
+      "symbol_name": "DMA1_Stream6_IRQHandler",
+      "shared_group": "interrupt-group:dma1",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f401re.json",
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ]
+      },
+      "alias_names": [
+        "DMA1_Stream6_IRQHandler"
       ]
     },
     {
@@ -3669,6 +3743,34 @@
       "provenance": {
         "source_id": "cmsis-svd-data",
         "source_path": "STM32F401.svd",
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ]
+      }
+    },
+    {
+      "slot": 32,
+      "symbol_name": "DMA1_Stream5_IRQHandler",
+      "interrupt": "DMA1_Stream5",
+      "kind": "external-interrupt",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f401re.json",
+        "patch_ids": [
+          "st-stm32f4-family-bootstrap-v1",
+          "st-stm32f4-stm32f401re-bootstrap"
+        ]
+      }
+    },
+    {
+      "slot": 33,
+      "symbol_name": "DMA1_Stream6_IRQHandler",
+      "interrupt": "DMA1_Stream6",
+      "kind": "external-interrupt",
+      "provenance": {
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/st/stm32f4/devices/stm32f401re.json",
         "patch_ids": [
           "st-stm32f4-family-bootstrap-v1",
           "st-stm32f4-stm32f401re-bootstrap"

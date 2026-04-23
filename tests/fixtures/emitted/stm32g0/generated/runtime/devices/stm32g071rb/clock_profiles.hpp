@@ -24,8 +24,8 @@ inline constexpr std::array<ClockProfileId, 2> kClockProfileIds = {{
 }};
 
 inline constexpr auto kClockProfiles = kSystemClockProfiles;
-inline constexpr ClockProfileId kDefaultClockProfileId = ClockProfileId::default_pll_64mhz;
-inline constexpr ClockProfileId kSafeClockProfileId = ClockProfileId::safe_hsi16;
+inline constexpr ClockProfileId kDefaultClockProfileId = ClockProfileId::safe_hsi16;
+inline constexpr ClockProfileId kSafeClockProfileId = ClockProfileId::none;
 inline constexpr ClockProfileId kMaxClockProfileId = ClockProfileId::default_pll_64mhz;
 inline constexpr std::uint32_t kMaxClockFrequencyHz = 64000000u;
 }

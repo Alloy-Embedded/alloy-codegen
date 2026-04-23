@@ -52,7 +52,7 @@
   "system_clock_profiles": [
     {
       "profile_id": "safe-hsi16",
-      "kind": "safe",
+      "kind": "default",
       "source_kind": "internal-oscillator",
       "sysclk_hz": 16000000,
       "hclk_hz": 16000000,
@@ -62,7 +62,7 @@
     },
     {
       "profile_id": "default-pll-64mhz",
-      "kind": "default",
+      "kind": "performance",
       "source_kind": "pll-internal",
       "sysclk_hz": 64000000,
       "hclk_hz": 64000000,

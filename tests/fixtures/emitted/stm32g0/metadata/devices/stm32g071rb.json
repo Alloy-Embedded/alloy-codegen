@@ -3987,7 +3987,7 @@
     {
       "flash_latency": 0,
       "hclk_hz": 16000000,
-      "kind": "safe",
+      "kind": "default",
       "pclk_hz": 16000000,
       "profile_id": "safe-hsi16",
       "provenance": {
@@ -4005,7 +4005,7 @@
     {
       "flash_latency": 2,
       "hclk_hz": 64000000,
-      "kind": "default",
+      "kind": "performance",
       "pclk_hz": 64000000,
       "pll_m": 0,
       "pll_n": 8,

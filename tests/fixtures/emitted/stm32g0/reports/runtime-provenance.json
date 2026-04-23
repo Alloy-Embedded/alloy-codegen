@@ -1757,7 +1757,7 @@
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp",
           "derivation_kind": "patched",
           "detail": {
-            "kind": "default",
+            "kind": "performance",
             "profile_id": "default-pll-64mhz",
             "source_kind": "pll-internal",
             "sysclk_hz": 64000000
@@ -1783,7 +1783,7 @@
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp",
           "derivation_kind": "patched",
           "detail": {
-            "kind": "safe",
+            "kind": "default",
             "profile_id": "safe-hsi16",
             "source_kind": "internal-oscillator",
             "sysclk_hz": 16000000
@@ -2495,7 +2495,7 @@
             "peripheral": null,
             "sequence_id": "default_bringup",
             "startup_descriptor_id": null,
-            "system_clock_profile_id": "default-pll-64mhz"
+            "system_clock_profile_id": "safe-hsi16"
           },
           "fact_id": "system-sequence:default_bringup:6",
           "fact_kind": "system_sequence_step",
@@ -2513,7 +2513,7 @@
             ]
           },
           "supporting_fact_ids": [
-            "system-clock-profile:default-pll-64mhz"
+            "system-clock-profile:safe-hsi16"
           ]
         }
       ],

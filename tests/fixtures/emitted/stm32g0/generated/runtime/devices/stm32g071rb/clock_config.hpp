@@ -14,11 +14,11 @@ inline bool apply_clock_profile() {
 }
 
 inline bool apply_default_clock_profile() {
-  return apply_clock_profile<ClockProfileId::default_pll_64mhz>();
+  return apply_clock_profile<ClockProfileId::safe_hsi16>();
 }
 
 inline bool apply_safe_clock_profile() {
-  return apply_clock_profile<ClockProfileId::safe_hsi16>();
+  return false;
 }
 
 inline bool apply_max_clock_profile() {

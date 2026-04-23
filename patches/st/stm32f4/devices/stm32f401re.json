@@ -50,6 +50,10 @@
     { "peripheral": "RCC", "register_name": "CFGR", "name": "PPRE2", "bit_offset": 13, "bit_width": 3, "access": "read-write" },
     { "peripheral": "FLASH", "register_name": "ACR", "name": "LATENCY", "bit_offset": 0, "bit_width": 4, "access": "read-write" }
   ],
+  "interrupts": [
+    { "name": "DMA1_Stream5", "line": 16, "peripheral": "DMA1" },
+    { "name": "DMA1_Stream6", "line": 17, "peripheral": "DMA1" }
+  ],
   "system_clock_profiles": [
     {
       "profile_id": "safe-reset-default",

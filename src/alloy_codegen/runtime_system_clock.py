@@ -159,6 +159,14 @@ def _source_kind_enum_map(device: CanonicalDeviceIR) -> dict[str, str]:
     }
 
 
+def _stm32g0_pllsrc_value(source_kind: str) -> int:
+    if source_kind == "pll-internal":
+        return 0x2
+    if source_kind == "pll-external":
+        return 0x3
+    return 0x0
+
+
 def emit_runtime_system_clock_header(
     *,
     family_dir: str,
@@ -252,7 +260,7 @@ def emit_runtime_system_clock_header(
                 "      return false;",
                 "    }",
                 "    write_field(kFlashLatencyField, SystemClockProfileTraits<Id>::kFlashLatency);",
-                "    write_field(kPllsrcField, 0x2u);",
+                "    write_field(kPllsrcField, SystemClockProfileTraits<Id>::kPllSource);",
                 "    write_field(kPllmField, SystemClockProfileTraits<Id>::kPllM);",
                 "    write_field(kPllnField, SystemClockProfileTraits<Id>::kPllN);",
                 "    write_field(kPllrField, SystemClockProfileTraits<Id>::kPllR);",
@@ -651,6 +659,7 @@ def emit_runtime_system_clock_header(
         "  static constexpr std::uint32_t kPllP = 0u;",
         "  static constexpr std::uint32_t kPllQ = 0u;",
         "  static constexpr std::uint32_t kPllR = 0u;",
+        "  static constexpr std::uint32_t kPllSource = 0u;",
         "  static constexpr std::uint32_t kFlashLatency = 0u;",
         "};",
         "",
@@ -685,6 +694,8 @@ def emit_runtime_system_clock_header(
                 f"  static constexpr std::uint32_t kPllP = {profile.pll_p or 0}u;",
                 f"  static constexpr std::uint32_t kPllQ = {profile.pll_q or 0}u;",
                 f"  static constexpr std::uint32_t kPllR = {profile.pll_r or 0}u;",
+                "  static constexpr std::uint32_t kPllSource = "
+                f"{(_stm32g0_pllsrc_value(profile.source_kind) if family_key == ('st', 'stm32g0') else 0)}u;",
                 f"  static constexpr std::uint32_t kFlashLatency = {profile.flash_latency or 0}u;",
                 "};",
                 "",

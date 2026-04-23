@@ -39,6 +39,7 @@ from alloy_codegen.patches import (
     DmaControllerPatch,
     DmaRequestPatch,
     FamilyPatchCatalog,
+    InterruptPatch,
     MemoryPatch,
     PeripheralClockBindingPatch,
     PeripheralPatch,
@@ -299,6 +300,8 @@ def _normalize_interrupts(
     *,
     provenance: Provenance,
     peripheral_aliases: dict[str, str] | None = None,
+    patch_interrupts: tuple[InterruptPatch, ...] = (),
+    patch_provenance: Provenance | None = None,
 ) -> tuple[InterruptDefinition, ...]:
     alias_map = peripheral_aliases or {}
     interrupts_by_line: dict[int, list[RawInterrupt]] = {}
@@ -328,7 +331,28 @@ def _normalize_interrupts(
                 alias_names=alias_names,
             )
         )
-    return tuple(normalized_interrupts)
+    effective_patch_provenance = patch_provenance or provenance
+    interrupts_by_name = {interrupt.name: interrupt for interrupt in normalized_interrupts}
+    interrupt_order = [interrupt.name for interrupt in normalized_interrupts]
+    for interrupt in patch_interrupts:
+        peripheral = (
+            None
+            if interrupt.peripheral is None
+            else alias_map.get(
+                _canonical_peripheral_name(interrupt.peripheral),
+                _canonical_peripheral_name(interrupt.peripheral),
+            )
+        )
+        interrupts_by_name[interrupt.name] = InterruptDefinition(
+            name=interrupt.name,
+            line=interrupt.line,
+            peripheral=peripheral,
+            provenance=effective_patch_provenance,
+            alias_names=interrupt.alias_names,
+        )
+        if interrupt.name not in interrupt_order:
+            interrupt_order.append(interrupt.name)
+    return tuple(interrupts_by_name[name] for name in interrupt_order)
 
 
 def _deduplicate_raw_peripherals(
@@ -1068,6 +1092,8 @@ def build_canonical_ir(
             raw.interrupts,
             provenance=svd_provenance,
             peripheral_aliases=peripheral_renames,
+            patch_interrupts=patch.interrupts,
+            patch_provenance=patch_provenance,
         ),
         dma_controllers=tuple(
             _dma_controller_to_ir(controller, patch_provenance)
@@ -1385,6 +1411,8 @@ def build_nxp_canonical_ir(
             raw.interrupts,
             provenance=svd_provenance,
             peripheral_aliases=peripheral_aliases,
+            patch_interrupts=patch.interrupts,
+            patch_provenance=patch_provenance,
         ),
         dma_controllers=tuple(
             _dma_controller_to_ir(controller, patch_provenance)
@@ -1598,6 +1626,8 @@ def build_rp2040_canonical_ir(
             raw.interrupts,
             provenance=svd_provenance,
             peripheral_aliases=peripheral_renames,
+            patch_interrupts=patch.interrupts,
+            patch_provenance=patch_provenance,
         ),
         dma_controllers=tuple(
             _dma_controller_to_ir(ctrl, patch_provenance) for ctrl in patch.dma_controllers

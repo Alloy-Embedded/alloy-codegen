@@ -19,7 +19,7 @@ enum class SystemClockProfileId : std::uint16_t {
 enum class SystemClockProfileKindId : std::uint16_t {
   none,
   default_value,
-  safe,
+  performance,
 };
 
 enum class SystemClockSourceKindId : std::uint16_t {
@@ -39,8 +39,8 @@ struct SystemClockProfileDescriptor {
   std::uint32_t pclk_hz;
 };
 inline constexpr std::array<SystemClockProfileDescriptor, 2> kSystemClockProfiles = {{
-  {SystemClockProfileId::default_pll_64mhz, SystemClockProfileKindId::default_value, SystemClockSourceKindId::pll_internal, 64000000u, 64000000u, 0u, 0u, 64000000u},
-  {SystemClockProfileId::safe_hsi16, SystemClockProfileKindId::safe, SystemClockSourceKindId::internal_oscillator, 16000000u, 16000000u, 0u, 0u, 16000000u},
+  {SystemClockProfileId::default_pll_64mhz, SystemClockProfileKindId::performance, SystemClockSourceKindId::pll_internal, 64000000u, 64000000u, 0u, 0u, 64000000u},
+  {SystemClockProfileId::safe_hsi16, SystemClockProfileKindId::default_value, SystemClockSourceKindId::internal_oscillator, 16000000u, 16000000u, 0u, 0u, 16000000u},
 }};
 
 using RuntimeRegisterRef = driver_semantics::RuntimeRegisterRef;
@@ -69,13 +69,14 @@ struct SystemClockProfileTraits {
   static constexpr std::uint32_t kPllP = 0u;
   static constexpr std::uint32_t kPllQ = 0u;
   static constexpr std::uint32_t kPllR = 0u;
+  static constexpr std::uint32_t kPllSource = 0u;
   static constexpr std::uint32_t kFlashLatency = 0u;
 };
 
 template<>
 struct SystemClockProfileTraits<SystemClockProfileId::default_pll_64mhz> {
   static constexpr bool kPresent = true;
-  static constexpr SystemClockProfileKindId kKindId = SystemClockProfileKindId::default_value;
+  static constexpr SystemClockProfileKindId kKindId = SystemClockProfileKindId::performance;
   static constexpr SystemClockSourceKindId kSourceKindId = SystemClockSourceKindId::pll_internal;
   static constexpr std::uint32_t kSysclkHz = 64000000u;
   static constexpr std::uint32_t kHclkHz = 64000000u;
@@ -95,13 +96,14 @@ struct SystemClockProfileTraits<SystemClockProfileId::default_pll_64mhz> {
   static constexpr std::uint32_t kPllP = 0u;
   static constexpr std::uint32_t kPllQ = 0u;
   static constexpr std::uint32_t kPllR = 0u;
+  static constexpr std::uint32_t kPllSource = 2u;
   static constexpr std::uint32_t kFlashLatency = 2u;
 };
 
 template<>
 struct SystemClockProfileTraits<SystemClockProfileId::safe_hsi16> {
   static constexpr bool kPresent = true;
-  static constexpr SystemClockProfileKindId kKindId = SystemClockProfileKindId::safe;
+  static constexpr SystemClockProfileKindId kKindId = SystemClockProfileKindId::default_value;
   static constexpr SystemClockSourceKindId kSourceKindId = SystemClockSourceKindId::internal_oscillator;
   static constexpr std::uint32_t kSysclkHz = 16000000u;
   static constexpr std::uint32_t kHclkHz = 16000000u;
@@ -121,6 +123,7 @@ struct SystemClockProfileTraits<SystemClockProfileId::safe_hsi16> {
   static constexpr std::uint32_t kPllP = 0u;
   static constexpr std::uint32_t kPllQ = 0u;
   static constexpr std::uint32_t kPllR = 0u;
+  static constexpr std::uint32_t kPllSource = 0u;
   static constexpr std::uint32_t kFlashLatency = 0u;
 };
 
@@ -192,7 +195,7 @@ inline bool apply_system_clock_profile() {
       return false;
     }
     write_field(kFlashLatencyField, SystemClockProfileTraits<Id>::kFlashLatency);
-    write_field(kPllsrcField, 0x2u);
+    write_field(kPllsrcField, SystemClockProfileTraits<Id>::kPllSource);
     write_field(kPllmField, SystemClockProfileTraits<Id>::kPllM);
     write_field(kPllnField, SystemClockProfileTraits<Id>::kPllN);
     write_field(kPllrField, SystemClockProfileTraits<Id>::kPllR);
@@ -209,11 +212,11 @@ inline bool apply_system_clock_profile() {
 }
 
 inline bool apply_default_system_clock() {
-  return apply_system_clock_profile<SystemClockProfileId::default_pll_64mhz>();
+  return apply_system_clock_profile<SystemClockProfileId::safe_hsi16>();
 }
 
 inline bool apply_safe_system_clock() {
-  return apply_system_clock_profile<SystemClockProfileId::safe_hsi16>();
+  return false;
 }
 }
 }

@@ -716,6 +716,7 @@ def merge_source_patch(
         clock_selectors=patch.clock_selectors,
         clock_gates=patch.clock_gates,
         resets=patch.resets,
+        interrupts=patch.interrupts,
         system_clock_profiles=patch.system_clock_profiles,
         peripheral_clock_bindings=patch.peripheral_clock_bindings,
         dma_controllers=patch.dma_controllers,

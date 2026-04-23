@@ -39,7 +39,7 @@ inline constexpr std::array<SystemSequenceStepDescriptor, 7> kSystemSequenceStep
   {SystemSequenceId::default_bringup, 3u, SystemSequenceStepKindId::startup_descriptor, StartupDescriptorId::startup_vector_source_flash, PeripheralId::none, SystemClockProfileId::none},
   {SystemSequenceId::default_bringup, 4u, SystemSequenceStepKindId::startup_descriptor, StartupDescriptorId::startup_vectors, PeripheralId::none, SystemClockProfileId::none},
   {SystemSequenceId::default_bringup, 5u, SystemSequenceStepKindId::startup_descriptor, StartupDescriptorId::startup_zero_target_sram, PeripheralId::none, SystemClockProfileId::none},
-  {SystemSequenceId::default_bringup, 6u, SystemSequenceStepKindId::system_clock_profile, StartupDescriptorId::none, PeripheralId::none, SystemClockProfileId::default_pll_64mhz},
+  {SystemSequenceId::default_bringup, 6u, SystemSequenceStepKindId::system_clock_profile, StartupDescriptorId::none, PeripheralId::none, SystemClockProfileId::safe_hsi16},
 }};
 
 template<SystemSequenceId Id>
@@ -58,8 +58,8 @@ struct SystemSequenceTraits<SystemSequenceId::default_bringup> {
   static constexpr std::uint16_t kStepCount = 7u;
   static constexpr std::uint16_t kStartupDescriptorCount = 6u;
   static constexpr std::uint16_t kStartupControlCount = 0u;
-  static constexpr SystemClockProfileId kDefaultSystemClockProfileId = SystemClockProfileId::default_pll_64mhz;
-  static constexpr SystemClockProfileId kSafeSystemClockProfileId = SystemClockProfileId::safe_hsi16;
+  static constexpr SystemClockProfileId kDefaultSystemClockProfileId = SystemClockProfileId::safe_hsi16;
+  static constexpr SystemClockProfileId kSafeSystemClockProfileId = SystemClockProfileId::none;
 };
 }
 }

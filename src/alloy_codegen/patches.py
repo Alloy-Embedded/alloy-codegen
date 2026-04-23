@@ -162,6 +162,16 @@ class PeripheralClockBindingPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class InterruptPatch:
+    """Curated interrupt metadata supplied by a patch document."""
+
+    name: str
+    line: int
+    peripheral: str | None
+    alias_names: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class SystemClockProfilePatch:
     """Curated system clock bring-up profile metadata."""
 
@@ -254,6 +264,7 @@ class DevicePatch:
     clock_gates: tuple[ClockGatePatch, ...]
     resets: tuple[ResetPatch, ...]
     peripheral_clock_bindings: tuple[PeripheralClockBindingPatch, ...]
+    interrupts: tuple[InterruptPatch, ...]
     system_clock_profiles: tuple[SystemClockProfilePatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestPatch, ...]
@@ -369,6 +380,15 @@ class DevicePatch:
                     "selector_id": binding.selector_id,
                 }
                 for binding in self.peripheral_clock_bindings
+            ],
+            "interrupts": [
+                {
+                    "name": interrupt.name,
+                    "line": interrupt.line,
+                    "peripheral": interrupt.peripheral,
+                    "alias_names": list(interrupt.alias_names),
+                }
+                for interrupt in self.interrupts
             ],
             "system_clock_profiles": [
                 {
@@ -605,6 +625,15 @@ def _parse_peripheral_clock_binding_patch(
         selector_id=(
             str(payload["selector_id"]) if payload.get("selector_id") is not None else None
         ),
+    )
+
+
+def _parse_interrupt_patch(payload: dict[str, object]) -> InterruptPatch:
+    return InterruptPatch(
+        name=str(payload["name"]),
+        line=int(payload["line"]),
+        peripheral=str(payload["peripheral"]) if payload.get("peripheral") is not None else None,
+        alias_names=tuple(str(name) for name in payload.get("alias_names", ())),
     )
 
 
@@ -1270,6 +1299,7 @@ def load_device_patch(
                 )
             }.values()
         ),
+        interrupts=tuple(_parse_interrupt_patch(item) for item in payload.get("interrupts", ())),
         system_clock_profiles=tuple(
             {
                 profile.profile_id: profile

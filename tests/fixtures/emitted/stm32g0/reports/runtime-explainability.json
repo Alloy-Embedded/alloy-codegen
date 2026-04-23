@@ -706,7 +706,7 @@
           "peripheral": null,
           "sequence_id": "default_bringup",
           "startup_descriptor_id": null,
-          "system_clock_profile_id": "default-pll-64mhz"
+          "system_clock_profile_id": "safe-hsi16"
         }
       ],
       "unsupported_runtime_peripherals": []
