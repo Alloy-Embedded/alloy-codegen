@@ -282,6 +282,16 @@ def _parse_register_fields(
             msb_text = field_node.findtext("msb")
             if bit_offset_text is not None and msb_text is not None:
                 bit_width_text = str(int(msb_text, 0) - int(bit_offset_text, 0) + 1)
+        # SVD bitRange format: "[msb:lsb]" — used by RP2040 and some other vendors.
+        if bit_offset_text is None or bit_width_text is None:
+            bit_range_text = field_node.findtext("bitRange")
+            if bit_range_text is not None:
+                bit_range_text = bit_range_text.strip().strip("[]")
+                msb_str, lsb_str = bit_range_text.split(":")
+                lsb = int(lsb_str.strip(), 0)
+                msb = int(msb_str.strip(), 0)
+                bit_offset_text = str(lsb)
+                bit_width_text = str(msb - lsb + 1)
         if name is None or bit_offset_text is None or bit_width_text is None:
             continue
         fields.append(

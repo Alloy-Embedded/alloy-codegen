@@ -774,12 +774,13 @@ def _merge_patch_registers(
     raw_peripherals: tuple[RawPeripheral, ...],
     *,
     patch_registers: tuple[RegisterPatch, ...] = (),
-) -> tuple[RawPeripheral, ...]:
+) -> tuple[tuple[RawPeripheral, ...], dict[str, str]]:
     if patch_registers == ():
-        return raw_peripherals
+        return raw_peripherals, {}
 
     by_name: dict[str, RawPeripheral] = {}
     order: list[str] = []
+    peripheral_renames: dict[str, str] = {}
     for peripheral in raw_peripherals:
         canonical_name = _canonical_peripheral_name(peripheral.name)
         if canonical_name in by_name:
@@ -819,6 +820,7 @@ def _merge_patch_registers(
             if same_base_name is not None:
                 old_peripheral = by_name.pop(same_base_name)
                 order[order.index(same_base_name)] = canonical_name
+                peripheral_renames[same_base_name] = canonical_name
                 by_name[canonical_name] = RawPeripheral(
                     name=canonical_name,
                     base_address=base_addr,
@@ -863,7 +865,7 @@ def _merge_patch_registers(
             ),
         )
 
-    return tuple(by_name[name] for name in order)
+    return tuple(by_name[name] for name in order), peripheral_renames
 
 
 def _register_fields_from_raw_peripherals(
@@ -988,7 +990,9 @@ def build_canonical_ir(
         source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
-    raw_peripherals = _merge_patch_registers(raw.peripherals, patch_registers=patch.registers)
+    raw_peripherals, peripheral_renames = _merge_patch_registers(
+        raw.peripherals, patch_registers=patch.registers
+    )
     peripheral_patches = _peripheral_patch_map(patch)
     discovered_peripherals = {
         _canonical_peripheral_name(peripheral.name) for peripheral in raw_peripherals
@@ -1060,7 +1064,11 @@ def build_canonical_ir(
             )
             for peripheral in raw_peripherals
         ),
-        interrupts=_normalize_interrupts(raw.interrupts, provenance=svd_provenance),
+        interrupts=_normalize_interrupts(
+            raw.interrupts,
+            provenance=svd_provenance,
+            peripheral_aliases=peripheral_renames,
+        ),
         dma_controllers=tuple(
             _dma_controller_to_ir(controller, patch_provenance)
             for controller in patch.dma_controllers
@@ -1286,7 +1294,9 @@ def build_nxp_canonical_ir(
         source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
-    raw_peripherals = _merge_patch_registers(raw.peripherals, patch_registers=patch.registers)
+    raw_peripherals, _merge_renames = _merge_patch_registers(
+        raw.peripherals, patch_registers=patch.registers
+    )
     peripheral_patches = _peripheral_patch_map(patch)
     discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw_peripherals}
     (
@@ -1323,7 +1333,7 @@ def build_nxp_canonical_ir(
         )
         if pad.bonded_pin in pin_names_with_signals
     )
-    dedup_peripherals, peripheral_aliases = _deduplicate_raw_peripherals(
+    dedup_peripherals, _dedup_aliases = _deduplicate_raw_peripherals(
         raw_peripherals,
         preferred_names={
             *(_canonical_peripheral_name(p.name) for p in patch.peripherals),
@@ -1334,6 +1344,7 @@ def build_nxp_canonical_ir(
             ),
         },
     )
+    peripheral_aliases = {**_merge_renames, **_dedup_aliases}
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -1504,7 +1515,9 @@ def build_rp2040_canonical_ir(
         source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
         patch_ids=patch_ids,
     )
-    raw_peripherals = _merge_patch_registers(raw.peripherals, patch_registers=patch.registers)
+    raw_peripherals, peripheral_renames = _merge_patch_registers(
+        raw.peripherals, patch_registers=patch.registers
+    )
     peripheral_patches = _peripheral_patch_map(patch)
     discovered_peripherals = {_canonical_peripheral_name(p.name) for p in raw_peripherals}
     (
@@ -1581,7 +1594,11 @@ def build_rp2040_canonical_ir(
             )
             for p in raw_peripherals
         ),
-        interrupts=_normalize_interrupts(raw.interrupts, provenance=svd_provenance),
+        interrupts=_normalize_interrupts(
+            raw.interrupts,
+            provenance=svd_provenance,
+            peripheral_aliases=peripheral_renames,
+        ),
         dma_controllers=tuple(
             _dma_controller_to_ir(ctrl, patch_provenance) for ctrl in patch.dma_controllers
         ),
