@@ -29,7 +29,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 85 rule(s).",
+      "message": "gate-c passed with 86 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -96,6 +96,7 @@
         "stm32g071rb-startup-descriptors-include-runtime-baseline",
         "stm32g071rb-startup-descriptors-emit-without-handwritten-tables",
         "stm32g071rb-clock-bindings-reference-known-descriptors",
+        "stm32g071rb-clock-reset-bindings-not-diagnostic-only",
         "stm32g071rb-clock-node-parents-known",
         "stm32g071rb-clock-graph-reaches-root",
         "stm32g071rb-clock-selectors-structured",
@@ -632,6 +633,13 @@
       "message": "stm32g071rb clock bindings reference known gate/reset/selector descriptors.",
       "passed": true,
       "rule_id": "stm32g071rb-clock-bindings-reference-known-descriptors",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb clock/reset bindings expose typed gate/reset ids whenever diagnostic rcc_enable_signal / rcc_reset_signal strings are set.",
+      "passed": true,
+      "rule_id": "stm32g071rb-clock-reset-bindings-not-diagnostic-only",
       "severity": "error"
     },
     {

@@ -21,8 +21,6 @@ from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
 
 from .emission import _cpp_artifact, _device_generated_path
-from .runtime_lite_emission import _device_runtime_generated_path
-
 
 STARTUP_VECTORS_HEADER = "startup.hpp"
 

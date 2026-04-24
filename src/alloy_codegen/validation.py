@@ -20,6 +20,7 @@ from alloy_codegen.reporting import (
 )
 from alloy_codegen.scope import PipelineScope
 
+
 def _required_system_vector_slots(core: str) -> frozenset[int]:
     """Return the set of vector slot numbers that must be present for a given core.
 
@@ -917,6 +918,31 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         and (binding.selector_id is None or binding.selector_id in selector_ids)
         for binding in device.peripheral_clock_bindings
     )
+    # When a peripheral declares a diagnostic rcc_enable_signal / rcc_reset_signal
+    # string, the PeripheralClockBinding MUST also carry the matching typed
+    # clock_gate_id / reset_id.  This guarantees the runtime contract is
+    # executable from typed refs alone — diagnostic strings are never the
+    # only path for clock/reset routing.
+    binding_by_peripheral = {
+        binding.peripheral: binding for binding in device.peripheral_clock_bindings
+    }
+    clock_reset_bindings_not_diagnostic_only = all(
+        (
+            peripheral.rcc_enable_signal is None
+            or (
+                binding_by_peripheral.get(peripheral.name) is not None
+                and binding_by_peripheral[peripheral.name].clock_gate_id is not None
+            )
+        )
+        and (
+            peripheral.rcc_reset_signal is None
+            or (
+                binding_by_peripheral.get(peripheral.name) is not None
+                and binding_by_peripheral[peripheral.name].reset_id is not None
+            )
+        )
+        for peripheral in device.peripherals
+    )
     dma_route_keys = {
         (route.controller, route.request_line, route.peripheral, route.signal)
         for route in device.dma_routes
@@ -1415,6 +1441,16 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
             message=(
                 f"{device.identity.device} clock bindings reference known "
                 "gate/reset/selector descriptors."
+            ),
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-clock-reset-bindings-not-diagnostic-only",
+            category="semantic",
+            severity="error",
+            passed=clock_reset_bindings_not_diagnostic_only,
+            message=(
+                f"{device.identity.device} clock/reset bindings expose typed gate/reset ids "
+                "whenever diagnostic rcc_enable_signal / rcc_reset_signal strings are set."
             ),
         ),
         _rule(

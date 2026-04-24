@@ -78,13 +78,22 @@ class PinDefinition:
 
 @dataclass(frozen=True, slots=True)
 class PeripheralInstance:
-    """One peripheral instance."""
+    """One peripheral instance.
+
+    ``rcc_enable_signal`` and ``rcc_reset_signal`` are normalize-time source
+    inputs (raw patch signal strings like ``"RCC_AHBENR.GPIOAEN"``).  They are
+    resolved into typed ``ClockGateId`` / ``ResetId`` runtime references via
+    ``PeripheralClockBinding`` and ``connector_model``.  They MUST NOT be
+    treated as the primary runtime contract — the typed binding IDs are the
+    source of truth for emitted artifacts.
+    """
 
     name: str
     ip_name: str
     ip_version: str | None
     instance: int
     base_address: int
+    # Diagnostic/normalize-time only — see docstring.
     rcc_enable_signal: str | None
     rcc_reset_signal: str | None
     provenance: Provenance
@@ -216,10 +225,18 @@ class SignalEndpoint:
 
 @dataclass(frozen=True, slots=True)
 class RouteRequirement:
-    """One prerequisite for a candidate or connection group."""
+    """One prerequisite for a candidate or connection group.
+
+    The primary runtime contract is the typed ref pair
+    ``(target_ref_kind, target_ref_id)`` plus ``(value_ref_kind, value_ref_id,
+    value_int)``.  The ``target`` and ``value`` string fields are kept as
+    human-readable diagnostics only — runtime consumers MUST execute against
+    the typed refs and SHALL NOT parse these strings.
+    """
 
     requirement_id: str
     kind: str
+    # Diagnostic/human-readable only — see docstring.
     target: str | None
     value: str | None
     provenance: Provenance
@@ -232,14 +249,29 @@ class RouteRequirement:
 
 @dataclass(frozen=True, slots=True)
 class RouteOperation:
-    """One concrete hardware operation required to realize a route."""
+    """One concrete hardware operation required to realize a route.
+
+    The primary runtime contract is typed: ``(target_ref_kind, target_ref_id)``
+    selects the target domain, ``(value_ref_kind, value_ref_id, value_int)``
+    selects the value, and ``(register_id, register_field_id)`` identify the
+    bit being manipulated.  The following fields are human-readable diagnostics
+    only — runtime consumers MUST NOT depend on them for execution:
+
+    - ``target``                 (diagnostic echo of the upstream signal name)
+    - ``value``                  (diagnostic echo of the literal value string)
+    - ``subject_kind`` / ``subject_id``  (diagnostic trace of who owns the op)
+    - ``register_peripheral`` / ``register_name`` / ``register_offset``
+      (diagnostic echo resolved from ``register_id`` + ``register_field_id``)
+    """
 
     operation_id: str
     kind: str
+    # Diagnostic/human-readable only — see docstring.
     target: str
     value: str | None
     provenance: Provenance
     schema_id: str | None = None
+    # Diagnostic/human-readable only — see docstring.
     subject_kind: str | None = None
     subject_id: str | None = None
     register_peripheral: str | None = None

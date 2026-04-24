@@ -56,6 +56,9 @@ from alloy_codegen.patches import (
 from alloy_codegen.reporting import NormalizationBundle
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.cmsis_svd import parse_raw_device_document, resolve_svd_path
+from alloy_codegen.sources.esp_idf import (
+    resolve_svd_path as resolve_esp_svd_path,
+)
 from alloy_codegen.sources.microchip_dfp import (
     merge_source_patch,
     resolve_atdf_path,
@@ -95,9 +98,6 @@ from alloy_codegen.sources.nxp_mcux import (
 )
 from alloy_codegen.sources.nxp_mcux import (
     resolve_svd_path as resolve_nxp_svd_path,
-)
-from alloy_codegen.sources.esp_idf import (
-    resolve_svd_path as resolve_esp_svd_path,
 )
 from alloy_codegen.sources.pico_sdk import (
     resolve_svd_path as resolve_pico_svd_path,

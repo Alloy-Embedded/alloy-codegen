@@ -6,7 +6,6 @@ import re
 from collections import defaultdict
 
 from alloy_codegen.errors import StageExecutionError
-
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     CapabilityDescriptor,

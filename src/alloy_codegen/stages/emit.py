@@ -82,9 +82,9 @@ from alloy_codegen.runtime_reports import (
 )
 from alloy_codegen.runtime_resets import emit_runtime_resets_header
 from alloy_codegen.runtime_riscv_startup import (
+    _is_riscv_device,
     emit_riscv_startup_source,
     emit_riscv_startup_vectors_source,
-    _is_riscv_device,
 )
 from alloy_codegen.runtime_startup import emit_runtime_startup_header
 from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
