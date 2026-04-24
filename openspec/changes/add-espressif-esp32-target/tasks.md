@@ -62,11 +62,27 @@
 
 ## Phase 5: CI & Publication Gates
 
-- [ ] 5.1 Add `espressif/esp32c3` to the publication matrix
-- [ ] 5.2 Extend vendor-admission checks to include `espressif`
-- [ ] 5.3 Add publish-time completeness checks for non-Cortex runtime-only devices
-- [ ] 5.4 Run full publication flow for `esp32c3`
-- [ ] 5.5 Add integration coverage for Espressif runtime-only publication
+- [x] 5.1 Add `espressif/esp32c3` to the publication matrix
+      (`.github/workflows/publish-alloy-devices.yml` matrix now includes
+      `vendor: espressif, family: esp32c3`.)
+- [x] 5.2 Extend vendor-admission checks to include `espressif`
+      (`.github/workflows/bootstrap-family.yml` ADMITTED_VENDORS already
+      includes `espressif` — landed in the Phase 0 bootstrap commit.)
+- [x] 5.3 Add publish-time completeness checks for non-Cortex runtime-only devices
+      (The existing runtime-lite contract gates apply uniformly to every
+      admitted family.  RISC-V-specific scoping — `systick.hpp` optional,
+      arch-aware vector baseline — landed in Phase 3.1.  Fixed the
+      single-device family ip-block reuse rule so RISC-V single-device
+      families like esp32c3 are not falsely flagged.)
+- [x] 5.4 Run full publication flow for `esp32c3`
+      (`test_foundational_families_publish_with_same_generic_workflow` and
+      `test_foundational_families_remain_complete_across_repeat_publish_cycles`
+      now iterate over ESP32-C3 alongside the other foundational families.)
+- [x] 5.5 Add integration coverage for Espressif runtime-only publication
+      (Added `espressif_execution_context` to the `_family_contexts` loop in
+      `tests/test_foundational_families.py` — ESP32-C3 now receives the same
+      emit + publish + artifact-contract gate as every other foundational
+      family.)
 
 ## Phase 6: Fixtures & Docs
 

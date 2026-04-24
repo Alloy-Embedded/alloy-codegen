@@ -1652,8 +1652,13 @@ def _validate_scope_semantics(
                 device.identity.device
             )
     families_with_versioned_ip = bool(ip_block_usage)
-    family_reuses_ip_blocks = not families_with_versioned_ip or any(
-        len(device_names) >= 2 for device_names in ip_block_usage.values()
+    # Reuse is only meaningful when multiple devices exist in the family; a
+    # single-device family trivially cannot "share" an IP block across devices.
+    is_multi_device_family = len(devices) >= 2
+    family_reuses_ip_blocks = (
+        not families_with_versioned_ip
+        or not is_multi_device_family
+        or any(len(device_names) >= 2 for device_names in ip_block_usage.values())
     )
     scope_label = (
         f"{scope.vendor}-{scope.family}" if scope.vendor is not None else str(scope.family)
