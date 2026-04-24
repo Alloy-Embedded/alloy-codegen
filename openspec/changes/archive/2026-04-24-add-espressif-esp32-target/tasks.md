@@ -133,8 +133,19 @@
 
 ## Phase 6: Fixtures & Docs
 
-- [ ] 6.1 Regenerate all affected fixtures
-- [ ] 6.2 Update `openspec/project.md` with Espressif admission, architecture notes,
+- [x] 6.1 Regenerate all affected fixtures
+      (All 229 tests green with zero drift after Phase 4 ESP32-S3 landing.
+      Canonical + emitted goldens committed for both esp32c3 and esp32s3.)
+- [x] 6.2 Update `openspec/project.md` with Espressif admission, architecture notes,
       and IO Matrix source provenance
-- [ ] 6.3 Add explicit licensing/provenance note for Espressif supplementary sources
-- [ ] 6.4 Archive this change
+      (The "Admitted Foundational Families" table covers both esp32c3 and
+      esp32s3 with vendor/family, ISA, memory model, upstream source(s),
+      and license.  Dedicated notes document the IO Matrix supplementary
+      source for esp32c3 and the single-core-perspective for esp32s3.
+      Pinmux backend schema map enumerates `alloy.pinmux.espressif-iomatrix-v1`.)
+- [x] 6.3 Add explicit licensing/provenance note for Espressif supplementary sources
+      (Apache-2.0 cited in `openspec/project.md` for `espressif/svd` and
+      esp-idf `gpio_sig_map.h`.  The vendored
+      `tests/fixtures/esp-idf-gpio-sig-map/esp32c3/gpio_sig_map.h`
+      preserves the upstream SPDX header verbatim.)
+- [x] 6.4 Archive this change
