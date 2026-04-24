@@ -647,6 +647,12 @@ def emit_runtime_lite_peripheral_instances_header(
         "};",
         "",
         *trait_lines,
+        "template <PeripheralId Id>",
+        "[[nodiscard]] constexpr std::uintptr_t peripheral_base() noexcept {",
+        "  static_assert(PeripheralInstanceTraits<Id>::kPresent);",
+        "  return PeripheralInstanceTraits<Id>::kBaseAddress;",
+        "}",
+        "",
         *_std_array_lines(
             type_name="PeripheralId",
             variable_name="kRuntimePeripherals",

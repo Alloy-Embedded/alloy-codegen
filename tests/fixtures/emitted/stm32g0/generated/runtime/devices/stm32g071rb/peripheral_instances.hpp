@@ -198,6 +198,12 @@ struct PeripheralInstanceTraits<PeripheralId::USART1> {
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::selector_usart1_kernel;
 };
 
+template <PeripheralId Id>
+[[nodiscard]] constexpr std::uintptr_t peripheral_base() noexcept {
+  static_assert(PeripheralInstanceTraits<Id>::kPresent);
+  return PeripheralInstanceTraits<Id>::kBaseAddress;
+}
+
 inline constexpr std::array<PeripheralId, 11> kRuntimePeripherals = {{
   PeripheralId::ADC1,
   PeripheralId::DAC,
