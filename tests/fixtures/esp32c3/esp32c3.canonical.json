@@ -241,7 +241,7 @@
           "function": "i2c0_sda",
           "peripheral": "I2C0",
           "signal": "SDA",
-          "af_number": 14,
+          "af_number": 15,
           "provenance": {
             "source_id": "espressif-svd",
             "source_path": "esp32c3.svd",
@@ -270,7 +270,7 @@
           "function": "i2c0_scl",
           "peripheral": "I2C0",
           "signal": "SCL",
-          "af_number": 15,
+          "af_number": 14,
           "provenance": {
             "source_id": "espressif-svd",
             "source_path": "esp32c3.svd",
@@ -92378,7 +92378,7 @@
       "requirement_id": "requirement:source-select:gpio8:i2c0:sda",
       "kind": "source-select",
       "target": "pinmux.GPIO8",
-      "value": "selector:14",
+      "value": "selector:15",
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -92390,14 +92390,14 @@
       "target_ref_kind": "pin",
       "target_ref_id": "GPIO8",
       "value_ref_kind": "selector",
-      "value_ref_id": "selector:14",
-      "value_int": 14
+      "value_ref_id": "selector:15",
+      "value_int": 15
     },
     {
       "requirement_id": "requirement:source-select:gpio9:i2c0:scl",
       "kind": "source-select",
       "target": "pinmux.GPIO9",
-      "value": "selector:15",
+      "value": "selector:14",
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -92409,8 +92409,8 @@
       "target_ref_kind": "pin",
       "target_ref_id": "GPIO9",
       "value_ref_kind": "selector",
-      "value_ref_id": "selector:15",
-      "value_int": 15
+      "value_ref_id": "selector:14",
+      "value_int": 14
     }
   ],
   "route_operations": [
@@ -92722,7 +92722,7 @@
       "operation_id": "operation:route:gpio8:i2c0:sda",
       "kind": "write-selector",
       "target": "pinmux.GPIO8",
-      "value": "14",
+      "value": "15",
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -92737,17 +92737,17 @@
       "register_peripheral": null,
       "register_name": null,
       "register_offset": null,
-      "value_int": 14,
+      "value_int": 15,
       "target_ref_kind": "pin",
       "target_ref_id": "GPIO8",
       "value_ref_kind": "selector",
-      "value_ref_id": "selector:14"
+      "value_ref_id": "selector:15"
     },
     {
       "operation_id": "operation:route:gpio9:i2c0:scl",
       "kind": "write-selector",
       "target": "pinmux.GPIO9",
-      "value": "15",
+      "value": "14",
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -92762,11 +92762,11 @@
       "register_peripheral": null,
       "register_name": null,
       "register_offset": null,
-      "value_int": 15,
+      "value_int": 14,
       "target_ref_kind": "pin",
       "target_ref_id": "GPIO9",
       "value_ref_kind": "selector",
-      "value_ref_id": "selector:15"
+      "value_ref_id": "selector:14"
     }
   ],
   "connection_candidates": [
@@ -93024,7 +93024,7 @@
       "peripheral": "I2C0",
       "signal": "sda",
       "route_kind": "mux",
-      "route_selector": "selector:14",
+      "route_selector": "selector:15",
       "route_group_id": "group:i2c0:qfn32:all-signals",
       "requirement_ids": [
         "requirement:package:qfn32",
@@ -93055,7 +93055,7 @@
       "peripheral": "I2C0",
       "signal": "scl",
       "route_kind": "mux",
-      "route_selector": "selector:15",
+      "route_selector": "selector:14",
       "route_group_id": "group:i2c0:qfn32:all-signals",
       "requirement_ids": [
         "requirement:package:qfn32",

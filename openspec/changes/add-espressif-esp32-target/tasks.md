@@ -24,16 +24,29 @@
 ## Phase 2: IO Matrix Routing
 
 - [x] 2.1 Add `alloy.pinmux.espressif-iomatrix-v1` to the known backend schema set
-- [ ] 2.2 Create supplementary parser for `gpio_sig_map.h`
-      (Follow-on: bootstrap pin_signals in family.json currently cite
-      `gpio_sig_map.h` indices inline; an automated parser that ingests the
-      header from esp-idf still needs a source-adapter extension.)
+- [x] 2.2 Create supplementary parser for `gpio_sig_map.h`
+      (`sources/esp_idf.py::parse_gpio_sig_map()` parses `#define <NAME>_IDX
+      <num>` entries into a `{signal_name: index}` mapping.  Vendored a
+      minimal `tests/fixtures/esp-idf-gpio-sig-map/esp32c3/gpio_sig_map.h`
+      with the signals cited by the ESP32-C3 family patch.  Supplementary
+      source id `esp-idf-gpio-sig-map` reserved in
+      `sources/esp_idf.py::GPIO_SIG_MAP_SOURCE_ID` for future fetch-manifest
+      plumbing.)
 - [x] 2.3 Populate pin-signal data for UART, SPI, I2C, ADC bootstrap coverage
-- [ ] 2.4 Ensure emitted runtime data carries IO Matrix signal-index provenance
-      (Follow-on: when task 2.2 lands, ensure the emitted runtime tags
-      `af_number` values with `alloy.pinmux.espressif-iomatrix-v1` schema.)
-- [ ] 2.5 Add emitted goldens proving the IO Matrix schema and comments are correct
-      (Follow-on: depends on 2.2 + 2.4.)
+- [x] 2.4 Ensure emitted runtime data carries IO Matrix signal-index provenance
+      (Every `write-selector` route operation on ESP32-C3 carries
+      `schema_id = "alloy.pinmux.espressif-iomatrix-v1"` and a numeric
+      `value_int` that IS the IO Matrix index from `gpio_sig_map.h`.  The
+      provenance chain is now: upstream header → family-patch `af_number` →
+      canonical `RouteOperation.schema_id` + `.value_int` → emitted typed
+      runtime artifact.  A regression test
+      (`test_esp32c3_family_af_numbers_match_gpio_sig_map_upstream`) flags
+      any drift between the patch and upstream.)
+- [x] 2.5 Add emitted goldens proving the IO Matrix schema and comments are correct
+      (`tests/test_espressif.py::test_esp32c3_runtime_routes_header_encodes_iomatrix_schema`
+      asserts the emitted `runtime/devices/esp32c3/routes.hpp` and
+      `runtime/types.hpp` encode the IO Matrix schema as
+      `BackendSchemaId::schema_alloy_pinmux_espressif_iomatrix_v1`.)
 
 ## Phase 3: Runtime Contract — ESP32-C3
 

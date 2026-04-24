@@ -18,6 +18,7 @@ licence.  Provenance (git revision) is recorded in the source manifest per fetch
 from __future__ import annotations
 
 import hashlib
+import re
 import subprocess
 from pathlib import Path
 
@@ -30,6 +31,17 @@ from alloy_codegen.sources.raw import RawDeviceDocument
 
 ESPRESSIF_SVD_REMOTE = "https://github.com/espressif/svd.git"
 SOURCE_ID = "espressif-svd"
+
+# Supplementary-source ID for esp-idf `gpio_sig_map.h` ingestion (Phase 2.2).
+GPIO_SIG_MAP_SOURCE_ID = "esp-idf-gpio-sig-map"
+
+# Matches lines like ``#define U0RXD_IN_IDX           6`` in esp-idf's
+# ``components/soc/esp32c3/include/soc/gpio_sig_map.h``.  The trailing
+# ``_IDX`` suffix is stripped in the returned mapping so callers can look
+# up signals by their canonical IO Matrix name (e.g. ``U0RXD_IN``).
+_GPIO_SIG_MAP_PATTERN = re.compile(
+    r"^\s*#define\s+(?P<name>[A-Z0-9_]+)_IDX\s+(?P<index>\d+)\b"
+)
 
 
 # ---------------------------------------------------------------------------
@@ -203,3 +215,50 @@ def fetch_records(
 def parse_esp32_document(svd_path: Path) -> RawDeviceDocument:
     """Parse an Espressif SVD using the standard CMSIS-SVD parser."""
     return parse_raw_device_document(svd_path)
+
+
+# ---------------------------------------------------------------------------
+# parse_gpio_sig_map — esp-idf IO Matrix supplementary-source parser (Phase 2.2)
+# ---------------------------------------------------------------------------
+
+
+def parse_gpio_sig_map(header_path: Path) -> dict[str, int]:
+    """Parse esp-idf ``gpio_sig_map.h`` into a ``{signal_name: index}`` mapping.
+
+    The ESP32 IO Matrix routes any peripheral signal to any GPIO pin by
+    writing a numeric signal index into a GPIO pin-mux register.  esp-idf
+    publishes the canonical index assignments in
+    ``components/soc/<chip>/include/soc/gpio_sig_map.h`` as a series of
+    ``#define <NAME>_IDX <number>`` macros.
+
+    This parser extracts those indices so downstream code can reconcile the
+    ``af_number`` field on Espressif pin signals against the upstream
+    source-of-truth, providing the supplementary-source provenance required
+    by the add-espressif-esp32-target spec.
+
+    Lines that do not match the ``#define <NAME>_IDX <number>`` pattern are
+    silently skipped.  The ``_IDX`` suffix is stripped in the returned
+    mapping — use ``U0RXD_IN`` (not ``U0RXD_IN_IDX``) as the lookup key.
+
+    Example::
+
+        >>> mapping = parse_gpio_sig_map(Path("gpio_sig_map.h"))
+        >>> mapping["U0RXD_IN"]
+        6
+        >>> mapping["FSPICLK_OUT"]
+        63
+    """
+    if not header_path.exists():
+        raise StageExecutionError(f"gpio_sig_map.h not found: {header_path}")
+    mapping: dict[str, int] = {}
+    content = header_path.read_text(encoding="utf-8")
+    for line in content.splitlines():
+        match = _GPIO_SIG_MAP_PATTERN.match(line)
+        if match is None:
+            continue
+        name = match.group("name")
+        index = int(match.group("index"))
+        # If the same name appears twice with different values the later one wins
+        # (matches C preprocessor semantics).  In practice every entry is unique.
+        mapping[name] = index
+    return mapping

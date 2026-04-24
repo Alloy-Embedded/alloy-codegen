@@ -13,12 +13,35 @@ from __future__ import annotations
 from pathlib import Path
 
 from alloy_codegen.artifact_contract import find_runtime_cpp_string_violations
+from alloy_codegen.connector_model import _pinmux_backend_schema_id
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
+from alloy_codegen.sources.esp_idf import parse_gpio_sig_map
 from alloy_codegen.stages.emit import run as run_emit
+from alloy_codegen.stages.normalize import run as run_normalize
 from alloy_codegen.stages.publish import run as run_publish
 
 ESP32C3_EMITTED_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "emitted" / "esp32c3"
+ESP32C3_GPIO_SIG_MAP = (
+    Path(__file__).parent / "fixtures" / "esp-idf-gpio-sig-map" / "esp32c3" / "gpio_sig_map.h"
+)
+
+# Canonical map from (peripheral, signal) pairs in the ESP32-C3 family patch
+# to their upstream ``gpio_sig_map.h`` entry names.  A mismatch between the
+# family-patch ``af_number`` and the parsed upstream value indicates the
+# patch drifted from esp-idf — Phase 2.2 provenance gate.
+_ESP32C3_SIGNAL_TO_IOMATRIX_NAME: dict[tuple[str, str], str] = {
+    ("UART0", "RX"): "U0RXD_IN",
+    ("UART0", "TX"): "U0TXD_OUT",
+    ("UART1", "RX"): "U1RXD_IN",
+    ("UART1", "TX"): "U1TXD_OUT",
+    ("I2C0", "SDA"): "I2CEXT0_SDA_IN",
+    ("I2C0", "SCL"): "I2CEXT0_SCL_IN",
+    ("SPI2", "MISO"): "FSPIQ_IN",
+    ("SPI2", "MOSI"): "FSPID_OUT",
+    ("SPI2", "SCK"): "FSPICLK_OUT",
+    ("SPI2", "CS"): "FSPICS0_OUT",
+}
 
 
 def _esp32c3_artifacts(espressif_execution_context: ExecutionContext):
@@ -200,4 +223,140 @@ def test_publish_esp32c3_consumer_smoke_passes(
     assert result.payload.consumer_verification.succeeded is True, (
         "Alloy consumer smoke build failed for espressif/esp32c3/esp32c3:\n"
         + result.payload.consumer_verification.stderr
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 2.2 \u2014 IO Matrix parser + provenance tests
+# ---------------------------------------------------------------------------
+
+
+def test_parse_gpio_sig_map_extracts_expected_indices() -> None:
+    """Phase 2.2: parse_gpio_sig_map() extracts every ``#define <NAME>_IDX``
+    macro and returns it keyed by the canonical IO Matrix signal name."""
+    mapping = parse_gpio_sig_map(ESP32C3_GPIO_SIG_MAP)
+    # Core UART0 console signals (Espressif dev-board default).
+    assert mapping["U0RXD_IN"] == 6
+    assert mapping["U0TXD_OUT"] == 6
+    # Secondary UART1.
+    assert mapping["U1RXD_IN"] == 9
+    # I2C0 SDA / SCL carry direction-specific indices.
+    assert mapping["I2CEXT0_SDA_IN"] == 15
+    assert mapping["I2CEXT0_SCL_OUT"] == 14
+    # SPI2 (FSPI) — note MISO/CLK share the same numeric index in different
+    # directions, MOSI is 64, chip-select is 68.
+    assert mapping["FSPIQ_IN"] == 63
+    assert mapping["FSPICLK_OUT"] == 63
+    assert mapping["FSPID_OUT"] == 64
+    assert mapping["FSPICS0_OUT"] == 68
+
+
+def test_parse_gpio_sig_map_skips_unrelated_lines() -> None:
+    """Phase 2.2: lines that do not match ``#define <NAME>_IDX <num>`` are
+    silently skipped — copyright headers, comments, and unrelated macros must
+    not leak into the returned mapping."""
+    mapping = parse_gpio_sig_map(ESP32C3_GPIO_SIG_MAP)
+    assert all(key.isupper() and "_IDX" not in key for key in mapping)
+    assert all(isinstance(value, int) and value >= 0 for value in mapping.values())
+
+
+def test_esp32c3_family_af_numbers_match_gpio_sig_map_upstream(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 2.2: every ``af_number`` in the ESP32-C3 family patch matches
+    the canonical index published by esp-idf ``gpio_sig_map.h``.  This is the
+    supplementary-source provenance gate — drift between the hand-authored
+    patch and upstream is a validation failure, not silent breakage."""
+    mapping = parse_gpio_sig_map(ESP32C3_GPIO_SIG_MAP)
+    device = run_normalize(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    ).payload.devices[0]
+
+    mismatches: list[str] = []
+    for pin in device.pins:
+        for signal in pin.signals:
+            if signal.peripheral is None:
+                continue
+            key = (signal.peripheral, signal.signal)
+            if key not in _ESP32C3_SIGNAL_TO_IOMATRIX_NAME:
+                continue
+            iomatrix_name = _ESP32C3_SIGNAL_TO_IOMATRIX_NAME[key]
+            expected = mapping.get(iomatrix_name)
+            if expected is None:
+                mismatches.append(
+                    f"{pin.name} {signal.peripheral}.{signal.signal}: "
+                    f"family cites {iomatrix_name} but upstream does not define it"
+                )
+                continue
+            if signal.af_number != expected:
+                mismatches.append(
+                    f"{pin.name} {signal.peripheral}.{signal.signal}: "
+                    f"family af_number={signal.af_number} upstream {iomatrix_name}={expected}"
+                )
+    assert not mismatches, (
+        "ESP32-C3 family patch drifted from gpio_sig_map.h:\n  " + "\n  ".join(mismatches)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 2.4 / 2.5 \u2014 IO Matrix backend_schema_id emission tests
+# ---------------------------------------------------------------------------
+
+
+def test_esp32c3_pinmux_route_operations_carry_iomatrix_schema(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 2.4: every ``write-selector`` route operation generated for an
+    ESP32-C3 pin signal carries ``alloy.pinmux.espressif-iomatrix-v1`` as its
+    ``schema_id``, so Alloy consumers can tell IO Matrix routing apart from
+    ARM alternate functions and RP2040 FUNCSEL at the type level."""
+    device = run_normalize(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    ).payload.devices[0]
+
+    expected_schema = _pinmux_backend_schema_id("espressif")
+    assert expected_schema == "alloy.pinmux.espressif-iomatrix-v1"
+
+    pinmux_operations = [
+        operation
+        for operation in device.route_operations
+        if operation.kind == "write-selector" and operation.target_ref_kind == "pin"
+    ]
+    assert pinmux_operations, "Expected at least one pinmux route operation for ESP32-C3"
+    for operation in pinmux_operations:
+        assert operation.schema_id == expected_schema, (
+            f"{operation.operation_id}: schema_id={operation.schema_id!r} "
+            f"expected {expected_schema!r}"
+        )
+
+
+def test_esp32c3_runtime_routes_header_encodes_iomatrix_schema(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 2.5: the emitted ``routes.hpp`` (which is where route operations
+    ship in the typed runtime contract) encodes the IO Matrix schema id in the
+    BackendSchemaId enum, so the executable runtime output reflects the same
+    provenance the canonical IR carries."""
+    result = run_emit(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    )
+    artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
+    routes_header = artifacts[
+        "espressif/esp32c3/generated/runtime/devices/esp32c3/routes.hpp"
+    ].content
+    types_header = artifacts["espressif/esp32c3/generated/runtime/types.hpp"].content
+
+    # The emitter sanitizes the schema id into a C++ enum identifier.
+    # ``alloy.pinmux.espressif-iomatrix-v1`` becomes
+    # ``schema_alloy_pinmux_espressif_iomatrix_v1`` in the BackendSchemaId enum.
+    assert "schema_alloy_pinmux_espressif_iomatrix_v1" in types_header, (
+        "Expected IO Matrix backend schema id to be declared in the BackendSchemaId "
+        "enum in the emitted runtime types.hpp"
+    )
+    assert "schema_alloy_pinmux_espressif_iomatrix_v1" in routes_header, (
+        "Expected IO Matrix backend schema id to appear on every pinmux route "
+        "operation in the emitted routes.hpp"
     )
