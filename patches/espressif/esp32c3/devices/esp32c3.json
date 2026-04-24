@@ -44,7 +44,7 @@
     { "peripheral": "PCR", "register_name": "I2C0_CONF_REG",   "name": "I2C0_CLK_EN",   "bit_offset": 1, "bit_width": 1, "access": "read-write" },
     { "peripheral": "PCR", "register_name": "I2C0_CONF_REG",   "name": "I2C0_RST_EN",   "bit_offset": 0, "bit_width": 1, "access": "read-write" }
   ],
-  "peripherals": ["GPIO", "UART0", "UART1", "SPI2", "I2C0", "ADC", "PCR", "DMA"],
+  "peripherals": ["GPIO", "UART0", "UART1", "SPI2", "I2C0", "APB_SARADC", "PCR", "DMA"],
   "dma_request_refs": [
     "gdma-uart0-rx", "gdma-uart0-tx",
     "gdma-spi2-rx",  "gdma-spi2-tx",

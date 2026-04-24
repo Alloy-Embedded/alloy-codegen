@@ -48,6 +48,8 @@ PERIPHERAL_CLASS_ALIASES = {
     "xdmac": "dma",
     "adc": "adc",
     "afec": "adc",
+    "apb_saradc": "adc",
+    "saradc": "adc",
     "dac": "dac",
     "dacc": "dac",
     "rtc": "rtc",
@@ -296,6 +298,12 @@ def _pinmux_backend_schema_id(vendor: str) -> str:
             return "alloy.pinmux.imxrt-iomuxc-v1"
         case "raspberrypi":
             return "alloy.pinmux.rp2040-funcsel-v1"
+        case "espressif":
+            # ESP32 IO Matrix: a fully-programmable GPIO signal router.
+            # Consumer semantics are distinct from ARM AF: `af_number` on
+            # Espressif PinSignals carries the IO Matrix signal index from
+            # esp-idf `gpio_sig_map.h`, not a per-pin alternate-function slot.
+            return "alloy.pinmux.espressif-iomatrix-v1"
         case _:
             return f"alloy.pinmux.{_sanitize(vendor)}-generic-v1"
 

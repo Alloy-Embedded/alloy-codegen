@@ -88,52 +88,25 @@
   ],
   "pins": [
     {
-      "name": "GPIO0",
-      "port": null,
-      "number": 0,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO1",
-      "port": null,
-      "number": 1,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
       "name": "GPIO2",
       "port": null,
       "number": 2,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO3",
-      "port": null,
-      "number": 3,
-      "signals": [],
+      "signals": [
+        {
+          "function": "spi2_miso",
+          "peripheral": "SPI2",
+          "signal": "MISO",
+          "af_number": 63,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -147,7 +120,22 @@
       "name": "GPIO4",
       "port": null,
       "number": 4,
-      "signals": [],
+      "signals": [
+        {
+          "function": "uart1_tx",
+          "peripheral": "UART1",
+          "signal": "TX",
+          "af_number": 9,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -161,7 +149,22 @@
       "name": "GPIO5",
       "port": null,
       "number": 5,
-      "signals": [],
+      "signals": [
+        {
+          "function": "uart1_rx",
+          "peripheral": "UART1",
+          "signal": "RX",
+          "af_number": 9,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -175,7 +178,22 @@
       "name": "GPIO6",
       "port": null,
       "number": 6,
-      "signals": [],
+      "signals": [
+        {
+          "function": "spi2_sck",
+          "peripheral": "SPI2",
+          "signal": "SCK",
+          "af_number": 63,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -189,7 +207,22 @@
       "name": "GPIO7",
       "port": null,
       "number": 7,
-      "signals": [],
+      "signals": [
+        {
+          "function": "spi2_mosi",
+          "peripheral": "SPI2",
+          "signal": "MOSI",
+          "af_number": 64,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -203,7 +236,22 @@
       "name": "GPIO8",
       "port": null,
       "number": 8,
-      "signals": [],
+      "signals": [
+        {
+          "function": "i2c0_sda",
+          "peripheral": "I2C0",
+          "signal": "SDA",
+          "af_number": 14,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -217,7 +265,22 @@
       "name": "GPIO9",
       "port": null,
       "number": 9,
-      "signals": [],
+      "signals": [
+        {
+          "function": "i2c0_scl",
+          "peripheral": "I2C0",
+          "signal": "SCL",
+          "af_number": 15,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -231,133 +294,22 @@
       "name": "GPIO10",
       "port": null,
       "number": 10,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO11",
-      "port": null,
-      "number": 11,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO12",
-      "port": null,
-      "number": 12,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO13",
-      "port": null,
-      "number": 13,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO14",
-      "port": null,
-      "number": 14,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO15",
-      "port": null,
-      "number": 15,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO16",
-      "port": null,
-      "number": 16,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO17",
-      "port": null,
-      "number": 17,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO18",
-      "port": null,
-      "number": 18,
-      "signals": [],
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      }
-    },
-    {
-      "name": "GPIO19",
-      "port": null,
-      "number": 19,
-      "signals": [],
+      "signals": [
+        {
+          "function": "spi2_cs",
+          "peripheral": "SPI2",
+          "signal": "CS",
+          "af_number": 68,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -371,7 +323,22 @@
       "name": "GPIO20",
       "port": null,
       "number": 20,
-      "signals": [],
+      "signals": [
+        {
+          "function": "uart0_rx",
+          "peripheral": "UART0",
+          "signal": "RX",
+          "af_number": 6,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -385,7 +352,22 @@
       "name": "GPIO21",
       "port": null,
       "number": 21,
-      "signals": [],
+      "signals": [
+        {
+          "function": "uart0_tx",
+          "peripheral": "UART0",
+          "signal": "TX",
+          "af_number": 6,
+          "provenance": {
+            "source_id": "espressif-svd",
+            "source_path": "esp32c3.svd",
+            "patch_ids": [
+              "espressif-esp32c3-family-bootstrap-v1",
+              "espressif-esp32c3-bootstrap"
+            ]
+          }
+        }
+      ],
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -449,7 +431,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.apb_saradc.espressif-apb-saradc"
+      "backend_schema_id": "alloy.adc.espressif-apb-saradc"
     },
     {
       "name": "ASSIST_DEBUG",
@@ -2221,7 +2203,7 @@
     {
       "controller": "DMA",
       "request_line": "ADC",
-      "peripheral": "ADC",
+      "peripheral": "APB_SARADC",
       "signal": "DATA",
       "provenance": {
         "source_id": "bootstrap-patch",
@@ -91196,41 +91178,199 @@
       }
     }
   ],
+  "capabilities": [
+    {
+      "capability_id": "capability-instance:i2c0:qfn32:scl",
+      "scope": "instance-overlay",
+      "peripheral_class": "i2c0",
+      "name": "available-signal",
+      "value": "scl",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "i2c0",
+      "ip_version": null,
+      "peripheral": "I2C0",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:i2c0:qfn32:sda",
+      "scope": "instance-overlay",
+      "peripheral_class": "i2c0",
+      "name": "available-signal",
+      "value": "sda",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "i2c0",
+      "ip_version": null,
+      "peripheral": "I2C0",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:cs",
+      "scope": "instance-overlay",
+      "peripheral_class": "spi",
+      "name": "available-signal",
+      "value": "cs",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": null,
+      "peripheral": "SPI2",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:miso",
+      "scope": "instance-overlay",
+      "peripheral_class": "spi",
+      "name": "available-signal",
+      "value": "miso",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": null,
+      "peripheral": "SPI2",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:mosi",
+      "scope": "instance-overlay",
+      "peripheral_class": "spi",
+      "name": "available-signal",
+      "value": "mosi",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": null,
+      "peripheral": "SPI2",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:sck",
+      "scope": "instance-overlay",
+      "peripheral_class": "spi",
+      "name": "available-signal",
+      "value": "sck",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": null,
+      "peripheral": "SPI2",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:uart0:qfn32:rx",
+      "scope": "instance-overlay",
+      "peripheral_class": "uart",
+      "name": "available-signal",
+      "value": "rx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "uart",
+      "ip_version": null,
+      "peripheral": "UART0",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:uart0:qfn32:tx",
+      "scope": "instance-overlay",
+      "peripheral_class": "uart",
+      "name": "available-signal",
+      "value": "tx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "uart",
+      "ip_version": null,
+      "peripheral": "UART0",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:uart1:qfn32:rx",
+      "scope": "instance-overlay",
+      "peripheral_class": "uart",
+      "name": "available-signal",
+      "value": "rx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "uart",
+      "ip_version": null,
+      "peripheral": "UART1",
+      "package": "qfn32"
+    },
+    {
+      "capability_id": "capability-instance:uart1:qfn32:tx",
+      "scope": "instance-overlay",
+      "peripheral_class": "uart",
+      "name": "available-signal",
+      "value": "tx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "uart",
+      "ip_version": null,
+      "peripheral": "UART1",
+      "package": "qfn32"
+    }
+  ],
   "package_pads": [
-    {
-      "pad_id": "GPIO0",
-      "package": "qfn32",
-      "position_label": "GPIO0",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO0",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO1",
-      "package": "qfn32",
-      "position_label": "GPIO1",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO1",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
     {
       "pad_id": "GPIO2",
       "package": "qfn32",
@@ -91238,23 +91378,6 @@
       "physical_index": null,
       "pad_kind": "io",
       "bonded_pin": "GPIO2",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO3",
-      "package": "qfn32",
-      "position_label": "GPIO3",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO3",
       "provenance": {
         "source_id": "espressif-svd",
         "source_path": "esp32c3.svd",
@@ -91385,159 +91508,6 @@
       "bonding_state": "bonded"
     },
     {
-      "pad_id": "GPIO11",
-      "package": "qfn32",
-      "position_label": "GPIO11",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO11",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO12",
-      "package": "qfn32",
-      "position_label": "GPIO12",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO12",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO13",
-      "package": "qfn32",
-      "position_label": "GPIO13",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO13",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO14",
-      "package": "qfn32",
-      "position_label": "GPIO14",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO14",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO15",
-      "package": "qfn32",
-      "position_label": "GPIO15",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO15",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO16",
-      "package": "qfn32",
-      "position_label": "GPIO16",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO16",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO17",
-      "package": "qfn32",
-      "position_label": "GPIO17",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO17",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO18",
-      "package": "qfn32",
-      "position_label": "GPIO18",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO18",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
-      "pad_id": "GPIO19",
-      "package": "qfn32",
-      "position_label": "GPIO19",
-      "physical_index": null,
-      "pad_kind": "io",
-      "bonded_pin": "GPIO19",
-      "provenance": {
-        "source_id": "espressif-svd",
-        "source_path": "esp32c3.svd",
-        "patch_ids": [
-          "espressif-esp32c3-family-bootstrap-v1",
-          "espressif-esp32c3-bootstrap"
-        ]
-      },
-      "bonding_state": "bonded"
-    },
-    {
       "pad_id": "GPIO20",
       "package": "qfn32",
       "position_label": "GPIO20",
@@ -91572,7 +91542,301 @@
       "bonding_state": "bonded"
     }
   ],
+  "signal_endpoints": [
+    {
+      "endpoint_id": "endpoint:i2c0:scl",
+      "peripheral_class": "i2c0",
+      "signal": "SCL",
+      "direction": null,
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:i2c0:sda",
+      "peripheral_class": "i2c0",
+      "signal": "SDA",
+      "direction": "bidirectional",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:spi:cs",
+      "peripheral_class": "spi",
+      "signal": "CS",
+      "direction": null,
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:spi:miso",
+      "peripheral_class": "spi",
+      "signal": "MISO",
+      "direction": "input",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:spi:mosi",
+      "peripheral_class": "spi",
+      "signal": "MOSI",
+      "direction": "output",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:spi:sck",
+      "peripheral_class": "spi",
+      "signal": "SCK",
+      "direction": "output",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:uart:rx",
+      "peripheral_class": "uart",
+      "signal": "RX",
+      "direction": "input",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "endpoint_id": "endpoint:uart:tx",
+      "peripheral_class": "uart",
+      "signal": "TX",
+      "direction": "output",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    }
+  ],
   "route_requirements": [
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio10",
+      "kind": "bonded-pin",
+      "target": "GPIO10",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO10",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio2",
+      "kind": "bonded-pin",
+      "target": "GPIO2",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO2",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio20",
+      "kind": "bonded-pin",
+      "target": "GPIO20",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO20",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio21",
+      "kind": "bonded-pin",
+      "target": "GPIO21",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO21",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio4",
+      "kind": "bonded-pin",
+      "target": "GPIO4",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO4",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio5",
+      "kind": "bonded-pin",
+      "target": "GPIO5",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO5",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio6",
+      "kind": "bonded-pin",
+      "target": "GPIO6",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO6",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio7",
+      "kind": "bonded-pin",
+      "target": "GPIO7",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO7",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio8",
+      "kind": "bonded-pin",
+      "target": "GPIO8",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO8",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
+    {
+      "requirement_id": "requirement:bonded-pin:qfn32:gpio9",
+      "kind": "bonded-pin",
+      "target": "GPIO9",
+      "value": "qfn32",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO9",
+      "value_ref_kind": "package",
+      "value_ref_id": "qfn32"
+    },
     {
       "requirement_id": "requirement:clock-enable:i2c0",
       "kind": "clock-enable",
@@ -91662,6 +91926,196 @@
       "target_ref_id": "qfn32",
       "value_ref_kind": "state",
       "value_ref_id": "selected"
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio10:spi2:cs",
+      "kind": "source-select",
+      "target": "pinmux.GPIO10",
+      "value": "selector:68",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO10",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:68",
+      "value_int": 68
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio20:uart0:rx",
+      "kind": "source-select",
+      "target": "pinmux.GPIO20",
+      "value": "selector:6",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO20",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:6",
+      "value_int": 6
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio21:uart0:tx",
+      "kind": "source-select",
+      "target": "pinmux.GPIO21",
+      "value": "selector:6",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO21",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:6",
+      "value_int": 6
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio2:spi2:miso",
+      "kind": "source-select",
+      "target": "pinmux.GPIO2",
+      "value": "selector:63",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO2",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:63",
+      "value_int": 63
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio4:uart1:tx",
+      "kind": "source-select",
+      "target": "pinmux.GPIO4",
+      "value": "selector:9",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO4",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:9",
+      "value_int": 9
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio5:uart1:rx",
+      "kind": "source-select",
+      "target": "pinmux.GPIO5",
+      "value": "selector:9",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO5",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:9",
+      "value_int": 9
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio6:spi2:sck",
+      "kind": "source-select",
+      "target": "pinmux.GPIO6",
+      "value": "selector:63",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO6",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:63",
+      "value_int": 63
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio7:spi2:mosi",
+      "kind": "source-select",
+      "target": "pinmux.GPIO7",
+      "value": "selector:64",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO7",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:64",
+      "value_int": 64
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio8:i2c0:sda",
+      "kind": "source-select",
+      "target": "pinmux.GPIO8",
+      "value": "selector:14",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO8",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:14",
+      "value_int": 14
+    },
+    {
+      "requirement_id": "requirement:source-select:gpio9:i2c0:scl",
+      "kind": "source-select",
+      "target": "pinmux.GPIO9",
+      "value": "selector:15",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO9",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:15",
+      "value_int": 15
     }
   ],
   "route_operations": [
@@ -91768,6 +92222,650 @@
       "target_ref_kind": "clock-gate",
       "target_ref_id": "gate:uart1",
       "value_ref_kind": "int"
+    },
+    {
+      "operation_id": "operation:route:gpio10:spi2:cs",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO10",
+      "value": "68",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO10",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 68,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO10",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:68"
+    },
+    {
+      "operation_id": "operation:route:gpio20:uart0:rx",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO20",
+      "value": "6",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO20",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 6,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO20",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:6"
+    },
+    {
+      "operation_id": "operation:route:gpio21:uart0:tx",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO21",
+      "value": "6",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO21",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 6,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO21",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:6"
+    },
+    {
+      "operation_id": "operation:route:gpio2:spi2:miso",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO2",
+      "value": "63",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO2",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 63,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO2",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:63"
+    },
+    {
+      "operation_id": "operation:route:gpio4:uart1:tx",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO4",
+      "value": "9",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO4",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 9,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO4",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:9"
+    },
+    {
+      "operation_id": "operation:route:gpio5:uart1:rx",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO5",
+      "value": "9",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO5",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 9,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO5",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:9"
+    },
+    {
+      "operation_id": "operation:route:gpio6:spi2:sck",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO6",
+      "value": "63",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO6",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 63,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO6",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:63"
+    },
+    {
+      "operation_id": "operation:route:gpio7:spi2:mosi",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO7",
+      "value": "64",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO7",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 64,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO7",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:64"
+    },
+    {
+      "operation_id": "operation:route:gpio8:i2c0:sda",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO8",
+      "value": "14",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO8",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 14,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO8",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:14"
+    },
+    {
+      "operation_id": "operation:route:gpio9:i2c0:scl",
+      "kind": "write-selector",
+      "target": "pinmux.GPIO9",
+      "value": "15",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.pinmux.espressif-iomatrix-v1",
+      "subject_kind": "pin",
+      "subject_id": "GPIO9",
+      "register_peripheral": null,
+      "register_name": null,
+      "register_offset": null,
+      "value_int": 15,
+      "target_ref_kind": "pin",
+      "target_ref_id": "GPIO9",
+      "value_ref_kind": "selector",
+      "value_ref_id": "selector:15"
+    }
+  ],
+  "connection_candidates": [
+    {
+      "candidate_id": "candidate:gpio10:spi2:cs",
+      "pin": "GPIO10",
+      "peripheral": "SPI2",
+      "signal": "cs",
+      "route_kind": "mux",
+      "route_selector": "selector:68",
+      "route_group_id": null,
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio10",
+        "requirement:clock-enable:spi2",
+        "requirement:source-select:gpio10:spi2:cs"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:spi2",
+        "operation:route:gpio10:spi2:cs"
+      ],
+      "capability_ids": [
+        "capability-instance:spi2:qfn32:cs"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio20:uart0:rx",
+      "pin": "GPIO20",
+      "peripheral": "UART0",
+      "signal": "rx",
+      "route_kind": "mux",
+      "route_selector": "selector:6",
+      "route_group_id": "group:uart0:qfn32:tx-rx",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio20",
+        "requirement:clock-enable:uart0",
+        "requirement:source-select:gpio20:uart0:rx"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:uart0",
+        "operation:route:gpio20:uart0:rx"
+      ],
+      "capability_ids": [
+        "capability-instance:uart0:qfn32:rx"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio21:uart0:tx",
+      "pin": "GPIO21",
+      "peripheral": "UART0",
+      "signal": "tx",
+      "route_kind": "mux",
+      "route_selector": "selector:6",
+      "route_group_id": "group:uart0:qfn32:tx-rx",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio21",
+        "requirement:clock-enable:uart0",
+        "requirement:source-select:gpio21:uart0:tx"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:uart0",
+        "operation:route:gpio21:uart0:tx"
+      ],
+      "capability_ids": [
+        "capability-instance:uart0:qfn32:tx"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio2:spi2:miso",
+      "pin": "GPIO2",
+      "peripheral": "SPI2",
+      "signal": "miso",
+      "route_kind": "mux",
+      "route_selector": "selector:63",
+      "route_group_id": "group:spi2:qfn32:sck-mosi-miso",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio2",
+        "requirement:clock-enable:spi2",
+        "requirement:source-select:gpio2:spi2:miso"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:spi2",
+        "operation:route:gpio2:spi2:miso"
+      ],
+      "capability_ids": [
+        "capability-instance:spi2:qfn32:miso"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio4:uart1:tx",
+      "pin": "GPIO4",
+      "peripheral": "UART1",
+      "signal": "tx",
+      "route_kind": "mux",
+      "route_selector": "selector:9",
+      "route_group_id": "group:uart1:qfn32:tx-rx",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio4",
+        "requirement:clock-enable:uart1",
+        "requirement:source-select:gpio4:uart1:tx"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:uart1",
+        "operation:route:gpio4:uart1:tx"
+      ],
+      "capability_ids": [
+        "capability-instance:uart1:qfn32:tx"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio5:uart1:rx",
+      "pin": "GPIO5",
+      "peripheral": "UART1",
+      "signal": "rx",
+      "route_kind": "mux",
+      "route_selector": "selector:9",
+      "route_group_id": "group:uart1:qfn32:tx-rx",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio5",
+        "requirement:clock-enable:uart1",
+        "requirement:source-select:gpio5:uart1:rx"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:uart1",
+        "operation:route:gpio5:uart1:rx"
+      ],
+      "capability_ids": [
+        "capability-instance:uart1:qfn32:rx"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio6:spi2:sck",
+      "pin": "GPIO6",
+      "peripheral": "SPI2",
+      "signal": "sck",
+      "route_kind": "mux",
+      "route_selector": "selector:63",
+      "route_group_id": "group:spi2:qfn32:sck-mosi-miso",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio6",
+        "requirement:clock-enable:spi2",
+        "requirement:source-select:gpio6:spi2:sck"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:spi2",
+        "operation:route:gpio6:spi2:sck"
+      ],
+      "capability_ids": [
+        "capability-instance:spi2:qfn32:sck"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio7:spi2:mosi",
+      "pin": "GPIO7",
+      "peripheral": "SPI2",
+      "signal": "mosi",
+      "route_kind": "mux",
+      "route_selector": "selector:64",
+      "route_group_id": "group:spi2:qfn32:sck-mosi-miso",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio7",
+        "requirement:clock-enable:spi2",
+        "requirement:source-select:gpio7:spi2:mosi"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:spi2",
+        "operation:route:gpio7:spi2:mosi"
+      ],
+      "capability_ids": [
+        "capability-instance:spi2:qfn32:mosi"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio8:i2c0:sda",
+      "pin": "GPIO8",
+      "peripheral": "I2C0",
+      "signal": "sda",
+      "route_kind": "mux",
+      "route_selector": "selector:14",
+      "route_group_id": "group:i2c0:qfn32:all-signals",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio8",
+        "requirement:clock-enable:i2c0",
+        "requirement:source-select:gpio8:i2c0:sda"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:i2c0",
+        "operation:route:gpio8:i2c0:sda"
+      ],
+      "capability_ids": [
+        "capability-instance:i2c0:qfn32:sda"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "candidate_id": "candidate:gpio9:i2c0:scl",
+      "pin": "GPIO9",
+      "peripheral": "I2C0",
+      "signal": "scl",
+      "route_kind": "mux",
+      "route_selector": "selector:15",
+      "route_group_id": "group:i2c0:qfn32:all-signals",
+      "requirement_ids": [
+        "requirement:package:qfn32",
+        "requirement:bonded-pin:qfn32:gpio9",
+        "requirement:clock-enable:i2c0",
+        "requirement:source-select:gpio9:i2c0:scl"
+      ],
+      "operation_ids": [
+        "operation:clock-enable:i2c0",
+        "operation:route:gpio9:i2c0:scl"
+      ],
+      "capability_ids": [
+        "capability-instance:i2c0:qfn32:scl"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    }
+  ],
+  "connection_groups": [
+    {
+      "group_id": "group:i2c0:qfn32:all-signals",
+      "peripheral": "I2C0",
+      "signals": [
+        "scl",
+        "sda"
+      ],
+      "candidate_ids": [
+        "candidate:gpio8:i2c0:sda",
+        "candidate:gpio9:i2c0:scl"
+      ],
+      "package": "qfn32",
+      "conflict_group": "conflict:i2c0:qfn32:all-signals",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "group_id": "group:spi2:qfn32:sck-mosi-miso",
+      "peripheral": "SPI2",
+      "signals": [
+        "sck",
+        "mosi",
+        "miso"
+      ],
+      "candidate_ids": [
+        "candidate:gpio2:spi2:miso",
+        "candidate:gpio6:spi2:sck",
+        "candidate:gpio7:spi2:mosi"
+      ],
+      "package": "qfn32",
+      "conflict_group": "conflict:spi2:qfn32:sck-mosi-miso",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "group_id": "group:uart0:qfn32:tx-rx",
+      "peripheral": "UART0",
+      "signals": [
+        "tx",
+        "rx"
+      ],
+      "candidate_ids": [
+        "candidate:gpio20:uart0:rx",
+        "candidate:gpio21:uart0:tx"
+      ],
+      "package": "qfn32",
+      "conflict_group": "conflict:uart0:qfn32:tx-rx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
+    },
+    {
+      "group_id": "group:uart1:qfn32:tx-rx",
+      "peripheral": "UART1",
+      "signals": [
+        "tx",
+        "rx"
+      ],
+      "candidate_ids": [
+        "candidate:gpio4:uart1:tx",
+        "candidate:gpio5:uart1:rx"
+      ],
+      "package": "qfn32",
+      "conflict_group": "conflict:uart1:qfn32:tx-rx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      }
     }
   ],
   "interrupt_bindings": [
@@ -94321,12 +95419,12 @@
   ],
   "dma_bindings": [
     {
-      "binding_id": "dma-binding:adc:data:dma:adc",
-      "peripheral": "ADC",
+      "binding_id": "dma-binding:apb-saradc:data:dma:adc",
+      "peripheral": "APB_SARADC",
       "signal": "DATA",
       "controller": "DMA",
       "request_line": "ADC",
-      "route_id": "dma-route:dma:adc:adc:data",
+      "route_id": "dma-route:dma:adc:apb-saradc:data",
       "conflict_group": null,
       "provenance": {
         "source_id": "bootstrap-patch",
@@ -94413,10 +95511,10 @@
   ],
   "dma_routes": [
     {
-      "route_id": "dma-route:dma:adc:adc:data",
+      "route_id": "dma-route:dma:adc:apb-saradc:data",
       "controller": "DMA",
       "request_line": "ADC",
-      "peripheral": "ADC",
+      "peripheral": "APB_SARADC",
       "signal": "DATA",
       "conflict_group": null,
       "provenance": {

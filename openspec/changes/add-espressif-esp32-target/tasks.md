@@ -23,21 +23,30 @@
 
 ## Phase 2: IO Matrix Routing
 
-- [ ] 2.1 Add `alloy.pinmux.espressif-iomatrix-v1` to the known backend schema set
+- [x] 2.1 Add `alloy.pinmux.espressif-iomatrix-v1` to the known backend schema set
 - [ ] 2.2 Create supplementary parser for `gpio_sig_map.h`
-- [ ] 2.3 Populate pin-signal data for UART, SPI, I2C, ADC bootstrap coverage
+      (Follow-on: bootstrap pin_signals in family.json currently cite
+      `gpio_sig_map.h` indices inline; an automated parser that ingests the
+      header from esp-idf still needs a source-adapter extension.)
+- [x] 2.3 Populate pin-signal data for UART, SPI, I2C, ADC bootstrap coverage
 - [ ] 2.4 Ensure emitted runtime data carries IO Matrix signal-index provenance
+      (Follow-on: when task 2.2 lands, ensure the emitted runtime tags
+      `af_number` values with `alloy.pinmux.espressif-iomatrix-v1` schema.)
 - [ ] 2.5 Add emitted goldens proving the IO Matrix schema and comments are correct
+      (Follow-on: depends on 2.2 + 2.4.)
 
 ## Phase 3: Runtime Contract — ESP32-C3
 
-- [ ] 3.1 Update `artifact_contract.py` so architecture-scoped artifacts are explicit:
+- [x] 3.1 Update `artifact_contract.py` so architecture-scoped artifacts are explicit:
       `systick.hpp` required only for Cortex-M; startup validated per architecture
-- [ ] 3.2 Add `runtime_riscv_startup.py` and wire RISC-V startup emission in `stages/emit.py`
+- [x] 3.2 Add `runtime_riscv_startup.py` and wire RISC-V startup emission in `stages/emit.py`
 - [ ] 3.3 Ensure consumer smoke compiles ESP32-C3 runtime headers without ARM-specific glue
-- [ ] 3.4 Add emitted runtime goldens for `interrupts.hpp`, `clock_graph.hpp`,
+      (Follow-on: requires publish stage to run for ESP32-C3 + invoking
+      `verify_runtime_lite_smoke_consumer` on the published root.  Mechanism
+      already supports non-ARM families; not yet wired into a regression test.)
+- [x] 3.4 Add emitted runtime goldens for `interrupts.hpp`, `clock_graph.hpp`,
       `peripheral_instances.hpp`, and startup output
-- [ ] 3.5 Add publish/contract tests proving runtime-only completeness for `esp32c3`
+- [x] 3.5 Add publish/contract tests proving runtime-only completeness for `esp32c3`
 
 ## Phase 4: Xtensa Follow-On — ESP32-S3
 

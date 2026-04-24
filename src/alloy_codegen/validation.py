@@ -352,7 +352,21 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
     # Exclude them from the rcc_enable check so platforms like ESP32 — where
     # the GDMA/DMA peripheral is permanently clocked — do not fail validation.
     dma_controller_names = {request.controller for request in device.dma_requests}
-    rcc_check_peripherals = referenced_peripherals - dma_controller_names
+    # Analog peripheral classes (ADC/DAC/comparators/opamps) often have a
+    # dedicated analog-clock domain rather than a software-toggled RCC gate;
+    # exempt them from the RCC-enable requirement when the canonical class
+    # resolves to an analog class.
+    analog_exempt_peripherals = {
+        name
+        for name in referenced_peripherals
+        if name is not None
+        and peripheral_map.get(name) is not None
+        and canonical_peripheral_class(peripheral_map[name].ip_name)
+        in {"adc", "dac", "comp", "opamp"}
+    }
+    rcc_check_peripherals = (
+        referenced_peripherals - dma_controller_names - analog_exempt_peripherals
+    )
     referenced_peripherals_have_rcc = all(
         peripheral_map.get(name) is not None and peripheral_map[name].rcc_enable_signal is not None
         for name in rcc_check_peripherals
