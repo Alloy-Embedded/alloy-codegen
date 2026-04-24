@@ -659,48 +659,55 @@ def emit_runtime_system_clock_header(
         "  static constexpr std::uint32_t kPllP = 0u;",
         "  static constexpr std::uint32_t kPllQ = 0u;",
         "  static constexpr std::uint32_t kPllR = 0u;",
-        "  static constexpr std::uint32_t kPllSource = 0u;",
         "  static constexpr std::uint32_t kFlashLatency = 0u;",
         "};",
         "",
     ]
+    if family_key == ("st", "stm32g0"):
+        trait_lines.insert(-3, "  static constexpr std::uint32_t kPllSource = 0u;")
     for profile in profiles:
         profile_id = profile_enum_map[profile.profile_id]
-        trait_lines.extend(
-            [
-                "template<>",
-                f"struct SystemClockProfileTraits<SystemClockProfileId::{profile_id}> {{",
-                "  static constexpr bool kPresent = true;",
-                "  static constexpr SystemClockProfileKindId kKindId = "
-                f"SystemClockProfileKindId::{kind_enum_map[profile.kind]};",
-                "  static constexpr SystemClockSourceKindId kSourceKindId = "
-                f"SystemClockSourceKindId::{source_enum_map[profile.source_kind]};",
-                f"  static constexpr std::uint32_t kSysclkHz = {profile.sysclk_hz}u;",
-                f"  static constexpr std::uint32_t kHclkHz = {profile.hclk_hz or 0}u;",
-                f"  static constexpr std::uint32_t kApb1Hz = {profile.apb1_hz or 0}u;",
-                f"  static constexpr std::uint32_t kApb2Hz = {profile.apb2_hz or 0}u;",
-                f"  static constexpr std::uint32_t kPclkHz = {profile.pclk_hz or 0}u;",
-                f"  static constexpr std::uint32_t kSourceHz = {profile.source_hz or 0}u;",
-                f"  static constexpr std::uint32_t kAhbPrescaler = {profile.ahb_prescaler or 1}u;",
-                f"  static constexpr std::uint32_t kApb1Prescaler = {profile.apb1_prescaler or 1}u;",
-                f"  static constexpr std::uint32_t kApb2Prescaler = {profile.apb2_prescaler or 1}u;",
-                "  static constexpr std::uint32_t kOscillatorStartupCycles = "
-                f"{profile.oscillator_startup_cycles or 0}u;",
-                f"  static constexpr std::uint32_t kMckPrescaler = {profile.mck_prescaler or 1}u;",
-                f"  static constexpr std::uint32_t kCpuPrescaler = {profile.cpu_prescaler or 1}u;",
-                f"  static constexpr std::uint32_t kIpgPrescaler = {profile.ipg_prescaler or 1}u;",
-                f"  static constexpr std::uint32_t kPllM = {profile.pll_m or 0}u;",
-                f"  static constexpr std::uint32_t kPllN = {profile.pll_n or 0}u;",
-                f"  static constexpr std::uint32_t kPllP = {profile.pll_p or 0}u;",
-                f"  static constexpr std::uint32_t kPllQ = {profile.pll_q or 0}u;",
-                f"  static constexpr std::uint32_t kPllR = {profile.pll_r or 0}u;",
+        profile_trait_lines = [
+            "template<>",
+            f"struct SystemClockProfileTraits<SystemClockProfileId::{profile_id}> {{",
+            "  static constexpr bool kPresent = true;",
+            "  static constexpr SystemClockProfileKindId kKindId = "
+            f"SystemClockProfileKindId::{kind_enum_map[profile.kind]};",
+            "  static constexpr SystemClockSourceKindId kSourceKindId = "
+            f"SystemClockSourceKindId::{source_enum_map[profile.source_kind]};",
+            f"  static constexpr std::uint32_t kSysclkHz = {profile.sysclk_hz}u;",
+            f"  static constexpr std::uint32_t kHclkHz = {profile.hclk_hz or 0}u;",
+            f"  static constexpr std::uint32_t kApb1Hz = {profile.apb1_hz or 0}u;",
+            f"  static constexpr std::uint32_t kApb2Hz = {profile.apb2_hz or 0}u;",
+            f"  static constexpr std::uint32_t kPclkHz = {profile.pclk_hz or 0}u;",
+            f"  static constexpr std::uint32_t kSourceHz = {profile.source_hz or 0}u;",
+            f"  static constexpr std::uint32_t kAhbPrescaler = {profile.ahb_prescaler or 1}u;",
+            f"  static constexpr std::uint32_t kApb1Prescaler = {profile.apb1_prescaler or 1}u;",
+            f"  static constexpr std::uint32_t kApb2Prescaler = {profile.apb2_prescaler or 1}u;",
+            "  static constexpr std::uint32_t kOscillatorStartupCycles = "
+            f"{profile.oscillator_startup_cycles or 0}u;",
+            f"  static constexpr std::uint32_t kMckPrescaler = {profile.mck_prescaler or 1}u;",
+            f"  static constexpr std::uint32_t kCpuPrescaler = {profile.cpu_prescaler or 1}u;",
+            f"  static constexpr std::uint32_t kIpgPrescaler = {profile.ipg_prescaler or 1}u;",
+            f"  static constexpr std::uint32_t kPllM = {profile.pll_m or 0}u;",
+            f"  static constexpr std::uint32_t kPllN = {profile.pll_n or 0}u;",
+            f"  static constexpr std::uint32_t kPllP = {profile.pll_p or 0}u;",
+            f"  static constexpr std::uint32_t kPllQ = {profile.pll_q or 0}u;",
+            f"  static constexpr std::uint32_t kPllR = {profile.pll_r or 0}u;",
+        ]
+        if family_key == ("st", "stm32g0"):
+            profile_trait_lines.append(
                 "  static constexpr std::uint32_t kPllSource = "
-                f"{(_stm32g0_pllsrc_value(profile.source_kind) if family_key == ('st', 'stm32g0') else 0)}u;",
+                f"{_stm32g0_pllsrc_value(profile.source_kind)}u;"
+            )
+        profile_trait_lines.extend(
+            [
                 f"  static constexpr std::uint32_t kFlashLatency = {profile.flash_latency or 0}u;",
                 "};",
                 "",
             ]
         )
+        trait_lines.extend(profile_trait_lines)
         profile_rows.append(
             "  {"
             f"SystemClockProfileId::{profile_id}, "
