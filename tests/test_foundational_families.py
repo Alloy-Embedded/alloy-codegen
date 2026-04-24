@@ -179,16 +179,29 @@ def test_foundational_families_publish_with_same_generic_workflow(
         device_names = registered_device_names(scope.resolved_vendor(), scope.resolved_family())
 
         assert result.stage == "publish"
-        # Surface publish-stage warnings + consumer_verification stderr into
-        # the pytest failure output so CI diagnostics explain why publish
-        # blocked (otherwise the bare `'failed' == 'completed'` assertion
-        # hides the root cause).
+        # Surface publish-stage warnings + consumer_verification details
+        # into the pytest failure output so CI diagnostics explain why
+        # publish blocked.  ConsumerVerification succeeded=False can come
+        # from the compile step (captured in `stderr`) OR from the linker
+        # script verification sub-step (captured separately in
+        # `linker_script_verification.stderr`), so both paths are shown.
         failure_context = ""
         if result.status != "completed":
             failure_context = f"\nfamily={family_dir}\nwarnings={result.warnings!r}"
             cv = getattr(result.payload, "consumer_verification", None)
             if cv is not None and not cv.succeeded:
                 failure_context += f"\nconsumer stderr:\n{cv.stderr[:2000]}"
+                failure_context += f"\nconsumer command:\n{cv.command!r}"
+                lsv = cv.linker_script_verification
+                if lsv is not None:
+                    failure_context += (
+                        f"\nlinker script verification: attempted={lsv.attempted} "
+                        f"succeeded={lsv.succeeded} skipped_reason={lsv.skipped_reason!r}"
+                    )
+                    if lsv.stderr:
+                        failure_context += f"\nlinker stderr:\n{lsv.stderr[:2000]}"
+                    if lsv.stdout:
+                        failure_context += f"\nlinker stdout:\n{lsv.stdout[:500]}"
         assert result.status == "completed", failure_context
         assert result.payload.publication_mode == "published"
         assert result.payload.consumer_verification is not None
