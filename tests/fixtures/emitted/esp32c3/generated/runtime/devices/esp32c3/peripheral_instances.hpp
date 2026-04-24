@@ -53,7 +53,7 @@ template<>
 struct PeripheralInstanceTraits<PeripheralId::APB_SARADC> {
   static constexpr bool kPresent = true;
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_adc;
-  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_adc_espressif_apb_saradc;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_adc_espressif_esp32c3_saradc_v1;
   static constexpr int kInstance = 0;
   static constexpr std::uintptr_t kBaseAddress = 0x60040000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
@@ -65,7 +65,7 @@ template<>
 struct PeripheralInstanceTraits<PeripheralId::DMA> {
   static constexpr bool kPresent = true;
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_dma;
-  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_dma_espressif_dma;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_dma_espressif_esp32c3_gdma_v1;
   static constexpr int kInstance = 0;
   static constexpr std::uintptr_t kBaseAddress = 0x6003F000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
@@ -77,7 +77,7 @@ template<>
 struct PeripheralInstanceTraits<PeripheralId::GPIO> {
   static constexpr bool kPresent = true;
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_gpio;
-  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_gpio_espressif_gpio;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_gpio_espressif_esp32c3_gpio_v1;
   static constexpr int kInstance = 0;
   static constexpr std::uintptr_t kBaseAddress = 0x60004000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
@@ -113,7 +113,7 @@ template<>
 struct PeripheralInstanceTraits<PeripheralId::SPI2> {
   static constexpr bool kPresent = true;
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_spi;
-  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_spi_espressif_spi;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_spi_espressif_esp32c3_spi_v1;
   static constexpr int kInstance = 2;
   static constexpr std::uintptr_t kBaseAddress = 0x60024000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::gate_spi2;
@@ -125,7 +125,7 @@ template<>
 struct PeripheralInstanceTraits<PeripheralId::UART0> {
   static constexpr bool kPresent = true;
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_uart;
-  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_uart_espressif_uart;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_uart_espressif_esp32c3_uart_v1;
   static constexpr int kInstance = 0;
   static constexpr std::uintptr_t kBaseAddress = 0x60000000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::gate_uart0;
@@ -137,7 +137,7 @@ template<>
 struct PeripheralInstanceTraits<PeripheralId::UART1> {
   static constexpr bool kPresent = true;
   static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_uart;
-  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_uart_espressif_uart;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_uart_espressif_esp32c3_uart_v1;
   static constexpr int kInstance = 1;
   static constexpr std::uintptr_t kBaseAddress = 0x60010000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::gate_uart1;

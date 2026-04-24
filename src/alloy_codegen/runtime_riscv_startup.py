@@ -122,11 +122,20 @@ def emit_riscv_startup_source(
             "    while (true) {}",
             "}",
             "",
+            # RISC-V interrupt handlers use `__attribute__((interrupt))` so the
+            # compiler emits an MRET-based return sequence.  Host-only smoke
+            # builds (ALLOY_CODEGEN_HOST_SMOKE) compile with a generic x86/arm
+            # `c++` and reject the attribute with -Werror=unknown-attributes, so
+            # we emit the attribute only for real embedded builds.
             *[
                 line
                 for symbol_name in peripheral_symbols
                 for line in (
+                    "#if defined(ALLOY_CODEGEN_HOST_SMOKE)",
+                    f"void {symbol_name}() __attribute__((weak));",
+                    "#else",
                     f"void {symbol_name}() __attribute__((weak, interrupt));",
+                    "#endif",
                     f"void {symbol_name}() {{",
                     "    Default_Handler();",
                     "}",

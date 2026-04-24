@@ -16,6 +16,7 @@ from alloy_codegen.artifact_contract import find_runtime_cpp_string_violations
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run as run_emit
+from alloy_codegen.stages.publish import run as run_publish
 
 ESP32C3_EMITTED_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "emitted" / "esp32c3"
 
@@ -174,3 +175,29 @@ def test_esp32c3_emitted_runtime_goldens_match(
         assert artifacts[emitted_path].content == expected, (
             f"emitted {emitted_path} does not match golden fixture {fixture_path}"
         )
+
+
+def test_publish_esp32c3_consumer_smoke_passes(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 3.3: the Alloy runtime-lite smoke consumer compiles the ESP32-C3
+    runtime headers and RISC-V startup without ARM-specific glue.
+
+    This test actually runs the host ``c++`` compiler against the staged
+    publication root and asserts that the smoke executable links.  The RISC-V
+    ``__attribute__((interrupt))`` annotations on peripheral IRQ handlers are
+    guarded by ``ALLOY_CODEGEN_HOST_SMOKE`` so they do not trip the host
+    compiler's ``-Werror=unknown-attributes`` gate.
+    """
+    result = run_publish(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    )
+
+    assert result.payload.consumer_verification is not None, (
+        "Publish should have invoked the consumer smoke verification for ESP32-C3"
+    )
+    assert result.payload.consumer_verification.succeeded is True, (
+        "Alloy consumer smoke build failed for espressif/esp32c3/esp32c3:\n"
+        + result.payload.consumer_verification.stderr
+    )

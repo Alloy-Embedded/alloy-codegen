@@ -418,7 +418,7 @@
     {
       "name": "APB_SARADC",
       "ip_name": "apb_saradc",
-      "ip_version": null,
+      "ip_version": "esp32c3-saradc-v1",
       "instance": 0,
       "base_address": 1610874880,
       "rcc_enable_signal": null,
@@ -431,7 +431,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.adc.espressif-apb-saradc"
+      "backend_schema_id": "alloy.adc.espressif-esp32c3-saradc-v1"
     },
     {
       "name": "ASSIST_DEBUG",
@@ -472,7 +472,7 @@
     {
       "name": "DMA",
       "ip_name": "dma",
-      "ip_version": null,
+      "ip_version": "esp32c3-gdma-v1",
       "instance": 0,
       "base_address": 1610870784,
       "rcc_enable_signal": null,
@@ -485,7 +485,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.dma.espressif-dma"
+      "backend_schema_id": "alloy.dma.espressif-esp32c3-gdma-v1"
     },
     {
       "name": "DS",
@@ -544,7 +544,7 @@
     {
       "name": "GPIO",
       "ip_name": "gpio",
-      "ip_version": null,
+      "ip_version": "esp32c3-gpio-v1",
       "instance": 0,
       "base_address": 1610629120,
       "rcc_enable_signal": null,
@@ -557,7 +557,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.gpio.espressif-gpio"
+      "backend_schema_id": "alloy.gpio.espressif-esp32c3-gpio-v1"
     },
     {
       "name": "GPIO_SD",
@@ -598,7 +598,7 @@
     {
       "name": "I2C0",
       "ip_name": "i2c0",
-      "ip_version": null,
+      "ip_version": "esp32c3-i2c-v1",
       "instance": 0,
       "base_address": 1610690560,
       "rcc_enable_signal": "PCR_I2C0_CONF_REG.I2C0_CLK_EN",
@@ -611,7 +611,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.i2c0.espressif-i2c0"
+      "backend_schema_id": "alloy.i2c0.espressif-esp32c3-i2c-v1"
     },
     {
       "name": "I2S0",
@@ -814,7 +814,7 @@
     {
       "name": "SPI2",
       "ip_name": "spi",
-      "ip_version": null,
+      "ip_version": "esp32c3-spi-v1",
       "instance": 2,
       "base_address": 1610760192,
       "rcc_enable_signal": "PCR_SPI2_CONF_REG.SPI2_CLK_EN",
@@ -827,7 +827,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.spi.espressif-spi"
+      "backend_schema_id": "alloy.spi.espressif-esp32c3-spi-v1"
     },
     {
       "name": "SYSTEM",
@@ -922,7 +922,7 @@
     {
       "name": "UART0",
       "ip_name": "uart",
-      "ip_version": null,
+      "ip_version": "esp32c3-uart-v1",
       "instance": 0,
       "base_address": 1610612736,
       "rcc_enable_signal": "PCR_UART0_CONF0_REG.UART0_CLK_EN",
@@ -935,12 +935,12 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.uart.espressif-uart"
+      "backend_schema_id": "alloy.uart.espressif-esp32c3-uart-v1"
     },
     {
       "name": "UART1",
       "ip_name": "uart",
-      "ip_version": null,
+      "ip_version": "esp32c3-uart-v1",
       "instance": 1,
       "base_address": 1610678272,
       "rcc_enable_signal": "PCR_UART1_CONF0_REG.UART1_CLK_EN",
@@ -953,7 +953,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.uart.espressif-uart"
+      "backend_schema_id": "alloy.uart.espressif-esp32c3-uart-v1"
     },
     {
       "name": "UHCI0",
@@ -1030,7 +1030,7 @@
     {
       "name": "PCR",
       "ip_name": "pcr",
-      "ip_version": null,
+      "ip_version": "esp32c3-pcr-v1",
       "instance": 0,
       "base_address": 1611268096,
       "rcc_enable_signal": null,
@@ -1043,7 +1043,7 @@
           "espressif-esp32c3-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.pcr.espressif-pcr"
+      "backend_schema_id": "alloy.pcr.espressif-esp32c3-pcr-v1"
     }
   ],
   "interrupts": [
@@ -91178,6 +91178,149 @@
       }
     }
   ],
+  "ip_blocks": [
+    {
+      "ip_name": "apb_saradc",
+      "ip_version": "esp32c3-saradc-v1",
+      "peripheral_class": "adc",
+      "register_profile": "apb_saradc:esp32c3-saradc-v1",
+      "signal_roles": [],
+      "capability_ids": [],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.adc.espressif-esp32c3-saradc-v1"
+    },
+    {
+      "ip_name": "dma",
+      "ip_version": "esp32c3-gdma-v1",
+      "peripheral_class": "dma",
+      "register_profile": "dma:esp32c3-gdma-v1",
+      "signal_roles": [],
+      "capability_ids": [],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.dma.espressif-esp32c3-gdma-v1"
+    },
+    {
+      "ip_name": "gpio",
+      "ip_version": "esp32c3-gpio-v1",
+      "peripheral_class": "gpio",
+      "register_profile": "gpio:esp32c3-gpio-v1",
+      "signal_roles": [],
+      "capability_ids": [],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.gpio.espressif-esp32c3-gpio-v1"
+    },
+    {
+      "ip_name": "i2c0",
+      "ip_version": "esp32c3-i2c-v1",
+      "peripheral_class": "i2c0",
+      "register_profile": "i2c0:esp32c3-i2c-v1",
+      "signal_roles": [
+        "scl",
+        "sda"
+      ],
+      "capability_ids": [
+        "capability:i2c0:esp32c3-i2c-v1:scl",
+        "capability:i2c0:esp32c3-i2c-v1:sda"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.i2c0.espressif-esp32c3-i2c-v1"
+    },
+    {
+      "ip_name": "pcr",
+      "ip_version": "esp32c3-pcr-v1",
+      "peripheral_class": "pcr",
+      "register_profile": "pcr:esp32c3-pcr-v1",
+      "signal_roles": [],
+      "capability_ids": [],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.pcr.espressif-esp32c3-pcr-v1"
+    },
+    {
+      "ip_name": "spi",
+      "ip_version": "esp32c3-spi-v1",
+      "peripheral_class": "spi",
+      "register_profile": "spi:esp32c3-spi-v1",
+      "signal_roles": [
+        "cs",
+        "miso",
+        "mosi",
+        "sck"
+      ],
+      "capability_ids": [
+        "capability:spi:esp32c3-spi-v1:cs",
+        "capability:spi:esp32c3-spi-v1:miso",
+        "capability:spi:esp32c3-spi-v1:mosi",
+        "capability:spi:esp32c3-spi-v1:sck"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.spi.espressif-esp32c3-spi-v1"
+    },
+    {
+      "ip_name": "uart",
+      "ip_version": "esp32c3-uart-v1",
+      "peripheral_class": "uart",
+      "register_profile": "uart:esp32c3-uart-v1",
+      "signal_roles": [
+        "rx",
+        "tx"
+      ],
+      "capability_ids": [
+        "capability:uart:esp32c3-uart-v1:rx",
+        "capability:uart:esp32c3-uart-v1:tx"
+      ],
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.uart.espressif-esp32c3-uart-v1"
+    }
+  ],
   "capabilities": [
     {
       "capability_id": "capability-instance:i2c0:qfn32:scl",
@@ -91194,7 +91337,7 @@
         ]
       },
       "ip_name": "i2c0",
-      "ip_version": null,
+      "ip_version": "esp32c3-i2c-v1",
       "peripheral": "I2C0",
       "package": "qfn32"
     },
@@ -91213,7 +91356,7 @@
         ]
       },
       "ip_name": "i2c0",
-      "ip_version": null,
+      "ip_version": "esp32c3-i2c-v1",
       "peripheral": "I2C0",
       "package": "qfn32"
     },
@@ -91232,7 +91375,7 @@
         ]
       },
       "ip_name": "spi",
-      "ip_version": null,
+      "ip_version": "esp32c3-spi-v1",
       "peripheral": "SPI2",
       "package": "qfn32"
     },
@@ -91251,7 +91394,7 @@
         ]
       },
       "ip_name": "spi",
-      "ip_version": null,
+      "ip_version": "esp32c3-spi-v1",
       "peripheral": "SPI2",
       "package": "qfn32"
     },
@@ -91270,7 +91413,7 @@
         ]
       },
       "ip_name": "spi",
-      "ip_version": null,
+      "ip_version": "esp32c3-spi-v1",
       "peripheral": "SPI2",
       "package": "qfn32"
     },
@@ -91289,7 +91432,7 @@
         ]
       },
       "ip_name": "spi",
-      "ip_version": null,
+      "ip_version": "esp32c3-spi-v1",
       "peripheral": "SPI2",
       "package": "qfn32"
     },
@@ -91308,7 +91451,7 @@
         ]
       },
       "ip_name": "uart",
-      "ip_version": null,
+      "ip_version": "esp32c3-uart-v1",
       "peripheral": "UART0",
       "package": "qfn32"
     },
@@ -91327,7 +91470,7 @@
         ]
       },
       "ip_name": "uart",
-      "ip_version": null,
+      "ip_version": "esp32c3-uart-v1",
       "peripheral": "UART0",
       "package": "qfn32"
     },
@@ -91346,7 +91489,7 @@
         ]
       },
       "ip_name": "uart",
-      "ip_version": null,
+      "ip_version": "esp32c3-uart-v1",
       "peripheral": "UART1",
       "package": "qfn32"
     },
@@ -91365,9 +91508,161 @@
         ]
       },
       "ip_name": "uart",
-      "ip_version": null,
+      "ip_version": "esp32c3-uart-v1",
       "peripheral": "UART1",
       "package": "qfn32"
+    },
+    {
+      "capability_id": "capability:i2c0:esp32c3-i2c-v1:scl",
+      "scope": "ip-block",
+      "peripheral_class": "i2c0",
+      "name": "signal-role",
+      "value": "scl",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "i2c0",
+      "ip_version": "esp32c3-i2c-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:i2c0:esp32c3-i2c-v1:sda",
+      "scope": "ip-block",
+      "peripheral_class": "i2c0",
+      "name": "signal-role",
+      "value": "sda",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "i2c0",
+      "ip_version": "esp32c3-i2c-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:cs",
+      "scope": "ip-block",
+      "peripheral_class": "spi",
+      "name": "signal-role",
+      "value": "cs",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": "esp32c3-spi-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:miso",
+      "scope": "ip-block",
+      "peripheral_class": "spi",
+      "name": "signal-role",
+      "value": "miso",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": "esp32c3-spi-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:mosi",
+      "scope": "ip-block",
+      "peripheral_class": "spi",
+      "name": "signal-role",
+      "value": "mosi",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": "esp32c3-spi-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:sck",
+      "scope": "ip-block",
+      "peripheral_class": "spi",
+      "name": "signal-role",
+      "value": "sck",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "spi",
+      "ip_version": "esp32c3-spi-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:uart:esp32c3-uart-v1:rx",
+      "scope": "ip-block",
+      "peripheral_class": "uart",
+      "name": "signal-role",
+      "value": "rx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "uart",
+      "ip_version": "esp32c3-uart-v1",
+      "peripheral": null,
+      "package": null
+    },
+    {
+      "capability_id": "capability:uart:esp32c3-uart-v1:tx",
+      "scope": "ip-block",
+      "peripheral_class": "uart",
+      "name": "signal-role",
+      "value": "tx",
+      "provenance": {
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd",
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ]
+      },
+      "ip_name": "uart",
+      "ip_version": "esp32c3-uart-v1",
+      "peripheral": null,
+      "package": null
     }
   ],
   "package_pads": [
@@ -92494,6 +92789,7 @@
         "operation:route:gpio10:spi2:cs"
       ],
       "capability_ids": [
+        "capability:spi:esp32c3-spi-v1:cs",
         "capability-instance:spi2:qfn32:cs"
       ],
       "provenance": {
@@ -92524,6 +92820,7 @@
         "operation:route:gpio20:uart0:rx"
       ],
       "capability_ids": [
+        "capability:uart:esp32c3-uart-v1:rx",
         "capability-instance:uart0:qfn32:rx"
       ],
       "provenance": {
@@ -92554,6 +92851,7 @@
         "operation:route:gpio21:uart0:tx"
       ],
       "capability_ids": [
+        "capability:uart:esp32c3-uart-v1:tx",
         "capability-instance:uart0:qfn32:tx"
       ],
       "provenance": {
@@ -92584,6 +92882,7 @@
         "operation:route:gpio2:spi2:miso"
       ],
       "capability_ids": [
+        "capability:spi:esp32c3-spi-v1:miso",
         "capability-instance:spi2:qfn32:miso"
       ],
       "provenance": {
@@ -92614,6 +92913,7 @@
         "operation:route:gpio4:uart1:tx"
       ],
       "capability_ids": [
+        "capability:uart:esp32c3-uart-v1:tx",
         "capability-instance:uart1:qfn32:tx"
       ],
       "provenance": {
@@ -92644,6 +92944,7 @@
         "operation:route:gpio5:uart1:rx"
       ],
       "capability_ids": [
+        "capability:uart:esp32c3-uart-v1:rx",
         "capability-instance:uart1:qfn32:rx"
       ],
       "provenance": {
@@ -92674,6 +92975,7 @@
         "operation:route:gpio6:spi2:sck"
       ],
       "capability_ids": [
+        "capability:spi:esp32c3-spi-v1:sck",
         "capability-instance:spi2:qfn32:sck"
       ],
       "provenance": {
@@ -92704,6 +93006,7 @@
         "operation:route:gpio7:spi2:mosi"
       ],
       "capability_ids": [
+        "capability:spi:esp32c3-spi-v1:mosi",
         "capability-instance:spi2:qfn32:mosi"
       ],
       "provenance": {
@@ -92734,6 +93037,7 @@
         "operation:route:gpio8:i2c0:sda"
       ],
       "capability_ids": [
+        "capability:i2c0:esp32c3-i2c-v1:sda",
         "capability-instance:i2c0:qfn32:sda"
       ],
       "provenance": {
@@ -92764,6 +93068,7 @@
         "operation:route:gpio9:i2c0:scl"
       ],
       "capability_ids": [
+        "capability:i2c0:esp32c3-i2c-v1:scl",
         "capability-instance:i2c0:qfn32:scl"
       ],
       "provenance": {

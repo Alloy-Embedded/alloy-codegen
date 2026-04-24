@@ -1,13 +1,18 @@
 ## Phase 0: Bootstrap & Source Adapter
 
 - [ ] 0.1 Add `("microchip", "avr-da")` to `DEVICE_REGISTRY` and `PACK_CONFIGS`
-      (Follow-on: requires AVR-Dx DFP pack fetch plumbing from Phase 0.4.)
+      (Partial: `PACK_CONFIGS` entry for `Microchip.AVR-Dx_DFP.2.4.286.atpack`
+      is registered in `sources/microchip_dfp.py`.  `DEVICE_REGISTRY` entry
+      waits on Phase 0.5 fixture + Phase 2 ATDF→IR normalization so the
+      bootstrap tests don't fail.)
 - [ ] 0.2 Refactor `microchip_dfp.py` to parse all address spaces and carry them through
       `MemoryPatch`
       (Partial: the adapter already parses `address-spaces` and carries
-      `address_space` through `MemoryPatch` / `MemoryRegion`.  Full multi-space
-      coverage for AVR flash/data/eeprom still needs verification against a
-      real AVR DFP fixture.)
+      `address_space` through `MemoryPatch` / `MemoryRegion`.  The adapter is
+      now SVD-optional via `SelectedDeviceFiles.svd_path: Path | None` and the
+      `SVD_OPTIONAL_FAMILIES` frozenset, so AVR ATDF-only packs work.  Full
+      multi-space coverage for AVR flash/data/eeprom still needs verification
+      against a real AVR DFP fixture.)
 - [x] 0.3 Normalize upstream `address_space="base"` to `None`
       (Already in place at `sources/microchip_dfp.py` — ATDF `base` → `None`.)
 - [ ] 0.4 Add fetch/bootstrap path for `microchip/avr-da`
@@ -45,11 +50,10 @@
 - [x] 2.2 Ensure unknown cores fail explicitly instead of defaulting to ARM
       (Enforced by `_system_vector_baseline` via `StageExecutionError` —
       landed in the ESP32-C3 Phase 1 commit.)
-- [ ] 2.3 Add AVR-DA peripheral aliases:
+- [x] 2.3 Add AVR-DA peripheral aliases:
       `twi -> i2c`, `usart -> uart`, `tca/tcb/tcd -> timer`
-      (Follow-on: wires AVR peripheral ip_names into
-      `PERIPHERAL_CLASS_ALIASES`.  Cheap to add; defer until AVR patches
-      drive canonical_peripheral_class into real usage.)
+      (Landed in `PERIPHERAL_CLASS_ALIASES`.  `usart` was already aliased to
+      `uart`; this commit adds `twi`, `tca`, `tcb`, `tcd`.)
 - [ ] 2.4 Extend `_typed_register_ref` for `CLKCTRL`
 - [ ] 2.5 Populate `family.json` with memory, clocks, packages, DMAC
 - [ ] 2.6 Populate `avr128da32.json` with enable/reset/interrupt enrichments

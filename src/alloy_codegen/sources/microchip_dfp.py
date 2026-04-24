@@ -42,12 +42,17 @@ class PackConfig:
 
 @dataclass(frozen=True, slots=True)
 class SelectedDeviceFiles:
-    """Selected file set for one Microchip device inside a DFP extract."""
+    """Selected file set for one Microchip device inside a DFP extract.
+
+    ``svd_path`` is optional: AVR 8-bit families publish ATDF only, with
+    register data carried inline in the ATDF (no CMSIS-SVD file is produced).
+    Callers MUST check ``svd_path is not None`` before using it.
+    """
 
     device_name: str
     pdsc_path: Path
     atdf_path: Path
-    svd_path: Path
+    svd_path: Path | None
 
 
 PACK_CONFIGS: dict[tuple[str, str], PackConfig] = {
@@ -57,8 +62,27 @@ PACK_CONFIGS: dict[tuple[str, str], PackConfig] = {
     ): PackConfig(
         archive_name="Microchip.SAME70_DFP.4.13.292.atpack",
         archive_url="https://packs.download.microchip.com/Microchip.SAME70_DFP.4.13.292.atpack",
-    )
+    ),
+    # AVR-Dx DFP — covers AVR128DA/DB/DD parts.  AVR devices use ATDF only; no
+    # CMSIS-SVD is published for them.  The adapter treats SVD as optional when
+    # the family matches an ATDF-only architecture.
+    (
+        "microchip",
+        "avr-da",
+    ): PackConfig(
+        archive_name="Microchip.AVR-Dx_DFP.2.4.286.atpack",
+        archive_url="https://packs.download.microchip.com/Microchip.AVR-Dx_DFP.2.4.286.atpack",
+    ),
 }
+
+# Families whose ATDF pack does not include an SVD file (typical for 8-bit AVR).
+# The device-file selector treats missing SVD entries as a non-fatal condition
+# for these families, deferring register-data resolution to the ATDF.
+SVD_OPTIONAL_FAMILIES: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("microchip", "avr-da"),
+    }
+)
 
 
 def _config_for(vendor: str, family: str) -> PackConfig:
@@ -185,7 +209,12 @@ def ensure_extract_root(context: ExecutionContext, *, vendor: str, family: str) 
     return extract_root
 
 
-def _select_device_files_from_pdsc(pdsc_path: Path, device_name: str) -> SelectedDeviceFiles:
+def _select_device_files_from_pdsc(
+    pdsc_path: Path,
+    device_name: str,
+    *,
+    svd_required: bool = True,
+) -> SelectedDeviceFiles:
     root = ET.parse(pdsc_path).getroot()
     requested_name = device_name.upper()
     for node in root.iter():
@@ -197,15 +226,21 @@ def _select_device_files_from_pdsc(pdsc_path: Path, device_name: str) -> Selecte
         atdf_node = _first_descendant(node, "atdf")
         svd_relative_path = None if debug_node is None else debug_node.get("svd")
         atdf_relative_path = None if atdf_node is None else atdf_node.get("name")
-        if svd_relative_path is None or atdf_relative_path is None:
+        if atdf_relative_path is None:
             raise StageExecutionError(
-                f"PDSC entry for {requested_name} does not declare both SVD and ATDF paths."
+                f"PDSC entry for {requested_name} does not declare an ATDF path."
+            )
+        if svd_required and svd_relative_path is None:
+            raise StageExecutionError(
+                f"PDSC entry for {requested_name} does not declare an SVD path."
             )
         return SelectedDeviceFiles(
             device_name=device_name.lower(),
             pdsc_path=pdsc_path,
             atdf_path=pdsc_path.parent / atdf_relative_path,
-            svd_path=pdsc_path.parent / svd_relative_path,
+            svd_path=(
+                None if svd_relative_path is None else pdsc_path.parent / svd_relative_path
+            ),
         )
     raise StageExecutionError(f"Device {requested_name} is not present in {pdsc_path.name}.")
 
@@ -213,10 +248,16 @@ def _select_device_files_from_pdsc(pdsc_path: Path, device_name: str) -> Selecte
 def select_device_files(
     context: ExecutionContext, device_name: str, *, vendor: str, family: str
 ) -> SelectedDeviceFiles:
-    """Select the ATDF and SVD files for one device from the extracted pack tree."""
+    """Select the ATDF and (optionally) SVD files for one device from the pack tree."""
     extract_root = ensure_extract_root(context, vendor=vendor, family=family)
-    selected = _select_device_files_from_pdsc(_find_pdsc_path(extract_root), device_name)
-    for path in (selected.atdf_path, selected.svd_path):
+    svd_required = (vendor.lower(), family.lower()) not in SVD_OPTIONAL_FAMILIES
+    selected = _select_device_files_from_pdsc(
+        _find_pdsc_path(extract_root), device_name, svd_required=svd_required
+    )
+    paths_to_check: list[Path] = [selected.atdf_path]
+    if selected.svd_path is not None:
+        paths_to_check.append(selected.svd_path)
+    for path in paths_to_check:
         if not path.exists():
             raise StageExecutionError(f"Selected Microchip DFP source file is missing: {path}")
     return selected
@@ -264,7 +305,10 @@ def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict
                 "upstream_path": ".",
             }
         )
-        for local_path in (pdsc_path, selected.atdf_path, selected.svd_path):
+        extract_files: list[Path] = [pdsc_path, selected.atdf_path]
+        if selected.svd_path is not None:
+            extract_files.append(selected.svd_path)
+        for local_path in extract_files:
             records.append(
                 {
                     "source_id": EXTRACT_SOURCE_ID,
@@ -288,8 +332,18 @@ def resolve_atdf_path(
 def resolve_svd_path(
     context: ExecutionContext, device_name: str, *, vendor: str, family: str
 ) -> Path:
-    """Resolve the SVD path for one device from the DFP extract."""
-    return select_device_files(context, device_name, vendor=vendor, family=family).svd_path
+    """Resolve the SVD path for one device from the DFP extract.
+
+    Raises ``StageExecutionError`` if the family does not publish an SVD file
+    (the AVR 8-bit DFPs, for example, ship ATDF only).
+    """
+    selected = select_device_files(context, device_name, vendor=vendor, family=family)
+    if selected.svd_path is None:
+        raise StageExecutionError(
+            f"Microchip family {vendor}/{family} does not publish an SVD file; use "
+            "resolve_atdf_path() instead."
+        )
+    return selected.svd_path
 
 
 def parse_ip_version_table(atdf_path: Path) -> dict[str, str]:
@@ -693,11 +747,16 @@ def merge_source_patch(
     merged_dma_requests.update(
         {(request.controller, request.request_line): request for request in patch.dma_requests}
     )
+    svd_file_relative = (
+        None
+        if selected.svd_path is None
+        else str(selected.svd_path.relative_to(selected.pdsc_path.parent)).replace("\\", "/")
+    )
     return DevicePatch(
         patch_id=patch.patch_id,
         family_patch_id=patch.family_patch_id,
         device=patch.device,
-        svd_file=str(selected.svd_path.relative_to(selected.pdsc_path.parent)).replace("\\", "/"),
+        svd_file=svd_file_relative,
         pin_data_file=str(selected.atdf_path.relative_to(selected.pdsc_path.parent)).replace(
             "\\", "/"
         ),

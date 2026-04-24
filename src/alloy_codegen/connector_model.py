@@ -43,6 +43,8 @@ PERIPHERAL_CLASS_ALIASES = {
     "lpspi": "spi",
     "i2c": "i2c",
     "twihs": "i2c",
+    # AVR "TWI" peripheral — Two-Wire Interface — is AVR's I2C master/slave block.
+    "twi": "i2c",
     "dma": "dma",
     "dmamux": "dma-router",
     "xdmac": "dma",
@@ -63,6 +65,10 @@ PERIPHERAL_CLASS_ALIASES = {
     "tc": "timer",
     "tcc": "timer",
     "tim": "timer",
+    # AVR-Dx timer/counter variants: TCA (16-bit), TCB (16-bit), TCD (12-bit).
+    "tca": "timer",
+    "tcb": "timer",
+    "tcd": "timer",
     "fdcan": "can",
     "mcan": "can",
     "can": "can",

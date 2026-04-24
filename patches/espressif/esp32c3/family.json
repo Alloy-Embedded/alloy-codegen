@@ -33,14 +33,14 @@
     { "name": "GPIO21", "port": null, "number": 21, "packages": ["qfn32"] }
   ],
   "peripherals": [
-    { "name": "GPIO",       "rcc_enable_signal": null },
-    { "name": "UART0",      "rcc_enable_signal": "PCR_UART0_CONF0_REG.UART0_CLK_EN" },
-    { "name": "UART1",      "rcc_enable_signal": "PCR_UART1_CONF0_REG.UART1_CLK_EN" },
-    { "name": "SPI2",       "rcc_enable_signal": "PCR_SPI2_CONF_REG.SPI2_CLK_EN" },
-    { "name": "I2C0",       "rcc_enable_signal": "PCR_I2C0_CONF_REG.I2C0_CLK_EN" },
-    { "name": "APB_SARADC", "rcc_enable_signal": null },
-    { "name": "PCR",        "rcc_enable_signal": null },
-    { "name": "DMA",        "rcc_enable_signal": null }
+    { "name": "GPIO",       "rcc_enable_signal": null, "ip_version": "esp32c3-gpio-v1" },
+    { "name": "UART0",      "rcc_enable_signal": "PCR_UART0_CONF0_REG.UART0_CLK_EN", "ip_version": "esp32c3-uart-v1" },
+    { "name": "UART1",      "rcc_enable_signal": "PCR_UART1_CONF0_REG.UART1_CLK_EN", "ip_version": "esp32c3-uart-v1" },
+    { "name": "SPI2",       "rcc_enable_signal": "PCR_SPI2_CONF_REG.SPI2_CLK_EN",    "ip_version": "esp32c3-spi-v1" },
+    { "name": "I2C0",       "rcc_enable_signal": "PCR_I2C0_CONF_REG.I2C0_CLK_EN",    "ip_version": "esp32c3-i2c-v1" },
+    { "name": "APB_SARADC", "rcc_enable_signal": null, "ip_version": "esp32c3-saradc-v1" },
+    { "name": "PCR",        "rcc_enable_signal": null, "ip_version": "esp32c3-pcr-v1" },
+    { "name": "DMA",        "rcc_enable_signal": null, "ip_version": "esp32c3-gdma-v1" }
   ],
   "pin_signals": [
     { "signal_id": "gpio0-gpio",       "pin_name": "GPIO0",  "function": "gpio",        "peripheral": "GPIO",       "signal": "IN0",  "af_number": null },

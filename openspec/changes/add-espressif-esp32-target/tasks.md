@@ -40,10 +40,12 @@
 - [x] 3.1 Update `artifact_contract.py` so architecture-scoped artifacts are explicit:
       `systick.hpp` required only for Cortex-M; startup validated per architecture
 - [x] 3.2 Add `runtime_riscv_startup.py` and wire RISC-V startup emission in `stages/emit.py`
-- [ ] 3.3 Ensure consumer smoke compiles ESP32-C3 runtime headers without ARM-specific glue
-      (Follow-on: requires publish stage to run for ESP32-C3 + invoking
-      `verify_runtime_lite_smoke_consumer` on the published root.  Mechanism
-      already supports non-ARM families; not yet wired into a regression test.)
+- [x] 3.3 Ensure consumer smoke compiles ESP32-C3 runtime headers without ARM-specific glue
+      (`tests/test_espressif.py::test_publish_esp32c3_consumer_smoke_passes`
+      runs the end-to-end publish + host `c++` compile of the staged runtime
+      headers + RISC-V startup.  The RISC-V `__attribute__((interrupt))` on
+      peripheral IRQ handlers is now guarded by `ALLOY_CODEGEN_HOST_SMOKE`
+      so the host compiler's `-Werror=unknown-attributes` does not trip.)
 - [x] 3.4 Add emitted runtime goldens for `interrupts.hpp`, `clock_graph.hpp`,
       `peripheral_instances.hpp`, and startup output
 - [x] 3.5 Add publish/contract tests proving runtime-only completeness for `esp32c3`
