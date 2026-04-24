@@ -209,13 +209,12 @@ namespace published_driver = ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE::drive
 
 static_assert(published_device_runtime::kRuntimePeripherals.size() > 0u);
 static_assert(published_device_runtime::kPins.size() > 0u);
-// kRegisters / kRegisterFields may be empty for families that do not yet
-// carry SVD-derived register descriptors in the IR (e.g. AVR-DA before
-// Phase 2.4 ATDF register parsing lands).  The tables still have to exist
-// as valid constexpr std::array values — the smoke build here proves the
-// arrays compile and the trait templates instantiate cleanly.
-static_assert(published_device_runtime::kRegisters.size() >= 0u);
-static_assert(published_device_runtime::kRegisterFields.size() >= 0u);
+// kRegisters / kRegisterFields arrays are proved to compile-as-types by
+// the FirstRegisterSmoke / FirstRegisterFieldSmoke SFINAE probes below —
+// they handle both the populated and the empty-array case (the latter
+// applies e.g. to families that carry no ATDF/SVD register descriptors).
+// An extra `size() >= 0u` assertion would be a type-limits warning with
+// stricter GCC / clang configurations, so it is intentionally omitted.
 static_assert(published_device_runtime::kClockBoundPeripherals.size() > 0u);
 static_assert(published_device_runtime::kConnectors.size() > 0u);
 
