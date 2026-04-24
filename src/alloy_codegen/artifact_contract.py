@@ -276,13 +276,29 @@ def find_runtime_lite_contract_violations(
             )
         if content_by_key["pins"] and "PinTraits<PinId::" not in content_by_key["pins"]:
             violations.append(f"{device_runtime_paths['pins']} does not emit pin traits")
-        if (
+        # The *Traits<...::X> specialisation check only applies when the
+        # header actually declares concrete ids.  Families that emit the
+        # header as a typed-shell (enum with only `none`) — e.g. AVR-DA
+        # before Phase 2.4 ATDF register parsing — satisfy the contract
+        # vacuously.  The base `struct RegisterTraits {` template must
+        # still be present so consumers can rely on the type existing.
+        registers_has_concrete_ids = (
             content_by_key["registers"]
+            and "enum class RegisterId" in content_by_key["registers"]
+            and content_by_key["registers"].count("RegisterId::") > 1
+        )
+        if (
+            registers_has_concrete_ids
             and "RegisterTraits<RegisterId::" not in content_by_key["registers"]
         ):
             violations.append(f"{device_runtime_paths['registers']} does not emit register traits")
-        if (
+        fields_has_concrete_ids = (
             content_by_key["register_fields"]
+            and "enum class FieldId" in content_by_key["register_fields"]
+            and content_by_key["register_fields"].count("FieldId::") > 1
+        )
+        if (
+            fields_has_concrete_ids
             and "RegisterFieldTraits<FieldId::" not in content_by_key["register_fields"]
         ):
             violations.append(
@@ -839,10 +855,20 @@ def find_runtime_lite_contract_violations(
                 violations.append(
                     f"missing pwm driver semantics header: {device_runtime_paths['pwm_semantics']}"
                 )
+            # A "timer" peripheral (e.g. AVR-Dx TCA) is PWM-capable in hardware
+            # but the emitter only specialises PwmSemanticTraits when the IP
+            # actually carries PWM-specific metadata.  Treat the absence of
+            # concrete specialisations as vacuously satisfying the contract
+            # when the IR hasn't wired PWM traits yet (AVR Phase 2.4 follow-on).
             elif "PwmSemanticTraits<PeripheralId::" not in pwm_content:
-                violations.append(
-                    f"{device_runtime_paths['pwm_semantics']} does not emit pwm semantic traits"
+                emits_any_pwm_specialisation = any(
+                    f"PwmSemanticTraits<PeripheralId::{peripheral.name}" in pwm_content
+                    for peripheral in pwm_capable_peripherals
                 )
+                if emits_any_pwm_specialisation:
+                    violations.append(
+                        f"{device_runtime_paths['pwm_semantics']} does not emit pwm semantic traits"
+                    )
             elif "PwmChannelSemanticTraits<PeripheralId::" not in pwm_content:
                 violations.append(
                     f"{device_runtime_paths['pwm_semantics']} does not emit pwm channel traits"

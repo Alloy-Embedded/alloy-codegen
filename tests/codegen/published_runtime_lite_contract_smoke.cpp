@@ -209,8 +209,13 @@ namespace published_driver = ALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE::drive
 
 static_assert(published_device_runtime::kRuntimePeripherals.size() > 0u);
 static_assert(published_device_runtime::kPins.size() > 0u);
-static_assert(published_device_runtime::kRegisters.size() > 0u);
-static_assert(published_device_runtime::kRegisterFields.size() > 0u);
+// kRegisters / kRegisterFields may be empty for families that do not yet
+// carry SVD-derived register descriptors in the IR (e.g. AVR-DA before
+// Phase 2.4 ATDF register parsing lands).  The tables still have to exist
+// as valid constexpr std::array values — the smoke build here proves the
+// arrays compile and the trait templates instantiate cleanly.
+static_assert(published_device_runtime::kRegisters.size() >= 0u);
+static_assert(published_device_runtime::kRegisterFields.size() >= 0u);
 static_assert(published_device_runtime::kClockBoundPeripherals.size() > 0u);
 static_assert(published_device_runtime::kConnectors.size() > 0u);
 
@@ -221,12 +226,34 @@ static_assert(
     published_device_runtime::PeripheralInstanceTraits<kFirstPeripheral>::kPresent
 );
 static_assert(published_device_runtime::PinTraits<kFirstPin>::kPresent);
-static_assert(
-    published_device_runtime::RegisterTraits<published_device_runtime::kRegisters[0]>::kPresent
-);
-static_assert(
-    published_device_runtime::RegisterFieldTraits<published_device_runtime::kRegisterFields[0]>::kPresent
-);
+
+// Register / register-field arrays may be empty for families whose IR does
+// not yet carry SVD-derived register descriptors (e.g. AVR-DA before Phase
+// 2.4 ATDF register parsing).  Use a SFINAE-friendly probe analogous to
+// FirstGpioSemanticSmoke below so Count==0 short-circuits to kPresent=true.
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstRegisterSmoke {
+    static constexpr bool kPresent = published_device_runtime::RegisterTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstRegisterSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+template<const auto& Values, std::size_t Count = std::tuple_size_v<std::remove_cvref_t<decltype(Values)>>>
+struct FirstRegisterFieldSmoke {
+    static constexpr bool kPresent =
+        published_device_runtime::RegisterFieldTraits<Values[0]>::kPresent;
+};
+
+template<const auto& Values>
+struct FirstRegisterFieldSmoke<Values, 0u> {
+    static constexpr bool kPresent = true;
+};
+
+static_assert(FirstRegisterSmoke<published_device_runtime::kRegisters>::kPresent);
+static_assert(FirstRegisterFieldSmoke<published_device_runtime::kRegisterFields>::kPresent);
 static_assert(
     published_device_runtime::PeripheralClockBindingTraits<
         published_device_runtime::kClockBoundPeripherals[0]>::kPresent

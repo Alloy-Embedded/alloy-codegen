@@ -458,10 +458,20 @@ def verify_runtime_lite_smoke_consumer(
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_SYSTEM_SEQUENCES_HEADER="
             f'"{vendor}/{family}/generated/runtime/devices/{device}/system_sequences.hpp"'
         ),
-        f"-DALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE={vendor}::{family}::generated::runtime",
+        # Vendor / family / device may contain characters that are legal in
+        # path components but illegal in C++ identifiers (e.g. the hyphen in
+        # `avr-da`).  Normalise to C++ by replacing hyphens with underscores —
+        # the emitted code's actual namespace tree uses the underscore form
+        # for consistency.
+        (
+            f"-DALLOY_CODEGEN_SMOKE_RUNTIME_NAMESPACE="
+            f"{vendor.replace('-', '_')}::{family.replace('-', '_')}"
+            "::generated::runtime"
+        ),
         (
             f"-DALLOY_CODEGEN_SMOKE_RUNTIME_DEVICE_NAMESPACE="
-            f"{vendor}::{family}::generated::runtime::devices::{device}"
+            f"{vendor.replace('-', '_')}::{family.replace('-', '_')}"
+            f"::generated::runtime::devices::{device.replace('-', '_')}"
         ),
         str(smoke_source),
         str(startup_source),

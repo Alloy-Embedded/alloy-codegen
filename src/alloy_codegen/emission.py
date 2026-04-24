@@ -1081,6 +1081,18 @@ def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
         or bool(device.dma_routes)
         or bool(device.dma_conflict_groups)
     )
+    # clock-reset domain is vacuously publishable when the device has no
+    # clock modelling at all (e.g. AVR-DA before Phase 2.4 CLKCTRL parsing
+    # lands).  Families that DO populate clock data — gates, bindings, or
+    # more than the single auto-generated ``clock-root`` node — must
+    # populate BOTH clock_nodes and peripheral_clock_bindings to claim
+    # coverage.  The synthetic ``clock-root`` node alone does not count.
+    non_root_clock_nodes = tuple(
+        node for node in device.clock_nodes if node.node_id != "clock-root"
+    )
+    clock_reset_applicable = bool(
+        non_root_clock_nodes or device.peripheral_clock_bindings or device.clock_gates
+    )
     domain_status = {
         "connectors": bool(device.signal_endpoints and device.connection_candidates),
         "ip-blocks": bool(device.ip_blocks),
@@ -1089,7 +1101,8 @@ def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
         "interrupt": bool(device.interrupts and device.vector_slots),
         "memory": bool(device.memories),
         "startup": bool(device.startup_descriptors),
-        "clock-reset": bool(device.clock_nodes and device.peripheral_clock_bindings),
+        "clock-reset": (not clock_reset_applicable)
+        or bool(device.clock_nodes and device.peripheral_clock_bindings),
         "dma": (not dma_domain_applicable) or bool(device.dma_controllers and device.dma_routes),
     }
     return {

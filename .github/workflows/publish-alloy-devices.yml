@@ -38,6 +38,8 @@ jobs:
             family: stm32f4
           - vendor: microchip
             family: same70
+          - vendor: microchip
+            family: avr-da
           - vendor: nxp
             family: imxrt1060
           - vendor: raspberrypi

@@ -18,11 +18,16 @@ def _family_contexts(
     nxp_execution_context: ExecutionContext,
     rp2040_execution_context: ExecutionContext,
     espressif_execution_context: ExecutionContext,
+    microchip_avr_da_execution_context: ExecutionContext,
 ) -> tuple[tuple[PipelineScope, ExecutionContext], ...]:
     return (
         (PipelineScope(vendor="st", family="stm32g0"), execution_context),
         (PipelineScope(vendor="st", family="stm32f4"), execution_context),
         (PipelineScope(vendor="microchip", family="same70"), microchip_execution_context),
+        (
+            PipelineScope(vendor="microchip", family="avr-da"),
+            microchip_avr_da_execution_context,
+        ),
         (PipelineScope(vendor="nxp", family="imxrt1060"), nxp_execution_context),
         (PipelineScope(vendor="raspberrypi", family="rp2040"), rp2040_execution_context),
         (PipelineScope(vendor="espressif", family="esp32c3"), espressif_execution_context),
@@ -113,6 +118,7 @@ def test_foundational_families_emit_same_descriptor_contract(
     nxp_execution_context: ExecutionContext,
     rp2040_execution_context: ExecutionContext,
     espressif_execution_context: ExecutionContext,
+    microchip_avr_da_execution_context: ExecutionContext,
 ) -> None:
     for scope, context in _family_contexts(
         execution_context,
@@ -120,6 +126,7 @@ def test_foundational_families_emit_same_descriptor_contract(
         nxp_execution_context,
         rp2040_execution_context,
         espressif_execution_context,
+        microchip_avr_da_execution_context,
     ):
         result = run_emit(scope, context)
         family_dir = f"{scope.resolved_vendor()}/{scope.resolved_family()}"
@@ -156,6 +163,7 @@ def test_foundational_families_publish_with_same_generic_workflow(
     nxp_execution_context: ExecutionContext,
     rp2040_execution_context: ExecutionContext,
     espressif_execution_context: ExecutionContext,
+    microchip_avr_da_execution_context: ExecutionContext,
 ) -> None:
     for scope, context in _family_contexts(
         execution_context,
@@ -163,6 +171,7 @@ def test_foundational_families_publish_with_same_generic_workflow(
         nxp_execution_context,
         rp2040_execution_context,
         espressif_execution_context,
+        microchip_avr_da_execution_context,
     ):
         result = run_publish(scope, context)
         family_dir = f"{scope.resolved_vendor()}/{scope.resolved_family()}"
@@ -396,6 +405,7 @@ def test_foundational_families_remain_complete_across_repeat_publish_cycles(
     nxp_execution_context: ExecutionContext,
     rp2040_execution_context: ExecutionContext,
     espressif_execution_context: ExecutionContext,
+    microchip_avr_da_execution_context: ExecutionContext,
 ) -> None:
     for scope, context in _family_contexts(
         execution_context,
@@ -403,6 +413,7 @@ def test_foundational_families_remain_complete_across_repeat_publish_cycles(
         nxp_execution_context,
         rp2040_execution_context,
         espressif_execution_context,
+        microchip_avr_da_execution_context,
     ):
         result_a = run_publish(scope, context)
         family_dir = f"{scope.resolved_vendor()}/{scope.resolved_family()}"
