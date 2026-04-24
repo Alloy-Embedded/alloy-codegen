@@ -29,6 +29,11 @@ from alloy_codegen.emission import (
 )
 from alloy_codegen.manifests import ArtifactManifest
 from alloy_codegen.reporting import EmissionPlan, EmittedArtifact
+from alloy_codegen.runtime_avr_startup import (
+    _is_avr_device,
+    emit_avr_startup_source,
+    emit_avr_startup_vectors_source,
+)
 from alloy_codegen.runtime_capabilities import (
     emit_runtime_capabilities_header,
     emit_runtime_capabilities_json,
@@ -153,12 +158,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 emit_device_metadata(family_dir=family_dir, device=device),
                 emit_runtime_linker_script(family_dir=family_dir, device=device),
                 (
-                    emit_riscv_startup_source(family_dir=family_dir, device=device)
+                    emit_avr_startup_source(family_dir=family_dir, device=device)
+                    if _is_avr_device(device)
+                    else emit_riscv_startup_source(family_dir=family_dir, device=device)
                     if _is_riscv_device(device)
                     else emit_startup_source(family_dir=family_dir, device=device)
                 ),
                 (
-                    emit_riscv_startup_vectors_source(family_dir=family_dir, device=device)
+                    emit_avr_startup_vectors_source(family_dir=family_dir, device=device)
+                    if _is_avr_device(device)
+                    else emit_riscv_startup_vectors_source(family_dir=family_dir, device=device)
                     if _is_riscv_device(device)
                     else emit_startup_vectors_source(family_dir=family_dir, device=device)
                 ),

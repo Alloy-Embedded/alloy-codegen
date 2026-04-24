@@ -121,16 +121,45 @@
 
 ## Phase 4: Runtime Emission — AVR128DA32
 
-- [ ] 4.1 Ensure `interrupts.hpp` emits AVR8 vector slots without ARM offset
+- [x] 4.1 Ensure `interrupts.hpp` emits AVR8 vector slots without ARM offset
+      (`test_avr128da32_interrupts_hpp_carries_avr8_slots_without_arm_offset`
+      asserts the InterruptId enum contains ATDF-derived AVR names
+      (USART0_RXC, TWI0_TWIM, SPI0_INT, …) and no ARM fault handlers.)
 - [ ] 4.2 Ensure `clock_graph.hpp` reflects CLKCTRL facts
-- [ ] 4.3 Ensure `systick.hpp` is explicitly skipped for AVR
-- [ ] 4.4 Add `runtime_avr_startup.py`
-- [ ] 4.5 Wire AVR startup dispatch in `stages/emit.py`
+      (Follow-on: depends on Phase 2.4 CLKCTRL register parsing.  The
+      header currently emits an empty `ClockNodeId` enum; regression test
+      `test_avr128da32_runtime_contract_emits_required_headers` only
+      asserts the header is present.)
+- [x] 4.3 Ensure `systick.hpp` is explicitly skipped for AVR
+      (`runtime_systick_required_paths` only requires the header for
+      `core.startswith("cortex-m")` — AVR inherits the same exemption as
+      RISC-V.  Regression test `test_avr128da32_systick_hpp_is_not_required`.)
+- [x] 4.4 Add `runtime_avr_startup.py`
+      (New module emits a crt0-compatible AVR startup.cpp.  avr-libc owns
+      the reset vector and `.vectors` section; the generated file supplies
+      weak `__vector_<line>` handlers for every peripheral interrupt and
+      a weak `<NAME>_IRQHandler` alias so application code can reference
+      either naming convention.  The whole AVR-specific block is guarded
+      behind `#elif defined(__AVR__)` with a host-smoke stub branch for
+      portable builds.)
+- [x] 4.5 Wire AVR startup dispatch in `stages/emit.py`
+      (Per-device startup emit now chains `_is_avr_device` → AVR emitter,
+      `_is_riscv_device` → RISC-V emitter, else the Cortex-M emitter.)
 - [ ] 4.6 Add AVR compile flags to `consumer_verification.py`
+      (Follow-on: requires `avr-gcc` toolchain in CI.  Current smoke
+      consumer uses host `c++` via `ALLOY_CODEGEN_HOST_SMOKE`, which the
+      AVR startup already guards against.)
 - [ ] 4.7 Add smoke coverage for AVR runtime headers and startup artifact
+      (Follow-on: pairs with 4.6 — needs avr-gcc to really prove the
+      startup compiles.)
 - [ ] 4.8 Add compile + disassembly validation proving the emitted startup places vectors
       and reset flow correctly for avr-gcc
-- [ ] 4.9 Add emitted goldens for AVR runtime output
+      (Follow-on: pairs with 4.6/4.7.)
+- [x] 4.9 Add emitted goldens for AVR runtime output
+      (`tests/fixtures/emitted/avr-da/` holds committed goldens for
+      `interrupts.hpp`, `clock_graph.hpp`, `peripheral_instances.hpp`, and
+      `startup.cpp`.  `test_avr128da32_emitted_runtime_goldens_match`
+      asserts the emitter stays stable.)
 
 ## Phase 5: CI & Publication Gates
 
