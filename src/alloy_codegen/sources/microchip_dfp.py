@@ -18,9 +18,12 @@ from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.raw import (
     RawInterrupt,
     RawPackagePadEntry,
+    RawPeripheral,
     RawPinAlternateFunction,
     RawPinDataDocument,
     RawPinDocumentEntry,
+    RawRegister,
+    RawRegisterField,
 )
 
 PACK_SOURCE_ID = "microchip-dfp-pack"
@@ -588,6 +591,159 @@ def parse_interrupts_from_atdf(atdf_path: Path) -> tuple[RawInterrupt, ...]:
         if _AVR_INTERRUPT_PERIPHERAL_PATTERN.match(head):
             peripheral = head
         results.append(RawInterrupt(name=name, line=line, peripheral=peripheral))
+    return tuple(results)
+
+
+def _mask_to_bit_range(mask_text: str) -> tuple[int, int] | None:
+    """Convert a hex ATDF bitfield mask like ``0x1E`` into ``(bit_offset, bit_width)``.
+
+    Returns ``None`` if the mask cannot be parsed or is not a contiguous
+    run of 1 bits (ATDF does publish non-contiguous masks for a few
+    peripherals; those are skipped from the canonical IR for now).
+    """
+    try:
+        mask = int(mask_text, 0)
+    except ValueError:
+        return None
+    if mask <= 0:
+        return None
+    bit_offset = 0
+    while mask & 0x1 == 0:
+        mask >>= 1
+        bit_offset += 1
+    if mask & (mask + 1) != 0:  # mask is not a contiguous run of ones
+        return None
+    bit_width = mask.bit_length()
+    return (bit_offset, bit_width)
+
+
+def _parse_module_register_catalog(
+    atdf_path: Path,
+) -> dict[str, tuple[RawRegister, ...]]:
+    """Parse ``<modules>`` from an ATDF into ``{module_name: (RawRegister, ...)}``.
+
+    Each AVR ATDF publishes module-scope register definitions under a
+    top-level ``<modules>`` element.  Device instances then reference
+    those modules via ``<instance>/<register-group name-in-module="X"
+    offset="N"/>``.  This catalog lets downstream code expand every
+    admitted peripheral instance into concrete ``RawRegister`` entries
+    at their runtime offsets (module-internal offset only — the
+    instance-level register-group offset is added at the call site).
+
+    Bitfields with a non-contiguous mask are dropped (cannot be expressed
+    as a single ``(bit_offset, bit_width)`` pair); this is rare and only
+    affects a few legacy AVR peripherals.
+    """
+    root = ET.parse(atdf_path).getroot()
+    modules_node = root.find("modules")
+    if modules_node is None:
+        return {}
+    catalog: dict[str, tuple[RawRegister, ...]] = {}
+    for module_node in modules_node.findall("module"):
+        module_name = module_node.get("name")
+        if module_name is None:
+            continue
+        registers: list[RawRegister] = []
+        # Most AVR-Dx modules expose exactly one top-level register-group
+        # matching the module name.  Walk every register-group under the
+        # module to be conservative.
+        for group_node in module_node.findall("register-group"):
+            for register_node in group_node.findall("register"):
+                reg_name = register_node.get("name")
+                reg_offset_text = register_node.get("offset")
+                if reg_name is None or reg_offset_text is None:
+                    continue
+                try:
+                    reg_offset = int(reg_offset_text, 0)
+                except ValueError:
+                    continue
+                reg_size_text = register_node.get("size")
+                reg_size_bits: int | None = None
+                if reg_size_text is not None:
+                    try:
+                        reg_size_bits = int(reg_size_text, 0) * 8
+                    except ValueError:
+                        reg_size_bits = None
+                reg_rw = register_node.get("rw")
+                reg_access = _parse_access(rw=reg_rw, executable=None)
+                fields: list[RawRegisterField] = []
+                for bitfield_node in register_node.findall("bitfield"):
+                    field_name = bitfield_node.get("name")
+                    mask_text = bitfield_node.get("mask")
+                    if field_name is None or mask_text is None:
+                        continue
+                    bit_range = _mask_to_bit_range(mask_text)
+                    if bit_range is None:
+                        continue
+                    bit_offset, bit_width = bit_range
+                    field_rw = bitfield_node.get("rw") or reg_rw
+                    fields.append(
+                        RawRegisterField(
+                            name=field_name,
+                            bit_offset=bit_offset,
+                            bit_width=bit_width,
+                            access=_parse_access(rw=field_rw, executable=None),
+                        )
+                    )
+                registers.append(
+                    RawRegister(
+                        name=reg_name,
+                        offset_bytes=reg_offset,
+                        access=reg_access,
+                        size_bits=reg_size_bits,
+                        fields=tuple(fields),
+                    )
+                )
+        catalog[module_name] = tuple(registers)
+    return catalog
+
+
+def parse_raw_peripherals_from_atdf(atdf_path: Path) -> tuple[RawPeripheral, ...]:
+    """Build ``RawPeripheral`` entries from an ATDF by joining the per-device
+    ``<instance>`` register-group offsets with the ``<modules>`` register catalog.
+
+    Each admitted instance becomes one ``RawPeripheral`` whose
+    ``base_address`` is the ``offset`` on its per-device register-group
+    (absolute address in the AVR ``data`` address space).  The instance's
+    ``registers`` tuple carries the module's register catalog with
+    offsets retained unmodified — consumers of the IR treat those as the
+    register's offset relative to the peripheral base.
+    """
+    catalog = _parse_module_register_catalog(atdf_path)
+    root = ET.parse(atdf_path).getroot()
+    devices_node = root.find("devices")
+    if devices_node is None:
+        return ()
+    device_node = devices_node.find("device")
+    if device_node is None:
+        return ()
+    peripherals_node = device_node.find("peripherals")
+    if peripherals_node is None:
+        return ()
+
+    results: list[RawPeripheral] = []
+    for module_node in peripherals_node.findall("module"):
+        module_name = module_node.get("name") or ""
+        module_registers = catalog.get(module_name, ())
+        for instance_node in module_node.findall("instance"):
+            instance_name = instance_node.get("name")
+            register_group = instance_node.find("register-group")
+            if instance_name is None or register_group is None:
+                continue
+            offset_text = register_group.get("offset")
+            if offset_text is None:
+                continue
+            try:
+                base = int(offset_text, 0)
+            except ValueError:
+                continue
+            results.append(
+                RawPeripheral(
+                    name=_canonical_peripheral_name(instance_name),
+                    base_address=base,
+                    registers=module_registers,
+                )
+            )
     return tuple(results)
 
 

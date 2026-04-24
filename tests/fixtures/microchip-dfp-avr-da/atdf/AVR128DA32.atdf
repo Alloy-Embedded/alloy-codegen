@@ -86,6 +86,11 @@
             <register-group name="PORTC" name-in-module="PORT" offset="0x440" address-space="data"/>
           </instance>
         </module>
+        <module name="CLKCTRL">
+          <instance name="CLKCTRL" caption="Clock Controller">
+            <register-group name="CLKCTRL" name-in-module="CLKCTRL" offset="0x60" address-space="data"/>
+          </instance>
+        </module>
       </peripherals>
       <interrupts>
         <interrupt index="0" name="RESET" caption="Reset Vector"/>
@@ -99,11 +104,103 @@
       </interrupts>
     </device>
   </devices>
+  <!--
+    Module register-group definitions.  In a real AVR-Dx DFP these are
+    much richer (all bitfields, enumerated values, access masks, etc.).
+    This fixture carries a minimal subset — enough for the ATDF register
+    parser (Phase 2.4) to populate the canonical IR with CLKCTRL clock
+    control registers and a handful of runtime-owned peripheral
+    registers (USART CTRLA/CTRLB, TWI MCTRLA, SPI CTRLA, PORT DIR/OUT)
+    so the runtime-peripherals-have-register-descriptors validation
+    rule applies without any AVR exemption.
+  -->
   <modules>
-    <module name="USART" caption="Universal Synchronous/Asynchronous Receiver/Transmitter" id="USART_V1"/>
-    <module name="TWI" caption="Two-Wire Interface" id="TWI_V1"/>
-    <module name="SPI" caption="Serial Peripheral Interface" id="SPI_V1"/>
-    <module name="TCA" caption="16-bit Timer/Counter Type A" id="TCA_V1"/>
-    <module name="PORT" caption="I/O Ports" id="PORT_V1"/>
+    <module name="CLKCTRL" caption="Clock Controller" id="CLKCTRL_V1">
+      <register-group name="CLKCTRL" caption="Clock Controller">
+        <register name="MCLKCTRLA" offset="0x00" size="1" initval="0x00" caption="MCLK Control A" rw="RW">
+          <bitfield name="CLKSEL" mask="0x03" caption="Clock Select"/>
+          <bitfield name="CLKOUT" mask="0x80" caption="System Clock Out"/>
+        </register>
+        <register name="MCLKCTRLB" offset="0x01" size="1" initval="0x00" caption="MCLK Control B" rw="RW">
+          <bitfield name="PEN" mask="0x01" caption="Prescaler Enable"/>
+          <bitfield name="PDIV" mask="0x1E" caption="Prescaler Division"/>
+        </register>
+        <register name="MCLKLOCK" offset="0x02" size="1" initval="0x00" caption="MCLK Lock" rw="RW">
+          <bitfield name="LOCKEN" mask="0x01" caption="Lock Enable"/>
+        </register>
+        <register name="MCLKSTATUS" offset="0x03" size="1" initval="0x00" caption="MCLK Status" rw="R">
+          <bitfield name="SOSC" mask="0x01" caption="System Oscillator Status"/>
+          <bitfield name="OSCHFS" mask="0x10" caption="High-Frequency Oscillator Status"/>
+        </register>
+        <register name="OSCHFCTRLA" offset="0x10" size="1" initval="0x0C" caption="OSCHF Control A" rw="RW">
+          <bitfield name="AUTOTUNE" mask="0x01" caption="Auto-Tune"/>
+          <bitfield name="RUNSTDBY" mask="0x02" caption="Run in Standby"/>
+          <bitfield name="FRQSEL" mask="0x3C" caption="Frequency Select"/>
+        </register>
+      </register-group>
+    </module>
+    <module name="USART" caption="Universal Synchronous/Asynchronous Receiver/Transmitter" id="USART_V1">
+      <register-group name="USART" caption="USART">
+        <register name="CTRLA" offset="0x05" size="1" initval="0x00" caption="Control A" rw="RW">
+          <bitfield name="RXCIE" mask="0x80" caption="RX Complete Interrupt Enable"/>
+          <bitfield name="TXCIE" mask="0x40" caption="TX Complete Interrupt Enable"/>
+          <bitfield name="DREIE" mask="0x20" caption="Data Register Empty Interrupt Enable"/>
+        </register>
+        <register name="CTRLB" offset="0x06" size="1" initval="0x00" caption="Control B" rw="RW">
+          <bitfield name="RXEN" mask="0x80" caption="Receiver Enable"/>
+          <bitfield name="TXEN" mask="0x40" caption="Transmitter Enable"/>
+        </register>
+        <register name="STATUS" offset="0x04" size="1" initval="0x00" caption="Status" rw="RW">
+          <bitfield name="RXCIF" mask="0x80" caption="Receive Complete Interrupt Flag"/>
+          <bitfield name="TXCIF" mask="0x40" caption="Transmit Complete Interrupt Flag"/>
+          <bitfield name="DREIF" mask="0x20" caption="Data Register Empty Interrupt Flag"/>
+        </register>
+      </register-group>
+    </module>
+    <module name="TWI" caption="Two-Wire Interface" id="TWI_V1">
+      <register-group name="TWI" caption="TWI">
+        <register name="CTRLA" offset="0x00" size="1" initval="0x00" caption="Control A" rw="RW">
+          <bitfield name="SDAHOLD" mask="0x0C" caption="SDA Hold Time"/>
+          <bitfield name="FMPEN" mask="0x02" caption="Fast Mode Plus Enable"/>
+        </register>
+        <register name="MCTRLA" offset="0x03" size="1" initval="0x00" caption="Master Control A" rw="RW">
+          <bitfield name="ENABLE" mask="0x01" caption="Enable TWI Master"/>
+          <bitfield name="SMEN" mask="0x02" caption="Smart Mode Enable"/>
+        </register>
+      </register-group>
+    </module>
+    <module name="SPI" caption="Serial Peripheral Interface" id="SPI_V1">
+      <register-group name="SPI" caption="SPI">
+        <register name="CTRLA" offset="0x00" size="1" initval="0x00" caption="Control A" rw="RW">
+          <bitfield name="ENABLE" mask="0x01" caption="Enable SPI"/>
+          <bitfield name="MASTER" mask="0x20" caption="Master Select"/>
+          <bitfield name="CLK2X" mask="0x10" caption="Enable Double SPI Speed"/>
+        </register>
+        <register name="CTRLB" offset="0x01" size="1" initval="0x00" caption="Control B" rw="RW">
+          <bitfield name="SSD" mask="0x04" caption="Slave Select Disable"/>
+        </register>
+      </register-group>
+    </module>
+    <module name="TCA" caption="16-bit Timer/Counter Type A" id="TCA_V1">
+      <register-group name="TCA" caption="TCA">
+        <register name="CTRLA" offset="0x00" size="1" initval="0x00" caption="Control A" rw="RW">
+          <bitfield name="ENABLE" mask="0x01" caption="Enable"/>
+          <bitfield name="CLKSEL" mask="0x0E" caption="Clock Select"/>
+        </register>
+      </register-group>
+    </module>
+    <module name="PORT" caption="I/O Ports" id="PORT_V1">
+      <register-group name="PORT" caption="Port">
+        <register name="DIR" offset="0x00" size="1" initval="0x00" caption="Data Direction" rw="RW">
+          <bitfield name="DIR" mask="0xFF" caption="Data Direction"/>
+        </register>
+        <register name="OUT" offset="0x04" size="1" initval="0x00" caption="Output Value" rw="RW">
+          <bitfield name="OUT" mask="0xFF" caption="Output Value"/>
+        </register>
+        <register name="IN" offset="0x08" size="1" initval="0x00" caption="Input Value" rw="R">
+          <bitfield name="IN" mask="0xFF" caption="Input Value"/>
+        </register>
+      </register-group>
+    </module>
   </modules>
 </avr-tools-device-file>

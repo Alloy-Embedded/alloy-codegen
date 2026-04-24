@@ -501,6 +501,24 @@
         ]
       },
       "backend_schema_id": "alloy.timer.microchip-avr-da-tca-v1"
+    },
+    {
+      "name": "CLKCTRL",
+      "ip_name": "clkctrl",
+      "ip_version": "avr-da-clkctrl-v1",
+      "instance": 0,
+      "base_address": 96,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.clkctrl.microchip-avr-da-clkctrl-v1"
     }
   ],
   "interrupts": [
@@ -650,7 +668,1136 @@
       "microchip-avr128da32-bootstrap"
     ]
   },
+  "registers": [
+    {
+      "register_id": "register:clkctrl:mclkctrla",
+      "peripheral": "CLKCTRL",
+      "name": "MCLKCTRLA",
+      "offset_bytes": 0,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:clkctrl:mclkctrlb",
+      "peripheral": "CLKCTRL",
+      "name": "MCLKCTRLB",
+      "offset_bytes": 1,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:clkctrl:mclklock",
+      "peripheral": "CLKCTRL",
+      "name": "MCLKLOCK",
+      "offset_bytes": 2,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:clkctrl:mclkstatus",
+      "peripheral": "CLKCTRL",
+      "name": "MCLKSTATUS",
+      "offset_bytes": 3,
+      "access": "r",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:clkctrl:oschfctrla",
+      "peripheral": "CLKCTRL",
+      "name": "OSCHFCTRLA",
+      "offset_bytes": 16,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:porta:dir",
+      "peripheral": "PORTA",
+      "name": "DIR",
+      "offset_bytes": 0,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:porta:out",
+      "peripheral": "PORTA",
+      "name": "OUT",
+      "offset_bytes": 4,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:porta:in",
+      "peripheral": "PORTA",
+      "name": "IN",
+      "offset_bytes": 8,
+      "access": "r",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:portc:dir",
+      "peripheral": "PORTC",
+      "name": "DIR",
+      "offset_bytes": 0,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:portc:out",
+      "peripheral": "PORTC",
+      "name": "OUT",
+      "offset_bytes": 4,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:portc:in",
+      "peripheral": "PORTC",
+      "name": "IN",
+      "offset_bytes": 8,
+      "access": "r",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:spi0:ctrla",
+      "peripheral": "SPI0",
+      "name": "CTRLA",
+      "offset_bytes": 0,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:spi0:ctrlb",
+      "peripheral": "SPI0",
+      "name": "CTRLB",
+      "offset_bytes": 1,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:tca0:ctrla",
+      "peripheral": "TCA0",
+      "name": "CTRLA",
+      "offset_bytes": 0,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:twi0:ctrla",
+      "peripheral": "TWI0",
+      "name": "CTRLA",
+      "offset_bytes": 0,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:twi0:mctrla",
+      "peripheral": "TWI0",
+      "name": "MCTRLA",
+      "offset_bytes": 3,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart0:status",
+      "peripheral": "USART0",
+      "name": "STATUS",
+      "offset_bytes": 4,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart0:ctrla",
+      "peripheral": "USART0",
+      "name": "CTRLA",
+      "offset_bytes": 5,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart0:ctrlb",
+      "peripheral": "USART0",
+      "name": "CTRLB",
+      "offset_bytes": 6,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:status",
+      "peripheral": "USART1",
+      "name": "STATUS",
+      "offset_bytes": 4,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:ctrla",
+      "peripheral": "USART1",
+      "name": "CTRLA",
+      "offset_bytes": 5,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:usart1:ctrlb",
+      "peripheral": "USART1",
+      "name": "CTRLB",
+      "offset_bytes": 6,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    }
+  ],
+  "register_fields": [
+    {
+      "field_id": "field:clkctrl:mclkctrla:clksel",
+      "register_id": "register:clkctrl:mclkctrla",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKCTRLA",
+      "name": "CLKSEL",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:mclkctrla:clkout",
+      "register_id": "register:clkctrl:mclkctrla",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKCTRLA",
+      "name": "CLKOUT",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:mclkctrlb:pen",
+      "register_id": "register:clkctrl:mclkctrlb",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKCTRLB",
+      "name": "PEN",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:mclkctrlb:pdiv",
+      "register_id": "register:clkctrl:mclkctrlb",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKCTRLB",
+      "name": "PDIV",
+      "bit_offset": 1,
+      "bit_width": 4,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:mclklock:locken",
+      "register_id": "register:clkctrl:mclklock",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKLOCK",
+      "name": "LOCKEN",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:mclkstatus:sosc",
+      "register_id": "register:clkctrl:mclkstatus",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKSTATUS",
+      "name": "SOSC",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "r",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:mclkstatus:oschfs",
+      "register_id": "register:clkctrl:mclkstatus",
+      "peripheral": "CLKCTRL",
+      "register_name": "MCLKSTATUS",
+      "name": "OSCHFS",
+      "bit_offset": 4,
+      "bit_width": 1,
+      "access": "r",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:oschfctrla:autotune",
+      "register_id": "register:clkctrl:oschfctrla",
+      "peripheral": "CLKCTRL",
+      "register_name": "OSCHFCTRLA",
+      "name": "AUTOTUNE",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:oschfctrla:runstdby",
+      "register_id": "register:clkctrl:oschfctrla",
+      "peripheral": "CLKCTRL",
+      "register_name": "OSCHFCTRLA",
+      "name": "RUNSTDBY",
+      "bit_offset": 1,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:clkctrl:oschfctrla:frqsel",
+      "register_id": "register:clkctrl:oschfctrla",
+      "peripheral": "CLKCTRL",
+      "register_name": "OSCHFCTRLA",
+      "name": "FRQSEL",
+      "bit_offset": 2,
+      "bit_width": 4,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:porta:dir:dir",
+      "register_id": "register:porta:dir",
+      "peripheral": "PORTA",
+      "register_name": "DIR",
+      "name": "DIR",
+      "bit_offset": 0,
+      "bit_width": 8,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:porta:out:out",
+      "register_id": "register:porta:out",
+      "peripheral": "PORTA",
+      "register_name": "OUT",
+      "name": "OUT",
+      "bit_offset": 0,
+      "bit_width": 8,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:porta:in:in",
+      "register_id": "register:porta:in",
+      "peripheral": "PORTA",
+      "register_name": "IN",
+      "name": "IN",
+      "bit_offset": 0,
+      "bit_width": 8,
+      "access": "r",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portc:dir:dir",
+      "register_id": "register:portc:dir",
+      "peripheral": "PORTC",
+      "register_name": "DIR",
+      "name": "DIR",
+      "bit_offset": 0,
+      "bit_width": 8,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portc:out:out",
+      "register_id": "register:portc:out",
+      "peripheral": "PORTC",
+      "register_name": "OUT",
+      "name": "OUT",
+      "bit_offset": 0,
+      "bit_width": 8,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portc:in:in",
+      "register_id": "register:portc:in",
+      "peripheral": "PORTC",
+      "register_name": "IN",
+      "name": "IN",
+      "bit_offset": 0,
+      "bit_width": 8,
+      "access": "r",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:spi0:ctrla:enable",
+      "register_id": "register:spi0:ctrla",
+      "peripheral": "SPI0",
+      "register_name": "CTRLA",
+      "name": "ENABLE",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:spi0:ctrla:clk2x",
+      "register_id": "register:spi0:ctrla",
+      "peripheral": "SPI0",
+      "register_name": "CTRLA",
+      "name": "CLK2X",
+      "bit_offset": 4,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:spi0:ctrla:master",
+      "register_id": "register:spi0:ctrla",
+      "peripheral": "SPI0",
+      "register_name": "CTRLA",
+      "name": "MASTER",
+      "bit_offset": 5,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:spi0:ctrlb:ssd",
+      "register_id": "register:spi0:ctrlb",
+      "peripheral": "SPI0",
+      "register_name": "CTRLB",
+      "name": "SSD",
+      "bit_offset": 2,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:tca0:ctrla:enable",
+      "register_id": "register:tca0:ctrla",
+      "peripheral": "TCA0",
+      "register_name": "CTRLA",
+      "name": "ENABLE",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:tca0:ctrla:clksel",
+      "register_id": "register:tca0:ctrla",
+      "peripheral": "TCA0",
+      "register_name": "CTRLA",
+      "name": "CLKSEL",
+      "bit_offset": 1,
+      "bit_width": 3,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:twi0:ctrla:fmpen",
+      "register_id": "register:twi0:ctrla",
+      "peripheral": "TWI0",
+      "register_name": "CTRLA",
+      "name": "FMPEN",
+      "bit_offset": 1,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:twi0:ctrla:sdahold",
+      "register_id": "register:twi0:ctrla",
+      "peripheral": "TWI0",
+      "register_name": "CTRLA",
+      "name": "SDAHOLD",
+      "bit_offset": 2,
+      "bit_width": 2,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:twi0:mctrla:enable",
+      "register_id": "register:twi0:mctrla",
+      "peripheral": "TWI0",
+      "register_name": "MCTRLA",
+      "name": "ENABLE",
+      "bit_offset": 0,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:twi0:mctrla:smen",
+      "register_id": "register:twi0:mctrla",
+      "peripheral": "TWI0",
+      "register_name": "MCTRLA",
+      "name": "SMEN",
+      "bit_offset": 1,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:status:dreif",
+      "register_id": "register:usart0:status",
+      "peripheral": "USART0",
+      "register_name": "STATUS",
+      "name": "DREIF",
+      "bit_offset": 5,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:status:txcif",
+      "register_id": "register:usart0:status",
+      "peripheral": "USART0",
+      "register_name": "STATUS",
+      "name": "TXCIF",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:status:rxcif",
+      "register_id": "register:usart0:status",
+      "peripheral": "USART0",
+      "register_name": "STATUS",
+      "name": "RXCIF",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:ctrla:dreie",
+      "register_id": "register:usart0:ctrla",
+      "peripheral": "USART0",
+      "register_name": "CTRLA",
+      "name": "DREIE",
+      "bit_offset": 5,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:ctrla:txcie",
+      "register_id": "register:usart0:ctrla",
+      "peripheral": "USART0",
+      "register_name": "CTRLA",
+      "name": "TXCIE",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:ctrla:rxcie",
+      "register_id": "register:usart0:ctrla",
+      "peripheral": "USART0",
+      "register_name": "CTRLA",
+      "name": "RXCIE",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:ctrlb:txen",
+      "register_id": "register:usart0:ctrlb",
+      "peripheral": "USART0",
+      "register_name": "CTRLB",
+      "name": "TXEN",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart0:ctrlb:rxen",
+      "register_id": "register:usart0:ctrlb",
+      "peripheral": "USART0",
+      "register_name": "CTRLB",
+      "name": "RXEN",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:status:dreif",
+      "register_id": "register:usart1:status",
+      "peripheral": "USART1",
+      "register_name": "STATUS",
+      "name": "DREIF",
+      "bit_offset": 5,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:status:txcif",
+      "register_id": "register:usart1:status",
+      "peripheral": "USART1",
+      "register_name": "STATUS",
+      "name": "TXCIF",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:status:rxcif",
+      "register_id": "register:usart1:status",
+      "peripheral": "USART1",
+      "register_name": "STATUS",
+      "name": "RXCIF",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:ctrla:dreie",
+      "register_id": "register:usart1:ctrla",
+      "peripheral": "USART1",
+      "register_name": "CTRLA",
+      "name": "DREIE",
+      "bit_offset": 5,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:ctrla:txcie",
+      "register_id": "register:usart1:ctrla",
+      "peripheral": "USART1",
+      "register_name": "CTRLA",
+      "name": "TXCIE",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:ctrla:rxcie",
+      "register_id": "register:usart1:ctrla",
+      "peripheral": "USART1",
+      "register_name": "CTRLA",
+      "name": "RXCIE",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:ctrlb:txen",
+      "register_id": "register:usart1:ctrlb",
+      "peripheral": "USART1",
+      "register_name": "CTRLB",
+      "name": "TXEN",
+      "bit_offset": 6,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:usart1:ctrlb:rxen",
+      "register_id": "register:usart1:ctrlb",
+      "peripheral": "USART1",
+      "register_name": "CTRLB",
+      "name": "RXEN",
+      "bit_offset": 7,
+      "bit_width": 1,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    }
+  ],
   "ip_blocks": [
+    {
+      "ip_name": "clkctrl",
+      "ip_version": "avr-da-clkctrl-v1",
+      "peripheral_class": "clkctrl",
+      "register_profile": "clkctrl:avr-da-clkctrl-v1",
+      "signal_roles": [],
+      "capability_ids": [],
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.clkctrl.microchip-avr-da-clkctrl-v1"
+    },
     {
       "ip_name": "porta",
       "ip_version": "avr-da-port-v1",

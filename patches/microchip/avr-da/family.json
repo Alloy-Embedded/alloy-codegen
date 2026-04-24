@@ -24,13 +24,14 @@
     { "name": "PC3", "port": "C", "number": 3,  "packages": ["tqfp32"] }
   ],
   "peripherals": [
-    { "name": "PORTA",  "rcc_enable_signal": null, "ip_version": "avr-da-port-v1" },
-    { "name": "PORTC",  "rcc_enable_signal": null, "ip_version": "avr-da-port-v1" },
-    { "name": "USART0", "rcc_enable_signal": null, "ip_version": "avr-da-usart-v1" },
-    { "name": "USART1", "rcc_enable_signal": null, "ip_version": "avr-da-usart-v1" },
-    { "name": "TWI0",   "rcc_enable_signal": null, "ip_version": "avr-da-twi-v1" },
-    { "name": "SPI0",   "rcc_enable_signal": null, "ip_version": "avr-da-spi-v1" },
-    { "name": "TCA0",   "rcc_enable_signal": null, "ip_version": "avr-da-tca-v1" }
+    { "name": "PORTA",   "rcc_enable_signal": null, "ip_version": "avr-da-port-v1" },
+    { "name": "PORTC",   "rcc_enable_signal": null, "ip_version": "avr-da-port-v1" },
+    { "name": "USART0",  "rcc_enable_signal": null, "ip_version": "avr-da-usart-v1" },
+    { "name": "USART1",  "rcc_enable_signal": null, "ip_version": "avr-da-usart-v1" },
+    { "name": "TWI0",    "rcc_enable_signal": null, "ip_version": "avr-da-twi-v1" },
+    { "name": "SPI0",    "rcc_enable_signal": null, "ip_version": "avr-da-spi-v1" },
+    { "name": "TCA0",    "rcc_enable_signal": null, "ip_version": "avr-da-tca-v1" },
+    { "name": "CLKCTRL", "rcc_enable_signal": null, "ip_version": "avr-da-clkctrl-v1" }
   ],
   "pin_signals": [
     { "signal_id": "pa0-usart0-txd", "pin_name": "PA0", "function": "usart0_txd", "peripheral": "USART0", "signal": "TX",  "af_number": 0 },

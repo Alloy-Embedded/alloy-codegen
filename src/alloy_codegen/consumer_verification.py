@@ -494,3 +494,119 @@ def verify_runtime_lite_smoke_consumer(
         command=command,
         linker_script_verification=linker_script_verification,
     )
+
+
+# ---------------------------------------------------------------------------
+# AVR-gcc target-specific startup verification (Phase 4.6–4.8 of
+# add-microchip-avr-da-target).  These helpers are opt-in: they detect
+# avr-gcc / avr-objdump on PATH and return a sentinel ConsumerVerification
+# when the toolchain is absent, so host-only CI stays green.
+# ---------------------------------------------------------------------------
+
+
+def avr_gcc_is_available() -> bool:
+    """True iff both ``avr-gcc`` and ``avr-objdump`` are on PATH."""
+    return shutil.which("avr-gcc") is not None and shutil.which("avr-objdump") is not None
+
+
+def verify_avr_startup_with_avr_gcc(
+    *,
+    startup_source: Path,
+    build_root: Path,
+    mcu: str = "avr128da32",
+) -> ConsumerVerification | None:
+    """Compile the emitted AVR startup.cpp with ``avr-gcc`` and run a
+    disassembly sanity check with ``avr-objdump``.
+
+    Returns ``None`` when the toolchain is not installed — callers
+    (typically pytest) use that signal to skip.  When the toolchain IS
+    present, returns a `ConsumerVerification` whose ``succeeded`` flag
+    reflects the compile + disassembly outcome.
+
+    Phase 4.6 — real ``avr-gcc`` compile with ``-mmcu=<mcu>``.
+    Phase 4.8 — ``avr-objdump -d`` asserts that the emitted object
+    carries at least one of the peripheral IRQ symbol aliases
+    (``USART0_RXC_IRQHandler``) and that the default trap symbol
+    (``Default_Handler``) is present.
+    """
+    avr_gcc = shutil.which("avr-gcc")
+    avr_objdump = shutil.which("avr-objdump")
+    if avr_gcc is None or avr_objdump is None:
+        return None
+    if not startup_source.exists():
+        raise StageExecutionError(f"AVR startup source not found: {startup_source}")
+
+    consumer_id = f"alloy-published-avr-gcc-{mcu}"
+    build_dir = build_root / consumer_id
+    build_dir.mkdir(parents=True, exist_ok=True)
+    object_path = build_dir / "startup.o"
+    command = (
+        avr_gcc,
+        "-std=c++17",
+        "-Os",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-Wall",
+        "-Wextra",
+        f"-mmcu={mcu}",
+        "-c",
+        str(startup_source),
+        "-o",
+        str(object_path),
+    )
+    compile_result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if compile_result.returncode != 0:
+        return ConsumerVerification(
+            consumer_id=consumer_id,
+            compiler=avr_gcc,
+            source_file=str(startup_source),
+            startup_source=str(startup_source),
+            build_dir=str(build_dir),
+            executable_path=str(object_path),
+            command=command,
+            succeeded=False,
+            stdout=compile_result.stdout,
+            stderr=compile_result.stderr,
+        )
+
+    # Disassemble the produced object and assert that the startup emits the
+    # expected weak-alias structure so silent drift in runtime_avr_startup.py
+    # surfaces as a compile-time failure.
+    dump_cmd = (avr_objdump, "-d", "-t", str(object_path))
+    dump_result = subprocess.run(dump_cmd, capture_output=True, text=True, check=False)
+    combined_output = dump_result.stdout + dump_result.stderr
+    required_symbols = ("Default_Handler", "USART0_RXC_IRQHandler", "__vector_18")
+    missing = tuple(sym for sym in required_symbols if sym not in combined_output)
+    if dump_result.returncode != 0 or missing:
+        extra = (
+            f"\nMissing expected symbols in objdump output: {', '.join(missing)}"
+            if missing
+            else ""
+        )
+        return ConsumerVerification(
+            consumer_id=consumer_id,
+            compiler=avr_gcc,
+            source_file=str(startup_source),
+            startup_source=str(startup_source),
+            build_dir=str(build_dir),
+            executable_path=str(object_path),
+            command=dump_cmd,
+            succeeded=False,
+            stdout=dump_result.stdout,
+            stderr=dump_result.stderr + extra,
+        )
+
+    return ConsumerVerification(
+        consumer_id=consumer_id,
+        compiler=avr_gcc,
+        source_file=str(startup_source),
+        startup_source=str(startup_source),
+        build_dir=str(build_dir),
+        executable_path=str(object_path),
+        command=command,
+        succeeded=True,
+        stdout=compile_result.stdout,
+        stderr=compile_result.stderr,
+    )

@@ -272,3 +272,87 @@ def test_avr128da32_emitted_runtime_goldens_match(
         assert artifacts[emitted_path].content == expected, (
             f"emitted {emitted_path} does not match golden fixture {fixture_path}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Phase 4.6–4.8 — avr-gcc compile + avr-objdump disassembly validation
+# ---------------------------------------------------------------------------
+
+
+def test_verify_avr_startup_with_avr_gcc_skips_cleanly_when_toolchain_absent(
+    microchip_avr_da_execution_context: ExecutionContext,
+    tmp_path,
+) -> None:
+    """Phase 4.6: when the avr-gcc toolchain is not installed, the helper
+    returns ``None`` so callers can skip instead of exploding."""
+    import shutil
+
+    from alloy_codegen.consumer_verification import (
+        avr_gcc_is_available,
+        verify_avr_startup_with_avr_gcc,
+    )
+
+    artifacts = _avr_da_emit_artifacts(microchip_avr_da_execution_context)
+    staged = tmp_path / "startup.cpp"
+    staged.write_text(
+        artifacts["microchip/avr-da/generated/devices/avr128da32/startup.cpp"].content,
+        encoding="utf-8",
+    )
+
+    expected_available = (
+        shutil.which("avr-gcc") is not None and shutil.which("avr-objdump") is not None
+    )
+    assert avr_gcc_is_available() is expected_available
+
+    result = verify_avr_startup_with_avr_gcc(
+        startup_source=staged,
+        build_root=tmp_path / "build",
+        mcu="avr128da32",
+    )
+    if avr_gcc_is_available():
+        assert result is not None
+        assert result.succeeded is True, (
+            "avr-gcc compile + avr-objdump disassembly failed for the "
+            "emitted AVR startup:\n" + result.stderr
+        )
+    else:
+        assert result is None, (
+            "avr-gcc is not on PATH; helper must return None so pytest can skip"
+        )
+
+
+def test_verify_avr_startup_with_avr_gcc_catches_missing_vector_alias(
+    tmp_path,
+) -> None:
+    """Phase 4.8: if avr-gcc is available, feeding a startup.cpp that
+    does NOT emit the expected weak-alias structure must make the
+    disassembly check fail.  This protects against silent regressions
+    in `runtime_avr_startup.py`.
+
+    Skipped cleanly when avr-gcc is not installed."""
+    import pytest as _pytest
+
+    from alloy_codegen.consumer_verification import (
+        avr_gcc_is_available,
+        verify_avr_startup_with_avr_gcc,
+    )
+
+    if not avr_gcc_is_available():
+        _pytest.skip("avr-gcc / avr-objdump not installed on PATH")
+
+    broken = tmp_path / "broken-startup.cpp"
+    broken.write_text(
+        # Compiles with avr-gcc but carries none of the expected aliases.
+        "extern \"C\" {\n"
+        "void harmless_stub() {}\n"
+        "}\n",
+        encoding="utf-8",
+    )
+    result = verify_avr_startup_with_avr_gcc(
+        startup_source=broken,
+        build_root=tmp_path / "build",
+        mcu="avr128da32",
+    )
+    assert result is not None
+    assert result.succeeded is False
+    assert "Missing expected symbols" in result.stderr

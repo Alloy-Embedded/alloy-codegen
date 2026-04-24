@@ -734,17 +734,12 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     register_field_counts_by_peripheral = Counter(
         register_field.peripheral for register_field in device.register_fields
     )
-    # Runtime-owned peripherals normally carry typed register descriptors derived
-    # from an SVD.  AVR 8-bit parts do not publish CMSIS-SVD and their ATDF
-    # register-group parsing is a Phase 2.4 follow-on — exempt AVR cores until
-    # that lands, at which point the rule will again apply uniformly.
-    _registers_exempt_core = device.identity.core.lower().startswith("avr")
-    runtime_peripheral_registers_present = _registers_exempt_core or all(
+    runtime_peripheral_registers_present = all(
         canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
         or register_counts_by_peripheral.get(peripheral.name, 0) > 0
         for peripheral in device.peripherals
     )
-    runtime_peripheral_register_fields_present = _registers_exempt_core or all(
+    runtime_peripheral_register_fields_present = all(
         canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
         or register_field_counts_by_peripheral.get(peripheral.name, 0) > 0
         for peripheral in device.peripherals

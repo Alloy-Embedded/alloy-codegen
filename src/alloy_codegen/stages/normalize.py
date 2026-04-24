@@ -63,6 +63,7 @@ from alloy_codegen.sources.microchip_dfp import (
     merge_source_patch,
     parse_interrupts_from_atdf,
     parse_peripheral_base_addresses,
+    parse_raw_peripherals_from_atdf,
     resolve_atdf_path,
     select_device_files,
 )
@@ -1843,6 +1844,8 @@ def _build_avr_da_device_ir(
 
     raw_interrupts = parse_interrupts_from_atdf(atdf_path)
     atdf_base_addresses = parse_peripheral_base_addresses(atdf_path)
+    raw_avr_peripherals = parse_raw_peripherals_from_atdf(atdf_path)
+    raw_peripherals_by_name = {p.name: p for p in raw_avr_peripherals}
 
     peripheral_patches = _peripheral_patch_map(patch)
 
@@ -1912,6 +1915,31 @@ def _build_avr_da_device_ir(
         and (not pin_entry.packages or patch.package in pin_entry.packages)
     )
 
+    # Expand ATDF-sourced RawPeripheral registers into canonical IR,
+    # filtered to the peripherals the device patch admitted.  This closes
+    # Phase 2.4 of add-microchip-avr-da-target — `device.registers` and
+    # `device.register_fields` now carry CLKCTRL + runtime-owned
+    # peripheral registers without any AVR-specific validation exemption.
+    #
+    # Iterate peripherals in a deterministic order (sorted by name).  The
+    # set-based `allowed_peripheral_names` would otherwise hash-order the
+    # output, producing different register / register_field lists across
+    # Python runs.
+    admitted_raw_peripherals = tuple(
+        raw_peripherals_by_name[name]
+        for name in sorted(allowed_peripheral_names)
+        if name in raw_peripherals_by_name
+    )
+    avr_registers = _registers_from_raw_peripherals(
+        admitted_raw_peripherals, provenance=atdf_provenance
+    )
+    avr_register_fields = _register_fields_from_raw_peripherals(
+        admitted_raw_peripherals,
+        provenance=atdf_provenance,
+        patch_fields=patch.register_fields,
+        patch_provenance=patch_provenance,
+    )
+
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -1930,8 +1958,8 @@ def _build_avr_da_device_ir(
                 provenance=patch_provenance,
             ),
         ),
-        registers=(),
-        register_fields=(),
+        registers=avr_registers,
+        register_fields=avr_register_fields,
         pins=pins,
         peripherals=avr_peripherals,
         interrupts=_normalize_interrupts(
