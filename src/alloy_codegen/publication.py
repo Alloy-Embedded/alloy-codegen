@@ -196,6 +196,30 @@ def find_capability_regressions(
     return tuple(regressions)
 
 
+_FAMILY_MARKER_NAMES: frozenset[str] = frozenset(
+    {"generated", "metadata", "reports", "artifact-manifest.json"}
+)
+
+
+def _looks_like_vendor_dir(path: Path) -> bool:
+    """Return True when ``path`` looks like a vendor directory in a publication tree.
+
+    A vendor directory holds per-family subdirectories (e.g. ``st/stm32g0/``,
+    ``microchip/avr-da/``), each of which carries family-artifact markers
+    like ``generated/``, ``metadata/``, ``reports/`` or ``artifact-manifest.json``.
+    This heuristic lets :func:`promote_staging_root` preserve sibling families
+    under the same vendor without special-casing vendor names.
+    """
+    if not path.is_dir():
+        return False
+    for child in path.iterdir():
+        if not child.is_dir():
+            continue
+        if any((child / marker).exists() for marker in _FAMILY_MARKER_NAMES):
+            return True
+    return False
+
+
 def _replace_path(*, source_path: Path, destination_path: Path) -> None:
     """Replace one destination path with a staged source path."""
     if destination_path.exists():
@@ -220,15 +244,35 @@ def promote_staging_root(*, staging_root: Path, publication_root: Path) -> None:
         return
 
     if (publication_root / ".git").exists():
-        staged_st_root = staging_root / "st"
-        if staged_st_root.exists():
-            for child in sorted(staged_st_root.iterdir(), key=lambda item: item.name):
+        # Promote staging into a live git checkout, preserving sibling families
+        # under the same vendor that aren't part of this publication scope.
+        #
+        # Each publish invocation is scoped to one (vendor, family) pair and
+        # only materialises ``staging_root/<vendor>/<family>/...``.  Replacing
+        # the whole vendor directory would wipe any OTHER family published
+        # earlier (e.g. microchip/same70 when publishing microchip/avr-da, or
+        # espressif/esp32c3 when publishing espressif/esp32s3) — the
+        # alloy-devices publish workflow then commits that deletion, dropping
+        # previously-published families from the repo.
+        #
+        # Top-level non-vendor children (e.g. release reports, READMEs) are
+        # still replaced wholesale so publication metadata stays in sync.
+        vendor_dirs = tuple(
+            child
+            for child in sorted(staging_root.iterdir(), key=lambda item: item.name)
+            if child.is_dir() and _looks_like_vendor_dir(child)
+        )
+        for vendor_dir in vendor_dirs:
+            destination_vendor_dir = publication_root / vendor_dir.name
+            destination_vendor_dir.mkdir(parents=True, exist_ok=True)
+            for family_dir in sorted(vendor_dir.iterdir(), key=lambda item: item.name):
                 _replace_path(
-                    source_path=child,
-                    destination_path=publication_root / "st" / child.name,
+                    source_path=family_dir,
+                    destination_path=destination_vendor_dir / family_dir.name,
                 )
+        vendor_names = {vendor_dir.name for vendor_dir in vendor_dirs}
         for child in sorted(
-            (item for item in staging_root.iterdir() if item.name != "st"),
+            (item for item in staging_root.iterdir() if item.name not in vendor_names),
             key=lambda item: item.name,
         ):
             _replace_path(
