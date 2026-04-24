@@ -1,0 +1,89 @@
+{
+  "patch_id": "espressif-esp32c3-family-bootstrap-v1",
+  "packages": [
+    { "name": "qfn32", "pin_count": 32 }
+  ],
+  "pins": [
+    { "name": "GPIO0",  "port": null, "number": 0,  "packages": ["qfn32"] },
+    { "name": "GPIO1",  "port": null, "number": 1,  "packages": ["qfn32"] },
+    { "name": "GPIO2",  "port": null, "number": 2,  "packages": ["qfn32"] },
+    { "name": "GPIO3",  "port": null, "number": 3,  "packages": ["qfn32"] },
+    { "name": "GPIO4",  "port": null, "number": 4,  "packages": ["qfn32"] },
+    { "name": "GPIO5",  "port": null, "number": 5,  "packages": ["qfn32"] },
+    { "name": "GPIO6",  "port": null, "number": 6,  "packages": ["qfn32"] },
+    { "name": "GPIO7",  "port": null, "number": 7,  "packages": ["qfn32"] },
+    { "name": "GPIO8",  "port": null, "number": 8,  "packages": ["qfn32"] },
+    { "name": "GPIO9",  "port": null, "number": 9,  "packages": ["qfn32"] },
+    { "name": "GPIO10", "port": null, "number": 10, "packages": ["qfn32"] },
+    { "name": "GPIO11", "port": null, "number": 11, "packages": ["qfn32"] },
+    { "name": "GPIO12", "port": null, "number": 12, "packages": ["qfn32"] },
+    { "name": "GPIO13", "port": null, "number": 13, "packages": ["qfn32"] },
+    { "name": "GPIO14", "port": null, "number": 14, "packages": ["qfn32"] },
+    { "name": "GPIO15", "port": null, "number": 15, "packages": ["qfn32"] },
+    { "name": "GPIO16", "port": null, "number": 16, "packages": ["qfn32"] },
+    { "name": "GPIO17", "port": null, "number": 17, "packages": ["qfn32"] },
+    { "name": "GPIO18", "port": null, "number": 18, "packages": ["qfn32"] },
+    { "name": "GPIO19", "port": null, "number": 19, "packages": ["qfn32"] },
+    { "name": "GPIO20", "port": null, "number": 20, "packages": ["qfn32"] },
+    { "name": "GPIO21", "port": null, "number": 21, "packages": ["qfn32"] }
+  ],
+  "peripherals": [
+    { "name": "GPIO",  "rcc_enable_signal": null },
+    { "name": "UART0", "rcc_enable_signal": "PCR_UART0_CONF0_REG.UART0_CLK_EN" },
+    { "name": "UART1", "rcc_enable_signal": "PCR_UART1_CONF0_REG.UART1_CLK_EN" },
+    { "name": "SPI2",  "rcc_enable_signal": "PCR_SPI2_CONF_REG.SPI2_CLK_EN" },
+    { "name": "I2C0",  "rcc_enable_signal": "PCR_I2C0_CONF_REG.I2C0_CLK_EN" },
+    { "name": "ADC",   "rcc_enable_signal": null },
+    { "name": "PCR",   "rcc_enable_signal": null },
+    { "name": "GDMA",  "rcc_enable_signal": null }
+  ],
+  "dma_controllers": [
+    {
+      "controller": "GDMA",
+      "channel_count": 3,
+      "version": "esp32c3-gdma-v1"
+    }
+  ],
+  "dma_requests": [
+    {
+      "request_id": "gdma-uart0-rx",
+      "controller": "GDMA",
+      "request_line": "UART0_RX",
+      "peripheral": "UART0",
+      "signal": "RX",
+      "request_value": 0
+    },
+    {
+      "request_id": "gdma-uart0-tx",
+      "controller": "GDMA",
+      "request_line": "UART0_TX",
+      "peripheral": "UART0",
+      "signal": "TX",
+      "request_value": 1
+    },
+    {
+      "request_id": "gdma-spi2-rx",
+      "controller": "GDMA",
+      "request_line": "SPI2_RX",
+      "peripheral": "SPI2",
+      "signal": "RX",
+      "request_value": 2
+    },
+    {
+      "request_id": "gdma-spi2-tx",
+      "controller": "GDMA",
+      "request_line": "SPI2_TX",
+      "peripheral": "SPI2",
+      "signal": "TX",
+      "request_value": 3
+    },
+    {
+      "request_id": "gdma-adc",
+      "controller": "GDMA",
+      "request_line": "ADC",
+      "peripheral": "ADC",
+      "signal": "DATA",
+      "request_value": 13
+    }
+  ]
+}

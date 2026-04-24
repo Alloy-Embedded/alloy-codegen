@@ -26,6 +26,7 @@ G0_FIXTURE_DIR = Path(__file__).parent / "fixtures" / BOOTSTRAP_FAMILY
 F4_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "stm32f4"
 SAME70_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "same70"
 RP2040_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "rp2040"
+ESP32C3_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "esp32c3"
 
 
 @pytest.mark.parametrize("device_name", bootstrap_device_names())
@@ -494,3 +495,76 @@ def test_normalize_rp2040_has_dma_requests(
     assert "UART0_TX" in dma_request_lines
     assert "SPI0_RX" in dma_request_lines
     assert "ADC" in dma_request_lines
+
+
+# ---------------------------------------------------------------------------
+# ESP32-C3 (Espressif) normalize tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("device_name", registered_device_names("espressif", "esp32c3"))
+def test_normalize_matches_esp32c3_fixture(
+    device_name: str,
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    fixture_path = ESP32C3_FIXTURE_DIR / f"{device_name}.canonical.json"
+    expected = json.loads(fixture_path.read_text())
+
+    result = run(PipelineScope(device=device_name), espressif_execution_context)
+
+    assert result.payload.devices[0].to_dict() == expected
+
+
+def test_normalize_esp32c3_uses_correct_family_identity(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(device="esp32c3"), espressif_execution_context)
+    device = result.payload.devices[0]
+
+    assert device.identity.vendor == "espressif"
+    assert device.identity.family == "esp32c3"
+    assert device.identity.core == "rv32imc"
+    assert device.schema_version == "1.1.0"
+
+
+def test_normalize_esp32c3_has_expected_memories(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    device = run(PipelineScope(device="esp32c3"), espressif_execution_context).payload.devices[0]
+
+    memory_kinds = {mem.kind for mem in device.memories}
+    memory_names = {mem.name for mem in device.memories}
+    assert "sram" in memory_kinds
+    assert "rom" in memory_kinds
+    assert "DRAM" in memory_names
+    assert "IRAM" in memory_names
+    assert "ROM" in memory_names
+
+
+def test_normalize_esp32c3_has_dma_requests(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    device = run(PipelineScope(device="esp32c3"), espressif_execution_context).payload.devices[0]
+
+    dma_request_lines = {req.request_line for req in device.dma_requests}
+    assert "UART0_RX" in dma_request_lines
+    assert "UART0_TX" in dma_request_lines
+    assert "SPI2_RX" in dma_request_lines
+    assert "SPI2_TX" in dma_request_lines
+    assert "ADC" in dma_request_lines
+
+
+def test_normalize_esp32c3_has_expected_clock_profiles(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    device = run(PipelineScope(device="esp32c3"), espressif_execution_context).payload.devices[0]
+
+    profile_ids = {prof.profile_id for prof in device.system_clock_profiles}
+    assert "safe-rc-fast-8mhz" in profile_ids
+    assert "default-pll-160mhz" in profile_ids
+
+    safe = next(p for p in device.system_clock_profiles if p.profile_id == "safe-rc-fast-8mhz")
+    default = next(p for p in device.system_clock_profiles if p.profile_id == "default-pll-160mhz")
+
+    assert safe.sysclk_hz == 8_000_000
+    assert default.sysclk_hz == 160_000_000

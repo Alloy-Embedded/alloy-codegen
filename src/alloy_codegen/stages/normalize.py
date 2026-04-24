@@ -95,6 +95,9 @@ from alloy_codegen.sources.nxp_mcux import (
 from alloy_codegen.sources.nxp_mcux import (
     resolve_svd_path as resolve_nxp_svd_path,
 )
+from alloy_codegen.sources.esp_idf import (
+    resolve_svd_path as resolve_esp_svd_path,
+)
 from alloy_codegen.sources.pico_sdk import (
     resolve_svd_path as resolve_pico_svd_path,
 )
@@ -1673,6 +1676,32 @@ def _build_rp2040_device_ir(
     )
 
 
+def _build_esp32_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    """Build canonical IR for an Espressif ESP32 device.
+
+    Reuses the RP2040/bare-SVD normalize path: SVD provides registers and
+    interrupts; the family patch provides pins, peripherals, DMA, and clock
+    profiles.  IO Matrix pin-signal routing is deferred to Phase 2.
+    """
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
+    svd_path = resolve_esp_svd_path(execution_context, device_name, vendor=vendor, family=family)
+    raw = parse_raw_device_document(svd_path)
+    return build_rp2040_canonical_ir(
+        raw,
+        patch,
+        family_catalog,
+        vendor=vendor,
+        family=family,
+    )
+
+
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:
     """Run the bootstrap normalize stage."""
     execution_context = context or ExecutionContext.default()
@@ -1714,6 +1743,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         if vendor == "raspberrypi" and family == "rp2040":
             devices.append(
                 _build_rp2040_device_ir(
+                    execution_context=execution_context,
+                    device_name=device_name,
+                    vendor=vendor,
+                    family=family,
+                )
+            )
+            continue
+        if vendor == "espressif":
+            devices.append(
+                _build_esp32_device_ir(
                     execution_context=execution_context,
                     device_name=device_name,
                     vendor=vendor,

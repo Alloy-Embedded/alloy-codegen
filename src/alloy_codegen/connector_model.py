@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 
+from alloy_codegen.errors import StageExecutionError
+
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     CapabilityDescriptor,
@@ -151,7 +153,45 @@ SYSTEM_VECTOR_BASELINES = {
         (14, "PendSV_Handler", None, "system-exception"),
         (15, "SysTick_Handler", None, "system-exception"),
     ),
+    # cortex-m4f is the FPU variant of Cortex-M4; vector table is identical.
+    "cortex-m4f": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "MemManage_Handler", None, "system-exception"),
+        (5, "BusFault_Handler", None, "system-exception"),
+        (6, "UsageFault_Handler", None, "system-exception"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "DebugMon_Handler", None, "system-exception"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
     "cortex-m7": (
+        (0, "__stack_top", None, "initial-stack-pointer"),
+        (1, "Reset_Handler", None, "reset-handler"),
+        (2, "NMI_Handler", None, "system-exception"),
+        (3, "HardFault_Handler", None, "system-exception"),
+        (4, "MemManage_Handler", None, "system-exception"),
+        (5, "BusFault_Handler", None, "system-exception"),
+        (6, "UsageFault_Handler", None, "system-exception"),
+        (7, "Reserved_Handler_7", None, "reserved"),
+        (8, "Reserved_Handler_8", None, "reserved"),
+        (9, "Reserved_Handler_9", None, "reserved"),
+        (10, "Reserved_Handler_10", None, "reserved"),
+        (11, "SVCall_Handler", None, "system-exception"),
+        (12, "DebugMon_Handler", None, "system-exception"),
+        (13, "Reserved_Handler_13", None, "reserved"),
+        (14, "PendSV_Handler", None, "system-exception"),
+        (15, "SysTick_Handler", None, "system-exception"),
+    ),
+    # cortex-m7f is the FPU variant of Cortex-M7; vector table is identical.
+    "cortex-m7f": (
         (0, "__stack_top", None, "initial-stack-pointer"),
         (1, "Reset_Handler", None, "reset-handler"),
         (2, "NMI_Handler", None, "system-exception"),
@@ -188,6 +228,25 @@ SYSTEM_VECTOR_BASELINES = {
         (13, "Reserved_Handler_13", None, "reserved"),
         (14, "PendSV_Handler", None, "system-exception"),
         (15, "SysTick_Handler", None, "system-exception"),
+    ),
+    # RISC-V CLIC (Compact Local Interrupt Controller) used by ESP32-C3 and other
+    # RV32 SoCs.  There is no ARM-style fixed vector table; interrupts are routed via
+    # mtvec.  Only the reset entry is defined here — peripheral interrupts are wired
+    # entirely from SVD data.
+    "rv32imc": (
+        (0, "Reset_Handler", None, "reset-handler"),
+    ),
+    # Generic RISC-V aliases — other RV32 variants map to the same minimal baseline.
+    "rv32imac": (
+        (0, "Reset_Handler", None, "reset-handler"),
+    ),
+    "riscv": (
+        (0, "Reset_Handler", None, "reset-handler"),
+    ),
+    # Xtensa LX7 (ESP32-S3). The first admitted model is single-core-perspective.
+    # The reset vector is fixed in internal ROM; no ARM exception table is used.
+    "xtensa-lx7": (
+        (0, "Reset_Handler", None, "reset-handler"),
     ),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
@@ -422,7 +481,15 @@ def _interrupt_aliases(interrupt_name: str, peripheral_name: str | None) -> tupl
 
 def _system_vector_baseline(core_name: str) -> tuple[tuple[int, str, str | None, str], ...]:
     normalized = core_name.lower()
-    return SYSTEM_VECTOR_BASELINES.get(normalized, SYSTEM_VECTOR_BASELINES["cortex-m4"])
+    baseline = SYSTEM_VECTOR_BASELINES.get(normalized)
+    if baseline is None:
+        supported = ", ".join(sorted(SYSTEM_VECTOR_BASELINES))
+        raise StageExecutionError(
+            f"Unknown core '{core_name}' — no system vector baseline defined. "
+            f"Supported cores: {supported}. "
+            "Add an entry to SYSTEM_VECTOR_BASELINES in connector_model.py."
+        )
+    return baseline
 
 
 def _memory_startup_roles(kind: str, access: str) -> tuple[str, ...]:

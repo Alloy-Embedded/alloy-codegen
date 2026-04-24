@@ -75,9 +75,10 @@ jobs:
       - name: Vendor admission gate
         run: |
           # Admitted vendors: st, microchip, nxp (foundational), raspberrypi (admitted via
-          # openspec/changes/archive/2026-04-22-add-raspberrypi-rp2040-target).
+          # openspec/changes/archive/2026-04-22-add-raspberrypi-rp2040-target),
+          # espressif (admitted via openspec/changes/add-espressif-esp32-target).
           # Any other vendor directory in patches/ requires a completed vendor-admission proposal.
-          ADMITTED_VENDORS="st microchip nxp raspberrypi"
+          ADMITTED_VENDORS="espressif st microchip nxp raspberrypi"
           UNKNOWN=()
           for vendor_dir in patches/*/; do
             vendor="$(basename "$vendor_dir")"

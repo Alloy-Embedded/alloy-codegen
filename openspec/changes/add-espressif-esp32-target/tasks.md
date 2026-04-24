@@ -1,25 +1,25 @@
 ## Phase 0: Bootstrap & Source Manifests
 
-- [ ] 0.1 Add `("espressif", "esp32c3")` to `DEVICE_REGISTRY` and `SOURCE_BUNDLES`
+- [x] 0.1 Add `("espressif", "esp32c3")` to `DEVICE_REGISTRY` and `SOURCE_BUNDLES`
       in `src/alloy_codegen/bootstrap.py`
-- [ ] 0.2 Create `src/alloy_codegen/sources/esp_idf.py` for Espressif SVD ingestion
-- [ ] 0.3 Add Espressif fetch branch to `src/alloy_codegen/stages/fetch.py`
-- [ ] 0.4 Formalize supplementary-source ingestion for `gpio_sig_map.h`:
+- [x] 0.2 Create `src/alloy_codegen/sources/esp_idf.py` for Espressif SVD ingestion
+- [x] 0.3 Add Espressif fetch branch to `src/alloy_codegen/stages/fetch.py`
+- [x] 0.4 Formalize supplementary-source ingestion for `gpio_sig_map.h`:
       source manifest entry, revision pinning, provenance label, and licensing note
-- [ ] 0.5 Scaffold `patches/espressif/esp32c3/family.json` and
+- [x] 0.5 Scaffold `patches/espressif/esp32c3/family.json` and
       `patches/espressif/esp32c3/devices/esp32c3.json`
-- [ ] 0.6 Verify fetch produces a non-empty `RawDeviceDocument` for `esp32c3`
+- [x] 0.6 Verify fetch produces a non-empty `RawDeviceDocument` for `esp32c3`
 
 ## Phase 1: IR Ingestion — ESP32-C3
 
-- [ ] 1.1 Add explicit `riscv` baseline to `SYSTEM_VECTOR_BASELINES`
-- [ ] 1.2 Remove the fallback-to-`cortex-m4` behavior for unknown cores
-- [ ] 1.3 Extend `_typed_register_ref` for ESP32-C3 PCR clock/reset references
-- [ ] 1.4 Populate `patches/espressif/esp32c3/family.json` with memory, clocks, packages,
+- [x] 1.1 Add explicit `riscv` baseline to `SYSTEM_VECTOR_BASELINES`
+- [x] 1.2 Remove the fallback-to-`cortex-m4` behavior for unknown cores
+- [x] 1.3 Extend `_typed_register_ref` for ESP32-C3 PCR clock/reset references
+- [x] 1.4 Populate `patches/espressif/esp32c3/family.json` with memory, clocks, packages,
       DMA, and startup-relevant controls
-- [ ] 1.5 Populate `patches/espressif/esp32c3/devices/esp32c3.json` with peripheral
+- [x] 1.5 Populate `patches/espressif/esp32c3/devices/esp32c3.json` with peripheral
       enable/reset/interrupt enrichments
-- [ ] 1.6 Write normalized golden fixture and regression tests for `esp32c3`
+- [x] 1.6 Write normalized golden fixture and regression tests for `esp32c3`
 
 ## Phase 2: IO Matrix Routing
 

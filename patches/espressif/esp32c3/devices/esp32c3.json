@@ -1,0 +1,77 @@
+{
+  "patch_id": "espressif-esp32c3-bootstrap",
+  "device": "esp32c3",
+  "svd_file": "esp32c3.svd",
+  "package": "qfn32",
+  "core": "rv32imc",
+  "summary": "Espressif ESP32-C3 single-core RISC-V RV32IMC SoC.",
+  "memories": [
+    {
+      "name": "DRAM",
+      "kind": "sram",
+      "base_address": 1070235648,
+      "size_bytes": 327680,
+      "access": "rwx"
+    },
+    {
+      "name": "ROM",
+      "kind": "rom",
+      "base_address": 1073741824,
+      "size_bytes": 393216,
+      "access": "rx"
+    },
+    {
+      "name": "IRAM",
+      "kind": "sram",
+      "base_address": 1077657600,
+      "size_bytes": 311296,
+      "access": "rwx"
+    }
+  ],
+  "registers": [
+    { "peripheral": "PCR", "name": "UART0_CONF0_REG", "base_address": 1611268096, "offset_bytes": 0,  "access": "read-write", "size_bits": 32 },
+    { "peripheral": "PCR", "name": "UART1_CONF0_REG", "base_address": 1611268096, "offset_bytes": 8,  "access": "read-write", "size_bits": 32 },
+    { "peripheral": "PCR", "name": "SPI2_CONF_REG",   "base_address": 1611268096, "offset_bytes": 20, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "PCR", "name": "I2C0_CONF_REG",   "base_address": 1611268096, "offset_bytes": 28, "access": "read-write", "size_bits": 32 }
+  ],
+  "register_fields": [
+    { "peripheral": "PCR", "register_name": "UART0_CONF0_REG", "name": "UART0_CLK_EN",  "bit_offset": 1, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "UART0_CONF0_REG", "name": "UART0_RST_EN",  "bit_offset": 0, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "UART1_CONF0_REG", "name": "UART1_CLK_EN",  "bit_offset": 1, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "UART1_CONF0_REG", "name": "UART1_RST_EN",  "bit_offset": 0, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "SPI2_CONF_REG",   "name": "SPI2_CLK_EN",   "bit_offset": 1, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "SPI2_CONF_REG",   "name": "SPI2_RST_EN",   "bit_offset": 0, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "I2C0_CONF_REG",   "name": "I2C0_CLK_EN",   "bit_offset": 1, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "PCR", "register_name": "I2C0_CONF_REG",   "name": "I2C0_RST_EN",   "bit_offset": 0, "bit_width": 1, "access": "read-write" }
+  ],
+  "peripherals": ["GPIO", "UART0", "UART1", "SPI2", "I2C0", "ADC", "PCR", "GDMA"],
+  "dma_request_refs": [
+    "gdma-uart0-rx", "gdma-uart0-tx",
+    "gdma-spi2-rx",  "gdma-spi2-tx",
+    "gdma-adc"
+  ],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-rc-fast-8mhz",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 8000000,
+      "hclk_hz": 8000000,
+      "pclk_hz": 8000000,
+      "source_hz": 8000000
+    },
+    {
+      "profile_id": "default-pll-160mhz",
+      "kind": "default",
+      "source_kind": "pll-internal",
+      "sysclk_hz": 160000000,
+      "hclk_hz": 160000000,
+      "pclk_hz": 80000000,
+      "source_hz": 40000000,
+      "pll_n": 8,
+      "pll_m": 0,
+      "pll_r": 0,
+      "flash_latency": 0
+    }
+  ]
+}
