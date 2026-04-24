@@ -179,7 +179,17 @@ def test_foundational_families_publish_with_same_generic_workflow(
         device_names = registered_device_names(scope.resolved_vendor(), scope.resolved_family())
 
         assert result.stage == "publish"
-        assert result.status == "completed"
+        # Surface publish-stage warnings + consumer_verification stderr into
+        # the pytest failure output so CI diagnostics explain why publish
+        # blocked (otherwise the bare `'failed' == 'completed'` assertion
+        # hides the root cause).
+        failure_context = ""
+        if result.status != "completed":
+            failure_context = f"\nfamily={family_dir}\nwarnings={result.warnings!r}"
+            cv = getattr(result.payload, "consumer_verification", None)
+            if cv is not None and not cv.succeeded:
+                failure_context += f"\nconsumer stderr:\n{cv.stderr[:2000]}"
+        assert result.status == "completed", failure_context
         assert result.payload.publication_mode == "published"
         assert result.payload.consumer_verification is not None
         assert result.payload.consumer_verification.succeeded is True
