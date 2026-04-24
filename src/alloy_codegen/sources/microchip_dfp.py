@@ -242,9 +242,7 @@ def _select_device_files_from_pdsc(
             device_name=device_name.lower(),
             pdsc_path=pdsc_path,
             atdf_path=pdsc_path.parent / atdf_relative_path,
-            svd_path=(
-                None if svd_relative_path is None else pdsc_path.parent / svd_relative_path
-            ),
+            svd_path=(None if svd_relative_path is None else pdsc_path.parent / svd_relative_path),
         )
     raise StageExecutionError(f"Device {requested_name} is not present in {pdsc_path.name}.")
 
@@ -509,9 +507,7 @@ def parse_peripheral_patches(atdf_path: Path) -> tuple[PeripheralPatch, ...]:
     return tuple(sorted(peripherals.values(), key=lambda peripheral: peripheral.name))
 
 
-_AVR_INTERRUPT_PERIPHERAL_PATTERN = re.compile(
-    r"^(?P<peripheral>[A-Z][A-Z0-9]*\d+)"
-)
+_AVR_INTERRUPT_PERIPHERAL_PATTERN = re.compile(r"^(?P<peripheral>[A-Z][A-Z0-9]*\d+)")
 
 
 def parse_peripheral_base_addresses(atdf_path: Path) -> dict[str, int]:

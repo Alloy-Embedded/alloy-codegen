@@ -294,8 +294,8 @@ def test_esp32c3_family_af_numbers_match_gpio_sig_map_upstream(
                     f"{pin.name} {signal.peripheral}.{signal.signal}: "
                     f"family af_number={signal.af_number} upstream {iomatrix_name}={expected}"
                 )
-    assert not mismatches, (
-        "ESP32-C3 family patch drifted from gpio_sig_map.h:\n  " + "\n  ".join(mismatches)
+    assert not mismatches, "ESP32-C3 family patch drifted from gpio_sig_map.h:\n  " + "\n  ".join(
+        mismatches
     )
 
 
@@ -454,7 +454,7 @@ def test_esp32s3_startup_uses_xtensa_conventions(
     # No RISC-V or AVR-specific markers.
     assert "mtvec" not in startup
     assert "__vector_0" not in startup
-    assert 'la sp,' not in startup
+    assert "la sp," not in startup
     # No ARM-style stack-pointer cast at slot 0.
     assert "reinterpret_cast<void (*)()>(&__stack_top)" not in startup
     # Xtensa informational comment is present.

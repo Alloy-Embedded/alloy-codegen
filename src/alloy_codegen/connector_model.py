@@ -240,29 +240,19 @@ SYSTEM_VECTOR_BASELINES = {
     # RV32 SoCs.  There is no ARM-style fixed vector table; interrupts are routed via
     # mtvec.  Only the reset entry is defined here — peripheral interrupts are wired
     # entirely from SVD data.
-    "rv32imc": (
-        (0, "Reset_Handler", None, "reset-handler"),
-    ),
+    "rv32imc": ((0, "Reset_Handler", None, "reset-handler"),),
     # Generic RISC-V aliases — other RV32 variants map to the same minimal baseline.
-    "rv32imac": (
-        (0, "Reset_Handler", None, "reset-handler"),
-    ),
-    "riscv": (
-        (0, "Reset_Handler", None, "reset-handler"),
-    ),
+    "rv32imac": ((0, "Reset_Handler", None, "reset-handler"),),
+    "riscv": ((0, "Reset_Handler", None, "reset-handler"),),
     # Xtensa LX7 (ESP32-S3). The first admitted model is single-core-perspective.
     # The reset vector is fixed in internal ROM; no ARM exception table is used.
-    "xtensa-lx7": (
-        (0, "Reset_Handler", None, "reset-handler"),
-    ),
+    "xtensa-lx7": ((0, "Reset_Handler", None, "reset-handler"),),
     # 8-bit AVR (Microchip AVR-DA and family).  The interrupt vector table starts
     # directly with device-specific handlers — no ARM system exception prefix,
     # no RISC-V mtvec.  Slot 0 is reserved for the reset vector (``__vector_0``)
     # which avr-gcc's crt0 expects at address 0.  Peripheral interrupts are
     # numbered starting at slot 1 by their ATDF interrupt-line value.
-    "avr8": (
-        (0, "__vector_0", None, "reset-handler"),
-    ),
+    "avr8": ((0, "__vector_0", None, "reset-handler"),),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
 MICROCHIP_PMC_PID_TARGET_PATTERN = re.compile(r"^PMC\.PID(?P<pid>\d+)$")
@@ -650,9 +640,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     operation_map: dict[str, RouteOperation] = {}
     candidate_map: dict[str, ConnectionCandidate] = {}
     clock_schema_id = _clock_backend_schema_id(device)
-    pinmux_schema_id = _pinmux_backend_schema_id(
-        device.identity.vendor, device.identity.family
-    )
+    pinmux_schema_id = _pinmux_backend_schema_id(device.identity.vendor, device.identity.family)
     for peripheral in device.peripherals:
         if peripheral.rcc_enable_signal is not None:
             requirement_id = f"requirement:clock-enable:{_sanitize(peripheral.name)}"

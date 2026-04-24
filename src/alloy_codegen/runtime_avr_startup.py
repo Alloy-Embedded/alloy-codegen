@@ -114,7 +114,7 @@ def emit_avr_startup_source(
     content_lines.extend(
         (
             "",
-            "}  // extern \"C\"",
+            '}  // extern "C"',
             "#else",
             "// Non-AVR target build: nothing to emit — avr-libc's crt0 is",
             "// AVR-specific and irrelevant when cross-compiling on the host.",

@@ -53,11 +53,7 @@ def emit_riscv_startup_source(
 
     # RISC-V peripheral interrupt handlers (slots 16+)
     peripheral_symbols = sorted(
-        {
-            symbol_name
-            for slot, symbol_name in slot_map.items()
-            if slot >= 16
-        }
+        {symbol_name for slot, symbol_name in slot_map.items() if slot >= 16}
     )
 
     vector_rows: list[str] = []

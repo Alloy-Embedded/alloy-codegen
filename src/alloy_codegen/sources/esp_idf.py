@@ -39,9 +39,7 @@ GPIO_SIG_MAP_SOURCE_ID = "esp-idf-gpio-sig-map"
 # ``components/soc/esp32c3/include/soc/gpio_sig_map.h``.  The trailing
 # ``_IDX`` suffix is stripped in the returned mapping so callers can look
 # up signals by their canonical IO Matrix name (e.g. ``U0RXD_IN``).
-_GPIO_SIG_MAP_PATTERN = re.compile(
-    r"^\s*#define\s+(?P<name>[A-Z0-9_]+)_IDX\s+(?P<index>\d+)\b"
-)
+_GPIO_SIG_MAP_PATTERN = re.compile(r"^\s*#define\s+(?P<name>[A-Z0-9_]+)_IDX\s+(?P<index>\d+)\b")
 
 
 # ---------------------------------------------------------------------------
@@ -148,9 +146,7 @@ def resolve_svd_path(
     source_root = ensure_source_root(context)
     svd_file = patch.svd_file
     if svd_file is None:
-        raise StageExecutionError(
-            f"Device patch for '{device_name}' does not declare a svd_file."
-        )
+        raise StageExecutionError(f"Device patch for '{device_name}' does not declare a svd_file.")
     # SVD files live under svd/ in the espressif/svd repository.
     svd_subdir = source_root / "svd"
     svd_path = svd_subdir / svd_file
@@ -181,9 +177,7 @@ def resolve_svd_path(
 # ---------------------------------------------------------------------------
 
 
-def fetch_records(
-    context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     """Resolve upstream espressif-svd records for the requested scope."""
     validated_scope = scope.validate_supported()
     root = ensure_source_root(context)

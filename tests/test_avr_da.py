@@ -84,9 +84,7 @@ def test_avr128da32_runtime_routes_header_encodes_portmux_schema(
     canonical IR."""
     result = run_emit(PipelineScope(device="avr128da32"), microchip_avr_da_execution_context)
     artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
-    routes = artifacts[
-        "microchip/avr-da/generated/runtime/devices/avr128da32/routes.hpp"
-    ].content
+    routes = artifacts["microchip/avr-da/generated/runtime/devices/avr128da32/routes.hpp"].content
     types = artifacts["microchip/avr-da/generated/runtime/types.hpp"].content
 
     # The emitter sanitizes the schema id into a C++ enum identifier.
@@ -107,10 +105,7 @@ def test_avr128da32_runtime_routes_header_encodes_portmux_schema(
 
 
 AVR_DA_EMITTED_FIXTURE_DIR = (
-    __import__("pathlib").Path(__file__).parent
-    / "fixtures"
-    / "emitted"
-    / "avr-da"
+    __import__("pathlib").Path(__file__).parent / "fixtures" / "emitted" / "avr-da"
 )
 
 
@@ -163,9 +158,7 @@ def test_avr128da32_startup_uses_crt0_vector_n_convention(
     ``__vector_<line>`` weak handlers, guarded behind ``__AVR__`` so host
     smoke builds stay portable."""
     artifacts = _avr_da_emit_artifacts(microchip_avr_da_execution_context)
-    startup = artifacts[
-        "microchip/avr-da/generated/devices/avr128da32/startup.cpp"
-    ].content
+    startup = artifacts["microchip/avr-da/generated/devices/avr128da32/startup.cpp"].content
 
     # AVR convention: __vector_N for each peripheral interrupt where N is the
     # ATDF interrupt index (18 = USART0_RXC, 28 = SPI0_INT, etc.).
@@ -206,8 +199,7 @@ def test_avr128da32_systick_hpp_is_not_required(
         microchip_avr_da_execution_context,
     ).payload.devices
     assert (
-        runtime_systick_required_paths(family_dir="microchip/avr-da", devices=tuple(devices))
-        == ()
+        runtime_systick_required_paths(family_dir="microchip/avr-da", devices=tuple(devices)) == ()
     )
 
 
@@ -316,9 +308,7 @@ def test_verify_avr_startup_with_avr_gcc_skips_cleanly_when_toolchain_absent(
             "emitted AVR startup:\n" + result.stderr
         )
     else:
-        assert result is None, (
-            "avr-gcc is not on PATH; helper must return None so pytest can skip"
-        )
+        assert result is None, "avr-gcc is not on PATH; helper must return None so pytest can skip"
 
 
 def test_verify_avr_startup_with_avr_gcc_catches_missing_vector_alias(
@@ -343,9 +333,7 @@ def test_verify_avr_startup_with_avr_gcc_catches_missing_vector_alias(
     broken = tmp_path / "broken-startup.cpp"
     broken.write_text(
         # Compiles with avr-gcc but carries none of the expected aliases.
-        "extern \"C\" {\n"
-        "void harmless_stub() {}\n"
-        "}\n",
+        'extern "C" {\nvoid harmless_stub() {}\n}\n',
         encoding="utf-8",
     )
     result = verify_avr_startup_with_avr_gcc(

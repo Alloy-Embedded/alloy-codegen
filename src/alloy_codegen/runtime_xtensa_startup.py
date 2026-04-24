@@ -64,11 +64,7 @@ def emit_xtensa_startup_source(
     # peripheral interrupts land at slot 16+.  Pull their symbols out for
     # the weak-handler block.
     peripheral_symbols = sorted(
-        {
-            symbol_name
-            for slot, symbol_name in slot_map.items()
-            if slot >= 16
-        }
+        {symbol_name for slot, symbol_name in slot_map.items() if slot >= 16}
     )
 
     content = "\n".join(

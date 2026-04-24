@@ -1707,9 +1707,7 @@ def _dedup_esp32_peripherals(
             kept.add(group[0].name)
         else:
             # Prefer explicitly patched names first.
-            patched = [
-                p for p in group if _canonical_peripheral_name(p.name) in preferred_names
-            ]
+            patched = [p for p in group if _canonical_peripheral_name(p.name) in preferred_names]
             winner = patched[0] if patched else max(group, key=lambda p: len(p.registers))
             kept.add(winner.name)
 
@@ -1751,9 +1749,7 @@ def _build_esp32_device_ir(
         for interrupt in raw.interrupts
         if interrupt.peripheral is None or interrupt.peripheral in admitted_peripheral_names
     )
-    raw = dataclasses.replace(
-        raw, peripherals=deduped_peripherals, interrupts=filtered_interrupts
-    )
+    raw = dataclasses.replace(raw, peripherals=deduped_peripherals, interrupts=filtered_interrupts)
 
     ir = build_rp2040_canonical_ir(
         raw,

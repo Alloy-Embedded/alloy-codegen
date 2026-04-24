@@ -118,9 +118,7 @@ def _linker_script_has_host_incompatible_memory_layout(linker_script: Path) -> b
     validation.
     """
     script_text = linker_script.read_text(encoding="utf-8")
-    memory_line_pattern = re.compile(
-        r"\bORIGIN\s*=\s*(0x[0-9A-Fa-f]+|\d+)", re.IGNORECASE
-    )
+    memory_line_pattern = re.compile(r"\bORIGIN\s*=\s*(0x[0-9A-Fa-f]+|\d+)", re.IGNORECASE)
     for match in memory_line_pattern.finditer(script_text):
         try:
             origin = int(match.group(1), 0)
@@ -635,9 +633,7 @@ def verify_avr_startup_with_avr_gcc(
     missing = tuple(sym for sym in required_symbols if sym not in combined_output)
     if dump_result.returncode != 0 or missing:
         extra = (
-            f"\nMissing expected symbols in objdump output: {', '.join(missing)}"
-            if missing
-            else ""
+            f"\nMissing expected symbols in objdump output: {', '.join(missing)}" if missing else ""
         )
         return ConsumerVerification(
             consumer_id=consumer_id,
