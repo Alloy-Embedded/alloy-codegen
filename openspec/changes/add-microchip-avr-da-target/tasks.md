@@ -188,7 +188,28 @@
 
 ## Phase 6: Fixtures & Docs
 
-- [ ] 6.1 Final full fixture regeneration pass
-- [ ] 6.2 Update `openspec/project.md` with AVR-DA admission and Harvard notes
-- [ ] 6.3 Add license note for AVR-Dx DFP sources
+- [x] 6.1 Final full fixture regeneration pass
+      (Verified no-op: all 219 tests green with zero fixture drift after
+      the Phase 5 publish-flow adjustments.)
+- [x] 6.2 Update `openspec/project.md` with AVR-DA admission and Harvard notes
+      (`openspec/project.md` now has an "Admitted Foundational Families"
+      table listing all six admitted families with ISA, memory model,
+      upstream source(s), and license, plus dedicated notes for the two
+      non-SVD ingestion paths (AVR-DA ATDF-only, ESP32-C3 IO Matrix
+      supplementary source).  Pinmux backend schema ids are enumerated
+      per family.)
+- [x] 6.3 Add license note for AVR-Dx DFP sources
+      (Apache-2.0 is cited in the new `project.md` table for both AVR-Dx
+      DFP and SAME70 DFP.  The vendored `tests/fixtures/microchip-dfp-avr-da/`
+      fixture carries the Microchip Apache-2.0 header inline in
+      `AVR128DA32.atdf`.)
 - [ ] 6.4 Archive this change
+      (Deferred until the remaining follow-on items land:
+        * Phase 2.4 — ATDF register-group parsing for CLKCTRL + typed
+          runtime refs so the AVR register-descriptor exemptions can
+          drop.
+        * Phase 4.6-4.8 — avr-gcc compile + disassembly validation of
+          the emitted startup, once the toolchain is available in CI.
+      These are tracked as explicit `[ ]` entries above.  Archiving now
+      would freeze the deferred work without a home; leaving the change
+      active lets the follow-on tasks land against the same proposal.)

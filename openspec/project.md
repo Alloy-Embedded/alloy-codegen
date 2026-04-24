@@ -83,3 +83,49 @@ schemas, and tooling.
 - Upstream vendor/device descriptions such as SVD and other vendor-provided metadata
 - Git for fetching sources and publishing artifacts
 - GitHub Actions for CI execution and publication orchestration
+
+## Admitted Foundational Families
+The foundational vendor/family set is deliberately explicit.  A family is
+"admitted" only after the full fetch → normalize → validate → emit → publish
+pipeline passes end-to-end with regression fixtures in place.
+
+| Vendor / Family      | Bootstrap device(s)                     | ISA           | Memory model | Upstream source(s)                          | License     |
+|----------------------|-----------------------------------------|---------------|--------------|---------------------------------------------|-------------|
+| `st/stm32g0`         | `stm32g030f6, stm32g071rb, stm32g0b1re` | Cortex-M0+    | Unified      | `cmsis-svd/cmsis-svd-data` + STM32 Open Pin Data | varies      |
+| `st/stm32f4`         | `stm32f401re, stm32f405rg`              | Cortex-M4F    | Unified      | `cmsis-svd/cmsis-svd-data` + STM32 Open Pin Data | varies      |
+| `microchip/same70`   | `atsame70n21b, atsame70q21b`            | Cortex-M7     | Unified      | Microchip SAME70 DFP (ATDF + SVD)           | Apache-2.0  |
+| `microchip/avr-da`   | `avr128da32`                            | AVR8 (Harvard) | prog / data / eeprom (Harvard) | Microchip AVR-Dx DFP (ATDF only; no SVD) | Apache-2.0  |
+| `nxp/imxrt1060`      | `mimxrt1062, mimxrt1064`                | Cortex-M7     | Unified      | `nxp/mcux-soc-svd` + `nxp/mcux-sdk`         | varies      |
+| `raspberrypi/rp2040` | `pico, rp2040`                          | Cortex-M0+ ×2 | Unified      | `raspberrypi/pico-sdk`                      | BSD-3       |
+| `espressif/esp32c3`  | `esp32c3`                               | RISC-V RV32IMC | Unified      | `espressif/svd` + esp-idf `gpio_sig_map.h`  | Apache-2.0  |
+
+Notes on non-SVD ingestion:
+
+- **AVR-DA (Microchip)**: 8-bit AVR devices do not publish a CMSIS-SVD file.
+  Register / interrupt / memory data is parsed directly from the ATDF inside
+  the Microchip AVR-Dx DFP pack.  `sources/microchip_dfp.py` treats SVD as
+  optional via the `SVD_OPTIONAL_FAMILIES` frozenset so the selector does
+  not fail when the PDSC omits `<debug svd="…"/>`.
+- **ESP32-C3 (Espressif)**: SVD comes from `github.com/espressif/svd` (sparse
+  git clone).  The IO Matrix signal indices that populate `af_number` on
+  PinSignals are tracked as a supplementary source
+  (`sources/esp_idf.py::parse_gpio_sig_map`) that reads
+  `components/soc/esp32c3/include/soc/gpio_sig_map.h` from esp-idf.
+  A committed minimal fixture of that header lives at
+  `tests/fixtures/esp-idf-gpio-sig-map/esp32c3/gpio_sig_map.h` and its
+  Apache-2.0 header is preserved verbatim for provenance.
+
+Pinmux backend schema ids per family:
+
+- `st/stm32*`         — `alloy.pinmux.stm32-af-v1`
+- `microchip/same70`  — `alloy.pinmux.sam-pio-v1`
+- `microchip/avr-da`  — `alloy.pinmux.avr-portmux-v1`
+- `nxp/imxrt1060`     — `alloy.pinmux.imxrt-iomuxc-v1`
+- `raspberrypi/rp2040` — `alloy.pinmux.rp2040-funcsel-v1`
+- `espressif/esp32c3` — `alloy.pinmux.espressif-iomatrix-v1`
+
+Each schema id tells consumers how to interpret the numeric `af_number` on a
+PinSignal: as an ARM alternate-function slot, an ESP32 IO Matrix index, an
+AVR PORTMUX selection index, or an RP2040 FUNCSEL code.  No downstream
+consumer should parse a string signal name to make routing decisions —
+typed ref domains carry every executable path.
