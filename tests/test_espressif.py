@@ -360,3 +360,214 @@ def test_esp32c3_runtime_routes_header_encodes_iomatrix_schema(
         "Expected IO Matrix backend schema id to appear on every pinmux route "
         "operation in the emitted routes.hpp"
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — ESP32-S3 (Xtensa LX7) follow-on
+# ---------------------------------------------------------------------------
+
+
+ESP32S3_EMITTED_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "emitted" / "esp32s3"
+ESP32S3_CANONICAL_FIXTURE = (
+    Path(__file__).parent / "fixtures" / "esp32s3" / "esp32s3.canonical.json"
+)
+
+
+def _esp32s3_artifacts(espressif_execution_context: ExecutionContext):
+    scope = PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3")
+    result = run_emit(scope, espressif_execution_context)
+    return {artifact.path: artifact for artifact in result.payload.artifacts}, result
+
+
+def test_esp32s3_canonical_fixture_matches(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """ESP32-S3 canonical IR matches the locked-in golden fixture."""
+    import json as _json
+
+    scope = PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3")
+    device = run_normalize(scope, espressif_execution_context).payload.devices[0]
+    expected = _json.loads(ESP32S3_CANONICAL_FIXTURE.read_text())
+    assert device.to_dict() == expected
+
+
+def test_esp32s3_identity_is_single_core_xtensa_lx7(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.4: the first admitted ESP32-S3 model is single-core-perspective
+    (core 0 control plane).  Identity metadata must reflect that — core is
+    ``xtensa-lx7`` and no ARM/RISC-V markers leak into the IR."""
+    scope = PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3")
+    device = run_normalize(scope, espressif_execution_context).payload.devices[0]
+    assert device.identity.vendor == "espressif"
+    assert device.identity.family == "esp32s3"
+    assert device.identity.core == "xtensa-lx7"
+    assert device.schema_version == "1.2.0"
+
+
+def test_esp32s3_single_core_perspective_excludes_core1_interrupts(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.4: the ESP32-S3 bootstrap deliberately excludes ``INTERRUPT_CORE1``
+    and its children from the IR.  The SVD ships them, but
+    `_build_esp32_device_ir` filters interrupts whose peripheral is not
+    admitted by the device-patch allowlist."""
+    scope = PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3")
+    device = run_normalize(scope, espressif_execution_context).payload.devices[0]
+    admitted = {peripheral.name for peripheral in device.peripherals}
+    # Core-1 interrupt controller must NOT leak into the admitted set.
+    assert "INTERRUPT_CORE1" not in admitted
+    # No interrupt in the IR may reference it either.
+    for interrupt in device.interrupts:
+        assert interrupt.peripheral != "INTERRUPT_CORE1", (
+            f"core-1 interrupt leaked: {interrupt.name} -> {interrupt.peripheral}"
+        )
+
+
+def test_esp32s3_runtime_contract_contains_required_headers(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    artifacts, _ = _esp32s3_artifacts(espressif_execution_context)
+    required = (
+        "espressif/esp32s3/generated/runtime/devices/esp32s3/interrupts.hpp",
+        "espressif/esp32s3/generated/runtime/devices/esp32s3/clock_graph.hpp",
+        "espressif/esp32s3/generated/runtime/devices/esp32s3/peripheral_instances.hpp",
+    )
+    for path in required:
+        assert path in artifacts, f"missing ESP32-S3 runtime header: {path}"
+
+
+def test_esp32s3_startup_uses_xtensa_conventions(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.5: emitted startup.cpp uses Xtensa conventions — no ARM
+    `_vectors[]` array at address 0, no RISC-V `mtvec`, no AVR
+    `.vectors` / `__vector_<N>`.  The ROM bootloader owns VECBASE; our
+    file only runs after control transfer."""
+    artifacts, _ = _esp32s3_artifacts(espressif_execution_context)
+    startup = artifacts["espressif/esp32s3/generated/devices/esp32s3/startup.cpp"].content
+
+    # Reset_Handler still exists and does the usual init sequence.
+    assert "Reset_Handler" in startup
+    assert "_sidata" in startup
+    assert "_sbss" in startup
+    # No RISC-V or AVR-specific markers.
+    assert "mtvec" not in startup
+    assert "__vector_0" not in startup
+    assert 'la sp,' not in startup
+    # No ARM-style stack-pointer cast at slot 0.
+    assert "reinterpret_cast<void (*)()>(&__stack_top)" not in startup
+    # Xtensa informational comment is present.
+    assert "Xtensa LX7" in startup or ".xtensa_vectors_info" in startup
+
+
+def test_esp32s3_systick_is_not_required_for_xtensa(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Artifact-contract spec: systick.hpp is Cortex-M scoped."""
+    from alloy_codegen.runtime_systick import runtime_systick_required_paths
+
+    normalize_result = run_normalize(
+        PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3"),
+        espressif_execution_context,
+    )
+    required = runtime_systick_required_paths(
+        family_dir="espressif/esp32s3",
+        devices=tuple(normalize_result.payload.devices),
+    )
+    assert required == (), "systick.hpp must not be required for Xtensa devices"
+
+
+def test_esp32s3_runtime_has_no_string_glue_in_primary_contract(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    _, result = _esp32s3_artifacts(espressif_execution_context)
+    assert find_runtime_cpp_string_violations(result.payload.artifacts) == ()
+
+
+def test_esp32s3_pinmux_route_operations_carry_iomatrix_schema(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """ESP32-S3 reuses the same IO Matrix schema as ESP32-C3."""
+    device = run_normalize(
+        PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3"),
+        espressif_execution_context,
+    ).payload.devices[0]
+
+    expected_schema = _pinmux_backend_schema_id("espressif", "esp32s3")
+    assert expected_schema == "alloy.pinmux.espressif-iomatrix-v1"
+
+    pinmux_operations = [
+        operation
+        for operation in device.route_operations
+        if operation.kind == "write-selector" and operation.target_ref_kind == "pin"
+    ]
+    assert pinmux_operations, "Expected at least one pinmux route operation for ESP32-S3"
+    for operation in pinmux_operations:
+        assert operation.schema_id == expected_schema
+
+
+def test_esp32s3_emitted_runtime_goldens_match(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    artifacts, _ = _esp32s3_artifacts(espressif_execution_context)
+    pairs = (
+        (
+            "espressif/esp32s3/generated/runtime/devices/esp32s3/interrupts.hpp",
+            ESP32S3_EMITTED_FIXTURE_DIR
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "esp32s3"
+            / "interrupts.hpp",
+        ),
+        (
+            "espressif/esp32s3/generated/runtime/devices/esp32s3/clock_graph.hpp",
+            ESP32S3_EMITTED_FIXTURE_DIR
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "esp32s3"
+            / "clock_graph.hpp",
+        ),
+        (
+            "espressif/esp32s3/generated/runtime/devices/esp32s3/peripheral_instances.hpp",
+            ESP32S3_EMITTED_FIXTURE_DIR
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "esp32s3"
+            / "peripheral_instances.hpp",
+        ),
+        (
+            "espressif/esp32s3/generated/devices/esp32s3/startup.cpp",
+            ESP32S3_EMITTED_FIXTURE_DIR / "generated" / "devices" / "esp32s3" / "startup.cpp",
+        ),
+    )
+    for emitted_path, fixture_path in pairs:
+        assert emitted_path in artifacts, f"missing emitted artifact: {emitted_path}"
+        expected = fixture_path.read_text(encoding="utf-8")
+        assert artifacts[emitted_path].content == expected, (
+            f"emitted {emitted_path} does not match golden fixture {fixture_path}"
+        )
+
+
+def test_publish_esp32s3_consumer_smoke_passes(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.7: end-to-end publish + host `c++` smoke compile for ESP32-S3.
+
+    Proves the Xtensa runtime output consumes cleanly without AVR / RISC-V /
+    ARM specific glue, mirrors the ESP32-C3 smoke gate."""
+    result = run_publish(
+        PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3"),
+        espressif_execution_context,
+    )
+
+    assert result.payload.consumer_verification is not None, (
+        "Publish should have invoked the consumer smoke verification for ESP32-S3"
+    )
+    assert result.payload.consumer_verification.succeeded is True, (
+        "Alloy consumer smoke build failed for espressif/esp32s3/esp32s3:\n"
+        + result.payload.consumer_verification.stderr
+    )

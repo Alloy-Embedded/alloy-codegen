@@ -95,6 +95,11 @@ from alloy_codegen.runtime_startup import emit_runtime_startup_header
 from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
 from alloy_codegen.runtime_system_sequences import emit_runtime_system_sequences_header
 from alloy_codegen.runtime_systick import emit_runtime_systick_header
+from alloy_codegen.runtime_xtensa_startup import (
+    _is_xtensa_device,
+    emit_xtensa_startup_source,
+    emit_xtensa_startup_vectors_source,
+)
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.serialization import canonical_json_sha256
 from alloy_codegen.stages.common import StageResult
@@ -162,6 +167,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     if _is_avr_device(device)
                     else emit_riscv_startup_source(family_dir=family_dir, device=device)
                     if _is_riscv_device(device)
+                    else emit_xtensa_startup_source(family_dir=family_dir, device=device)
+                    if _is_xtensa_device(device)
                     else emit_startup_source(family_dir=family_dir, device=device)
                 ),
                 (
@@ -169,6 +176,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     if _is_avr_device(device)
                     else emit_riscv_startup_vectors_source(family_dir=family_dir, device=device)
                     if _is_riscv_device(device)
+                    else emit_xtensa_startup_vectors_source(family_dir=family_dir, device=device)
+                    if _is_xtensa_device(device)
                     else emit_startup_vectors_source(family_dir=family_dir, device=device)
                 ),
                 emit_runtime_lite_peripheral_instances_header(

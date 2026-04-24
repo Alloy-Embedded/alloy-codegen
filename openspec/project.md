@@ -98,6 +98,7 @@ pipeline passes end-to-end with regression fixtures in place.
 | `nxp/imxrt1060`      | `mimxrt1062, mimxrt1064`                | Cortex-M7     | Unified      | `nxp/mcux-soc-svd` + `nxp/mcux-sdk`         | varies      |
 | `raspberrypi/rp2040` | `pico, rp2040`                          | Cortex-M0+ ×2 | Unified      | `raspberrypi/pico-sdk`                      | BSD-3       |
 | `espressif/esp32c3`  | `esp32c3`                               | RISC-V RV32IMC | Unified      | `espressif/svd` + esp-idf `gpio_sig_map.h`  | Apache-2.0  |
+| `espressif/esp32s3`  | `esp32s3`                               | Xtensa LX7 (single-core-perspective) | Unified | `espressif/svd`                             | Apache-2.0  |
 
 Notes on non-SVD ingestion:
 
@@ -114,6 +115,13 @@ Notes on non-SVD ingestion:
   A committed minimal fixture of that header lives at
   `tests/fixtures/esp-idf-gpio-sig-map/esp32c3/gpio_sig_map.h` and its
   Apache-2.0 header is preserved verbatim for provenance.
+- **ESP32-S3 (Espressif)**: same SVD source as ESP32-C3.  The first
+  admitted S3 model is **single-core-perspective**: the canonical IR
+  describes the control plane of core 0 only.  `_build_esp32_device_ir`
+  filters out interrupts whose peripheral is not in the device-patch
+  allowlist, which drops the five `INTERRUPT_CORE1` descendants before
+  they reach the IR.  Core-1 bring-up and inter-core affinity land as
+  a separate proposal once multi-core primitives are defined.
 
 Pinmux backend schema ids per family:
 

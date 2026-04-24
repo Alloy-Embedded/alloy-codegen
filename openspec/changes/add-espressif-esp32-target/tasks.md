@@ -65,13 +65,47 @@
 
 ## Phase 4: Xtensa Follow-On — ESP32-S3
 
-- [ ] 4.1 Add `("espressif", "esp32s3")` to registry/bootstrap
-- [ ] 4.2 Add explicit `xtensa-lx7` vector baseline
-- [ ] 4.3 Extend Espressif adapter to load `esp32s3`
-- [ ] 4.4 Document and enforce single-core control-plane perspective for this first cut
-- [ ] 4.5 Add Xtensa startup emitter branch
-- [ ] 4.6 Add normalized and emitted goldens for `esp32s3`
-- [ ] 4.7 Add consumer smoke and artifact-contract coverage for `esp32s3`
+- [x] 4.1 Add `("espressif", "esp32s3")` to registry/bootstrap
+      (`DEVICE_REGISTRY[("espressif", "esp32s3")] = ("esp32s3",)` and the
+      matching `SOURCE_BUNDLES` entry reuse the same `espressif-svd`
+      source bundle as ESP32-C3.)
+- [x] 4.2 Add explicit `xtensa-lx7` vector baseline
+      (Already landed in earlier arch-aware work.  Baseline is minimal
+      `((0, "Reset_Handler", None, "reset-handler"),)` — the Xtensa ROM
+      owns VECBASE so the IR only needs to expose the reset slot plus
+      device interrupt slots at 16+.)
+- [x] 4.3 Extend Espressif adapter to load `esp32s3`
+      (Zero code change: `_build_esp32_device_ir` was already generic
+      over `family`, and `esp_idf.resolve_svd_path` reads
+      `patch.svd_file` from the device patch.  Scaffolded
+      `patches/espressif/esp32s3/family.json` + `devices/esp32s3.json`.)
+- [x] 4.4 Document and enforce single-core control-plane perspective for this first cut
+      (`_build_esp32_device_ir` now filters out interrupts whose
+      peripheral is not in the device-patch allowlist.  On ESP32-S3
+      this drops the five `INTERRUPT_CORE1` descendants
+      (CORE1_IRAM0_PMS, CORE1_DRAM0_PMS, CORE1_PIF_PMS,
+      CORE1_PIF_PMS_SIZE, CACHE_CORE1_ACS), so the emitted canonical IR
+      describes the core-0 control plane only.  The
+      `test_esp32s3_single_core_perspective_excludes_core1_interrupts`
+      regression asserts this.  `family.json` `__source_notes.single_core_perspective`
+      documents the choice explicitly.)
+- [x] 4.5 Add Xtensa startup emitter branch
+      (`runtime_xtensa_startup.py::emit_xtensa_startup_source` — the ROM
+      bootloader owns VECBASE and initial stack; our startup just runs
+      the BSS/data/ctor/main() sequence after control transfer.  No ARM
+      `_vectors[]`, no RISC-V `mtvec`, no AVR `__vector_<N>`.  Weak
+      peripheral IRQ stubs default to `Default_Handler`.  Host smoke
+      guard keeps the file portable.  Dispatched from `stages/emit.py`
+      via `_is_xtensa_device`.)
+- [x] 4.6 Add normalized and emitted goldens for `esp32s3`
+      (`tests/fixtures/esp32s3/esp32s3.canonical.json` + four emitted
+      goldens under `tests/fixtures/emitted/esp32s3/`.)
+- [x] 4.7 Add consumer smoke and artifact-contract coverage for `esp32s3`
+      (`tests/test_espressif.py` grew by 10 ESP32-S3 tests covering
+      canonical fixture match, identity, single-core filtering, typed
+      runtime contract, Xtensa startup conventions, systick skip, no
+      string glue, IO Matrix schema, emitted goldens, and a full
+      end-to-end `run_publish` + consumer smoke compile.)
 
 ## Phase 5: CI & Publication Gates
 

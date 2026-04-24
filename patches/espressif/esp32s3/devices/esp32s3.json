@@ -1,0 +1,76 @@
+{
+  "patch_id": "espressif-esp32s3-bootstrap",
+  "device": "esp32s3",
+  "svd_file": "esp32s3.svd",
+  "package": "qfn56",
+  "core": "xtensa-lx7",
+  "summary": "Espressif ESP32-S3 dual-core Xtensa LX7 SoC (single-core-perspective bootstrap: control plane only).",
+  "memories": [
+    {
+      "name": "DRAM",
+      "kind": "sram",
+      "base_address": 1070235648,
+      "size_bytes": 524288,
+      "access": "rwx"
+    },
+    {
+      "name": "ROM",
+      "kind": "rom",
+      "base_address": 1073741824,
+      "size_bytes": 393216,
+      "access": "rx"
+    },
+    {
+      "name": "IRAM",
+      "kind": "sram",
+      "base_address": 1077936128,
+      "size_bytes": 524288,
+      "access": "rwx"
+    }
+  ],
+  "registers": [
+    { "peripheral": "SYSTEM", "name": "PERIP_CLK_EN0", "base_address": 1611399168, "offset_bytes": 24, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "SYSTEM", "name": "PERIP_CLK_EN1", "base_address": 1611399168, "offset_bytes": 28, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "SYSTEM", "name": "PERIP_RST_EN0",  "base_address": 1611399168, "offset_bytes": 32, "access": "read-write", "size_bits": 32 },
+    { "peripheral": "SYSTEM", "name": "PERIP_RST_EN1",  "base_address": 1611399168, "offset_bytes": 36, "access": "read-write", "size_bits": 32 }
+  ],
+  "register_fields": [
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN0", "name": "UART_CLK_EN",       "bit_offset": 2,  "bit_width": 1, "access": "read-write" },
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN0", "name": "UART1_CLK_EN",      "bit_offset": 5,  "bit_width": 1, "access": "read-write" },
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN1", "name": "UART2_CLK_EN",      "bit_offset": 9,  "bit_width": 1, "access": "read-write" },
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN0", "name": "SPI2_CLK_EN",       "bit_offset": 6,  "bit_width": 1, "access": "read-write" },
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN0", "name": "SPI3_CLK_EN",       "bit_offset": 16, "bit_width": 1, "access": "read-write" },
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN0", "name": "I2C_EXT0_CLK_EN",   "bit_offset": 7,  "bit_width": 1, "access": "read-write" },
+    { "peripheral": "SYSTEM", "register_name": "PERIP_CLK_EN0", "name": "I2C_EXT1_CLK_EN",   "bit_offset": 18, "bit_width": 1, "access": "read-write" }
+  ],
+  "peripherals": ["GPIO", "UART0", "UART1", "UART2", "SPI2", "SPI3", "I2C0", "I2C1", "APB_SARADC", "SYSTEM", "DMA"],
+  "dma_request_refs": [
+    "gdma-uart0-rx", "gdma-uart0-tx",
+    "gdma-spi2-rx",  "gdma-spi2-tx",
+    "gdma-adc"
+  ],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-rc-fast-8mhz",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 8000000,
+      "hclk_hz": 8000000,
+      "pclk_hz": 8000000,
+      "source_hz": 8000000
+    },
+    {
+      "profile_id": "default-pll-240mhz",
+      "kind": "default",
+      "source_kind": "pll-internal",
+      "sysclk_hz": 240000000,
+      "hclk_hz": 240000000,
+      "pclk_hz": 80000000,
+      "source_hz": 40000000,
+      "pll_n": 12,
+      "pll_m": 0,
+      "pll_r": 0,
+      "flash_latency": 0
+    }
+  ]
+}

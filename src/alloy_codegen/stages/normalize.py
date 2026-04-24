@@ -1738,7 +1738,21 @@ def _build_esp32_device_ir(
     # at 0x60026000 in the ESP32-C3 SVD).
     preferred = frozenset(p.name for p in patch.peripherals)
     deduped_peripherals = _dedup_esp32_peripherals(raw.peripherals, preferred)
-    raw = dataclasses.replace(raw, peripherals=deduped_peripherals)
+    # Drop interrupts that reference peripherals deliberately excluded from
+    # the device-patch allowlist.  On ESP32-S3 this filters out the core-1
+    # interrupt controller and its children — the bootstrap is
+    # single-core-perspective (core 0 control plane only), so core-1 specific
+    # interrupts MUST NOT appear in the canonical IR.  System-level interrupts
+    # with ``peripheral=None`` (reset, NMI) are always admitted.
+    admitted_peripheral_names = {p.name for p in deduped_peripherals}
+    filtered_interrupts = tuple(
+        interrupt
+        for interrupt in raw.interrupts
+        if interrupt.peripheral is None or interrupt.peripheral in admitted_peripheral_names
+    )
+    raw = dataclasses.replace(
+        raw, peripherals=deduped_peripherals, interrupts=filtered_interrupts
+    )
 
     ir = build_rp2040_canonical_ir(
         raw,
