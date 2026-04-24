@@ -549,17 +549,29 @@ def parse_peripheral_base_addresses(atdf_path: Path) -> dict[str, int]:
 def parse_interrupts_from_atdf(atdf_path: Path) -> tuple[RawInterrupt, ...]:
     """Parse ``<interrupts>`` from an ATDF into canonical RawInterrupt tuples.
 
-    Microchip ATDFs publish ``<interrupt index="N" name="FOO_BAR" .../>``
-    entries under the device node.  AVR 8-bit devices do not ship CMSIS-SVD,
-    so this is the only source of truth for their vector table.
+    Microchip ATDFs publish ``<interrupt index="N" module-instance="PORTA"
+    name="PORT"/>`` entries under the device node.  Unlike CMSIS-SVD where
+    each vector slot already carries a globally-unique name, the ATDF
+    ``name`` attribute is only the *mnemonic within a module* — e.g. on
+    AVR-Dx four GPIO banks (PORTA/PORTC/PORTD/PORTF) each get a distinct
+    vector index but all share ``name="PORT"``.  Using the bare ``name``
+    would collapse them into a single entry and fail the
+    ``vector-slots-unique`` validation rule.
 
-    The ``peripheral`` field on the returned `RawInterrupt` is inferred from
-    the interrupt name prefix using a simple regex: everything up to the
-    first underscore that matches a canonical instance identifier
-    (``USART0``, ``TWI0``, ``SPI0``, etc.).  Interrupts whose name does not
-    begin with a recognizable peripheral prefix (``RESET``, ``NMI``, …) get
-    ``peripheral=None`` — the validation layer already allows system
-    exceptions to carry no peripheral attribution.
+    We therefore build the canonical interrupt name to mirror avr-libc's
+    ``{module-instance}_{name}_vect`` symbol naming convention (minus the
+    ``_vect`` suffix).  The only exception is the NMI vector at index 1
+    which avr-libc exposes as the bare ``NMI_vect`` despite sitting under
+    the ``CRCSCAN`` module — we preserve that bare name so application
+    code keeps working with the stock ``NMI_IRQHandler`` stub.
+
+    The ``peripheral`` field is inferred from ``module-instance`` using
+    the existing digit-suffix regex (``USART0``, ``TCA0``, ``TWI0``, …).
+    Module-instances without a trailing digit (``PORTA``, ``BOD``,
+    ``NVMCTRL``, ``CRCSCAN``, …) carry ``peripheral=None`` — this keeps
+    GPIO-bank vectors and system exceptions admissible as unowned vector
+    slots regardless of whether the bank appears in the device patch's
+    peripheral allowlist.
     """
     root = ET.parse(atdf_path).getroot()
     devices_node = root.find("devices")
@@ -574,19 +586,34 @@ def parse_interrupts_from_atdf(atdf_path: Path) -> tuple[RawInterrupt, ...]:
 
     results: list[RawInterrupt] = []
     for interrupt_node in interrupts_node.findall("interrupt"):
-        name = interrupt_node.get("name")
+        vect_name = interrupt_node.get("name")
         index_text = interrupt_node.get("index")
-        if name is None or index_text is None:
+        module_instance = interrupt_node.get("module-instance")
+        if vect_name is None or index_text is None:
             continue
         try:
             line = int(index_text)
         except ValueError:
             continue
+        if vect_name == "NMI":
+            # avr-libc exposes the NMI vector without a module prefix even
+            # though the ATDF attributes it to CRCSCAN.
+            canonical_name = "NMI"
+        elif module_instance is None or module_instance == vect_name:
+            canonical_name = vect_name
+        else:
+            canonical_name = f"{module_instance}_{vect_name}"
         peripheral: str | None = None
-        head, _, _ = name.partition("_")
-        if _AVR_INTERRUPT_PERIPHERAL_PATTERN.match(head):
-            peripheral = head
-        results.append(RawInterrupt(name=name, line=line, peripheral=peripheral))
+        if module_instance is not None and _AVR_INTERRUPT_PERIPHERAL_PATTERN.match(module_instance):
+            peripheral = module_instance
+        elif module_instance is None:
+            # Fallback for minimal fixtures / vendored ATDFs that omit the
+            # ``module-instance`` attribute.  Infer the peripheral from the
+            # canonical name prefix (e.g., ``USART0_RXC`` → ``USART0``).
+            head, _, _ = canonical_name.partition("_")
+            if _AVR_INTERRUPT_PERIPHERAL_PATTERN.match(head):
+                peripheral = head
+        results.append(RawInterrupt(name=canonical_name, line=line, peripheral=peripheral))
     return tuple(results)
 
 

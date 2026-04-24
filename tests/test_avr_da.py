@@ -161,7 +161,8 @@ def test_avr128da32_startup_uses_crt0_vector_n_convention(
     startup = artifacts["microchip/avr-da/generated/devices/avr128da32/startup.cpp"].content
 
     # AVR convention: __vector_N for each peripheral interrupt where N is the
-    # ATDF interrupt index (18 = USART0_RXC, 28 = SPI0_INT, etc.).
+    # ATDF interrupt index (18 = USART0_RXC, 28 = SPI0_INT, etc. — per the
+    # bootstrap fixture ATDF).
     assert "__vector_18" in startup  # USART0_RXC
     assert "__vector_28" in startup  # SPI0_INT
 
