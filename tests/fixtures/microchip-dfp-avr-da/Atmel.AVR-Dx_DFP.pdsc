@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         schemaVersion="1.7.46"
+         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/Open-CMSIS-Pack/Open-CMSIS-Pack-Spec/v1.7.46/schema/PACK.xsd">
+   <vendor>Atmel</vendor>
+   <url>https://packs.download.microchip.com/</url>
+   <name>AVR-Dx_DFP</name>
+   <description>Atmel AVR-Dx Device Support — alloy-codegen test fixture</description>
+   <license>LICENSE.txt</license>
+   <licenseSets>
+      <licenseSet id="all" default="true" gating="false">
+         <license name="LICENSE.txt"
+                  title="Apache License, Version 2.0"
+                  spdx="Apache-2.0"
+                  url="https://www.apache.org/licenses/LICENSE-2.0"/>
+      </licenseSet>
+   </licenseSets>
+   <releases>
+      <release version="2.4.286" date="2026-04-24">alloy-codegen bootstrap fixture (minimal subset).</release>
+   </releases>
+   <devices>
+      <family Dfamily="AVR-DA Series" Dvendor="Atmel:3">
+         <description>AVR DA series — 8-bit AVR with Harvard architecture.</description>
+         <device Dname="AVR128DA32">
+            <processor Dcore="AVR8" Dendian="Little-endian" Dclock="24000000"/>
+            <compile header="avr-da/include/avr/io.h" define="__AVR128DA32__"/>
+            <environment name="atmel">
+               <extension xmlns:at="http://www.atmel.com/schemas/pack-device-atmel-extension"
+                          xsi:schemaLocation="http://www.atmel.com/schemas/pack-device-atmel-extension PACK.DEVICE.ATMEL.EXTENSION.xsd">
+                  <at:atdf name="atdf/AVR128DA32.atdf"/>
+                  <at:variant ordercode="AVR128DA32-I/PT" package="TQFP32" pinout="TQFP32" vccmin="1.8" vccmax="5.5" tempmin="-40" tempmax="+85"/>
+               </extension>
+            </environment>
+         </device>
+      </family>
+   </devices>
+</package>

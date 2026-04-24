@@ -1,0 +1,56 @@
+{
+  "patch_id": "microchip-avr128da32-bootstrap",
+  "device": "avr128da32",
+  "svd_file": null,
+  "pin_data_file": "atdf/AVR128DA32.atdf",
+  "package": "tqfp32",
+  "core": "avr8",
+  "summary": "Microchip AVR128DA32 — 8-bit AVR DA with 128 KB flash, 16 KB SRAM, 512 B EEPROM (TQFP-32).",
+  "memories": [
+    {
+      "name": "APP_SECTION",
+      "kind": "flash",
+      "base_address": 0,
+      "size_bytes": 131072,
+      "access": "rx",
+      "address_space": "prog"
+    },
+    {
+      "name": "INTERNAL_SRAM",
+      "kind": "sram",
+      "base_address": 16384,
+      "size_bytes": 16384,
+      "access": "rwx",
+      "address_space": "data"
+    },
+    {
+      "name": "EEPROM",
+      "kind": "eeprom",
+      "base_address": 5120,
+      "size_bytes": 512,
+      "access": "rw",
+      "address_space": "eeprom"
+    }
+  ],
+  "peripherals": ["PORTA", "PORTC", "USART0", "USART1", "TWI0", "SPI0", "TCA0"],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-osc20m-20mhz",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 20000000,
+      "hclk_hz": 20000000,
+      "pclk_hz": 20000000,
+      "source_hz": 20000000
+    },
+    {
+      "profile_id": "default-osc20m-24mhz",
+      "kind": "default",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 24000000,
+      "hclk_hz": 24000000,
+      "pclk_hz": 24000000,
+      "source_hz": 24000000
+    }
+  ]
+}

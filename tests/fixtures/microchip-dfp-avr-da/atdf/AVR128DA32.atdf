@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2021-2024 Microchip Technology Inc.
+  SPDX-License-Identifier: Apache-2.0
+
+  alloy-codegen bootstrap fixture for add-microchip-avr-da-target Phase 0.5/0.6.
+  Minimal subset of the full Atmel AVR-Dx DFP AVR128DA32 ATDF — contains only:
+    * the device header (name, architecture)
+    * the three Harvard address-spaces (prog, data, eeprom)
+    * a handful of peripherals (USART, TWI, SPI, TCA) to exercise canonical
+      class resolution
+    * a few peripheral interrupts
+
+  This is sufficient to satisfy Phase 0.6 (fetch produces a non-empty raw
+  document) and to prove the source adapter accepts ATDF-only devices.
+  Full register/pin/PORTMUX data lands in Phase 2.
+-->
+<avr-tools-device-file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schema-version="4.2">
+  <variants>
+    <variant ordercode="AVR128DA32-I/PT" package="TQFP32" pinout="TQFP32" speedmax="24000000" tempmax="+85" tempmin="-40" vccmax="5.5" vccmin="1.8"/>
+  </variants>
+  <devices>
+    <device architecture="AVR8X" family="AVR" name="AVR128DA32" series="AVR-DA">
+      <address-spaces>
+        <address-space id="prog" name="prog" endianness="little" size="0x20000" start="0x0">
+          <memory-segment name="APP_SECTION" start="0x0" size="0x20000" type="flash" exec="true" rw="R" pagesize="0x200"/>
+        </address-space>
+        <address-space id="data" name="data" endianness="little" size="0x10000" start="0x0">
+          <memory-segment name="MAPPED_PROGMEM" start="0x8000" size="0x8000" type="other" rw="R"/>
+          <memory-segment name="INTERNAL_SRAM" start="0x4000" size="0x4000" type="ram" rw="RW"/>
+          <memory-segment name="IO" start="0x0000" size="0x1000" type="io" rw="RW"/>
+          <memory-segment name="EXT_IO" start="0x1000" size="0x3000" type="io" rw="RW"/>
+        </address-space>
+        <address-space id="eeprom" name="eeprom" endianness="little" size="0x200" start="0x1400">
+          <memory-segment name="EEPROM" start="0x1400" size="0x200" type="eeprom" rw="RW" pagesize="0x1"/>
+        </address-space>
+        <address-space id="fuses" name="fuses" endianness="little" size="0x10" start="0x1050"/>
+      </address-spaces>
+      <peripherals>
+        <module name="USART">
+          <instance name="USART0" caption="Universal Synchronous/Asynchronous Receiver/Transmitter">
+            <register-group name="USART0" name-in-module="USART" offset="0x800" address-space="data"/>
+            <signals>
+              <signal group="TXD" index="0" pad="PA0"/>
+              <signal group="RXD" index="0" pad="PA1"/>
+            </signals>
+          </instance>
+          <instance name="USART1" caption="Universal Synchronous/Asynchronous Receiver/Transmitter">
+            <register-group name="USART1" name-in-module="USART" offset="0x820" address-space="data"/>
+            <signals>
+              <signal group="TXD" index="0" pad="PC0"/>
+              <signal group="RXD" index="0" pad="PC1"/>
+            </signals>
+          </instance>
+        </module>
+        <module name="TWI">
+          <instance name="TWI0" caption="Two-Wire Interface">
+            <register-group name="TWI0" name-in-module="TWI" offset="0x8A0" address-space="data"/>
+            <signals>
+              <signal group="SDA" index="0" pad="PA2"/>
+              <signal group="SCL" index="0" pad="PA3"/>
+            </signals>
+          </instance>
+        </module>
+        <module name="SPI">
+          <instance name="SPI0" caption="Serial Peripheral Interface">
+            <register-group name="SPI0" name-in-module="SPI" offset="0x8C0" address-space="data"/>
+            <signals>
+              <signal group="MOSI" index="0" pad="PA4"/>
+              <signal group="MISO" index="0" pad="PA5"/>
+              <signal group="SCK" index="0" pad="PA6"/>
+              <signal group="SS" index="0" pad="PA7"/>
+            </signals>
+          </instance>
+        </module>
+        <module name="TCA">
+          <instance name="TCA0" caption="16-bit Timer/Counter Type A">
+            <register-group name="TCA0" name-in-module="TCA" offset="0xA00" address-space="data"/>
+          </instance>
+        </module>
+        <module name="PORT">
+          <instance name="PORTA" caption="I/O Ports">
+            <register-group name="PORTA" name-in-module="PORT" offset="0x400" address-space="data"/>
+          </instance>
+          <instance name="PORTC" caption="I/O Ports">
+            <register-group name="PORTC" name-in-module="PORT" offset="0x440" address-space="data"/>
+          </instance>
+        </module>
+      </peripherals>
+      <interrupts>
+        <interrupt index="0" name="RESET" caption="Reset Vector"/>
+        <interrupt index="1" name="NMI" caption="Non-Maskable Interrupt from CRC"/>
+        <interrupt index="18" name="USART0_RXC" caption="USART0 Receive complete"/>
+        <interrupt index="19" name="USART0_DRE" caption="USART0 Data Register Empty"/>
+        <interrupt index="20" name="USART0_TXC" caption="USART0 Transmit complete"/>
+        <interrupt index="26" name="TWI0_TWIS" caption="TWI0 Slave"/>
+        <interrupt index="27" name="TWI0_TWIM" caption="TWI0 Master"/>
+        <interrupt index="28" name="SPI0_INT" caption="SPI0 Interrupt"/>
+      </interrupts>
+    </device>
+  </devices>
+  <modules>
+    <module name="USART" caption="Universal Synchronous/Asynchronous Receiver/Transmitter" id="USART_V1"/>
+    <module name="TWI" caption="Two-Wire Interface" id="TWI_V1"/>
+    <module name="SPI" caption="Serial Peripheral Interface" id="SPI_V1"/>
+    <module name="TCA" caption="16-bit Timer/Counter Type A" id="TCA_V1"/>
+    <module name="PORT" caption="I/O Ports" id="PORT_V1"/>
+  </modules>
+</avr-tools-device-file>

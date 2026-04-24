@@ -3,25 +3,39 @@
 - [ ] 0.1 Add `("microchip", "avr-da")` to `DEVICE_REGISTRY` and `PACK_CONFIGS`
       (Partial: `PACK_CONFIGS` entry for `Microchip.AVR-Dx_DFP.2.4.286.atpack`
       is registered in `sources/microchip_dfp.py`.  `DEVICE_REGISTRY` entry
-      waits on Phase 0.5 fixture + Phase 2 ATDF→IR normalization so the
-      bootstrap tests don't fail.)
-- [ ] 0.2 Refactor `microchip_dfp.py` to parse all address spaces and carry them through
+      waits on Phase 2 ATDF→IR normalization so the bootstrap tests don't
+      fail — every other artifact in the path is now in place.)
+- [x] 0.2 Refactor `microchip_dfp.py` to parse all address spaces and carry them through
       `MemoryPatch`
-      (Partial: the adapter already parses `address-spaces` and carries
-      `address_space` through `MemoryPatch` / `MemoryRegion`.  The adapter is
-      now SVD-optional via `SelectedDeviceFiles.svd_path: Path | None` and the
-      `SVD_OPTIONAL_FAMILIES` frozenset, so AVR ATDF-only packs work.  Full
-      multi-space coverage for AVR flash/data/eeprom still needs verification
-      against a real AVR DFP fixture.)
+      (The adapter is SVD-optional via `SelectedDeviceFiles.svd_path: Path |
+      None` and the `SVD_OPTIONAL_FAMILIES` frozenset.  Memory parsing
+      already threads `address_space` through `MemoryPatch` / `MemoryRegion`.
+      `test_avr128da32_atdf_declares_harvard_address_spaces` verifies the
+      full multi-space ingestion on the AVR128DA32 fixture: prog / data /
+      eeprom are all emitted with the correct `kind` and `address_space`.)
 - [x] 0.3 Normalize upstream `address_space="base"` to `None`
       (Already in place at `sources/microchip_dfp.py` — ATDF `base` → `None`.)
 - [ ] 0.4 Add fetch/bootstrap path for `microchip/avr-da`
-      (Follow-on: needs a DFP pack fetcher for `Atmel.AVR-Dx_DFP`, test fixture
-      carved out of the AVR128DA32 ATDF + device pack.)
-- [ ] 0.5 Scaffold `patches/microchip/avr-da/family.json` and
+      (Partial: the DFP adapter resolves the ATDF for AVR-DA through the
+      same code path as SAME70 — just without requiring an SVD.  A test
+      fixture is vendored at `tests/fixtures/microchip-dfp-avr-da/`
+      containing a minimal PDSC + AVR128DA32 ATDF.  Full `fetch_records`
+      wiring — `scope.validate_supported()` accepting avr-da, plus
+      `PACK_SOURCE_ID` records for the AVR-Dx atpack — waits on the
+      `DEVICE_REGISTRY` flip in Phase 0.1.)
+- [x] 0.5 Scaffold `patches/microchip/avr-da/family.json` and
       `patches/microchip/avr-da/devices/avr128da32.json`
-      (Follow-on: waits on 0.4 fixture.)
-- [ ] 0.6 Verify fetch produces a non-empty raw document for `avr128da32`
+      (Family patch declares 12 pins of PORTA/PORTC, 7 peripherals
+      (PORTA, PORTC, USART0/1, TWI0, SPI0, TCA0) with `ip_version`, and 10
+      PORTMUX bootstrap pin-signal entries.  Device patch declares three
+      Harvard memories (APP_SECTION/flash/prog, INTERNAL_SRAM/sram/data,
+      EEPROM/eeprom/eeprom), `core="avr8"`, and two clock profiles.
+      `svd_file: null` — AVR publishes ATDF only.)
+- [x] 0.6 Verify fetch produces a non-empty raw document for `avr128da32`
+      (`test_select_avr_da_files_resolves_atdf_without_svd` + the two
+      deeper ingestion tests in `test_microchip_dfp.py` prove the adapter
+      returns a populated ATDF path and that parsing it yields the
+      expected Harvard address spaces, EEPROM kind, and peripheral names.)
 
 ## Phase 1: IR Schema — Harvard Address Space
 
