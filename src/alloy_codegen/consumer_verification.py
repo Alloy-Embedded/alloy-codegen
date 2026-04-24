@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -100,6 +101,36 @@ def _linker_script_requires_distinct_data_load_address(linker_script: Path) -> b
     return text_region != data_region
 
 
+_HOST_LINKER_LOW_ADDRESS_THRESHOLD = 0x00010000
+
+
+def _linker_script_has_host_incompatible_memory_layout(linker_script: Path) -> bool:
+    """Return True if the script declares MEMORY origins so low that host
+    ``/usr/bin/ld`` cannot produce a valid ELF (PHDR-not-covered-by-LOAD).
+
+    Harvard / 8-bit targets like AVR-DA place program flash at ORIGIN = 0
+    and SRAM a few kilobytes up; the host linker refuses those layouts
+    because the ELF program-header table itself needs address space
+    within the lowest LOAD segment.  The host smoke is meant to validate
+    the linker script's *content*, not its behaviour on non-native
+    memory maps — for those targets we skip the host-link step and rely
+    on the vendor toolchain (e.g. ``avr-gcc`` + ``avr-ld``) for real
+    validation.
+    """
+    script_text = linker_script.read_text(encoding="utf-8")
+    memory_line_pattern = re.compile(
+        r"\bORIGIN\s*=\s*(0x[0-9A-Fa-f]+|\d+)", re.IGNORECASE
+    )
+    for match in memory_line_pattern.finditer(script_text):
+        try:
+            origin = int(match.group(1), 0)
+        except ValueError:
+            continue
+        if origin < _HOST_LINKER_LOW_ADDRESS_THRESHOLD:
+            return True
+    return False
+
+
 def _verify_linker_script(
     *,
     compiler: str,
@@ -121,6 +152,29 @@ def _verify_linker_script(
             output_file=str(output_path),
             map_file=str(map_path),
             skipped_reason="GNU-ld-compatible linker driver is not available on this host.",
+        )
+    if _linker_script_has_host_incompatible_memory_layout(linker_script):
+        # Harvard / 8-bit targets (AVR-DA flash@0, SRAM@0x4000) cannot
+        # produce a host-compatible ELF — the PHDR table does not fit
+        # in the lowest LOAD segment.  Validate the script's *content*
+        # by static checks only; skip the host-link step.  Vendor
+        # toolchain (e.g. avr-gcc) is the real validator for those
+        # targets — see `verify_avr_startup_with_avr_gcc`.
+        return LinkerScriptVerification(
+            attempted=False,
+            succeeded=True,
+            linker_script=str(linker_script),
+            source_file=str(source_path),
+            object_file=str(object_path),
+            output_file=str(output_path),
+            map_file=str(map_path),
+            skipped_reason=(
+                "Linker script declares MEMORY regions with ORIGIN below "
+                f"0x{_HOST_LINKER_LOW_ADDRESS_THRESHOLD:x}; host ld cannot fit "
+                "the ELF PHDR in the lowest LOAD segment for Harvard / 8-bit "
+                "targets.  Vendor toolchain validation (e.g. avr-gcc) covers "
+                "these devices."
+            ),
         )
 
     _write_linker_smoke_source(source_path)
