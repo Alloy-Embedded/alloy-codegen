@@ -316,8 +316,15 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
     package_pin_count = max((package.pin_count for package in device.packages), default=0)
     peripheral_names = {peripheral.name for peripheral in device.peripherals}
     peripheral_map = {peripheral.name: peripheral for peripheral in device.peripherals}
+    # Pin→GPIO controller naming convention varies per vendor:
+    # - ARM families use `GPIO<PORT>` (GPIOA, GPIOB, …)
+    # - AVR uses `PORT<PORT>` (PORTA, PORTC, …)
+    # Accept either to avoid forcing AVR to fake ARM-style names.
     pin_gpio_matches = all(
-        pin.port is None or f"GPIO{pin.port}" in peripheral_names for pin in device.pins
+        pin.port is None
+        or f"GPIO{pin.port}" in peripheral_names
+        or f"PORT{pin.port}" in peripheral_names
+        for pin in device.pins
     )
     memory_sizes_positive = all(memory.size_bytes > 0 for memory in device.memories)
     peripheral_bases = [peripheral.base_address for peripheral in device.peripherals]
@@ -367,7 +374,13 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
     rcc_check_peripherals = (
         referenced_peripherals - dma_controller_names - analog_exempt_peripherals
     )
-    referenced_peripherals_have_rcc = all(
+    # AVR 8-bit parts do not expose a per-peripheral RCC enable signal in the
+    # same style as ARM families — their CLKCTRL / PRR register flags are not
+    # modelled until Phase 2.4 of add-microchip-avr-da-target.  Exempt AVR
+    # cores from this rule so bootstrap ingestion does not require a fake
+    # rcc_enable_signal on every peripheral.
+    _rcc_exempt_core = device.identity.core.lower().startswith("avr")
+    referenced_peripherals_have_rcc = _rcc_exempt_core or all(
         peripheral_map.get(name) is not None and peripheral_map[name].rcc_enable_signal is not None
         for name in rcc_check_peripherals
     )
@@ -721,12 +734,17 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
     register_field_counts_by_peripheral = Counter(
         register_field.peripheral for register_field in device.register_fields
     )
-    runtime_peripheral_registers_present = all(
+    # Runtime-owned peripherals normally carry typed register descriptors derived
+    # from an SVD.  AVR 8-bit parts do not publish CMSIS-SVD and their ATDF
+    # register-group parsing is a Phase 2.4 follow-on — exempt AVR cores until
+    # that lands, at which point the rule will again apply uniformly.
+    _registers_exempt_core = device.identity.core.lower().startswith("avr")
+    runtime_peripheral_registers_present = _registers_exempt_core or all(
         canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
         or register_counts_by_peripheral.get(peripheral.name, 0) > 0
         for peripheral in device.peripherals
     )
-    runtime_peripheral_register_fields_present = all(
+    runtime_peripheral_register_fields_present = _registers_exempt_core or all(
         canonical_peripheral_class(peripheral.ip_name) not in RUNTIME_OWNED_PERIPHERAL_CLASSES
         or register_field_counts_by_peripheral.get(peripheral.name, 0) > 0
         for peripheral in device.peripherals

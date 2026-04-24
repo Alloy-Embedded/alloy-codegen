@@ -61,6 +61,8 @@ from alloy_codegen.sources.esp_idf import (
 )
 from alloy_codegen.sources.microchip_dfp import (
     merge_source_patch,
+    parse_interrupts_from_atdf,
+    parse_peripheral_base_addresses,
     resolve_atdf_path,
     select_device_files,
 )
@@ -1782,6 +1784,170 @@ def _build_esp32_device_ir(
     return ir
 
 
+def _build_avr_da_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    """Build canonical IR for a Microchip AVR-DA device from ATDF only.
+
+    AVR 8-bit parts do not publish CMSIS-SVD, so this path assembles the
+    canonical IR from:
+
+    * the AVR-Dx DFP ATDF (memories, peripherals, interrupts)
+    * the family patch catalog (pins, pin_signals, peripherals with
+      ``ip_version``, system clock profiles)
+    * the device patch (core, package, memories, peripheral allowlist)
+
+    ``registers`` / ``register_fields`` are intentionally left empty in
+    this first cut — AVR ATDF ``<register-group>`` parsing lands as a
+    Phase 2.4 follow-on when CLKCTRL register references need to resolve
+    to typed runtime refs.  ``dma_requests`` / ``dma_controllers`` are
+    sourced from the family patch (currently empty for AVR-DA).
+    """
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
+    atdf_path = resolve_atdf_path(execution_context, device_name, vendor=vendor, family=family)
+
+    patch_ids: tuple[str, ...] = (
+        (patch.family_patch_id, patch.patch_id)
+        if patch.family_patch_id is not None
+        else (patch.patch_id,)
+    )
+    atdf_provenance = Provenance(
+        source_id="microchip-dfp-extract",
+        source_path=patch.pin_data_file or str(atdf_path),
+        patch_ids=patch_ids,
+    )
+    patch_provenance = Provenance(
+        source_id="bootstrap-patch",
+        source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
+        patch_ids=patch_ids,
+    )
+
+    raw_interrupts = parse_interrupts_from_atdf(atdf_path)
+    atdf_base_addresses = parse_peripheral_base_addresses(atdf_path)
+
+    peripheral_patches = _peripheral_patch_map(patch)
+
+    # Restrict peripherals to those listed in the device patch (AVR ATDFs carry
+    # many peripherals — the bootstrap admits a curated subset so the first IR
+    # covers UART/SPI/TWI/TCA without dragging in crypto / fuses / etc.).
+    allowed_peripheral_names = frozenset(p.name for p in patch.peripherals)
+    avr_peripherals = tuple(
+        _peripheral_to_ir(
+            peripheral_name=peripheral.name,
+            # AVR ATDFs expose the register-group `offset` (in the `data`
+            # address space) as the canonical per-instance base address.
+            base_address=atdf_base_addresses.get(peripheral.name, 0),
+            patch_metadata=peripheral_patches.get(peripheral.name),
+            ip_version=None,
+            provenance=atdf_provenance,
+        )
+        for peripheral in family_catalog.peripherals
+        if peripheral.name in allowed_peripheral_names
+    )
+
+    # Restrict interrupts to those whose peripheral is allowed (or system-level).
+    def _interrupt_admitted(interrupt: RawInterrupt) -> bool:
+        return interrupt.peripheral is None or interrupt.peripheral in allowed_peripheral_names
+
+    filtered_interrupts = tuple(
+        interrupt for interrupt in raw_interrupts if _interrupt_admitted(interrupt)
+    )
+
+    # Pins / package pads (same pattern as RP2040: only emit pins that have
+    # peripheral signals attached via the family pin_signals catalog).
+    signals_by_pin: dict[str, list[PinSignalPatch]] = {}
+    for entry in family_catalog.pin_signals:
+        if entry.signal.peripheral is None or entry.signal.peripheral in allowed_peripheral_names:
+            signals_by_pin.setdefault(entry.pin_name, []).append(entry.signal)
+    pins_list: list[PinDefinition] = []
+    for pin_entry in sorted(family_catalog.pins, key=lambda p: p.number):
+        if pin_entry.packages and patch.package not in pin_entry.packages:
+            continue
+        pin_signals = signals_by_pin.get(pin_entry.name, ())
+        if not pin_signals:
+            continue
+        pins_list.append(
+            PinDefinition(
+                name=pin_entry.name,
+                port=pin_entry.port,
+                number=pin_entry.number,
+                signals=tuple(_pin_signal_to_ir(signal, atdf_provenance) for signal in pin_signals),
+                provenance=atdf_provenance,
+            )
+        )
+    pins = tuple(pins_list)
+    pin_names_with_signals = {pin.name for pin in pins}
+    package_pads = tuple(
+        PackagePad(
+            pad_id=pin_entry.name,
+            package=patch.package,
+            position_label=pin_entry.name,
+            physical_index=None,
+            pad_kind="io",
+            bonded_pin=pin_entry.name,
+            provenance=atdf_provenance,
+            bonding_state="bonded",
+        )
+        for pin_entry in sorted(family_catalog.pins, key=lambda p: p.number)
+        if pin_entry.name in pin_names_with_signals
+        and (not pin_entry.packages or patch.package in pin_entry.packages)
+    )
+
+    return CanonicalDeviceIR(
+        schema_version=IR_SCHEMA_VERSION,
+        identity=DeviceIdentity(
+            vendor=vendor,
+            family=family,
+            device=patch.device,
+            package=patch.package,
+            core=patch.core,
+            summary=patch.summary,
+        ),
+        memories=tuple(_memory_to_ir(m, patch_provenance) for m in patch.memories),
+        packages=(
+            PackageDefinition(
+                name=patch.package,
+                pin_count=patch.pin_count,
+                provenance=patch_provenance,
+            ),
+        ),
+        registers=(),
+        register_fields=(),
+        pins=pins,
+        peripherals=avr_peripherals,
+        interrupts=_normalize_interrupts(
+            filtered_interrupts,
+            provenance=atdf_provenance,
+            patch_interrupts=patch.interrupts,
+            patch_provenance=patch_provenance,
+        ),
+        dma_controllers=tuple(
+            _dma_controller_to_ir(ctrl, patch_provenance) for ctrl in patch.dma_controllers
+        ),
+        dma_requests=tuple(_dma_request_to_ir(r, patch_provenance) for r in patch.dma_requests),
+        provenance=atdf_provenance,
+        package_pads=package_pads,
+        pin_constraints=_derive_pin_constraints(
+            package_pads=package_pads,
+            pins=pins,
+            provenance=atdf_provenance,
+        ),
+        clock_nodes=(),
+        clock_selectors=(),
+        clock_gates=(),
+        resets=(),
+        system_clock_profiles=tuple(
+            _system_clock_profile_to_ir(p, patch_provenance) for p in patch.system_clock_profiles
+        ),
+        peripheral_clock_bindings=(),
+    )
+
+
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:
     """Run the bootstrap normalize stage."""
     execution_context = context or ExecutionContext.default()
@@ -1803,6 +1969,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         if vendor == "microchip" and family == "same70":
             devices.append(
                 _build_microchip_device_ir(
+                    execution_context=execution_context,
+                    device_name=device_name,
+                    vendor=vendor,
+                    family=family,
+                )
+            )
+            continue
+        if vendor == "microchip" and family == "avr-da":
+            devices.append(
+                _build_avr_da_device_ir(
                     execution_context=execution_context,
                     device_name=device_name,
                     vendor=vendor,

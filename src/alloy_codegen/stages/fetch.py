@@ -28,7 +28,7 @@ def _fetch_records_for_scope(
             *fetch_svd_records(execution_context, validated_scope),
             *fetch_pin_records(execution_context, validated_scope),
         )
-    if vendor == "microchip" and family == "same70":
+    if vendor == "microchip" and family in {"same70", "avr-da"}:
         return fetch_microchip_dfp_records(execution_context, validated_scope)
     if vendor == "nxp" and family == "imxrt1060":
         return fetch_nxp_mcux_records(execution_context, validated_scope)

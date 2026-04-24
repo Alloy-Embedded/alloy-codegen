@@ -1040,6 +1040,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             size_bytes=memory.size_bytes,
             access=memory.access,
             provenance=memory.provenance,
+            address_space=memory.address_space,
             startup_roles=_memory_startup_roles(memory.kind, memory.access),
         )
         for memory in device.memories

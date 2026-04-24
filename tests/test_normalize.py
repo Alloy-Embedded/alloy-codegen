@@ -27,6 +27,7 @@ F4_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "stm32f4"
 SAME70_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "same70"
 RP2040_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "rp2040"
 ESP32C3_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "esp32c3"
+AVR_DA_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "avr-da"
 
 
 @pytest.mark.parametrize("device_name", bootstrap_device_names())
@@ -568,3 +569,86 @@ def test_normalize_esp32c3_has_expected_clock_profiles(
 
     assert safe.sysclk_hz == 8_000_000
     assert default.sysclk_hz == 160_000_000
+
+
+# ---------------------------------------------------------------------------
+# AVR-DA (Microchip) normalize tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("device_name", registered_device_names("microchip", "avr-da"))
+def test_normalize_matches_avr_da_fixture(
+    device_name: str,
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    fixture_path = AVR_DA_FIXTURE_DIR / f"{device_name}.canonical.json"
+    expected = json.loads(fixture_path.read_text())
+
+    result = run(PipelineScope(device=device_name), microchip_avr_da_execution_context)
+
+    assert result.payload.devices[0].to_dict() == expected
+
+
+def test_normalize_avr_da_uses_correct_family_identity(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    result = run(PipelineScope(device="avr128da32"), microchip_avr_da_execution_context)
+    device = result.payload.devices[0]
+
+    assert device.identity.vendor == "microchip"
+    assert device.identity.family == "avr-da"
+    assert device.identity.core == "avr8"
+    assert device.schema_version == "1.2.0"
+
+
+def test_normalize_avr_da_preserves_harvard_address_spaces(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    """Phase 1.1/1.2: the Harvard address_space annotation survives the full
+    normalize + connector_descriptor pipeline for AVR-DA.  All three memory
+    regions (flash, sram, eeprom) must carry their distinct address_space."""
+    device = run(
+        PipelineScope(device="avr128da32"), microchip_avr_da_execution_context
+    ).payload.devices[0]
+    by_name = {memory.name: memory for memory in device.memories}
+    assert by_name["APP_SECTION"].address_space == "prog"
+    assert by_name["APP_SECTION"].kind == "flash"
+    assert by_name["INTERNAL_SRAM"].address_space == "data"
+    assert by_name["INTERNAL_SRAM"].kind == "sram"
+    assert by_name["EEPROM"].address_space == "eeprom"
+    assert by_name["EEPROM"].kind == "eeprom"
+    # EEPROM must carry zero startup roles — it is never a copy-source or
+    # volatile-target despite living in the "data" direction of hardware.
+    assert by_name["EEPROM"].startup_roles == ()
+
+
+def test_normalize_avr_da_has_avr8_vector_baseline(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    """Phase 2.1/2.2: AVR vector slots start at slot 0 with ``__vector_0``
+    (reset) — no ARM system-exception prefix."""
+    device = run(
+        PipelineScope(device="avr128da32"), microchip_avr_da_execution_context
+    ).payload.devices[0]
+    slots_by_index = {vector_slot.slot: vector_slot for vector_slot in device.vector_slots}
+    assert 0 in slots_by_index
+    assert slots_by_index[0].symbol_name == "__vector_0"
+    assert slots_by_index[0].kind == "reset-handler"
+    # No ARM fault handlers should appear.
+    symbol_names = {vector_slot.symbol_name for vector_slot in device.vector_slots}
+    assert "__stack_top" not in symbol_names
+    assert "NMI_Handler" not in symbol_names
+    assert "HardFault_Handler" not in symbol_names
+    assert "SysTick_Handler" not in symbol_names
+
+
+def test_normalize_avr_da_routes_usart_spi_twi_signals(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    """PORTMUX bootstrap (Phase 0.5) must expose USART0/USART1/TWI0/SPI0
+    signals so connection_candidates cover them."""
+    device = run(
+        PipelineScope(device="avr128da32"), microchip_avr_da_execution_context
+    ).payload.devices[0]
+    candidate_peripherals = {candidate.peripheral for candidate in device.connection_candidates}
+    assert {"USART0", "USART1", "TWI0", "SPI0"} <= candidate_peripherals

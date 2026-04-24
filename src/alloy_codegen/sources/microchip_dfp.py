@@ -16,6 +16,7 @@ from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.patches import DevicePatch, DmaRequestPatch, MemoryPatch, PeripheralPatch
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.raw import (
+    RawInterrupt,
     RawPackagePadEntry,
     RawPinAlternateFunction,
     RawPinDataDocument,
@@ -503,6 +504,91 @@ def parse_peripheral_patches(atdf_path: Path) -> tuple[PeripheralPatch, ...]:
                 ),
             )
     return tuple(sorted(peripherals.values(), key=lambda peripheral: peripheral.name))
+
+
+_AVR_INTERRUPT_PERIPHERAL_PATTERN = re.compile(
+    r"^(?P<peripheral>[A-Z][A-Z0-9]*\d+)"
+)
+
+
+def parse_peripheral_base_addresses(atdf_path: Path) -> dict[str, int]:
+    """Return ``{peripheral_name: register_group_offset}`` from an ATDF.
+
+    AVR ATDFs use the ``<register-group offset="0x800" .../>`` attribute as
+    the canonical per-instance register-file base address (in the AVR `data`
+    address space).  For runtime-descriptor purposes those offsets act the
+    same as an ARM peripheral `base_address`.  When the offset is missing or
+    unparseable the peripheral is omitted from the result.
+    """
+    root = ET.parse(atdf_path).getroot()
+    devices_node = root.find("devices")
+    if devices_node is None:
+        return {}
+    device_node = devices_node.find("device")
+    if device_node is None:
+        return {}
+    peripherals_node = device_node.find("peripherals")
+    if peripherals_node is None:
+        return {}
+    offsets: dict[str, int] = {}
+    for module_node in peripherals_node.findall("module"):
+        for instance_node in module_node.findall("instance"):
+            instance_name = instance_node.get("name")
+            register_group = instance_node.find("register-group")
+            if instance_name is None or register_group is None:
+                continue
+            offset_text = register_group.get("offset")
+            if offset_text is None:
+                continue
+            try:
+                offsets[_canonical_peripheral_name(instance_name)] = int(offset_text, 0)
+            except ValueError:
+                continue
+    return offsets
+
+
+def parse_interrupts_from_atdf(atdf_path: Path) -> tuple[RawInterrupt, ...]:
+    """Parse ``<interrupts>`` from an ATDF into canonical RawInterrupt tuples.
+
+    Microchip ATDFs publish ``<interrupt index="N" name="FOO_BAR" .../>``
+    entries under the device node.  AVR 8-bit devices do not ship CMSIS-SVD,
+    so this is the only source of truth for their vector table.
+
+    The ``peripheral`` field on the returned `RawInterrupt` is inferred from
+    the interrupt name prefix using a simple regex: everything up to the
+    first underscore that matches a canonical instance identifier
+    (``USART0``, ``TWI0``, ``SPI0``, etc.).  Interrupts whose name does not
+    begin with a recognizable peripheral prefix (``RESET``, ``NMI``, …) get
+    ``peripheral=None`` — the validation layer already allows system
+    exceptions to carry no peripheral attribution.
+    """
+    root = ET.parse(atdf_path).getroot()
+    devices_node = root.find("devices")
+    if devices_node is None:
+        return ()
+    device_node = devices_node.find("device")
+    if device_node is None:
+        return ()
+    interrupts_node = device_node.find("interrupts")
+    if interrupts_node is None:
+        return ()
+
+    results: list[RawInterrupt] = []
+    for interrupt_node in interrupts_node.findall("interrupt"):
+        name = interrupt_node.get("name")
+        index_text = interrupt_node.get("index")
+        if name is None or index_text is None:
+            continue
+        try:
+            line = int(index_text)
+        except ValueError:
+            continue
+        peripheral: str | None = None
+        head, _, _ = name.partition("_")
+        if _AVR_INTERRUPT_PERIPHERAL_PATTERN.match(head):
+            peripheral = head
+        results.append(RawInterrupt(name=name, line=line, peripheral=peripheral))
+    return tuple(results)
 
 
 def _encode_af_number(function_name: str) -> int | None:

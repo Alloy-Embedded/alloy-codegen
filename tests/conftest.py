@@ -91,6 +91,28 @@ def nxp_execution_context(
 
 
 @pytest.fixture
+def fixture_microchip_avr_da_root() -> Path:
+    return ROOT / "tests" / "fixtures" / "microchip-dfp-avr-da"
+
+
+@pytest.fixture
+def microchip_avr_da_execution_context(
+    fixture_microchip_avr_da_root: Path,
+    tmp_path: Path,
+) -> ExecutionContext:
+    default_context = ExecutionContext.default()
+    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
+    return default_context.with_overrides(
+        source_overrides={
+            "microchip-dfp-extract": str(fixture_microchip_avr_da_root),
+        },
+        artifact_root=str(tmp_path / "artifacts"),
+        publication_root=str(tmp_path / "publication"),
+        alloy_root=str(alloy_root),
+    )
+
+
+@pytest.fixture
 def fixture_espressif_svd_root() -> Path:
     return ROOT / "tests" / "fixtures" / "espressif-svd"
 

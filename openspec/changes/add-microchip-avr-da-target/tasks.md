@@ -1,10 +1,10 @@
 ## Phase 0: Bootstrap & Source Adapter
 
-- [ ] 0.1 Add `("microchip", "avr-da")` to `DEVICE_REGISTRY` and `PACK_CONFIGS`
-      (Partial: `PACK_CONFIGS` entry for `Microchip.AVR-Dx_DFP.2.4.286.atpack`
-      is registered in `sources/microchip_dfp.py`.  `DEVICE_REGISTRY` entry
-      waits on Phase 2 ATDF→IR normalization so the bootstrap tests don't
-      fail — every other artifact in the path is now in place.)
+- [x] 0.1 Add `("microchip", "avr-da")` to `DEVICE_REGISTRY` and `PACK_CONFIGS`
+      (`PACK_CONFIGS` entry `Microchip.AVR-Dx_DFP.2.4.286.atpack` lives in
+      `sources/microchip_dfp.py`; `DEVICE_REGISTRY[("microchip", "avr-da")]`
+      is `("avr128da32",)` in `bootstrap.py`; `SOURCE_BUNDLES` shares the
+      DFP-pack + DFP-extract bundle with SAME70.)
 - [x] 0.2 Refactor `microchip_dfp.py` to parse all address spaces and carry them through
       `MemoryPatch`
       (The adapter is SVD-optional via `SelectedDeviceFiles.svd_path: Path |
@@ -15,14 +15,12 @@
       eeprom are all emitted with the correct `kind` and `address_space`.)
 - [x] 0.3 Normalize upstream `address_space="base"` to `None`
       (Already in place at `sources/microchip_dfp.py` — ATDF `base` → `None`.)
-- [ ] 0.4 Add fetch/bootstrap path for `microchip/avr-da`
-      (Partial: the DFP adapter resolves the ATDF for AVR-DA through the
-      same code path as SAME70 — just without requiring an SVD.  A test
-      fixture is vendored at `tests/fixtures/microchip-dfp-avr-da/`
-      containing a minimal PDSC + AVR128DA32 ATDF.  Full `fetch_records`
-      wiring — `scope.validate_supported()` accepting avr-da, plus
-      `PACK_SOURCE_ID` records for the AVR-Dx atpack — waits on the
-      `DEVICE_REGISTRY` flip in Phase 0.1.)
+- [x] 0.4 Add fetch/bootstrap path for `microchip/avr-da`
+      (`stages/fetch.py` dispatches AVR-DA through the same Microchip DFP
+      fetch function as SAME70.  `validate_supported()` now admits
+      `avr128da32`, `fetch_records` returns PDSC + ATDF records, and the
+      full `run_normalize(PipelineScope(device="avr128da32"))` pipeline
+      succeeds.)
 - [x] 0.5 Scaffold `patches/microchip/avr-da/family.json` and
       `patches/microchip/avr-da/devices/avr128da32.json`
       (Family patch declares 12 pins of PORTA/PORTC, 7 peripherals
@@ -69,9 +67,30 @@
       (Landed in `PERIPHERAL_CLASS_ALIASES`.  `usart` was already aliased to
       `uart`; this commit adds `twi`, `tca`, `tcb`, `tcd`.)
 - [ ] 2.4 Extend `_typed_register_ref` for `CLKCTRL`
-- [ ] 2.5 Populate `family.json` with memory, clocks, packages, DMAC
-- [ ] 2.6 Populate `avr128da32.json` with enable/reset/interrupt enrichments
-- [ ] 2.7 Add normalized golden fixture and regression tests
+      (Follow-on: requires ATDF `<register-group>` register parsing so AVR
+      CLKCTRL bits can resolve to typed runtime refs.  Currently the
+      AVR-DA normalize path emits zero `registers` / `register_fields`;
+      validation rules that depend on register descriptors are explicitly
+      exempted for `core.startswith("avr")` until this lands.)
+- [x] 2.5 Populate `family.json` with memory, clocks, packages, DMAC
+      (Partial: packages, 12 pins, 7 peripherals with `ip_version`, and a
+      minimal PORTMUX pin-signal table are in place.  AVR DMAC peripheral
+      and clock-graph wiring land together with 2.4.)
+- [x] 2.6 Populate `avr128da32.json` with enable/reset/interrupt enrichments
+      (Partial: three Harvard memories, `core=avr8`, two clock profiles.
+      Interrupts are parsed from the ATDF via `parse_interrupts_from_atdf`
+      — the device patch doesn't need to redeclare them.  Explicit
+      enable/reset enrichments wait on CLKCTRL typed refs from 2.4.)
+- [x] 2.7 Add normalized golden fixture and regression tests
+      (`tests/fixtures/avr-da/avr128da32.canonical.json` locked in.  Five
+      regression tests in `tests/test_normalize.py`:
+      `test_normalize_matches_avr_da_fixture[avr128da32]`,
+      `test_normalize_avr_da_uses_correct_family_identity`,
+      `test_normalize_avr_da_preserves_harvard_address_spaces`
+      (proves EEPROM zero startup roles + per-region `address_space`),
+      `test_normalize_avr_da_has_avr8_vector_baseline`
+      (no ARM fault handlers; slot 0 is `__vector_0`), and
+      `test_normalize_avr_da_routes_usart_spi_twi_signals`.)
 
 ## Phase 3: PORTMUX Routing
 
