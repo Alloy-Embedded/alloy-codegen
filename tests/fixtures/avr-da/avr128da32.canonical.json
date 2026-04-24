@@ -1810,7 +1810,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA0",
       "register_peripheral": null,
@@ -1835,7 +1835,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA1",
       "register_peripheral": null,
@@ -1860,7 +1860,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA2",
       "register_peripheral": null,
@@ -1885,7 +1885,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA3",
       "register_peripheral": null,
@@ -1910,7 +1910,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA4",
       "register_peripheral": null,
@@ -1935,7 +1935,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA5",
       "register_peripheral": null,
@@ -1960,7 +1960,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA6",
       "register_peripheral": null,
@@ -1985,7 +1985,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PA7",
       "register_peripheral": null,
@@ -2010,7 +2010,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PC0",
       "register_peripheral": null,
@@ -2035,7 +2035,7 @@
           "microchip-avr128da32-bootstrap"
         ]
       },
-      "schema_id": "alloy.pinmux.sam-pio-v1",
+      "schema_id": "alloy.pinmux.avr-portmux-v1",
       "subject_kind": "pin",
       "subject_id": "PC1",
       "register_peripheral": null,

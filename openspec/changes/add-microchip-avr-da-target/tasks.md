@@ -94,10 +94,30 @@
 
 ## Phase 3: PORTMUX Routing
 
-- [ ] 3.1 Add `alloy.pinmux.avr-portmux-v1` to known backend schemas
-- [ ] 3.2 Extend AVR signal parsing for USART/SPI/TWI/ADC/DAC bootstrap coverage
-- [ ] 3.3 Populate PORTMUX pin-signal data in family patches
-- [ ] 3.4 Add emitted proof that runtime pin routing publishes the AVR schema correctly
+- [x] 3.1 Add `alloy.pinmux.avr-portmux-v1` to known backend schemas
+      (`_pinmux_backend_schema_id(vendor, family)` now takes both arguments
+      and matches `("microchip", "avr-da") -> "alloy.pinmux.avr-portmux-v1"`.
+      SAME70 stays on `alloy.pinmux.sam-pio-v1`.  Fallback for
+      `("microchip", None)` remains the SAME70 schema for backwards
+      compatibility.)
+- [x] 3.2 Extend AVR signal parsing for USART/SPI/TWI/ADC/DAC bootstrap coverage
+      (Partial: PORTMUX pin_signals in `patches/microchip/avr-da/family.json`
+      cover USART0/1 TX+RX, TWI0 SDA/SCL, SPI0 MOSI/MISO/SCK/CS — the
+      minimum set for bootstrap driver scaffolding.  ADC/DAC land with
+      Phase 2.4 register parsing.)
+- [x] 3.3 Populate PORTMUX pin-signal data in family patches
+      (10 PORTMUX bootstrap pin-signals in `family.json`, all at
+      `af_number=0` = default selection.  Alternate routings ready to
+      layer in as follow-on.)
+- [x] 3.4 Add emitted proof that runtime pin routing publishes the AVR schema correctly
+      (`tests/test_avr_da.py` — 4 tests:
+        * `test_pinmux_schema_for_avr_da_is_avr_portmux_v1`
+        * `test_avr128da32_pinmux_route_operations_carry_portmux_schema`
+        * `test_avr128da32_pinmux_covers_usart_spi_twi_bootstrap_peripherals`
+        * `test_avr128da32_runtime_routes_header_encodes_portmux_schema`
+      Proves the PORTMUX schema id lives on every `write-selector` route
+      operation and is emitted as `BackendSchemaId::schema_alloy_pinmux_avr_portmux_v1`
+      in `runtime/devices/avr128da32/routes.hpp` and `runtime/types.hpp`.)
 
 ## Phase 4: Runtime Emission — AVR128DA32
 

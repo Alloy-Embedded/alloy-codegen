@@ -302,17 +302,23 @@ def _runtime_schema_id(
     return f"alloy.{subsystem}.{_sanitize(vendor)}-{_sanitize(variant)}"
 
 
-def _pinmux_backend_schema_id(vendor: str) -> str:
-    match vendor:
-        case "st":
+def _pinmux_backend_schema_id(vendor: str, family: str | None = None) -> str:
+    match (vendor, family):
+        case ("st", _):
             return "alloy.pinmux.stm32-af-v1"
-        case "microchip":
+        case ("microchip", "avr-da"):
+            # AVR-Dx PORTMUX: selects one of N predefined pin assignments per
+            # peripheral by writing an index into PORTMUX.<IP>ROUTEA.  On AVR
+            # `af_number` on PinSignals encodes the PORTMUX selection index
+            # (0 = default assignment, 1/2 = alternate assignments).
+            return "alloy.pinmux.avr-portmux-v1"
+        case ("microchip", _):
             return "alloy.pinmux.sam-pio-v1"
-        case "nxp":
+        case ("nxp", _):
             return "alloy.pinmux.imxrt-iomuxc-v1"
-        case "raspberrypi":
+        case ("raspberrypi", _):
             return "alloy.pinmux.rp2040-funcsel-v1"
-        case "espressif":
+        case ("espressif", _):
             # ESP32 IO Matrix: a fully-programmable GPIO signal router.
             # Consumer semantics are distinct from ARM AF: `af_number` on
             # Espressif PinSignals carries the IO Matrix signal index from
@@ -644,7 +650,9 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
     operation_map: dict[str, RouteOperation] = {}
     candidate_map: dict[str, ConnectionCandidate] = {}
     clock_schema_id = _clock_backend_schema_id(device)
-    pinmux_schema_id = _pinmux_backend_schema_id(device.identity.vendor)
+    pinmux_schema_id = _pinmux_backend_schema_id(
+        device.identity.vendor, device.identity.family
+    )
     for peripheral in device.peripherals:
         if peripheral.rcc_enable_signal is not None:
             requirement_id = f"requirement:clock-enable:{_sanitize(peripheral.name)}"
