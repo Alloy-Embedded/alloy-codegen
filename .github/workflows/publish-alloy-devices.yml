@@ -257,7 +257,27 @@ jobs:
           git -C "$publication_root" config --local --unset-all http.https://github.com/.extraheader || true
           git -C "$publication_root" remote set-url origin \
             "https://x-access-token:${ALLOY_DEVICES_PUSH_TOKEN}@github.com/${ALLOY_DEVICES_REPOSITORY}.git"
-          git -C "$publication_root" push origin HEAD:main
+          # Per-family publish jobs run in parallel and race on alloy-devices
+          # main. Retry with fetch + rebase on rejection so concurrent writers
+          # serialize cleanly. Each family touches disjoint paths
+          # (vendor/family/...), so the rebase is conflict-free in practice.
+          attempts=0
+          max_attempts=5
+          while true; do
+            if git -C "$publication_root" push origin HEAD:main; then
+              break
+            fi
+            attempts=$((attempts + 1))
+            if [ "$attempts" -ge "$max_attempts" ]; then
+              echo "push to alloy-devices failed after $attempts attempts" >&2
+              exit 1
+            fi
+            sleep_for=$((RANDOM % 5 + 2))
+            echo "push rejected; fetch + rebase + retry in ${sleep_for}s (attempt $attempts/$max_attempts)" >&2
+            sleep "$sleep_for"
+            git -C "$publication_root" fetch origin main
+            git -C "$publication_root" rebase origin/main
+          done
 
       - name: Summarize remote publication outcome
         if: always()
