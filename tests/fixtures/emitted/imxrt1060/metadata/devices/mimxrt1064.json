@@ -1681,6 +1681,42 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.eth.nxp-enet",
+      "base_address": 1076723712,
+      "instance": 0,
+      "ip_name": "enet",
+      "ip_version": null,
+      "name": "ENET",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.usb.nxp-usb",
+      "base_address": 1076756480,
+      "instance": 1,
+      "ip_name": "usb",
+      "ip_version": null,
+      "name": "USB1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
       "backend_schema_id": "alloy.ccm.nxp-ccm",
       "base_address": 1074774016,
       "instance": 0,
@@ -3343,6 +3379,38 @@
       "size_bits": null
     },
     {
+      "access": null,
+      "name": "ECR",
+      "offset_bytes": 36,
+      "peripheral": "ENET",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+      },
+      "register_id": "register:enet:ecr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "USBCMD",
+      "offset_bytes": 320,
+      "peripheral": "USB1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+      },
+      "register_id": "register:usb1:usbcmd",
+      "size_bits": null
+    },
+    {
       "access": "read-write",
       "name": "CACRR",
       "offset_bytes": 16,
@@ -4669,7 +4737,7 @@
       "value_ref_kind": "selector"
     }
   ],
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "signal_endpoints": [
     {
       "direction": null,

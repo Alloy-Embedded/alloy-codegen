@@ -63,7 +63,7 @@ def test_normalize_f4_uses_correct_family_identity(
 
     assert device.identity.vendor == "st"
     assert device.identity.family == "stm32f4"
-    assert device.schema_version == "1.1.0"
+    assert device.schema_version == "1.2.0"
 
 
 def test_normalize_g0_and_f4_use_same_schema_version(
@@ -98,7 +98,7 @@ def test_normalize_same70_uses_correct_family_identity(
 
     assert device.identity.vendor == "microchip"
     assert device.identity.family == "same70"
-    assert device.schema_version == "1.1.0"
+    assert device.schema_version == "1.2.0"
 
 
 def test_normalize_g0_and_same70_use_same_schema_version(
@@ -472,7 +472,7 @@ def test_normalize_rp2040_uses_correct_family_identity(
 
     assert device.identity.vendor == "raspberrypi"
     assert device.identity.family == "rp2040"
-    assert device.schema_version == "1.1.0"
+    assert device.schema_version == "1.2.0"
 
 
 def test_normalize_rp2040_has_expected_memories(
@@ -524,7 +524,7 @@ def test_normalize_esp32c3_uses_correct_family_identity(
     assert device.identity.vendor == "espressif"
     assert device.identity.family == "esp32c3"
     assert device.identity.core == "rv32imc"
-    assert device.schema_version == "1.1.0"
+    assert device.schema_version == "1.2.0"
 
 
 def test_normalize_esp32c3_has_expected_memories(

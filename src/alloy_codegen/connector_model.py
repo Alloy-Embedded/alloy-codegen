@@ -249,6 +249,14 @@ SYSTEM_VECTOR_BASELINES = {
     "xtensa-lx7": (
         (0, "Reset_Handler", None, "reset-handler"),
     ),
+    # 8-bit AVR (Microchip AVR-DA and family).  The interrupt vector table starts
+    # directly with device-specific handlers — no ARM system exception prefix,
+    # no RISC-V mtvec.  Slot 0 is reserved for the reset vector (``__vector_0``)
+    # which avr-gcc's crt0 expects at address 0.  Peripheral interrupts are
+    # numbered starting at slot 1 by their ATDF interrupt-line value.
+    "avr8": (
+        (0, "__vector_0", None, "reset-handler"),
+    ),
 }
 ST_RCC_TARGET_PATTERN = re.compile(r"^RCC_(?P<register>[A-Z0-9_]+)\.(?P<field>[A-Z0-9_]+)$")
 MICROCHIP_PMC_PID_TARGET_PATTERN = re.compile(r"^PMC\.PID(?P<pid>\d+)$")

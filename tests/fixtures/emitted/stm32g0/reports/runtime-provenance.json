@@ -2522,6 +2522,6 @@
   ],
   "family": "stm32g0",
   "report_id": "runtime-provenance-v1",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "vendor": "st"
 }

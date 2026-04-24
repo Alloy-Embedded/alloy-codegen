@@ -8,7 +8,7 @@ from alloy_codegen.errors import UnsupportedScopeError
 
 BOOTSTRAP_VENDOR = "st"
 BOOTSTRAP_FAMILY = "stm32g0"
-IR_SCHEMA_VERSION = "1.1.0"
+IR_SCHEMA_VERSION = "1.2.0"
 PIPELINE_NAME = "alloy-codegen"
 PUBLICATION_TARGET_REPOSITORY = "alloy-devices"
 ARTIFACT_LAYOUT_VERSION = "alloy-devices-v1"

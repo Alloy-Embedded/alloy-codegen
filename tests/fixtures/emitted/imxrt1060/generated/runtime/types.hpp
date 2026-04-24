@@ -16,6 +16,7 @@ enum class BackendSchemaId : std::uint16_t {
   schema_alloy_dcdc_nxp_dcdc,
   schema_alloy_dma_router_nxp_dmamux,
   schema_alloy_dma_nxp_dma,
+  schema_alloy_eth_nxp_enet,
   schema_alloy_gpio_nxp_imxrt_gpio_v1,
   schema_alloy_gpt_nxp_gpt,
   schema_alloy_lpi2c1_nxp_lpi2c_v1,
@@ -24,6 +25,7 @@ enum class BackendSchemaId : std::uint16_t {
   schema_alloy_pwm_nxp_pwm,
   schema_alloy_spi_nxp_lpspi_v1,
   schema_alloy_uart_nxp_lpuart_v1,
+  schema_alloy_usb_nxp_usb,
   schema_alloy_watchdog_nxp_rtwdog,
   schema_alloy_watchdog_nxp_wdog,
 };
@@ -37,6 +39,7 @@ enum class PeripheralClassId : std::uint16_t {
   class_dcdc,
   class_dma,
   class_dma_router,
+  class_eth,
   class_gpio,
   class_gpt,
   class_lpi2c1,
@@ -45,6 +48,7 @@ enum class PeripheralClassId : std::uint16_t {
   class_spi,
   class_timer,
   class_uart,
+  class_usb,
   class_watchdog,
 };
 

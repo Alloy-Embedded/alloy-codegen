@@ -33,6 +33,14 @@
       "value": "true"
     },
     {
+      "capability_id": "runtime-support:eth",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "eth",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
       "capability_id": "capability:gpio:imxrt-gpio-v1:io00",
       "name": "signal-role",
       "peripheral": null,
@@ -185,6 +193,14 @@
       "value": "tx"
     },
     {
+      "capability_id": "runtime-support:usb",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "usb",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
       "capability_id": "runtime-support:watchdog",
       "name": "runtime-supported",
       "peripheral": null,
@@ -195,6 +211,6 @@
   ],
   "device": "mimxrt1064",
   "family": "imxrt1060",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "vendor": "nxp"
 }

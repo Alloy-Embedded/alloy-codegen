@@ -49,7 +49,7 @@ def _provenance() -> Provenance:
 def _base_device() -> CanonicalDeviceIR:
     provenance = _provenance()
     return CanonicalDeviceIR(
-        schema_version="1.1.0",
+        schema_version="1.2.0",
         identity=DeviceIdentity(
             vendor="st",
             family="stm32g0",
