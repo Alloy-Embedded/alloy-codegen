@@ -81,6 +81,11 @@ from alloy_codegen.runtime_reports import (
     emit_runtime_provenance_report,
 )
 from alloy_codegen.runtime_resets import emit_runtime_resets_header
+from alloy_codegen.runtime_riscv_startup import (
+    emit_riscv_startup_source,
+    emit_riscv_startup_vectors_source,
+    _is_riscv_device,
+)
 from alloy_codegen.runtime_startup import emit_runtime_startup_header
 from alloy_codegen.runtime_system_clock import emit_runtime_system_clock_header
 from alloy_codegen.runtime_system_sequences import emit_runtime_system_sequences_header
@@ -147,8 +152,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
                 emit_runtime_linker_script(family_dir=family_dir, device=device),
-                emit_startup_source(family_dir=family_dir, device=device),
-                emit_startup_vectors_source(family_dir=family_dir, device=device),
+                (
+                    emit_riscv_startup_source(family_dir=family_dir, device=device)
+                    if _is_riscv_device(device)
+                    else emit_startup_source(family_dir=family_dir, device=device)
+                ),
+                (
+                    emit_riscv_startup_vectors_source(family_dir=family_dir, device=device)
+                    if _is_riscv_device(device)
+                    else emit_startup_vectors_source(family_dir=family_dir, device=device)
+                ),
                 emit_runtime_lite_peripheral_instances_header(
                     family_dir=family_dir,
                     device=device,

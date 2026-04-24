@@ -35,11 +35,11 @@
     { "name": "I2C0",  "rcc_enable_signal": "PCR_I2C0_CONF_REG.I2C0_CLK_EN" },
     { "name": "ADC",   "rcc_enable_signal": null },
     { "name": "PCR",   "rcc_enable_signal": null },
-    { "name": "GDMA",  "rcc_enable_signal": null }
+    { "name": "DMA",   "rcc_enable_signal": null }
   ],
   "dma_controllers": [
     {
-      "controller": "GDMA",
+      "controller": "DMA",
       "channel_count": 3,
       "version": "esp32c3-gdma-v1"
     }
@@ -47,7 +47,7 @@
   "dma_requests": [
     {
       "request_id": "gdma-uart0-rx",
-      "controller": "GDMA",
+      "controller": "DMA",
       "request_line": "UART0_RX",
       "peripheral": "UART0",
       "signal": "RX",
@@ -55,7 +55,7 @@
     },
     {
       "request_id": "gdma-uart0-tx",
-      "controller": "GDMA",
+      "controller": "DMA",
       "request_line": "UART0_TX",
       "peripheral": "UART0",
       "signal": "TX",
@@ -63,7 +63,7 @@
     },
     {
       "request_id": "gdma-spi2-rx",
-      "controller": "GDMA",
+      "controller": "DMA",
       "request_line": "SPI2_RX",
       "peripheral": "SPI2",
       "signal": "RX",
@@ -71,7 +71,7 @@
     },
     {
       "request_id": "gdma-spi2-tx",
-      "controller": "GDMA",
+      "controller": "DMA",
       "request_line": "SPI2_TX",
       "peripheral": "SPI2",
       "signal": "TX",
@@ -79,7 +79,7 @@
     },
     {
       "request_id": "gdma-adc",
-      "controller": "GDMA",
+      "controller": "DMA",
       "request_line": "ADC",
       "peripheral": "ADC",
       "signal": "DATA",

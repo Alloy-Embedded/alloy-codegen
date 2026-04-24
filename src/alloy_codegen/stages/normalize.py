@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import re
 
 from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, IR_SCHEMA_VERSION
@@ -1676,6 +1677,43 @@ def _build_rp2040_device_ir(
     )
 
 
+def _dedup_esp32_peripherals(
+    raw_peripherals: tuple[RawPeripheral, ...],
+    preferred_names: frozenset[str],
+) -> tuple[RawPeripheral, ...]:
+    """Remove ESP32 SVD peripherals that share a base address with a preferred peripheral.
+
+    Some Espressif SVDs declare lightweight "alias" peripherals that share a
+    base address with a richer peripheral (e.g. ``RNG`` aliased into
+    ``APB_CTRL`` at the same base address).  The canonical IR requires unique
+    base addresses, so we drop the lower-priority duplicate:
+
+    Priority order (highest first):
+    1. Peripheral is explicitly listed in the device-patch peripheral set.
+    2. Peripheral has the most registers among the duplicates.
+    """
+    from collections import defaultdict
+
+    by_base: dict[int, list[RawPeripheral]] = defaultdict(list)
+    for p in raw_peripherals:
+        by_base[p.base_address].append(p)
+
+    kept: set[str] = set()
+    for group in by_base.values():
+        if len(group) == 1:
+            kept.add(group[0].name)
+        else:
+            # Prefer explicitly patched names first.
+            patched = [
+                p for p in group if _canonical_peripheral_name(p.name) in preferred_names
+            ]
+            winner = patched[0] if patched else max(group, key=lambda p: len(p.registers))
+            kept.add(winner.name)
+
+    # Preserve original ordering.
+    return tuple(p for p in raw_peripherals if p.name in kept)
+
+
 def _build_esp32_device_ir(
     *,
     execution_context: ExecutionContext,
@@ -1693,13 +1731,55 @@ def _build_esp32_device_ir(
     family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
     svd_path = resolve_esp_svd_path(execution_context, device_name, vendor=vendor, family=family)
     raw = parse_raw_device_document(svd_path)
-    return build_rp2040_canonical_ir(
+
+    # Deduplicate SVD peripherals that share a base address (e.g. RNG/APB_CTRL
+    # at 0x60026000 in the ESP32-C3 SVD).
+    preferred = frozenset(p.name for p in patch.peripherals)
+    deduped_peripherals = _dedup_esp32_peripherals(raw.peripherals, preferred)
+    raw = dataclasses.replace(raw, peripherals=deduped_peripherals)
+
+    ir = build_rp2040_canonical_ir(
         raw,
         patch,
         family_catalog,
         vendor=vendor,
         family=family,
+        svd_source_id="espressif-svd",
     )
+
+    # Phase 0: if no pins were produced (IO Matrix not yet populated), build
+    # placeholder PinDefinitions from the family catalog so that schema
+    # validation passes.  Signals will be filled in Phase 2 when gpio_sig_map.h
+    # is ingested.
+    if not ir.pins and family_catalog.pins:
+        phase0_pins = tuple(
+            PinDefinition(
+                name=pin_entry.name,
+                port=pin_entry.port,
+                number=pin_entry.number,
+                signals=(),
+                provenance=ir.provenance,
+            )
+            for pin_entry in sorted(family_catalog.pins, key=lambda p: p.number)
+            if not pin_entry.packages or patch.package in pin_entry.packages
+        )
+        phase0_pads = tuple(
+            PackagePad(
+                pad_id=pin_entry.name,
+                package=patch.package,
+                position_label=pin_entry.name,
+                physical_index=None,
+                pad_kind="io",
+                bonded_pin=pin_entry.name,
+                provenance=ir.provenance,
+                bonding_state="bonded",
+            )
+            for pin_entry in sorted(family_catalog.pins, key=lambda p: p.number)
+            if not pin_entry.packages or patch.package in pin_entry.packages
+        )
+        ir = dataclasses.replace(ir, pins=phase0_pins, package_pads=phase0_pads)
+
+    return ir
 
 
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:

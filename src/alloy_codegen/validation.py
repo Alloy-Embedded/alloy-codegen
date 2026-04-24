@@ -20,6 +20,21 @@ from alloy_codegen.reporting import (
 )
 from alloy_codegen.scope import PipelineScope
 
+def _required_system_vector_slots(core: str) -> frozenset[int]:
+    """Return the set of vector slot numbers that must be present for a given core.
+
+    Cortex-M requires a fixed set of system exception slots (initial stack
+    pointer, reset, NMI, HardFault, SVCall, PendSV, SysTick).  RISC-V and
+    Xtensa only require the reset entry at slot 0.
+    """
+    normalized = core.lower()
+    if normalized.startswith("cortex-m"):
+        return frozenset({0, 1, 2, 3, 11, 14, 15})
+    # RISC-V CLIC / Xtensa: flat interrupt model, only Reset_Handler (slot 0)
+    # is part of the mandatory system baseline.
+    return frozenset({0})
+
+
 SYSTEM_DESCRIPTOR_RULE_SUFFIXES: dict[str, tuple[str, ...]] = {
     "interrupt": (
         "interrupts-reference-known-peripherals",
@@ -331,10 +346,15 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
     referenced_peripherals.update(
         request.peripheral for request in device.dma_requests if request.peripheral is not None
     )
-    referenced_peripherals.update(request.controller for request in device.dma_requests)
+    # DMA controllers are infrastructure (always-on bus masters) and do not
+    # require a software-controlled clock-enable in all architectures.
+    # Exclude them from the rcc_enable check so platforms like ESP32 — where
+    # the GDMA/DMA peripheral is permanently clocked — do not fail validation.
+    dma_controller_names = {request.controller for request in device.dma_requests}
+    rcc_check_peripherals = referenced_peripherals - dma_controller_names
     referenced_peripherals_have_rcc = all(
         peripheral_map.get(name) is not None and peripheral_map[name].rcc_enable_signal is not None
-        for name in referenced_peripherals
+        for name in rcc_check_peripherals
     )
     interrupt_peripherals_known = all(
         interrupt.peripheral is None or interrupt.peripheral in peripheral_names
@@ -767,7 +787,9 @@ def _validate_descriptor_semantics(device: CanonicalDeviceIR) -> tuple[Validatio
         if vector_slot.interrupt is not None
     } >= interrupt_names
     vector_slot_numbers = {vector_slot.slot for vector_slot in device.vector_slots}
-    system_vector_baseline_present = {0, 1, 2, 3, 11, 14, 15} <= vector_slot_numbers
+    system_vector_baseline_present = (
+        _required_system_vector_slots(device.identity.core) <= vector_slot_numbers
+    )
     memory_regions_carry_startup_roles = any(memory.startup_roles for memory in device.memories)
     startup_descriptors_are_present = bool(device.startup_descriptors)
     startup_descriptors_reference_known_memories = all(
