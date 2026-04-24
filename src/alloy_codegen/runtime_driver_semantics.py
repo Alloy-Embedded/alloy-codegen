@@ -2239,8 +2239,13 @@ def _microchip_i2c_row(
         thr_reg=reg("THR", 0x34),
         pe_field=empty_field,
         ack_field=empty_field,
-        start_field=empty_field,
-        stop_field=empty_field,
+        # TWIHS CR is a write-only "action" register: writing START=1 issues
+        # a START condition, writing STOP=1 issues a STOP, and the bits are
+        # self-clearing. Expose them as bit-0/bit-1 single-bit fields so the
+        # HAL backend can drive them through rt::write_register(cr, ...) /
+        # rt::modify_field(start/stop, 1u) instead of typing raw masks.
+        start_field=field("CR", "START", 0x00, 0),
+        stop_field=field("CR", "STOP", 0x00, 1),
         freq_field=empty_field,
         ccr_field=empty_field,
         fs_field=empty_field,
