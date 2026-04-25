@@ -26,6 +26,26 @@ from alloy_codegen.patches import (
 )
 from alloy_codegen.reporting import EmittedArtifact
 
+# CMSIS / Cortex standard cores that ship in every ARM SVD.  Filtered out of the
+# README peripheral list when we fall back to the canonical IR — these aren't
+# user-facing peripherals, just the standard core debug/control blocks.
+_CMSIS_STANDARD_PERIPHERALS: frozenset[str] = frozenset(
+    {
+        "CoreDebug",
+        "DWT",
+        "ETM",
+        "FPB",
+        "FPU",
+        "ITM",
+        "MPU",
+        "NVIC",
+        "SCB",
+        "SCnSCB",
+        "SysTick",
+        "TPIU",
+    }
+)
+
 README_PATH = "README.md"
 README_ARTIFACT_KIND = "documentation"
 
@@ -78,6 +98,39 @@ def _isa_label(core: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _peripherals_from_canonical_ir(
+    context: ExecutionContext, *, vendor: str, family: str, device: str
+) -> tuple[str, ...]:
+    """Fallback when family.json's peripheral list is empty.
+
+    Some families (notably ``microchip/same70``) admit peripherals dynamically
+    from the upstream SVD via the device-patch normalize path and never curate
+    a ``peripherals`` array at the family level.  In that case the README
+    would otherwise show ``—`` even though the published IR carries a full
+    list.  We run normalize once and read the IR's peripheral set, filtering
+    out the CMSIS-standard core blocks (``CoreDebug``, ``FPU``, etc.) that
+    aren't user-facing.
+
+    Imports happen lazily inside the function so the README emitter does not
+    import the full normalize stack when the catalog already supplies the
+    peripheral list (the common path).
+    """
+    from alloy_codegen.scope import PipelineScope
+    from alloy_codegen.stages.normalize import run as run_normalize
+
+    result = run_normalize(PipelineScope(vendor=vendor, family=family, device=device), context)
+    if not result.payload.devices:
+        return ()
+    ir_device = result.payload.devices[0]
+    return tuple(
+        sorted(
+            peripheral.name
+            for peripheral in ir_device.peripherals
+            if peripheral.name not in _CMSIS_STANDARD_PERIPHERALS
+        )
+    )
+
+
 def _row_for_family(
     *,
     context: ExecutionContext,
@@ -98,6 +151,19 @@ def _row_for_family(
     isa = _isa_label(device_patches[0].core)
     packages = tuple(sorted({device.package for device in device_patches}))
     peripherals = tuple(peripheral.name for peripheral in family_catalog.peripherals)
+    if not peripherals:
+        # Fall back to the canonical IR — the family curates peripherals
+        # dynamically from upstream SVD instead of declaring them in
+        # family.json (e.g., microchip/same70).  The README is best-effort
+        # documentation: if the lazy normalize fails (e.g., scoped test
+        # fixtures don't have the source for OTHER families), degrade to
+        # an empty list and keep the rest of the README intact.
+        try:
+            peripherals = _peripherals_from_canonical_ir(
+                context, vendor=vendor, family=family, device=devices[0]
+            )
+        except StageExecutionError:
+            peripherals = ()
     return _FamilyRow(
         vendor=vendor,
         family=family,
