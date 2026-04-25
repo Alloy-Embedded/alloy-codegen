@@ -1694,8 +1694,16 @@ def _dedup_esp32_peripherals(
     Priority order (highest first):
     1. Peripheral is explicitly listed in the device-patch peripheral set.
     2. Peripheral has the most registers among the duplicates.
+
+    Per-core duplicates are exempt: ``INTERRUPT_CORE0`` / ``INTERRUPT_CORE1``
+    on ESP32-S3 share a single base address by design (each core sees its own
+    routing view of the same hardware block).  Both are kept so the dual-core
+    control plane can attribute vectors to the correct core via
+    ``core_affinity``.
     """
     from collections import defaultdict
+
+    per_core_keep: frozenset[str] = frozenset({"INTERRUPT_CORE0", "INTERRUPT_CORE1"})
 
     by_base: dict[int, list[RawPeripheral]] = defaultdict(list)
     for p in raw_peripherals:
@@ -1705,11 +1713,18 @@ def _dedup_esp32_peripherals(
     for group in by_base.values():
         if len(group) == 1:
             kept.add(group[0].name)
-        else:
-            # Prefer explicitly patched names first.
-            patched = [p for p in group if _canonical_peripheral_name(p.name) in preferred_names]
-            winner = patched[0] if patched else max(group, key=lambda p: len(p.registers))
-            kept.add(winner.name)
+            continue
+        # Per-core mirrored peripherals: keep every member of the dedicated
+        # allowlist that appears in the group.
+        per_core_in_group = [p for p in group if p.name in per_core_keep]
+        if per_core_in_group:
+            for p in per_core_in_group:
+                kept.add(p.name)
+            continue
+        # Generic dedup: prefer explicitly patched names, else the richest entry.
+        patched = [p for p in group if _canonical_peripheral_name(p.name) in preferred_names]
+        winner = patched[0] if patched else max(group, key=lambda p: len(p.registers))
+        kept.add(winner.name)
 
     # Preserve original ordering.
     return tuple(p for p in raw_peripherals if p.name in kept)
@@ -1738,11 +1753,14 @@ def _build_esp32_device_ir(
     preferred = frozenset(p.name for p in patch.peripherals)
     deduped_peripherals = _dedup_esp32_peripherals(raw.peripherals, preferred)
     # Drop interrupts that reference peripherals deliberately excluded from
-    # the device-patch allowlist.  On ESP32-S3 this filters out the core-1
-    # interrupt controller and its children — the bootstrap is
-    # single-core-perspective (core 0 control plane only), so core-1 specific
-    # interrupts MUST NOT appear in the canonical IR.  System-level interrupts
-    # with ``peripheral=None`` (reset, NMI) are always admitted.
+    # the device-patch allowlist.  Both cores of dual-core Xtensa devices
+    # (ESP32 LX6 and ESP32-S3 LX7) are admitted as part of the dual-core
+    # control plane introduced by ``add-espressif-esp32-classic-target`` —
+    # the per-core interrupt matrix peripherals (``INTERRUPT_CORE0`` /
+    # ``INTERRUPT_CORE1`` on S3, ``DPORT`` PRO_/APP_ registers on the
+    # classic) MUST be in the family allowlist for vectors to survive this
+    # filter.  System-level interrupts with ``peripheral=None`` (reset, NMI)
+    # are always admitted.
     admitted_peripheral_names = {p.name for p in deduped_peripherals}
     filtered_interrupts = tuple(
         interrupt

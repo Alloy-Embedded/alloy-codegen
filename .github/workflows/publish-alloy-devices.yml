@@ -48,6 +48,8 @@ jobs:
             family: esp32c3
           - vendor: espressif
             family: esp32s3
+          - vendor: espressif
+            family: esp32
     env:
       ALLOY_DEVICES_REPOSITORY: ${{ github.repository_owner }}/alloy-devices
 

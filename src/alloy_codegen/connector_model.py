@@ -244,8 +244,14 @@ SYSTEM_VECTOR_BASELINES = {
     # Generic RISC-V aliases — other RV32 variants map to the same minimal baseline.
     "rv32imac": ((0, "Reset_Handler", None, "reset-handler"),),
     "riscv": ((0, "Reset_Handler", None, "reset-handler"),),
-    # Xtensa LX7 (ESP32-S3). The first admitted model is single-core-perspective.
-    # The reset vector is fixed in internal ROM; no ARM exception table is used.
+    # Xtensa LX6 (ESP32 classic).  Dual-core: PRO_CPU + APP_CPU share the same
+    # baseline; APP_CPU bring-up is handled by ``bring_up_app_cpu()`` in the
+    # generated startup.cpp.  The reset vector for both cores is fixed in
+    # internal ROM; no ARM-style exception table is used.
+    "xtensa-lx6": ((0, "Reset_Handler", None, "reset-handler"),),
+    # Xtensa LX7 (ESP32-S3). Dual-core like the LX6 above; same baseline.
+    # See ``runtime_xtensa_startup.py`` for the dual-core control plane
+    # (``Reset_Handler`` / ``Reset_Handler_CPU1`` / ``bring_up_app_cpu``).
     "xtensa-lx7": ((0, "Reset_Handler", None, "reset-handler"),),
     # 8-bit AVR (Microchip AVR-DA and family).  The interrupt vector table starts
     # directly with device-specific handlers — no ARM system exception prefix,
@@ -484,6 +490,46 @@ def _symbol_name(interrupt_name: str) -> str:
     if interrupt_name.endswith("_IRQHandler"):
         return interrupt_name
     return f"{interrupt_name}_IRQHandler"
+
+
+def _interrupt_core_affinity(peripheral_name: str | None) -> str:
+    """Derive the core affinity for one interrupt from its owning peripheral.
+
+    Multi-core Xtensa families (ESP32 LX6, ESP32-S3 LX7) surface the per-core
+    interrupt matrix as distinct peripherals: ``INTERRUPT_CORE0`` /
+    ``INTERRUPT_CORE1`` on ESP32-S3 (independent SVD peripherals) and a
+    single ``DPORT`` block carrying ``PRO_*`` / ``APP_*`` register pairs on
+    the ESP32 classic.  Vectors routed through the APP_CPU side (peripheral
+    name contains ``CORE1`` or starts with ``DPORT_APP_``) carry
+    ``"cpu1"``; everything else defaults to ``"cpu0"``.
+
+    Single-core targets (Cortex-M, RISC-V mononúcleo, AVR8) never see these
+    naming patterns and consistently land on ``"cpu0"`` — keeping the
+    existing emitters unchanged.
+    """
+    if peripheral_name is None:
+        return "cpu0"
+    upper = peripheral_name.upper()
+    if upper == "INTERRUPT_CORE1" or upper.startswith("INTERRUPT_CORE1_"):
+        return "cpu1"
+    if upper.startswith("DPORT_APP_"):
+        return "cpu1"
+    return "cpu0"
+
+
+def _system_vector_core_affinity(core_name: str, kind: str) -> str:
+    """Derive the core affinity for one system-baseline vector.
+
+    On dual-core Xtensa families a few system exceptions (NMI, double-fault)
+    exist symmetrically on both cores.  Marking them ``"shared"`` lets the
+    emitter put them in both ``_vectors_cpu0[]`` and ``_vectors_cpu1[]``.
+    Any other system slot (reset, the canonical ``Reset_Handler``) belongs
+    to PRO_CPU only.
+    """
+    normalized = core_name.lower()
+    if normalized.startswith("xtensa") and kind in {"nmi", "double-exception"}:
+        return "shared"
+    return "cpu0"
 
 
 def _interrupt_aliases(interrupt_name: str, peripheral_name: str | None) -> tuple[str, ...]:
@@ -1076,6 +1122,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             interrupt=interrupt_name,
             kind=kind,
             provenance=device.provenance,
+            core_affinity=_system_vector_core_affinity(device.identity.core, kind),
         )
         for slot, symbol_name, interrupt_name, kind in _system_vector_baseline(device.identity.core)
     ) + tuple(
@@ -1085,6 +1132,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
             interrupt=interrupt.name,
             kind="external-interrupt",
             provenance=interrupt.provenance,
+            core_affinity=_interrupt_core_affinity(interrupt.peripheral),
         )
         for interrupt in sorted(interrupts, key=lambda item: item.line)
     )

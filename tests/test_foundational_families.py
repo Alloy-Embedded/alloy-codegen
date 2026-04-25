@@ -32,6 +32,7 @@ def _family_contexts(
         (PipelineScope(vendor="raspberrypi", family="rp2040"), rp2040_execution_context),
         (PipelineScope(vendor="espressif", family="esp32c3"), espressif_execution_context),
         (PipelineScope(vendor="espressif", family="esp32s3"), espressif_execution_context),
+        (PipelineScope(vendor="espressif", family="esp32"), espressif_execution_context),
     )
 
 

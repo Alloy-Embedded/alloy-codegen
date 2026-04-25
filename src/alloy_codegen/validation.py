@@ -327,7 +327,17 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
         for pin in device.pins
     )
     memory_sizes_positive = all(memory.size_bytes > 0 for memory in device.memories)
-    peripheral_bases = [peripheral.base_address for peripheral in device.peripherals]
+    # Per-core mirrored peripherals share a single hardware base address by
+    # design (each core sees its own routing view of the same register block).
+    # The dual-core Xtensa retrofit admits both ``INTERRUPT_CORE0`` and
+    # ``INTERRUPT_CORE1`` so vectors can be partitioned by ``core_affinity``;
+    # exempt those names from the uniqueness rule.
+    per_core_mirror_names: frozenset[str] = frozenset({"INTERRUPT_CORE0", "INTERRUPT_CORE1"})
+    peripheral_bases = [
+        peripheral.base_address
+        for peripheral in device.peripherals
+        if peripheral.name not in per_core_mirror_names
+    ]
     duplicate_peripheral_bases = [
         base for base, count in Counter(peripheral_bases).items() if count > 1
     ]

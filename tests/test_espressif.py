@@ -421,23 +421,65 @@ def test_esp32s3_identity_is_single_core_xtensa_lx7(
     assert device.schema_version == "1.2.0"
 
 
-def test_esp32s3_single_core_perspective_excludes_core1_interrupts(
+def test_esp32s3_admits_both_interrupt_cores(
     espressif_execution_context: ExecutionContext,
 ) -> None:
-    """Phase 4.4: the ESP32-S3 bootstrap deliberately excludes ``INTERRUPT_CORE1``
-    and its children from the IR.  The SVD ships them, but
-    `_build_esp32_device_ir` filters interrupts whose peripheral is not
-    admitted by the device-patch allowlist."""
+    """Phase 1.3 of add-espressif-esp32-classic-target: the ESP32-S3 bootstrap
+    admits BOTH interrupt-matrix peripherals (CORE0 + CORE1) so the dual-core
+    runtime startup can partition vectors by ``core_affinity``.  The earlier
+    single-core-perspective posture (which filtered ``INTERRUPT_CORE1``) is
+    superseded by the dual-core control-plane contract."""
     scope = PipelineScope(vendor="espressif", family="esp32s3", device="esp32s3")
     device = run_normalize(scope, espressif_execution_context).payload.devices[0]
     admitted = {peripheral.name for peripheral in device.peripherals}
-    # Core-1 interrupt controller must NOT leak into the admitted set.
-    assert "INTERRUPT_CORE1" not in admitted
-    # No interrupt in the IR may reference it either.
-    for interrupt in device.interrupts:
-        assert interrupt.peripheral != "INTERRUPT_CORE1", (
-            f"core-1 interrupt leaked: {interrupt.name} -> {interrupt.peripheral}"
-        )
+    # Both cores' interrupt matrices are admitted now.
+    assert "INTERRUPT_CORE0" in admitted
+    assert "INTERRUPT_CORE1" in admitted
+    # At least one CPU1-affine vector must be present.
+    cpu1_slots = [slot for slot in device.vector_slots if slot.core_affinity == "cpu1"]
+    assert cpu1_slots, "Expected CPU1-affine vectors after dual-core admission"
+    # And every cpu1 vector must reference a CORE1 peripheral.
+    for slot in cpu1_slots:
+        assert slot.interrupt is not None
+        matching = [
+            interrupt for interrupt in device.interrupts if interrupt.name == slot.interrupt
+        ]
+        assert matching, f"vector {slot.symbol_name} has no matching interrupt entry"
+        peripheral = matching[0].peripheral
+        assert peripheral is not None and (
+            peripheral.upper() == "INTERRUPT_CORE1" or peripheral.upper().startswith("DPORT_APP_")
+        ), f"cpu1 slot {slot.symbol_name} has unexpected peripheral {peripheral!r}"
+
+
+def test_esp32s3_emits_dual_core_startup(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 1.9 of add-espressif-esp32-classic-target: the regenerated ESP32-S3
+    startup carries the dual-core control plane — both vector tables, both
+    Reset_Handlers, the bring-up primitive, and the LX7-specific CORE_1
+    control register pokes."""
+    artifacts, _ = _esp32s3_artifacts(espressif_execution_context)
+    startup = artifacts["espressif/esp32s3/generated/devices/esp32s3/startup.cpp"].content
+    # Per-core vector tables are present.
+    assert "_vectors_cpu0[]" in startup
+    assert "_vectors_cpu1[]" in startup
+    assert ".xtensa_vectors_cpu0" in startup
+    assert ".xtensa_vectors_cpu1" in startup
+    # Both reset entry points are exposed.
+    assert "void Reset_Handler()" in startup
+    assert "void Reset_Handler_CPU1()" in startup
+    # Application-callable APP_CPU release primitive.
+    assert "void bring_up_app_cpu()" in startup
+    # ESP32-S3 specific control registers (LX7 variant).
+    assert "SYSTEM.CORE_1_CONTROL_0" in startup
+    assert "SYSTEM.CORE_1_CONTROL_1" in startup
+    assert "RUNSTALL" in startup
+    # Affinity / IPC primitives are NOT exposed as callable symbols by the
+    # bootstrap output (they appear only in the documentation comment).
+    assert "void ipi_send" not in startup
+    assert "void spinlock_" not in startup
+    assert "void mutex_" not in startup
+    assert "void queue_" not in startup
 
 
 def test_esp32s3_runtime_contract_contains_required_headers(
@@ -473,8 +515,13 @@ def test_esp32s3_startup_uses_xtensa_conventions(
     assert "la sp," not in startup
     # No ARM-style stack-pointer cast at slot 0.
     assert "reinterpret_cast<void (*)()>(&__stack_top)" not in startup
-    # Xtensa informational comment is present.
-    assert "Xtensa LX7" in startup or ".xtensa_vectors_info" in startup
+    # Dual-core Xtensa control plane is announced and the per-core vector
+    # tables are emitted (introduced by add-espressif-esp32-classic-target;
+    # the older ".xtensa_vectors_info" debug section was retired alongside
+    # the single-core-perspective posture).
+    assert "Dual-core Xtensa control plane" in startup
+    assert ".xtensa_vectors_cpu0" in startup
+    assert ".xtensa_vectors_cpu1" in startup
 
 
 def test_esp32s3_systick_is_not_required_for_xtensa(
@@ -587,3 +634,157 @@ def test_publish_esp32s3_consumer_smoke_passes(
         "Alloy consumer smoke build failed for espressif/esp32s3/esp32s3:\n"
         + result.payload.consumer_verification.stderr
     )
+
+
+# ---------------------------------------------------------------------------
+# ESP32 classic (dual-core Xtensa LX6) — add-espressif-esp32-classic-target
+# ---------------------------------------------------------------------------
+
+ESP32_EMITTED_FIXTURE_DIR = Path(__file__).parent / "fixtures" / "emitted" / "esp32"
+ESP32_CANONICAL_FIXTURE = Path(__file__).parent / "fixtures" / "esp32" / "esp32.canonical.json"
+
+
+def _esp32_artifacts(espressif_execution_context: ExecutionContext, device: str = "esp32"):
+    scope = PipelineScope(vendor="espressif", family="esp32", device=device)
+    result = run_emit(scope, espressif_execution_context)
+    return {artifact.path: artifact for artifact in result.payload.artifacts}, result
+
+
+def test_esp32_classic_emitted_runtime_goldens_match(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 6.1: pinned canonical artefacts for the QFN48 device."""
+    artifacts, _ = _esp32_artifacts(espressif_execution_context)
+    pairs = (
+        (
+            "espressif/esp32/generated/runtime/devices/esp32/interrupts.hpp",
+            ESP32_EMITTED_FIXTURE_DIR
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "esp32"
+            / "interrupts.hpp",
+        ),
+        (
+            "espressif/esp32/generated/runtime/devices/esp32/clock_graph.hpp",
+            ESP32_EMITTED_FIXTURE_DIR
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "esp32"
+            / "clock_graph.hpp",
+        ),
+        (
+            "espressif/esp32/generated/runtime/devices/esp32/peripheral_instances.hpp",
+            ESP32_EMITTED_FIXTURE_DIR
+            / "generated"
+            / "runtime"
+            / "devices"
+            / "esp32"
+            / "peripheral_instances.hpp",
+        ),
+        (
+            "espressif/esp32/generated/devices/esp32/startup.cpp",
+            ESP32_EMITTED_FIXTURE_DIR / "generated" / "devices" / "esp32" / "startup.cpp",
+        ),
+    )
+    for emitted_path, fixture_path in pairs:
+        assert emitted_path in artifacts, f"missing emitted artifact: {emitted_path}"
+        expected = fixture_path.read_text(encoding="utf-8")
+        assert artifacts[emitted_path].content == expected, (
+            f"emitted {emitted_path} does not match golden fixture {fixture_path}"
+        )
+
+
+def test_esp32_classic_startup_uses_dual_core_xtensa_conventions(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """The emitted startup carries the dual-core Xtensa control plane shaped
+    for the LX6 silicon — DPORT.APPCPU_CTRL_B bring-up, both vector tables,
+    no ARM/RISC-V/AVR-specific markers."""
+    artifacts, _ = _esp32_artifacts(espressif_execution_context)
+    startup = artifacts["espressif/esp32/generated/devices/esp32/startup.cpp"].content
+    assert "Reset_Handler" in startup
+    assert "Reset_Handler_CPU1" in startup
+    assert "bring_up_app_cpu" in startup
+    assert "_vectors_cpu0[]" in startup
+    assert "_vectors_cpu1[]" in startup
+    # LX6-specific bring-up via DPORT.APPCPU_CTRL_B (not the LX7 SYSTEM regs).
+    assert "DPORT.APPCPU_CTRL_B" in startup
+    assert "SYSTEM.CORE_1_CONTROL_0" not in startup
+    # No cross-architecture leakage.
+    assert "mtvec" not in startup
+    assert "__vector_0" not in startup
+    assert ".isr_vector" not in startup
+
+
+def test_esp32_classic_normalize_admits_dual_core_perspective(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.3 of add-espressif-esp32-classic-target: the ESP32 classic
+    canonical IR carries the dual-core posture — both cores' bring-up
+    primitives are reachable through the canonical IR (DPORT block carries
+    the inter-core IPI registers and APPCPU_CTRL_B for app-CPU release)."""
+    scope = PipelineScope(vendor="espressif", family="esp32", device="esp32")
+    device = run_normalize(scope, espressif_execution_context).payload.devices[0]
+    assert device.identity.core == "xtensa-lx6"
+    assert device.identity.package == "qfn48"
+    admitted = {peripheral.name for peripheral in device.peripherals}
+    # DPORT carries APPCPU_CTRL_B; the dual-core control plane requires it.
+    assert "DPORT" in admitted
+    # Vector slots default to cpu0 (classic ESP32 SVD does not declare
+    # separate INTERRUPT_CORE0/CORE1 peripherals — affinity is dynamic at
+    # runtime via DPORT.PRO_/APP_INTR_MAP).  All vectors land on cpu0 in
+    # the static IR; APP_CPU vectors come online when bring_up_app_cpu()
+    # configures them at runtime.
+    affinities = {slot.core_affinity for slot in device.vector_slots}
+    assert affinities == {"cpu0"} or affinities == {"cpu0", "shared"}
+
+
+def test_esp32_classic_validate_no_draft_domains(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.4: validation passes for both ESP32 classic device variants
+    with no drafted system descriptor domains."""
+    from alloy_codegen.stages.validate import run as run_validate
+
+    for device_name in ("esp32", "esp32-wroom32"):
+        scope = PipelineScope(vendor="espressif", family="esp32", device=device_name)
+        result = run_validate(scope, espressif_execution_context)
+        assert result.status == "completed", (
+            f"validation failed for esp32/{device_name}: warnings={result.warnings!r}"
+        )
+        report = result.payload.report
+        drafts = tuple(
+            domain.domain_id for domain in report.system_descriptor_domains if domain.draft
+        )
+        assert drafts == (), f"unexpected draft domains for esp32/{device_name}: {drafts}"
+
+
+def test_esp32_classic_qfn48_and_wroom32_share_signals(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4.5: QFN48 and WROOM-32 share the family catalog and only
+    diverge in package_pads — the WROOM-32 variant has a smaller pad set
+    (GPIO6-11 reserved for on-module flash, 37/38/etc not exposed on the
+    module pin headers)."""
+    qfn = run_normalize(
+        PipelineScope(vendor="espressif", family="esp32", device="esp32"),
+        espressif_execution_context,
+    ).payload.devices[0]
+    wroom = run_normalize(
+        PipelineScope(vendor="espressif", family="esp32", device="esp32-wroom32"),
+        espressif_execution_context,
+    ).payload.devices[0]
+    # Same canonical core / family.
+    assert qfn.identity.core == wroom.identity.core == "xtensa-lx6"
+    # WROOM-32 pad set is a subset of QFN48.  In this bootstrap only pins
+    # carrying a peripheral-attributed signal (currently UART0 TX/RX on
+    # GPIO1/GPIO3) make it through the pin-builder filter — so the visible
+    # difference is small until the IO Matrix follow-on populates more
+    # peripheral signals.
+    qfn_pads = {pad.pad_id for pad in qfn.package_pads}
+    wroom_pads = {pad.pad_id for pad in wroom.package_pads}
+    assert wroom_pads <= qfn_pads, "WROOM-32 pads must be a subset of QFN48 pads"
+    # Peripheral admission is identical (same family.json).
+    assert {p.name for p in qfn.peripherals} == {p.name for p in wroom.peripherals}

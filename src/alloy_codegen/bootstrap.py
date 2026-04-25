@@ -16,6 +16,7 @@ CPP_CONTRACT_VERSION = "alloy-cpp-bootstrap-v1"
 
 # Registry of all supported (vendor, family) → device names.
 DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = {
+    ("espressif", "esp32"): ("esp32", "esp32-wroom32"),
     ("espressif", "esp32c3"): ("esp32c3",),
     ("espressif", "esp32s3"): ("esp32s3",),
     ("st", "stm32g0"): ("stm32g030f6", "stm32g071rb", "stm32g0b1re"),
@@ -27,6 +28,7 @@ DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = {
 }
 
 SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
+    ("espressif", "esp32"): ("espressif-svd",),
     ("espressif", "esp32c3"): ("espressif-svd",),
     ("espressif", "esp32s3"): ("espressif-svd",),
     ("st", "stm32g0"): ("cmsis-svd-data", "stm32-open-pin-data"),

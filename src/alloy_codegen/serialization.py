@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from dataclasses import fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from typing import Any
 
 
@@ -17,13 +17,27 @@ def _is_empty_optional(value: Any) -> bool:
 
 
 def to_primitive(value: Any) -> Any:
-    """Convert dataclasses and tuples into JSON-friendly primitives."""
+    """Convert dataclasses and tuples into JSON-friendly primitives.
+
+    Fields tagged with ``metadata={"omit_if_default": True}`` are dropped
+    from the output when their current value equals the field's declared
+    default.  This lets us add new IR fields with sensible defaults without
+    invalidating goldens for every previously-admitted family.
+    """
     if is_dataclass(value):
         payload: dict[str, Any] = {}
         for field in fields(value):
             item = getattr(value, field.name)
             if field.metadata.get("omit_if_empty") and _is_empty_optional(item):
                 continue
+            if field.metadata.get("omit_if_default"):
+                if field.default is not MISSING and item == field.default:
+                    continue
+                if (
+                    field.default_factory is not MISSING  # type: ignore[misc]
+                    and item == field.default_factory()  # type: ignore[misc]
+                ):
+                    continue
             payload[field.name] = to_primitive(item)
         return payload
     if isinstance(value, tuple):

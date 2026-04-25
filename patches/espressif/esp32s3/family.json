@@ -45,7 +45,9 @@
     { "name": "I2C1",       "rcc_enable_signal": "SYSTEM_PERIP_CLK_EN0.I2C_EXT1_CLK_EN",          "ip_version": "esp32s3-i2c-v1" },
     { "name": "APB_SARADC", "rcc_enable_signal": null,                                            "ip_version": "esp32s3-saradc-v1" },
     { "name": "SYSTEM",     "rcc_enable_signal": null,                                            "ip_version": "esp32s3-system-v1" },
-    { "name": "DMA",        "rcc_enable_signal": null,                                            "ip_version": "esp32s3-gdma-v1" }
+    { "name": "DMA",        "rcc_enable_signal": null,                                            "ip_version": "esp32s3-gdma-v1" },
+    { "name": "INTERRUPT_CORE0", "rcc_enable_signal": null, "ip_version": "esp32s3-interrupt-matrix-v1" },
+    { "name": "INTERRUPT_CORE1", "rcc_enable_signal": null, "ip_version": "esp32s3-interrupt-matrix-v1" }
   ],
   "pin_signals": [
     { "signal_id": "gpio0-gpio",       "pin_name": "GPIO0",  "function": "gpio",     "peripheral": "GPIO",       "signal": "IN0",  "af_number": null },

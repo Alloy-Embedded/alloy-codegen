@@ -2,16 +2,20 @@
 
 #include "../../runtime/devices/esp32s3/startup.hpp"
 
-// ESP32-S3 / Xtensa LX7 single-core-perspective startup.
-//   * The ROM bootloader owns VECBASE and initial stack setup.
+// Dual-core Xtensa control plane (ESP32 LX6 / ESP32-S3 LX7):
+//   * The ROM bootloader owns PRO_CPU's VECBASE and initial stack setup.
 //   * This generated file provides BSS/data init, C++ ctor dispatch,
-//     main() entry, and weak peripheral IRQ stubs.
-//   * core-1 bring-up and inter-core primitives are intentionally
-//     NOT modelled in this first-cut bootstrap.
+//     main() entry, weak peripheral IRQ stubs, AND APP_CPU bring-up.
+//   * Per-core vector tables are exposed for inspection and for linker
+//     scripts that map them into the per-core VECBASE regions.
+//   * Inter-core synchronization (IPI senders, spinlocks, queues) is
+//     intentionally NOT modelled here — applications layer those on top
+//     via esp-idf or a hand-rolled IPC layer.
 
 extern "C" {
 #if defined(ALLOY_CODEGEN_HOST_SMOKE)
 std::uint32_t __stack_top = 0u;
+std::uint32_t __stack_top_cpu1 = 0u;
 std::uint32_t _sidata = 0u;
 std::uint32_t _sdata = 0u;
 std::uint32_t _edata = 0u;
@@ -22,6 +26,7 @@ InitFn __init_array_start[] = {nullptr};
 InitFn __init_array_end[] = {nullptr};
 #else
 extern std::uint32_t __stack_top;
+extern std::uint32_t __stack_top_cpu1;
 extern std::uint32_t _sidata;
 extern std::uint32_t _sdata;
 extern std::uint32_t _edata;
@@ -49,6 +54,13 @@ int alloy_codegen_host_smoke_entry() {
 #endif
 void SystemInit() __attribute__((weak));
 void SystemInit() {}
+
+// Weak hook applications can override to run code on APP_CPU after
+// bring_up_app_cpu() releases it.  The default empty implementation
+// returns immediately, after which Reset_Handler_CPU1 falls into
+// Default_Handler.
+void app_main_cpu1() __attribute__((weak));
+void app_main_cpu1() {}
 
 [[noreturn]] void Default_Handler() {
     while (true) {}
@@ -89,6 +101,11 @@ void CACHE_CORE0_ACS_IRQHandler() {
     Default_Handler();
 }
 
+void CACHE_CORE1_ACS_IRQHandler() __attribute__((weak));
+void CACHE_CORE1_ACS_IRQHandler() {
+    Default_Handler();
+}
+
 void CACHE_IA_IRQHandler() __attribute__((weak));
 void CACHE_IA_IRQHandler() {
     Default_Handler();
@@ -111,6 +128,26 @@ void CORE0_PIF_PMS_IRQHandler() {
 
 void CORE0_PIF_PMS_SIZE_IRQHandler() __attribute__((weak));
 void CORE0_PIF_PMS_SIZE_IRQHandler() {
+    Default_Handler();
+}
+
+void CORE1_DRAM0_PMS_IRQHandler() __attribute__((weak));
+void CORE1_DRAM0_PMS_IRQHandler() {
+    Default_Handler();
+}
+
+void CORE1_IRAM0_PMS_IRQHandler() __attribute__((weak));
+void CORE1_IRAM0_PMS_IRQHandler() {
+    Default_Handler();
+}
+
+void CORE1_PIF_PMS_IRQHandler() __attribute__((weak));
+void CORE1_PIF_PMS_IRQHandler() {
+    Default_Handler();
+}
+
+void CORE1_PIF_PMS_SIZE_IRQHandler() __attribute__((weak));
+void CORE1_PIF_PMS_SIZE_IRQHandler() {
     Default_Handler();
 }
 
@@ -499,9 +536,9 @@ void WIFI_PWR_IRQHandler() {
     Default_Handler();
 }
 
-// Reset_Handler runs after the ESP32-S3 ROM bootloader has
-// transferred control to the application image.  VECBASE,
-// stack, and cache have already been set up by ROM code.
+// PRO_CPU entry — runs after the ROM bootloader transfers control to
+// the application image.  VECBASE, stack, and cache have already been
+// set up by ROM code for this core.
 [[noreturn]] void Reset_Handler() {
     auto* copy_source = &_sidata;
     auto* copy_target = &_sdata;
@@ -533,15 +570,277 @@ void WIFI_PWR_IRQHandler() {
     Default_Handler();
 }
 
-// Informational vector table — not used by the ESP32-S3 ROM,
-// which routes exceptions through VECBASE in ROM.  Kept for
-// debugger symbol-resolution parity with ARM/RISC-V emitters.
+// APP_CPU entry — invoked after bring_up_app_cpu() releases the second
+// core.  Static init has already been performed by PRO_CPU; this entry
+// only dispatches into the optional weak app_main_cpu1() hook and then
+// stops.  Applications that want richer cpu1 behaviour override that
+// hook (e.g. by linking against esp-idf or providing their own).
+[[noreturn]] void Reset_Handler_CPU1() {
+    app_main_cpu1();
+    Default_Handler();
+}
+
+// Application-callable bring-up routine.  Not invoked from
+// Reset_Handler; PRO_CPU calls this when it wants APP_CPU running.
+void bring_up_app_cpu() {
+#if defined(ALLOY_CODEGEN_HOST_SMOKE)
+    // Host smoke: registers don't exist in this address space.
+    return;
+#else
+    // ESP32-S3: clock-gate APP_CPU then clear its runstall.
+    auto* const sys_core_1_ctrl_0 = reinterpret_cast<volatile std::uint32_t*>(
+        0x6000'8000u + 0x0DCu);  // SYSTEM.CORE_1_CONTROL_0
+    auto* const sys_core_1_ctrl_1 = reinterpret_cast<volatile std::uint32_t*>(
+        0x6000'8000u + 0x0E0u);  // SYSTEM.CORE_1_CONTROL_1
+    *sys_core_1_ctrl_0 |= (1u << 1);   // CONTROL_CORE_1_CLKGATE_EN
+    *sys_core_1_ctrl_1 &= ~(1u << 0);  // CONTROL_CORE_1_RUNSTALL
+#endif
+}
+
+// Per-core vector tables.  Xtensa uses VECBASE per core; linker scripts
+// for real targets place these in distinct sections so each core's
+// VECBASE points to its own table.  Host smoke builds keep the symbols
+// reachable for inspection but skip the section attribute.
 #if defined(ALLOY_CODEGEN_HOST_SMOKE)
 __attribute__((used))
 #else
-__attribute__((section(".xtensa_vectors_info"), used))
+__attribute__((section(".xtensa_vectors_cpu0"), used))
 #endif
-void (*const _vectors_info[])() = {
+void (*const _vectors_cpu0[])() = {
     Reset_Handler,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    WIFI_MAC_IRQHandler,
+    WIFI_NMI_IRQHandler,
+    WIFI_PWR_IRQHandler,
+    WIFI_BB_IRQHandler,
+    BT_MAC_IRQHandler,
+    BT_BB_IRQHandler,
+    BT_BB_NMI_IRQHandler,
+    RWBT_IRQHandler,
+    RWBLE_IRQHandler,
+    RWBT_NMI_IRQHandler,
+    RWBLE_NMI_IRQHandler,
+    I2C_MASTER_IRQHandler,
+    SLC0_IRQHandler,
+    SLC1_IRQHandler,
+    UHCI0_IRQHandler,
+    UHCI1_IRQHandler,
+    GPIO_IRQHandler,
+    GPIO_NMI_IRQHandler,
+    GPIO_INTR_2_IRQHandler,
+    GPIO_NMI_2_IRQHandler,
+    SPI1_IRQHandler,
+    SPI2_IRQHandler,
+    SPI3_IRQHandler,
+    nullptr,
+    LCD_CAM_IRQHandler,
+    I2S0_IRQHandler,
+    I2S1_IRQHandler,
+    UART0_IRQHandler,
+    UART1_IRQHandler,
+    UART2_IRQHandler,
+    SDIO_HOST_IRQHandler,
+    MCPWM0_IRQHandler,
+    MCPWM1_IRQHandler,
+    nullptr,
+    nullptr,
+    LEDC_IRQHandler,
+    EFUSE_IRQHandler,
+    TWAI0_IRQHandler,
+    USB_IRQHandler,
+    RTC_CORE_IRQHandler,
+    RMT_IRQHandler,
+    PCNT_IRQHandler,
+    I2C_EXT0_IRQHandler,
+    I2C_EXT1_IRQHandler,
+    SPI2_DMA_IRQHandler,
+    SPI3_DMA_IRQHandler,
+    nullptr,
+    WDT_IRQHandler,
+    TIMER1_IRQHandler,
+    TIMER2_IRQHandler,
+    TG0_T0_LEVEL_IRQHandler,
+    TG0_T1_LEVEL_IRQHandler,
+    TG0_WDT_LEVEL_IRQHandler,
+    TG1_T0_LEVEL_IRQHandler,
+    TG1_T1_LEVEL_IRQHandler,
+    TG1_WDT_LEVEL_IRQHandler,
+    CACHE_IA_IRQHandler,
+    SYSTIMER_TARGET0_IRQHandler,
+    SYSTIMER_TARGET1_IRQHandler,
+    SYSTIMER_TARGET2_IRQHandler,
+    SPI_MEM_REJECT_CACHE_IRQHandler,
+    DCACHE_PRELOAD0_IRQHandler,
+    ICACHE_PRELOAD0_IRQHandler,
+    DCACHE_SYNC0_IRQHandler,
+    ICACHE_SYNC0_IRQHandler,
+    APB_ADC_IRQHandler,
+    DMA_IN_CH0_IRQHandler,
+    DMA_IN_CH1_IRQHandler,
+    DMA_IN_CH2_IRQHandler,
+    DMA_IN_CH3_IRQHandler,
+    DMA_IN_CH4_IRQHandler,
+    DMA_OUT_CH0_IRQHandler,
+    DMA_OUT_CH1_IRQHandler,
+    DMA_OUT_CH2_IRQHandler,
+    DMA_OUT_CH3_IRQHandler,
+    DMA_OUT_CH4_IRQHandler,
+    RSA_IRQHandler,
+    SHA_IRQHandler,
+    nullptr,
+    FROM_CPU_INTR0_IRQHandler,
+    FROM_CPU_INTR1_IRQHandler,
+    FROM_CPU_INTR2_IRQHandler,
+    FROM_CPU_INTR3_IRQHandler,
+    ASSIST_DEBUG_IRQHandler,
+    DMA_APBPERI_PMS_IRQHandler,
+    CORE0_IRAM0_PMS_IRQHandler,
+    CORE0_DRAM0_PMS_IRQHandler,
+    CORE0_PIF_PMS_IRQHandler,
+    CORE0_PIF_PMS_SIZE_IRQHandler,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    BACKUP_PMS_VIOLATE_IRQHandler,
+    CACHE_CORE0_ACS_IRQHandler,
+    nullptr,
+    USB_DEVICE_IRQHandler,
+    PERI_BACKUP_IRQHandler,
+    DMA_EXTMEM_REJECT_IRQHandler,
+};
+
+#if defined(ALLOY_CODEGEN_HOST_SMOKE)
+__attribute__((used))
+#else
+__attribute__((section(".xtensa_vectors_cpu1"), used))
+#endif
+void (*const _vectors_cpu1[])() = {
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    CORE1_IRAM0_PMS_IRQHandler,
+    CORE1_DRAM0_PMS_IRQHandler,
+    CORE1_PIF_PMS_IRQHandler,
+    CORE1_PIF_PMS_SIZE_IRQHandler,
+    nullptr,
+    nullptr,
+    CACHE_CORE1_ACS_IRQHandler,
 };
 }

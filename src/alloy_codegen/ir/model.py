@@ -336,13 +336,24 @@ class InterruptBindingDescriptor:
 
 @dataclass(frozen=True, slots=True)
 class VectorSlotDescriptor:
-    """One vector-table slot descriptor."""
+    """One vector-table slot descriptor.
+
+    ``core_affinity`` records which core the vector belongs to on multi-core
+    targets.  Single-core devices (Cortex-M, RISC-V mononúcleo, AVR8) carry
+    the default ``"cpu0"`` and downstream emitters ignore the field.  Dual-core
+    Xtensa families (ESP32 LX6, ESP32-S3 LX7) partition vectors between
+    ``"cpu0"`` and ``"cpu1"`` so the runtime startup emitter can synthesize
+    ``_vectors_cpu0[]`` and ``_vectors_cpu1[]`` for the per-core VECBASE
+    regions.  ``"shared"`` denotes vectors broadcast to both cores (NMI,
+    double-fault) which appear in both per-core tables.
+    """
 
     slot: int
     symbol_name: str
     interrupt: str | None
     kind: str
     provenance: Provenance
+    core_affinity: str = field(default="cpu0", metadata={"omit_if_default": True})
 
 
 @dataclass(frozen=True, slots=True)

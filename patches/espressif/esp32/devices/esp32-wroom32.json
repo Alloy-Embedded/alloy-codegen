@@ -1,0 +1,60 @@
+{
+  "patch_id": "espressif-esp32-wroom32-bootstrap",
+  "family_patch_id": "espressif-esp32-family-bootstrap-v1",
+  "device": "esp32-wroom32",
+  "svd_file": "esp32.svd",
+  "package": "wroom-32",
+  "core": "xtensa-lx6",
+  "summary": "Espressif ESP32 ECO V3 on the ESP32-WROOM-32 module (GPIO6\u2013GPIO11 reserved for the on-module SPI flash).",
+  "memories": [
+    {
+      "name": "DRAM",
+      "kind": "sram",
+      "base_address": 1073389568,
+      "size_bytes": 327680,
+      "access": "rwx"
+    },
+    {
+      "name": "ROM",
+      "kind": "rom",
+      "base_address": 1073741824,
+      "size_bytes": 393216,
+      "access": "rx"
+    },
+    {
+      "name": "IRAM",
+      "kind": "sram",
+      "base_address": 1074266112,
+      "size_bytes": 131072,
+      "access": "rwx"
+    }
+  ],
+  "registers": [],
+  "register_fields": [],
+  "peripherals": ["GPIO", "UART0", "SPI0", "I2C0", "TIMG0", "LEDC", "RMT", "DPORT"],
+  "dma_request_refs": [],
+  "system_clock_profiles": [
+    {
+      "profile_id": "safe-rc-fast-8mhz",
+      "kind": "safe",
+      "source_kind": "internal-oscillator",
+      "sysclk_hz": 8000000,
+      "hclk_hz": 8000000,
+      "pclk_hz": 8000000,
+      "source_hz": 8000000
+    },
+    {
+      "profile_id": "default-pll-240mhz",
+      "kind": "default",
+      "source_kind": "pll-internal",
+      "sysclk_hz": 240000000,
+      "hclk_hz": 240000000,
+      "pclk_hz": 80000000,
+      "source_hz": 40000000,
+      "pll_n": 12,
+      "pll_m": 0,
+      "pll_r": 0,
+      "flash_latency": 0
+    }
+  ]
+}
