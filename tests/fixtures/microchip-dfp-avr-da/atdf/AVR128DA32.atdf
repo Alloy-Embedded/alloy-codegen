@@ -91,6 +91,11 @@
             <register-group name="CLKCTRL" name-in-module="CLKCTRL" offset="0x60" address-space="data"/>
           </instance>
         </module>
+        <module name="PORTMUX">
+          <instance name="PORTMUX" caption="Port Multiplexer">
+            <register-group name="PORTMUX" name-in-module="PORTMUX" offset="0x200" address-space="data"/>
+          </instance>
+        </module>
       </peripherals>
       <interrupts>
         <interrupt index="0" name="RESET" caption="Reset Vector"/>
@@ -199,6 +204,20 @@
         </register>
         <register name="IN" offset="0x08" size="1" initval="0x00" caption="Input Value" rw="R">
           <bitfield name="IN" mask="0xFF" caption="Input Value"/>
+        </register>
+      </register-group>
+    </module>
+    <module name="PORTMUX" caption="Port Multiplexer" id="PORTMUX_AVRDA">
+      <register-group name="PORTMUX" caption="Port Multiplexer">
+        <register name="USARTROUTEA" offset="0x04" size="1" initval="0x00" caption="USART Route A" rw="RW">
+          <bitfield name="USART0" mask="0x03" caption="USART0 Route"/>
+          <bitfield name="USART1" mask="0x0C" caption="USART1 Route"/>
+        </register>
+        <register name="SPIROUTEA" offset="0x08" size="1" initval="0x00" caption="SPI Route A" rw="RW">
+          <bitfield name="SPI0" mask="0x03" caption="SPI0 Route"/>
+        </register>
+        <register name="TWIROUTEA" offset="0x0A" size="1" initval="0x00" caption="TWI Route A" rw="RW">
+          <bitfield name="TWI0" mask="0x03" caption="TWI0 Route"/>
         </register>
       </register-group>
     </module>

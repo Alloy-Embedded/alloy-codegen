@@ -97,6 +97,34 @@ inline auto apply_route() noexcept -> void {
   static_assert(RouteTraits<Pin, Peripheral, Signal>::kPresent, "");
 }
 
+template<>
+inline auto apply_route<PinId::PA1, PeripheralId::SPI1, SignalId::signal_sck>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x50000000u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x50000000u) & ~(std::uint32_t{0x3} << 2)) | (std::uint32_t{0x2} << 2);
+  *reinterpret_cast<volatile std::uint32_t*>(0x50000020u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x50000020u) & ~(std::uint32_t{0xF} << 4)) | (std::uint32_t{0x0} << 4);
+}
+
+template<>
+inline auto apply_route<PinId::PB6, PeripheralId::USART1, SignalId::signal_tx>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x40021040u) |=(std::uint32_t{1} << 14);
+  *reinterpret_cast<volatile std::uint32_t*>(0x40021030u) &= ~(std::uint32_t{1} << 14);
+  *reinterpret_cast<volatile std::uint32_t*>(0x50000400u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x50000400u) & ~(std::uint32_t{0x3} << 12)) | (std::uint32_t{0x2} << 12);
+  *reinterpret_cast<volatile std::uint32_t*>(0x50000420u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x50000420u) & ~(std::uint32_t{0xF} << 24)) | (std::uint32_t{0x0} << 24);
+}
+
+template<>
+inline auto apply_route<PinId::PB7, PeripheralId::USART1, SignalId::signal_rx>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x40021040u) |=(std::uint32_t{1} << 14);
+  *reinterpret_cast<volatile std::uint32_t*>(0x40021030u) &= ~(std::uint32_t{1} << 14);
+  *reinterpret_cast<volatile std::uint32_t*>(0x50000400u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x50000400u) & ~(std::uint32_t{0x3} << 14)) | (std::uint32_t{0x2} << 14);
+  *reinterpret_cast<volatile std::uint32_t*>(0x50000420u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x50000420u) & ~(std::uint32_t{0xF} << 28)) | (std::uint32_t{0x0} << 28);
+}
+
 enum class ConnectionGroupId : std::uint16_t {
   none,
   group_usart1_lqfp64_tx_rx,

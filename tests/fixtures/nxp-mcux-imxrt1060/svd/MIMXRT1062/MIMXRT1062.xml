@@ -108,5 +108,32 @@
         </register>
       </registers>
     </peripheral>
+    <peripheral>
+      <name>IOMUXC</name>
+      <description>IOMUX Controller</description>
+      <baseAddress>0x401F8000</baseAddress>
+      <registers>
+        <register>
+          <name>SW_MUX_CTL_PAD_GPIO_EMC_00</name>
+          <addressOffset>0x14</addressOffset>
+          <fields><field><name>MUX_MODE</name><bitOffset>0</bitOffset><bitWidth>3</bitWidth></field></fields>
+        </register>
+        <register>
+          <name>SW_MUX_CTL_PAD_GPIO_EMC_01</name>
+          <addressOffset>0x18</addressOffset>
+          <fields><field><name>MUX_MODE</name><bitOffset>0</bitOffset><bitWidth>3</bitWidth></field></fields>
+        </register>
+        <register>
+          <name>SW_MUX_CTL_PAD_GPIO_AD_B0_00</name>
+          <addressOffset>0x24</addressOffset>
+          <fields><field><name>MUX_MODE</name><bitOffset>0</bitOffset><bitWidth>3</bitWidth></field></fields>
+        </register>
+        <register>
+          <name>SW_MUX_CTL_PAD_GPIO_AD_B0_01</name>
+          <addressOffset>0x28</addressOffset>
+          <fields><field><name>MUX_MODE</name><bitOffset>0</bitOffset><bitWidth>3</bitWidth></field></fields>
+        </register>
+      </registers>
+    </peripheral>
   </peripherals>
 </device>

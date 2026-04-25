@@ -712,6 +712,29 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "ResetTraits<ResetId::reset_usart2>" in stm32f4_clock_bindings
     assert "FieldId::field_rcc_apb1rstr_usart2rst" in stm32f4_clock_bindings
 
+    # §2.2 — NXP apply_route<> emits IOMUXC SW_MUX_CTL_PAD writes
+    nxp_routes = nxp_artifacts[
+        "nxp/imxrt1060/generated/runtime/devices/mimxrt1062/routes.hpp"
+    ].content
+    assert "apply_route<PinId::GPIO_AD_B0_00, PeripheralId::LPUART1" in nxp_routes
+    assert "& ~std::uint32_t{0x7})" in nxp_routes  # MUX_MODE mask
+    assert "0x401F8024u" in nxp_routes  # SW_MUX_CTL_PAD_GPIO_AD_B0_00
+
+    # §1.2 — STM32 apply_route<> specializations emit MODER + AFR writes
+    stm32g0_routes = stm32g0_artifacts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"
+    ].content
+    assert "apply_route<PinId::PB6, PeripheralId::USART1" in stm32g0_routes
+    assert "0x3} << 12)" in stm32g0_routes  # MODER bits[13:12] for PB6
+    assert "0xF} << 24)" in stm32g0_routes  # AFRH bits[27:24] for PB6
+
+    stm32f4_routes = stm32f4_artifacts[
+        "st/stm32f4/generated/runtime/devices/stm32f401re/routes.hpp"
+    ].content
+    assert "apply_route<" in stm32f4_routes
+    assert "0x3} <<" in stm32f4_routes  # MODER RMW present
+    assert "0xF} <<" in stm32f4_routes  # AFR RMW present
+
     same70_clock_bindings = same70_artifacts[
         "microchip/same70/generated/runtime/devices/atsame70q21b/clock_bindings.hpp"
     ].content

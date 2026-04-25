@@ -362,6 +362,22 @@ def test_esp32c3_runtime_routes_header_encodes_iomatrix_schema(
     )
 
 
+def test_esp32c3_apply_route_emits_iomux_and_gpio_matrix_writes(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """§3.3 — apply_route<> specializations write IO_MUX MCU_SEL and GPIO matrix."""
+    result = run_emit(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    )
+    artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
+    routes = artifacts["espressif/esp32c3/generated/runtime/devices/esp32c3/routes.hpp"].content
+    assert "apply_route<PinId::GPIO20, PeripheralId::UART0" in routes
+    assert "& ~(std::uint32_t{0x7} << 12)" in routes  # MCU_SEL mask
+    assert "std::uint32_t{0x1} << 12)" in routes  # MCU_SEL = 1 (GPIO matrix)
+    assert "std::uint32_t{0x6u}" in routes  # UART0 RX signal selector
+
+
 # ---------------------------------------------------------------------------
 # Phase 4 — ESP32-S3 (Xtensa LX7) follow-on
 # ---------------------------------------------------------------------------

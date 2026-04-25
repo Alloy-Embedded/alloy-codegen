@@ -159,6 +159,46 @@ inline auto apply_route() noexcept -> void {
   static_assert(RouteTraits<Pin, Peripheral, Signal>::kPresent, "");
 }
 
+template<>
+inline auto apply_route<PinId::GPIO_AD_B0_00, PeripheralId::GPIO1, SignalId::signal_io00>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC06Cu) |=(std::uint32_t{1} << 26);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_AD_B0_00, PeripheralId::LPUART1, SignalId::signal_tx>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC07Cu) |=(std::uint32_t{1} << 24);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_AD_B0_01, PeripheralId::GPIO1, SignalId::signal_io01>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC06Cu) |=(std::uint32_t{1} << 26);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_AD_B0_01, PeripheralId::LPUART1, SignalId::signal_rx>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC07Cu) |=(std::uint32_t{1} << 24);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_EMC_00, PeripheralId::GPIO4, SignalId::signal_io00>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC074u) |=(std::uint32_t{1} << 26);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_EMC_00, PeripheralId::LPSPI1, SignalId::signal_sck>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC06Cu) |=(std::uint32_t{1} << 0);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_EMC_01, PeripheralId::GPIO4, SignalId::signal_io01>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC074u) |=(std::uint32_t{1} << 26);
+}
+
+template<>
+inline auto apply_route<PinId::GPIO_EMC_01, PeripheralId::LPSPI1, SignalId::signal_pcs0>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x400FC06Cu) |=(std::uint32_t{1} << 0);
+}
+
 enum class ConnectionGroupId : std::uint16_t {
   none,
   group_gpio1_bga196_all_signals,

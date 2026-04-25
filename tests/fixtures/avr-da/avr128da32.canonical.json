@@ -6,7 +6,7 @@
     "device": "avr128da32",
     "package": "tqfp32",
     "core": "avr8",
-    "summary": "Microchip AVR128DA32 \u2014 8-bit AVR DA with 128 KB flash, 16 KB SRAM, 512 B EEPROM (TQFP-32)."
+    "summary": "Microchip AVR128DA32 — 8-bit AVR DA with 128 KB flash, 16 KB SRAM, 512 B EEPROM (TQFP-32)."
   },
   "memories": [
     {
@@ -519,6 +519,24 @@
         ]
       },
       "backend_schema_id": "alloy.clkctrl.microchip-avr-da-clkctrl-v1"
+    },
+    {
+      "name": "PORTMUX",
+      "ip_name": "portmux",
+      "ip_version": "avr-da-portmux-v1",
+      "instance": 0,
+      "base_address": 512,
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.portmux.microchip-avr-da-portmux-v1"
     }
   ],
   "interrupts": [
@@ -835,6 +853,54 @@
       "name": "IN",
       "offset_bytes": 8,
       "access": "r",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:portmux:usartroutea",
+      "peripheral": "PORTMUX",
+      "name": "USARTROUTEA",
+      "offset_bytes": 4,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:portmux:spiroutea",
+      "peripheral": "PORTMUX",
+      "name": "SPIROUTEA",
+      "offset_bytes": 8,
+      "access": "rw",
+      "size_bits": 8,
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:portmux:twiroutea",
+      "peripheral": "PORTMUX",
+      "name": "TWIROUTEA",
+      "offset_bytes": 10,
+      "access": "rw",
       "size_bits": 8,
       "provenance": {
         "source_id": "microchip-dfp-extract",
@@ -1302,6 +1368,78 @@
       "bit_offset": 0,
       "bit_width": 8,
       "access": "r",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portmux:usartroutea:usart0",
+      "register_id": "register:portmux:usartroutea",
+      "peripheral": "PORTMUX",
+      "register_name": "USARTROUTEA",
+      "name": "USART0",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portmux:usartroutea:usart1",
+      "register_id": "register:portmux:usartroutea",
+      "peripheral": "PORTMUX",
+      "register_name": "USARTROUTEA",
+      "name": "USART1",
+      "bit_offset": 2,
+      "bit_width": 2,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portmux:spiroutea:spi0",
+      "register_id": "register:portmux:spiroutea",
+      "peripheral": "PORTMUX",
+      "register_name": "SPIROUTEA",
+      "name": "SPI0",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "rw",
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      }
+    },
+    {
+      "field_id": "field:portmux:twiroutea:twi0",
+      "register_id": "register:portmux:twiroutea",
+      "peripheral": "PORTMUX",
+      "register_name": "TWIROUTEA",
+      "name": "TWI0",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "rw",
       "provenance": {
         "source_id": "microchip-dfp-extract",
         "source_path": "atdf/AVR128DA32.atdf",
@@ -1831,6 +1969,23 @@
         ]
       },
       "backend_schema_id": "alloy.portc.microchip-avr-da-port-v1"
+    },
+    {
+      "ip_name": "portmux",
+      "ip_version": "avr-da-portmux-v1",
+      "peripheral_class": "portmux",
+      "register_profile": "portmux:avr-da-portmux-v1",
+      "signal_roles": [],
+      "capability_ids": [],
+      "provenance": {
+        "source_id": "microchip-dfp-extract",
+        "source_path": "atdf/AVR128DA32.atdf",
+        "patch_ids": [
+          "microchip-avr-da-family-bootstrap-v1",
+          "microchip-avr128da32-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.portmux.microchip-avr-da-portmux-v1"
     },
     {
       "ip_name": "spi",

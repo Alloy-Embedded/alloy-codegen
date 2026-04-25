@@ -481,3 +481,56 @@ def test_foundational_families_remain_complete_across_repeat_publish_cycles(
         assert coverage_b["all_devices_publishable"] is True
         assert all(bool(device["publishable"]) for device in coverage_b["devices"])
         assert summary_b["draft_system_descriptor_domains"] == []
+
+
+def test_rp2040_apply_route_emits_funcsel_and_resets_writes(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    """§4.3 — RP2040 apply_route<> writes RESETS_RESET and IO_BANK0_GPIOx_CTRL.FUNCSEL."""
+    result = run_emit(PipelineScope(device="rp2040"), rp2040_execution_context)
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    routes = artifacts["raspberrypi/rp2040/generated/runtime/devices/rp2040/routes.hpp"].content
+    assert "apply_route<PinId::GP0, PeripheralId::UART0" in routes
+    assert "& ~std::uint32_t{0x1F}" in routes  # FUNCSEL mask
+    assert "0x40014004u" in routes  # IO_BANK0_GPIO0_CTRL address
+
+
+def test_avr_da_apply_route_emits_portmux_writes(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    """§5.3 — AVR-DA apply_route<> writes PORTMUX route registers via RMW."""
+    result = run_emit(
+        PipelineScope(vendor="microchip", family="avr-da", device="avr128da32"),
+        microchip_avr_da_execution_context,
+    )
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    routes = artifacts["microchip/avr-da/generated/runtime/devices/avr128da32/routes.hpp"].content
+    # USART0 TX on PA0 → PORTMUX.USARTROUTEA bits[1:0]
+    assert "apply_route<PinId::PA0, PeripheralId::USART0, SignalId::signal_tx>" in routes
+    assert "0x00000204u" in routes  # PORTMUX base + USARTROUTEA offset
+    assert "std::uint32_t{0x3} << 0" in routes  # 2-bit mask at bit 0
+    # USART1 TX on PC0 → PORTMUX.USARTROUTEA bits[3:2]
+    assert "apply_route<PinId::PC0, PeripheralId::USART1, SignalId::signal_tx>" in routes
+    assert "std::uint32_t{0x3} << 2" in routes  # 2-bit mask at bit 2
+    # TWI0 → PORTMUX.TWIROUTEA
+    assert "0x0000020Au" in routes  # TWIROUTEA address
+    # SPI0 → PORTMUX.SPIROUTEA
+    assert "0x00000208u" in routes  # SPIROUTEA address
+
+
+def test_avr_da_clock_bindings_emits_noop_specializations(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    """§5.1 — AVR-DA clock_enable/disable<> emit empty no-op specializations (no clock gate)."""
+    result = run_emit(
+        PipelineScope(vendor="microchip", family="avr-da", device="avr128da32"),
+        microchip_avr_da_execution_context,
+    )
+    artifacts = {a.path: a for a in result.payload.artifacts}
+    clock = artifacts[
+        "microchip/avr-da/generated/runtime/devices/avr128da32/clock_bindings.hpp"
+    ].content
+    assert "clock_enable<PeripheralId::USART0>() noexcept -> void {}" in clock
+    assert "clock_disable<PeripheralId::USART0>() noexcept -> void {}" in clock
+    assert "clock_enable<PeripheralId::SPI0>() noexcept -> void {}" in clock
+    assert "clock_enable<PeripheralId::TWI0>() noexcept -> void {}" in clock

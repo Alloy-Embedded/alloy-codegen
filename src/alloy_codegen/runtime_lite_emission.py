@@ -946,6 +946,10 @@ def _clock_helper_strategy(family_dir: str, register_name: str) -> str:
     return "unsupported"
 
 
+def _family_has_no_clock_gates(family_dir: str) -> bool:
+    return family_dir.startswith("microchip/avr-da")
+
+
 def _emit_clock_enable_disable_helpers(
     *,
     family_dir: str,
@@ -1035,6 +1039,28 @@ def _emit_clock_enable_disable_helpers(
                     "",
                 ]
             )
+    if _family_has_no_clock_gates(family_dir):
+        emitted_ids = {
+            _enum_identifier(pname)
+            for pname in bindings
+            if getattr(bindings[pname], "clock_gate_id", None) is not None
+        }
+        for peripheral in sorted(_runtime_lite_peripherals(device), key=lambda p: p.name):
+            peripheral_id_enum = _enum_identifier(peripheral.name)
+            if peripheral_id_enum in emitted_ids:
+                continue
+            specializations.extend(
+                [
+                    "template <>",
+                    f"inline auto clock_enable<PeripheralId::{peripheral_id_enum}>() noexcept "
+                    "-> void {}",
+                    "template <>",
+                    f"inline auto clock_disable<PeripheralId::{peripheral_id_enum}>() noexcept "
+                    "-> void {}",
+                    "",
+                ]
+            )
+
     return primary + specializations
 
 
@@ -1494,16 +1520,13 @@ def _emit_route_apply_helpers(
     semantics_catalog: dict,
     route_enum_map: dict[str, str],
 ) -> list[str]:
-    """Emit ``apply_route<Pin, Peripheral, Signal>()``.
+    """Emit ``apply_route<Pin, Peripheral, Signal>()`` per family.
 
     The primary template ``static_assert``s on ``RouteTraits<>::kPresent`` —
-    that is the §4.2 compile-time diagnostic when no route entry exists.
-
-    For SAM E70 we additionally emit per-candidate specializations that bake
-    the concrete PMC clock-enable + PIO ABCDSR/PDR writes inline, which
-    satisfies §4.1 ("writes the vendor selector(s) for the route already
-    captured in the table") for the only family that currently has admitted
-    onboard drivers consuming the helper.
+    the compile-time diagnostic when no route entry exists. Per-candidate
+    specializations are emitted for every family that has a known clock /
+    pinmux strategy, baking concrete MMIO writes for both clock-gate ops
+    and the vendor pinmux selector.
     """
     lines: list[str] = [
         "template<PinId Pin, PeripheralId Peripheral, SignalId Signal>",
@@ -1513,13 +1536,14 @@ def _emit_route_apply_helpers(
         "",
     ]
 
-    if not family_dir.startswith("microchip/same70"):
+    strategy = _family_apply_route_strategy(family_dir)
+    if strategy is None:
         return lines
 
-    register_addr_by_id: dict[str, int] = {}
     peripheral_base_by_name: dict[str, int] = {
         peripheral.name: peripheral.base_address for peripheral in device.peripherals
     }
+    register_addr_by_id: dict[str, int] = {}
     for register in device.registers:
         base = peripheral_base_by_name.get(register.peripheral)
         if base is None:
@@ -1529,10 +1553,10 @@ def _emit_route_apply_helpers(
     pin_info_by_id: dict[str, tuple[str | None, int]] = {
         pin.name: (pin.port, pin.number) for pin in device.pins
     }
-    pio_base_by_port: dict[str, int] = {}
+    gpio_base_by_port: dict[str, int] = {}
     for peripheral in device.peripherals:
         if peripheral.name.startswith("GPIO") and len(peripheral.name) == 5:
-            pio_base_by_port[peripheral.name[-1]] = peripheral.base_address
+            gpio_base_by_port[peripheral.name[-1]] = peripheral.base_address
 
     for candidate in runtime_candidates:
         pin_ref = f"PinId::{_enum_identifier(candidate.pin)}"
@@ -1545,49 +1569,17 @@ def _emit_route_apply_helpers(
         body: list[str] = []
         for operation_id in candidate.operation_ids:
             operation = operation_by_id[operation_id]
-            kind = operation.kind
-            if (
-                kind == "set-bit"
-                and operation.target_ref_kind == "clock-gate"
-                and operation.register_id in register_addr_by_id
-                and operation.register_field_id in field_bit_by_id
-            ):
-                addr = register_addr_by_id[operation.register_id]
-                bit = field_bit_by_id[operation.register_field_id]
-                body.append(
-                    f"  *reinterpret_cast<volatile std::uint32_t*>"
-                    f"(0x{addr:08X}u) = (std::uint32_t{{1}} << {bit});"
+            body.extend(
+                _emit_route_operation_body(
+                    strategy=strategy,
+                    operation=operation,
+                    register_addr_by_id=register_addr_by_id,
+                    field_bit_by_id=field_bit_by_id,
+                    pin_info_by_id=pin_info_by_id,
+                    gpio_base_by_port=gpio_base_by_port,
+                    candidate_peripheral=candidate.peripheral,
                 )
-            elif kind == "write-selector" and operation.target_ref_kind == "pin":
-                pin = pin_info_by_id.get(operation.target_ref_id or "")
-                if pin is None:
-                    continue
-                port, number = pin
-                if port is None:
-                    continue
-                pio_base = pio_base_by_port.get(port)
-                if pio_base is None:
-                    continue
-                selector = operation.value_int
-                if selector is None or selector < 0 or selector > 3:
-                    continue
-                pdr_addr = pio_base + 0x04
-                abcd1_addr = pio_base + 0x70
-                abcd2_addr = pio_base + 0x74
-                bit_expr = f"(std::uint32_t{{1}} << {number})"
-                body.append(
-                    f"  *reinterpret_cast<volatile std::uint32_t*>(0x{pdr_addr:08X}u) = {bit_expr};"
-                )
-                op = "|=" if (selector & 1) else "&= ~"
-                body.append(
-                    f"  *reinterpret_cast<volatile std::uint32_t*>"
-                    f"(0x{abcd1_addr:08X}u) {op}{bit_expr};"
-                )
-                op = "|=" if (selector & 2) else "&= ~"
-                body.append(
-                    f"  *reinterpret_cast<volatile std::uint32_t*>"
-                    f"(0x{abcd2_addr:08X}u) {op}{bit_expr};"
-                )
+            )
         lines.extend(
             [
                 "template<>",
@@ -1599,6 +1591,195 @@ def _emit_route_apply_helpers(
             ]
         )
     return lines
+
+
+def _family_apply_route_strategy(family_dir: str) -> str | None:
+    if family_dir.startswith("microchip/same70"):
+        return "sam_pio"
+    if family_dir.startswith("microchip/avr-da"):
+        return "avr_portmux"
+    if family_dir.startswith("st/stm32"):
+        return "stm32_af"
+    if family_dir.startswith("nxp/imxrt1060"):
+        return "nxp_iomuxc"
+    if family_dir.startswith("espressif/"):
+        return "esp_iomatrix"
+    if family_dir.startswith("raspberrypi/rp2040"):
+        return "rp2040_funcsel"
+    return None
+
+
+def _emit_route_operation_body(
+    *,
+    strategy: str,
+    operation,
+    register_addr_by_id: dict[str, int],
+    field_bit_by_id: dict[str, int],
+    pin_info_by_id: dict[str, tuple[str | None, int]],
+    gpio_base_by_port: dict[str, int],
+    candidate_peripheral: str = "",
+) -> list[str]:
+    kind = operation.kind
+
+    if kind in ("set-bit", "clear-bit"):
+        addr = register_addr_by_id.get(operation.register_id)
+        bit = field_bit_by_id.get(operation.register_field_id)
+        if addr is None or bit is None:
+            return []
+        bit_expr = f"(std::uint32_t{{1}} << {bit})"
+        if strategy == "sam_pio":
+            # SAM PMC PCER/PCDR are W1S/W1C — a plain assignment of the bit.
+            return [f"  *reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) = {bit_expr};"]
+        # STM32 / NXP: RCC / CCM are RMW.
+        op_token = "|=" if kind == "set-bit" else "&= ~"
+        return [
+            f"  *reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) {op_token}{bit_expr};"
+        ]
+
+    if (
+        kind == "write-selector"
+        and strategy == "avr_portmux"
+        and operation.target_ref_kind == "pin"
+    ):  # noqa: E501
+        peripheral_lower = candidate_peripheral.lower()
+        portmux_field_id: str | None = None
+        portmux_reg_id: str | None = None
+        for fid in field_bit_by_id:
+            if fid.startswith("field:portmux:") and fid.endswith(f":{peripheral_lower}"):
+                portmux_field_id = fid
+                parts = fid.split(":")
+                portmux_reg_id = f"register:portmux:{parts[2]}"
+                break
+        if portmux_field_id is None or portmux_reg_id is None:
+            return []
+        addr = register_addr_by_id.get(portmux_reg_id)
+        bit_offset = field_bit_by_id.get(portmux_field_id)
+        selector = operation.value_int
+        if addr is None or bit_offset is None or selector is None:
+            return []
+        return [
+            f"  *reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) = ",
+            f"      (*reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) "
+            f"& ~(std::uint32_t{{0x3}} << {bit_offset})) "
+            f"| (std::uint32_t{{0x{selector:X}u}} << {bit_offset});",
+        ]
+
+    if (
+        kind == "write-selector"
+        and strategy == "rp2040_funcsel"
+        and operation.target_ref_kind == "pin"
+    ):  # noqa: E501
+        pin = pin_info_by_id.get(operation.target_ref_id or "")
+        if pin is None:
+            return []
+        _, pin_number = pin
+        selector = operation.value_int
+        if selector is None:
+            return []
+        reg_key = f"register:io-bank0:gpio{pin_number}-ctrl"
+        addr = register_addr_by_id.get(reg_key)
+        if addr is None:
+            return []
+        # IO_BANK0_GPIOx_CTRL.FUNCSEL at bits [4:0], 5-bit mask
+        return [
+            f"  *reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) = ",
+            f"      (*reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) "
+            f"& ~std::uint32_t{{0x1F}}) | std::uint32_t{{0x{selector:X}u}};",
+        ]
+
+    if (
+        kind == "write-selector"
+        and strategy == "esp_iomatrix"
+        and operation.target_ref_kind == "pin"
+    ):  # noqa: E501
+        pin = pin_info_by_id.get(operation.target_ref_id or "")
+        if pin is None:
+            return []
+        _, pin_number = pin
+        selector = operation.value_int
+        if selector is None:
+            return []
+        out_sel_base = register_addr_by_id.get("register:gpio:func-s-out-sel-cfg")
+        io_mux_base = register_addr_by_id.get("register:io-mux:gpio-s")
+        if out_sel_base is None or io_mux_base is None:
+            return []
+        out_sel_addr = out_sel_base + pin_number * 4
+        io_mux_addr = io_mux_base + pin_number * 4
+        # IO_MUX MCU_SEL[14:12]=1 selects GPIO matrix; GPIO_FUNCn_OUT_SEL_CFG=signal
+        return [
+            f"  *reinterpret_cast<volatile std::uint32_t*>(0x{io_mux_addr:08X}u) = ",
+            f"      (*reinterpret_cast<volatile std::uint32_t*>(0x{io_mux_addr:08X}u) "
+            f"& ~(std::uint32_t{{0x7}} << 12)) | (std::uint32_t{{0x1}} << 12);",
+            f"  *reinterpret_cast<volatile std::uint32_t*>(0x{out_sel_addr:08X}u) = "
+            f"std::uint32_t{{0x{selector:X}u}};",
+        ]
+
+    if kind == "write-selector" and strategy == "nxp_iomuxc" and operation.target_ref_kind == "pin":
+        pin_name = operation.target_ref_id or ""
+        reg_key = f"register:iomuxc:sw-mux-ctl-pad-{pin_name.lower().replace('_', '-')}"
+        addr = register_addr_by_id.get(reg_key)
+        if addr is None:
+            reg_key = f"register:iomuxc-snvs:sw-mux-ctl-pad-{pin_name.lower().replace('_', '-')}"
+            addr = register_addr_by_id.get(reg_key)
+        if addr is None:
+            return []
+        selector = operation.value_int
+        if selector is None:
+            return []
+        return [
+            f"  *reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) = ",
+            f"      (*reinterpret_cast<volatile std::uint32_t*>(0x{addr:08X}u) "
+            f"& ~std::uint32_t{{0x7}}) | std::uint32_t{{0x{selector:X}u}};",
+        ]
+
+    if kind == "write-selector" and operation.target_ref_kind == "pin":
+        pin = pin_info_by_id.get(operation.target_ref_id or "")
+        if pin is None:
+            return []
+        port, number = pin
+        selector = operation.value_int
+        if selector is None or port is None:
+            return []
+
+        if strategy == "sam_pio":
+            base = gpio_base_by_port.get(port)
+            if base is None or selector < 0 or selector > 3:
+                return []
+            pdr_addr = base + 0x04
+            abcd1_addr = base + 0x70
+            abcd2_addr = base + 0x74
+            bit_expr = f"(std::uint32_t{{1}} << {number})"
+            lines = [
+                f"  *reinterpret_cast<volatile std::uint32_t*>(0x{pdr_addr:08X}u) = {bit_expr};"
+            ]
+            for sel_bit, addr_value in ((1, abcd1_addr), (2, abcd2_addr)):
+                op_token = "|=" if (selector & sel_bit) else "&= ~"
+                lines.append(
+                    f"  *reinterpret_cast<volatile std::uint32_t*>"
+                    f"(0x{addr_value:08X}u) {op_token}{bit_expr};"
+                )
+            return lines
+
+        if strategy == "stm32_af":
+            base = gpio_base_by_port.get(port)
+            if base is None or selector < 0 or selector > 15:
+                return []
+            moder_addr = base + 0x00
+            afr_addr = base + (0x20 if number < 8 else 0x24)
+            moder_shift = number * 2
+            afr_shift = (number % 8) * 4
+            return [
+                f"  *reinterpret_cast<volatile std::uint32_t*>(0x{moder_addr:08X}u) = ",
+                f"      (*reinterpret_cast<volatile std::uint32_t*>(0x{moder_addr:08X}u) "
+                f"& ~(std::uint32_t{{0x3}} << {moder_shift})) "
+                f"| (std::uint32_t{{0x2}} << {moder_shift});",
+                f"  *reinterpret_cast<volatile std::uint32_t*>(0x{afr_addr:08X}u) = ",
+                f"      (*reinterpret_cast<volatile std::uint32_t*>(0x{afr_addr:08X}u) "
+                f"& ~(std::uint32_t{{0xF}} << {afr_shift})) "
+                f"| (std::uint32_t{{0x{selector:X}}} << {afr_shift});",
+            ]
+
+    return []
 
 
 def emit_runtime_lite_routes_header(
