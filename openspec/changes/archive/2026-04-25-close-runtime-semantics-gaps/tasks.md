@@ -37,4 +37,4 @@
 - [x] 5.1 `python -m ruff format src tests` + `python -m ruff check src tests`.
 - [x] 5.2 `python -m pytest tests` green.
 - [x] 5.3 `openspec validate close-runtime-semantics-gaps --strict`.
-- [ ] 5.4 Republish all four admitted families into `alloy-devices`.
+- [x] 5.4 Republish all four admitted families into `alloy-devices`.
