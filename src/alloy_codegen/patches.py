@@ -218,6 +218,12 @@ class FamilyPatchCatalog:
     system_clock_profiles: tuple[SystemClockProfilePatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestCatalogEntry, ...]
+    # Optional one-line caveat surfaced by the auto-generated alloy-devices
+    # README under "Coverage caveats".  Sourced from
+    # ``family.json::__source_notes::__readme_caveat`` — families without the
+    # field are silently omitted from the caveats section.  See
+    # ``add-publication-scale-features``.
+    readme_caveat: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -723,7 +729,25 @@ def load_family_patch_catalog(
         dma_requests=tuple(
             _parse_dma_request_catalog_entry(item) for item in payload.get("dma_requests", ())
         ),
+        readme_caveat=_extract_readme_caveat(payload),
     )
+
+
+def _extract_readme_caveat(payload: dict[str, object]) -> str | None:
+    """Pull `__source_notes.__readme_caveat` from a family.json payload.
+
+    Returns ``None`` when the field is absent, malformed, or empty.
+    Used by the auto-generated alloy-devices README to surface known coverage
+    limitations per family.  See ``add-publication-scale-features``.
+    """
+    notes = payload.get("__source_notes")
+    if not isinstance(notes, dict):
+        return None
+    caveat = notes.get("__readme_caveat")
+    if not isinstance(caveat, str):
+        return None
+    text = caveat.strip()
+    return text or None
 
 
 def _resolve_peripheral_patch(

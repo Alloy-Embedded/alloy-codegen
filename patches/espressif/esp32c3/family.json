@@ -3,7 +3,8 @@
   "__source_notes": {
     "io_matrix_reference": "esp-idf/components/soc/esp32c3/include/soc/gpio_sig_map.h",
     "io_matrix_comment": "af_number on ESP32-C3 PinSignals is the IO Matrix signal index (U0RXD_IN_IDX=6, U0TXD_OUT_IDX=6, U1RXD_IN_IDX=9, U1TXD_OUT_IDX=9, I2CEXT0_SDA_IN_IDX=14, I2CEXT0_SCL_IN_IDX=15, FSPIQ_IN/FSPICLK_OUT=63, FSPID_OUT=64, FSPICS0_OUT=68). Consumer: alloy.pinmux.espressif-iomatrix-v1.",
-    "canonical_pin_assignments_comment": "ESP32-C3 IO Matrix routes any signal to any GPIO. The pin→peripheral assignments here reflect the reference-board default layout from the ESP32-C3 TRM table 'GPIO Matrix Peripheral Signals' and ESP-IDF dev kits; they are not a hardware constraint."
+    "canonical_pin_assignments_comment": "ESP32-C3 IO Matrix routes any signal to any GPIO. The pin→peripheral assignments here reflect the reference-board default layout from the ESP32-C3 TRM table 'GPIO Matrix Peripheral Signals' and ESP-IDF dev kits; they are not a hardware constraint.",
+    "__readme_caveat": "Single-core RV32IMC.  PCR clock/reset registers are patched manually in the device JSON because the upstream SVD is incomplete for the system control block."
   },
   "packages": [
     { "name": "qfn32", "pin_count": 32 }

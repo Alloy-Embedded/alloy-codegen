@@ -1,5 +1,8 @@
 {
   "patch_id": "raspberrypi-rp2040-family-bootstrap-v1",
+  "__source_notes": {
+    "__readme_caveat": "Dual-core Cortex-M0+ modelled as single-core perspective — the emitted startup brings up core 0 only.  Core 1 bring-up and inter-core FIFO/spinlock primitives are deferred to a follow-on proposal."
+  },
   "packages": [
     { "name": "qfn56", "pin_count": 56 },
     { "name": "pico",  "pin_count": 40 }

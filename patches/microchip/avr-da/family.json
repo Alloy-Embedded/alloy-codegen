@@ -4,7 +4,8 @@
     "reference_pack": "Atmel.AVR-Dx_DFP.2.4.286.atpack",
     "reference_atdf": "atdf/AVR128DA32.atdf",
     "portmux_comment": "AVR-Dx routes peripheral signals via the PORTMUX peripheral (PORTMUX.USARTROUTEA, PORTMUX.SPIROUTEA, etc.).  af_number on PinSignals encodes the PORTMUX selection index: 0 = default pin assignment, 1/2 = alternate assignments.  Consumer: alloy.pinmux.avr-portmux-v1.",
-    "canonical_pin_assignments_comment": "Default PORTMUX assignments for AVR128DA32 (all selections = 0).  Alternate routings land alongside in Phase 3.  Only the peripherals that participate in the bootstrap path (USART, SPI, TWI, TCA) carry pin signals."
+    "canonical_pin_assignments_comment": "Default PORTMUX assignments for AVR128DA32 (all selections = 0).  Alternate routings land alongside in Phase 3.  Only the peripherals that participate in the bootstrap path (USART, SPI, TWI, TCA) carry pin signals.",
+    "__readme_caveat": "8-bit Harvard memory layout (flash @ 0x0, SRAM @ 0x4000); host-ld validation is skipped and the vendor toolchain (avr-gcc) is the canonical link gate.  Vector table follows the avr-libc `__vector_<n>` convention."
   },
   "packages": [
     { "name": "tqfp32", "pin_count": 32 }

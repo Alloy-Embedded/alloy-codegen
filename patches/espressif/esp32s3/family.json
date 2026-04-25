@@ -3,7 +3,8 @@
   "__source_notes": {
     "io_matrix_reference": "esp-idf/components/soc/esp32s3/include/soc/gpio_sig_map.h",
     "io_matrix_comment": "af_number on ESP32-S3 PinSignals is the IO Matrix signal index (U0RXD_IN_IDX=6, U0TXD_OUT_IDX=6, U1RXD_IN_IDX=9, U1TXD_OUT_IDX=9, U2RXD_IN_IDX=13, U2TXD_OUT_IDX=17, I2CEXT0_SDA_IN/OUT=9/10, FSPIQ_IN/FSPID_OUT=64/63 on ESP32-S3). Consumer: alloy.pinmux.espressif-iomatrix-v1.",
-    "single_core_perspective": "ESP32-S3 is a dual-core Xtensa LX7 SoC; this bootstrap exposes the CONTROL PLANE of core 0 only.  Multi-core affinity / ownership is deliberately out of scope for the first admitted S3 model.  The generated runtime can be consumed from core 0 application code today; core-1 support lands as a separate proposal once multi-core primitives are defined."
+    "single_core_perspective": "ESP32-S3 is a dual-core Xtensa LX7 SoC; this bootstrap exposes the CONTROL PLANE of core 0 only.  Multi-core affinity / ownership is deliberately out of scope for the first admitted S3 model.  The generated runtime can be consumed from core 0 application code today; core-1 support lands as a separate proposal once multi-core primitives are defined.",
+    "__readme_caveat": "Dual-core control plane (PRO_CPU + APP_CPU) is emitted via `bring_up_app_cpu()` toggling `SYSTEM.CORE_1_CONTROL_*` registers.  Per-interrupt affinity routing and inter-core IPC primitives are delegated to esp-idf."
   },
   "packages": [
     { "name": "qfn56", "pin_count": 56 }

@@ -17,13 +17,116 @@ on:
         required: false
         default: false
         type: boolean
+      force_all:
+        description: "Bypass affected-families detection; run the full matrix"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
-  publish:
-    name: Publish ${{ matrix.vendor }}/${{ matrix.family }} to alloy-devices
+  detect-affected:
+    name: Detect affected families
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      should_publish: ${{ steps.detect.outputs.should_publish }}
+      all_families: ${{ steps.detect.outputs.all_families }}
+    steps:
+      - name: Checkout alloy-codegen (workflow run)
+        if: github.event_name == 'workflow_run'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
+
+      - name: Checkout alloy-codegen (manual)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Python tooling
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: Resolve since ref
+        id: since
+        run: |
+          set -eu
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            since="${{ inputs.ref }}~1"
+          else
+            since="${{ github.event.workflow_run.head_sha }}~1"
+          fi
+          # Fall back to HEAD~1 if the parent isn't reachable in the shallow checkout.
+          if ! git rev-parse --verify "$since" >/dev/null 2>&1; then
+            since="HEAD~1"
+          fi
+          echo "since=$since" >> "$GITHUB_OUTPUT"
+
+      - name: Compute affected families
+        id: detect
+        env:
+          FORCE_ALL: ${{ inputs.force_all }}
+          SINCE_REF: ${{ steps.since.outputs.since }}
+        run: |
+          set -eu
+          mkdir -p out
+          force_flag=""
+          if [ "${FORCE_ALL:-false}" = "true" ]; then
+            force_flag="--force-all"
+          fi
+          python -m alloy_codegen.cli affected-families \
+            --since "$SINCE_REF" \
+            --json $force_flag \
+            > out/affected.json
+          cat out/affected.json
+          python - <<'PY'
+          import json
+          import os
+          payload = json.loads(open("out/affected.json").read())
+          matrix = payload["matrix"]
+          should_publish = "true" if payload["should_publish"] else "false"
+          all_families = "true" if payload["all_families"] else "false"
+          out_path = os.environ["GITHUB_OUTPUT"]
+          with open(out_path, "a") as fh:
+              fh.write(f"matrix={json.dumps(matrix)}\n")
+              fh.write(f"should_publish={should_publish}\n")
+              fh.write(f"all_families={all_families}\n")
+          PY
+
+      - name: Summarize affected families
+        run: |
+          {
+            echo "## Affected families"
+            echo ""
+            echo "- since: \`${{ steps.since.outputs.since }}\`"
+            echo "- should_publish: \`${{ steps.detect.outputs.should_publish }}\`"
+            echo "- all_families: \`${{ steps.detect.outputs.all_families }}\`"
+            echo ""
+            echo "Matrix (JSON):"
+            echo ""
+            echo '```json'
+            echo '${{ steps.detect.outputs.matrix }}'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Publish ${{ matrix.vendor }}/${{ matrix.family }} to alloy-devices
+    needs: detect-affected
+    if: needs.detect-affected.outputs.should_publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,25 +134,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        include:
-          - vendor: st
-            family: stm32g0
-          - vendor: st
-            family: stm32f4
-          - vendor: microchip
-            family: same70
-          - vendor: microchip
-            family: avr-da
-          - vendor: nxp
-            family: imxrt1060
-          - vendor: raspberrypi
-            family: rp2040
-          - vendor: espressif
-            family: esp32c3
-          - vendor: espressif
-            family: esp32s3
-          - vendor: espressif
-            family: esp32
+        include: ${{ fromJson(needs.detect-affected.outputs.matrix) }}
     env:
       ALLOY_DEVICES_REPOSITORY: ${{ github.repository_owner }}/alloy-devices
 

@@ -22,6 +22,7 @@ from alloy_codegen.publication import (
     promote_staging_root,
 )
 from alloy_codegen.reporting import PublicationPlan
+from alloy_codegen.runtime_readme import emit_devices_readme
 from alloy_codegen.runtime_reports import find_runtime_report_violations
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.common import StageResult
@@ -166,9 +167,18 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             ),
         )
     staging_root = prepare_staging_root(execution_context.publication_root)
+    # Inject the auto-generated alloy-devices README at the publication root.
+    # The emitter is a pure function over DEVICE_REGISTRY + family/device
+    # patches, so every parallel publish job materialises byte-identical
+    # content — the workflow's git-status diff trivially detects when the
+    # README really changed (see add-publication-scale-features).
+    publish_artifacts = (
+        *emit_result.payload.artifacts,
+        emit_devices_readme(execution_context),
+    )
     staged_artifacts = materialize_artifacts(
         artifact_root=staging_root,
-        artifacts=emit_result.payload.artifacts,
+        artifacts=publish_artifacts,
     )
     capability_regressions = find_capability_regressions(
         publication_root=execution_context.publication_root,

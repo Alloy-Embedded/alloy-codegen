@@ -20,10 +20,11 @@ not recover missing semantics from raw vendor data.
 
 The repository currently supports these published families:
 
-- `st/stm32g0`
-- `st/stm32f4`
-- `microchip/same70`
+- `st/stm32g0`, `st/stm32f4`
+- `microchip/same70`, `microchip/avr-da`
 - `nxp/imxrt1060`
+- `raspberrypi/rp2040`
+- `espressif/esp32`, `espressif/esp32c3`, `espressif/esp32s3`
 
 You can inspect the active support matrix directly from the CLI:
 
@@ -34,6 +35,45 @@ alloy-codegen targets --json
 
 The default scope remains `st/stm32g0` when no `--vendor`, `--family`, or `--device` is
 provided.
+
+## Published Device Matrix
+
+The `alloy-devices` repository carries a top-level `README.md` that lists every admitted
+`(vendor, family)` pair plus its devices, packages, and peripherals.  This file is **auto-
+generated** by `alloy-codegen` on every publish — do not edit it manually.  It reads
+`DEVICE_REGISTRY` and the family/device patches and stays in sync without operator effort.
+
+Each family can surface a one-line caveat in the auto-generated table by setting
+`__source_notes.__readme_caveat` in its `family.json` (the field is optional; families
+without it are simply omitted from the "Coverage caveats" section).
+
+### Selective publish — affected-families detection
+
+Once 9 families turns into 100+, re-publishing every family on every push is wasteful.
+The publish workflow runs a `detect-affected` job that maps the git diff to the subset of
+admitted families whose inputs the commit actually changed:
+
+| Path pattern (first match wins) | Families published |
+|---------------------------------|--------------------|
+| `patches/<vendor>/<family>/**` | only that family |
+| `src/alloy_codegen/sources/<adapter>.py` | families that consume that adapter |
+| `src/alloy_codegen/runtime_xtensa_startup.py` | xtensa families |
+| `src/alloy_codegen/runtime_riscv_startup.py` | RISC-V families |
+| `src/alloy_codegen/runtime_avr_startup.py` | AVR families |
+| `src/alloy_codegen/runtime_startup.py` | Cortex-M families |
+| Other `src/alloy_codegen/**.py` | **all admitted families** (conservative) |
+| `tests/**`, `openspec/**`, `*.md`, `bootstrap-family.yml` | **none** (publish is skipped entirely) |
+| `publish-alloy-devices.yml`, `pyproject.toml`, `uv.lock` | **all admitted families** |
+| Unknown / `git diff` failure | **all admitted families** (safe default) |
+
+Inspect what the heuristic would publish for the current diff:
+
+```bash
+alloy-codegen affected-families --since HEAD~1 --plain
+```
+
+To force a full-matrix run (e.g. cache invalidation, security re-publish), trigger the
+publish workflow via `gh workflow run` (or the Actions UI) with `force_all=true`.
 
 ## Quick Start
 

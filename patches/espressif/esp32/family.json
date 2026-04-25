@@ -4,7 +4,8 @@
     "io_matrix_reference": "esp-idf/components/soc/esp32/include/soc/gpio_sig_map.h",
     "io_matrix_comment": "Pin signal AF numbers (IO Matrix indices) are deferred to a follow-on; this bootstrap leaves pin_signals empty and lets the ESP32 device IR carry pins without IO Matrix routing — same posture the ESP32-S3 took initially.",
     "dual_core_perspective": "ESP32 is a dual-core Xtensa LX6 SoC; the runtime startup emitter generates dual vector tables, two Reset_Handler entry points, and a bring_up_app_cpu() primitive that pokes DPORT.APPCPU_CTRL_B.  Affinity routing of individual interrupts and inter-core synchronization primitives are out of scope for the bootstrap contract — those are esp-idf concerns.",
-    "svd_coverage_note": "espressif/svd/esp32.svd ships a partial peripheral catalogue; UART1/UART2, SPI2/SPI3, I2C1, TIMG1 exist in hardware but only their CLK_EN bits inside DPORT are present in the SVD.  The bootstrap admits only the peripherals the SVD declares as top-level instances; a follow-on can extend the device patch with manual peripheral declarations to cover the missing instances."
+    "svd_coverage_note": "espressif/svd/esp32.svd ships a partial peripheral catalogue; UART1/UART2, SPI2/SPI3, I2C1, TIMG1 exist in hardware but only their CLK_EN bits inside DPORT are present in the SVD.  The bootstrap admits only the peripherals the SVD declares as top-level instances; a follow-on can extend the device patch with manual peripheral declarations to cover the missing instances.",
+    "__readme_caveat": "Upstream `espressif/svd/esp32.svd` is partial — UART1/UART2, SPI2/SPI3, I2C1, TIMG1 only exist as DPORT clock-gate bits.  Dual-core control plane is emitted (PRO_CPU + APP_CPU bring-up via `bring_up_app_cpu()`); affinity routing and inter-core IPC delegate to esp-idf."
   },
   "packages": [
     { "name": "qfn48",   "pin_count": 48 },

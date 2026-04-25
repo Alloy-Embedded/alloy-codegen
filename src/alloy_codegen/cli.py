@@ -194,6 +194,41 @@ def build_parser() -> argparse.ArgumentParser:
     )
     add_context_args(config_example_parser)
 
+    affected_parser = subparsers.add_parser(
+        "affected-families",
+        help=(
+            "Compute the (vendor, family) set whose published artefacts a git diff "
+            "affects.  Used by the publish workflow to scope its matrix dynamically."
+        ),
+    )
+    affected_parser.add_argument(
+        "--since",
+        required=True,
+        help="Git ref to diff against HEAD (e.g. HEAD~1, origin/main).",
+    )
+    affected_parser.add_argument(
+        "--head",
+        default="HEAD",
+        help="Git ref representing the new tip (default: HEAD).",
+    )
+    affected_parser.add_argument(
+        "--force-all",
+        action="store_true",
+        help="Bypass diff detection and return the full admitted set.",
+    )
+    affected_parser.add_argument(
+        "--json",
+        action="store_true",
+        default=True,
+        help="Emit machine-readable JSON (default).",
+    )
+    affected_parser.add_argument(
+        "--plain",
+        dest="json",
+        action="store_false",
+        help="Emit one '<vendor>/<family>' per line instead of JSON.",
+    )
+
     return parser
 
 
@@ -257,6 +292,25 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(f"{schema['title']} [{schema['$id']}]")
             print("required:", ", ".join(schema["required"]))
+        return 0
+
+    if args.stage == "affected-families":
+        from alloy_codegen.affected_families import (
+            compute_affected_from_git,
+            serialize_affected_set,
+        )
+
+        affected = compute_affected_from_git(
+            since=args.since,
+            head=args.head,
+            force_all=bool(args.force_all),
+        )
+        if args.json:
+            payload = serialize_affected_set(affected, since=args.since, head=args.head)
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            for vendor, family in affected.families:
+                print(f"{vendor}/{family}")
         return 0
 
     source_overrides = parse_source_overrides(args.source)
