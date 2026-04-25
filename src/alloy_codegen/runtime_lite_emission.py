@@ -924,6 +924,120 @@ def emit_runtime_lite_register_fields_header(
     )
 
 
+def _clock_helper_strategy(family_dir: str, register_name: str) -> str:
+    """Pick the MMIO write pattern used by ``clock_enable``/``clock_disable``.
+
+    - ``"w1s_separate"``: enable register is W1S, disable register is W1C at
+      ``enable_offset + 0x04`` (SAM E70 PMC PCERx/PCDRx layout).
+    - ``"rmw_set_clear"``: a single read-modify-write register where
+      ``enable`` sets the bit and ``disable`` clears it (STM32 RCC ENR
+      registers, NXP CCM CCGR registers).
+    - ``"unsupported"``: emit no specialization; the primary template's
+      ``static_assert`` fires.
+    """
+    name = register_name.upper()
+    if family_dir.startswith("microchip/same70") and name in {"PCER0", "PCER1"}:
+        return "w1s_separate"
+    if family_dir.startswith("st/"):
+        if name.endswith("ENR") or name in {"AHBENR", "APBENR1", "APBENR2", "IOPENR"}:
+            return "rmw_set_clear"
+    if family_dir.startswith("nxp/") and name.startswith("CCGR"):
+        return "rmw_set_clear"
+    return "unsupported"
+
+
+def _emit_clock_enable_disable_helpers(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+    bindings: dict[str, object],
+    gate_by_id: dict[str, object],
+) -> list[str]:
+    peripheral_by_name = {peripheral.name: peripheral for peripheral in device.peripherals}
+    register_by_id = {reg.register_id: reg for reg in device.registers}
+    field_by_id = {field.field_id: field for field in device.register_fields}
+
+    primary = [
+        "template <auto> inline constexpr bool kClockBindingDependentFalse = false;",
+        "",
+        "template <PeripheralId Id>",
+        "inline auto clock_enable() noexcept -> void {",
+        '  static_assert(kClockBindingDependentFalse<Id>, "");',
+        "}",
+        "",
+        "template <PeripheralId Id>",
+        "inline auto clock_disable() noexcept -> void {",
+        '  static_assert(kClockBindingDependentFalse<Id>, "");',
+        "}",
+        "",
+    ]
+
+    specializations: list[str] = []
+    for peripheral_name in sorted(bindings):
+        binding = bindings[peripheral_name]
+        gate_id = getattr(binding, "clock_gate_id", None)
+        if gate_id is None:
+            continue
+        gate = gate_by_id.get(gate_id)
+        if gate is None:
+            continue
+        register_id = getattr(gate, "register_id", None)
+        field_id = getattr(gate, "register_field_id", None)
+        if register_id is None or field_id is None:
+            continue
+        register = register_by_id.get(register_id)
+        field = field_by_id.get(field_id)
+        if register is None or field is None:
+            continue
+        owner_peripheral = peripheral_by_name.get(register.peripheral)
+        if owner_peripheral is None:
+            continue
+        strategy = _clock_helper_strategy(family_dir, register.name)
+        if strategy == "unsupported":
+            continue
+        enable_addr = owner_peripheral.base_address + register.offset_bytes
+        bit_offset = field.bit_offset
+        peripheral_id_enum = _enum_identifier(peripheral_name)
+        addr_lit = f"0x{enable_addr:08X}u"
+        mask_lit = f"(1u << {bit_offset})"
+        if strategy == "w1s_separate":
+            disable_lit = f"0x{(enable_addr + 0x04):08X}u"
+            specializations.extend(
+                [
+                    "template <>",
+                    f"inline auto clock_enable<PeripheralId::{peripheral_id_enum}>() noexcept "
+                    "-> void {",
+                    f"  *reinterpret_cast<volatile std::uint32_t*>({addr_lit}) = {mask_lit};",
+                    "}",
+                    "template <>",
+                    f"inline auto clock_disable<PeripheralId::{peripheral_id_enum}>() noexcept "
+                    "-> void {",
+                    f"  *reinterpret_cast<volatile std::uint32_t*>({disable_lit}) = {mask_lit};",
+                    "}",
+                    "",
+                ]
+            )
+        elif strategy == "rmw_set_clear":
+            specializations.extend(
+                [
+                    "template <>",
+                    f"inline auto clock_enable<PeripheralId::{peripheral_id_enum}>() noexcept "
+                    "-> void {",
+                    f"  auto* reg = reinterpret_cast<volatile std::uint32_t*>({addr_lit});",
+                    f"  *reg = *reg | {mask_lit};",
+                    "}",
+                    "template <>",
+                    f"inline auto clock_disable<PeripheralId::{peripheral_id_enum}>() noexcept "
+                    "-> void {",
+                    f"  auto* reg = reinterpret_cast<volatile std::uint32_t*>({addr_lit});",
+                    f"  *reg = *reg & ~{mask_lit};",
+                    "}",
+                    "",
+                ]
+            )
+    return primary + specializations
+
+
 def emit_runtime_lite_clock_bindings_header(
     *,
     family_dir: str,
@@ -1101,6 +1215,12 @@ def emit_runtime_lite_clock_bindings_header(
             ]
         )
         binding_rows.append(f"  PeripheralId::{peripheral_id},")
+    clock_helper_lines = _emit_clock_enable_disable_helpers(
+        family_dir=family_dir,
+        device=device,
+        bindings=bindings,
+        gate_by_id=gate_by_id,
+    )
     body_lines = [
         *gate_trait_lines,
         *reset_trait_lines,
@@ -1111,6 +1231,8 @@ def emit_runtime_lite_clock_bindings_header(
             variable_name="kClockBoundPeripherals",
             row_lines=binding_rows,
         ),
+        "",
+        *clock_helper_lines,
     ]
     namespace_block = _cpp_namespace_block(
         _runtime_device_namespace_components(device),
@@ -1363,6 +1485,122 @@ def emit_runtime_lite_dma_bindings_header(
     )
 
 
+def _emit_route_apply_helpers(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+    runtime_candidates: tuple[ConnectionCandidate, ...],
+    operation_by_id: dict,
+    semantics_catalog: dict,
+    route_enum_map: dict[str, str],
+) -> list[str]:
+    """Emit ``apply_route<Pin, Peripheral, Signal>()``.
+
+    The primary template ``static_assert``s on ``RouteTraits<>::kPresent`` —
+    that is the §4.2 compile-time diagnostic when no route entry exists.
+
+    For SAM E70 we additionally emit per-candidate specializations that bake
+    the concrete PMC clock-enable + PIO ABCDSR/PDR writes inline, which
+    satisfies §4.1 ("writes the vendor selector(s) for the route already
+    captured in the table") for the only family that currently has admitted
+    onboard drivers consuming the helper.
+    """
+    lines: list[str] = [
+        "template<PinId Pin, PeripheralId Peripheral, SignalId Signal>",
+        "inline auto apply_route() noexcept -> void {",
+        '  static_assert(RouteTraits<Pin, Peripheral, Signal>::kPresent, "");',
+        "}",
+        "",
+    ]
+
+    if not family_dir.startswith("microchip/same70"):
+        return lines
+
+    register_addr_by_id: dict[str, int] = {}
+    peripheral_base_by_name: dict[str, int] = {
+        peripheral.name: peripheral.base_address for peripheral in device.peripherals
+    }
+    for register in device.registers:
+        base = peripheral_base_by_name.get(register.peripheral)
+        if base is None:
+            continue
+        register_addr_by_id[register.register_id] = base + register.offset_bytes
+    field_bit_by_id: dict[str, int] = {rf.field_id: rf.bit_offset for rf in device.register_fields}
+    pin_info_by_id: dict[str, tuple[str | None, int]] = {
+        pin.name: (pin.port, pin.number) for pin in device.pins
+    }
+    pio_base_by_port: dict[str, int] = {}
+    for peripheral in device.peripherals:
+        if peripheral.name.startswith("GPIO") and len(peripheral.name) == 5:
+            pio_base_by_port[peripheral.name[-1]] = peripheral.base_address
+
+    for candidate in runtime_candidates:
+        pin_ref = f"PinId::{_enum_identifier(candidate.pin)}"
+        peripheral_ref = f"PeripheralId::{_enum_identifier(candidate.peripheral)}"
+        signal_ref = _semantic_enum_ref(
+            "SignalId",
+            semantics_catalog["signal_enum_map"],
+            candidate.signal,
+        )
+        body: list[str] = []
+        for operation_id in candidate.operation_ids:
+            operation = operation_by_id[operation_id]
+            kind = operation.kind
+            if (
+                kind == "set-bit"
+                and operation.target_ref_kind == "clock-gate"
+                and operation.register_id in register_addr_by_id
+                and operation.register_field_id in field_bit_by_id
+            ):
+                addr = register_addr_by_id[operation.register_id]
+                bit = field_bit_by_id[operation.register_field_id]
+                body.append(
+                    f"  *reinterpret_cast<volatile std::uint32_t*>"
+                    f"(0x{addr:08X}u) = (std::uint32_t{{1}} << {bit});"
+                )
+            elif kind == "write-selector" and operation.target_ref_kind == "pin":
+                pin = pin_info_by_id.get(operation.target_ref_id or "")
+                if pin is None:
+                    continue
+                port, number = pin
+                if port is None:
+                    continue
+                pio_base = pio_base_by_port.get(port)
+                if pio_base is None:
+                    continue
+                selector = operation.value_int
+                if selector is None or selector < 0 or selector > 3:
+                    continue
+                pdr_addr = pio_base + 0x04
+                abcd1_addr = pio_base + 0x70
+                abcd2_addr = pio_base + 0x74
+                bit_expr = f"(std::uint32_t{{1}} << {number})"
+                body.append(
+                    f"  *reinterpret_cast<volatile std::uint32_t*>(0x{pdr_addr:08X}u) = {bit_expr};"
+                )
+                op = "|=" if (selector & 1) else "&= ~"
+                body.append(
+                    f"  *reinterpret_cast<volatile std::uint32_t*>"
+                    f"(0x{abcd1_addr:08X}u) {op}{bit_expr};"
+                )
+                op = "|=" if (selector & 2) else "&= ~"
+                body.append(
+                    f"  *reinterpret_cast<volatile std::uint32_t*>"
+                    f"(0x{abcd2_addr:08X}u) {op}{bit_expr};"
+                )
+        lines.extend(
+            [
+                "template<>",
+                f"inline auto apply_route<{pin_ref}, {peripheral_ref}, "
+                f"{signal_ref}>() noexcept -> void {{",
+                *(body if body else ["  // no MMIO ops captured for this route"]),
+                "}",
+                "",
+            ]
+        )
+    return lines
+
+
 def emit_runtime_lite_routes_header(
     *,
     family_dir: str,
@@ -1564,6 +1802,15 @@ def emit_runtime_lite_routes_header(
             "},"
         )
 
+    apply_route_lines = _emit_route_apply_helpers(
+        family_dir=family_dir,
+        device=device,
+        runtime_candidates=runtime_candidates,
+        operation_by_id=operation_by_id,
+        semantics_catalog=semantics_catalog,
+        route_enum_map=route_enum_map,
+    )
+
     body_lines = [
         *route_trait_lines,
         *_std_array_lines(
@@ -1572,6 +1819,7 @@ def emit_runtime_lite_routes_header(
             row_lines=route_descriptor_rows,
         ),
         "",
+        *apply_route_lines,
         *group_trait_lines,
         "struct ConnectionGroupDescriptor {",
         "  ConnectionGroupId group_id;",
