@@ -863,8 +863,8 @@ class I2cPeripheralDescriptor:
     peripheral_id: str
     base_address: int
     clock_source: str | None = None
-    dma_req_tx: int | None = None
-    dma_req_rx: int | None = None
+    dreq_tx: int | None = None
+    dreq_rx: int | None = None
     # Canonical pin names (``"PA10"``, ``"GP12"``, ``"PORTA_PIN2"``, …)
     # — strings rather than integers so the field works uniformly across
     # STM32 (per-port indexing), RP2040 (flat pad numbering 0..29), AVR

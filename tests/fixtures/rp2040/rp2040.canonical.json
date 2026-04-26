@@ -5454,8 +5454,8 @@
     {
       "base_address": 1074020352,
       "clock_source": null,
-      "dma_req_rx": 33,
-      "dma_req_tx": 32,
+      "dreq_rx": 33,
+      "dreq_tx": 32,
       "gpio_matrix_in_scl_signal": null,
       "gpio_matrix_in_sda_signal": null,
       "gpio_matrix_out_scl_signal": null,
@@ -5487,8 +5487,8 @@
     {
       "base_address": 1074036736,
       "clock_source": null,
-      "dma_req_rx": 35,
-      "dma_req_tx": 34,
+      "dreq_rx": 35,
+      "dreq_tx": 34,
       "gpio_matrix_in_scl_signal": null,
       "gpio_matrix_in_sda_signal": null,
       "gpio_matrix_out_scl_signal": null,

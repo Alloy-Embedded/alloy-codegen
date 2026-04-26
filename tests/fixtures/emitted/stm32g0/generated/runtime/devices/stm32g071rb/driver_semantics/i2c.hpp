@@ -104,8 +104,8 @@ struct I2cPeripheralTraits {
   static constexpr bool kPresent = false;
   static constexpr std::uint32_t kBaseAddress = 0u;
   static constexpr RuntimeI2cClockSource kClockSource = RuntimeI2cClockSource::None;
-  static constexpr std::uint8_t kDmaReqTx = 0u;
-  static constexpr std::uint8_t kDmaReqRx = 0u;
+  static constexpr std::uint8_t kDreqTx = 0u;
+  static constexpr std::uint8_t kDreqRx = 0u;
   static constexpr std::array<PinId, 0> kValidSdaPins = {};
   static constexpr std::array<PinId, 0> kValidSclPins = {};
   static constexpr std::uint16_t kInSdaSignal = 0xFFFFu;

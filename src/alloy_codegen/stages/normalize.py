@@ -1492,8 +1492,8 @@ def _build_rp2040_i2c_peripherals(
             I2cPeripheralDescriptor(
                 peripheral_id="I2C0",
                 base_address=base_by_name["I2C0"],
-                dma_req_tx=32,
-                dma_req_rx=33,
+                dreq_tx=32,
+                dreq_rx=33,
                 valid_sda_pins=i2c0_sda,
                 valid_scl_pins=i2c0_scl,
                 supports_fast_mode_plus=False,
@@ -1504,8 +1504,8 @@ def _build_rp2040_i2c_peripherals(
             I2cPeripheralDescriptor(
                 peripheral_id="I2C1",
                 base_address=base_by_name["I2C1"],
-                dma_req_tx=34,
-                dma_req_rx=35,
+                dreq_tx=34,
+                dreq_rx=35,
                 valid_sda_pins=i2c1_sda,
                 valid_scl_pins=i2c1_scl,
                 supports_fast_mode_plus=False,

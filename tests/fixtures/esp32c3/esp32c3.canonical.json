@@ -1467,8 +1467,8 @@
     {
       "base_address": 1610690560,
       "clock_source": null,
-      "dma_req_rx": null,
-      "dma_req_tx": null,
+      "dreq_rx": null,
+      "dreq_tx": null,
       "gpio_matrix_in_scl_signal": 14,
       "gpio_matrix_in_sda_signal": 15,
       "gpio_matrix_out_scl_signal": 14,

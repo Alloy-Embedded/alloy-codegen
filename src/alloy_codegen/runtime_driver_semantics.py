@@ -12420,8 +12420,8 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
             "  static constexpr bool kPresent = false;",
             "  static constexpr std::uint32_t kBaseAddress = 0u;",
             "  static constexpr RuntimeI2cClockSource kClockSource = RuntimeI2cClockSource::None;",
-            "  static constexpr std::uint8_t kDmaReqTx = 0u;",
-            "  static constexpr std::uint8_t kDmaReqRx = 0u;",
+            "  static constexpr std::uint8_t kDreqTx = 0u;",
+            "  static constexpr std::uint8_t kDreqRx = 0u;",
             # Pad arrays use the typed ``PinId`` enum already declared in
             # ``../pins.hpp``; the empty array is the AllGpios sentinel
             # (any pad is acceptable — Espressif IO matrix path).
@@ -12471,8 +12471,8 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
                 "  static constexpr bool kPresent = true;",
                 f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
                 f"  static constexpr RuntimeI2cClockSource kClockSource = {clock_enum};",
-                f"  static constexpr std::uint8_t kDmaReqTx = {ctrl.dma_req_tx or 0}u;",
-                f"  static constexpr std::uint8_t kDmaReqRx = {ctrl.dma_req_rx or 0}u;",
+                f"  static constexpr std::uint8_t kDreqTx = {ctrl.dreq_tx or 0}u;",
+                f"  static constexpr std::uint8_t kDreqRx = {ctrl.dreq_rx or 0}u;",
                 _pad_array("kValidSdaPins", ctrl.valid_sda_pins),
                 _pad_array("kValidSclPins", ctrl.valid_scl_pins),
                 f"  static constexpr std::uint16_t kInSdaSignal = {_opt_signal(ctrl.gpio_matrix_in_sda_signal)};",

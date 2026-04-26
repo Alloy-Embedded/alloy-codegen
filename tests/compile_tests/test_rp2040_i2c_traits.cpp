@@ -20,16 +20,16 @@ namespace ds = raspberrypi::rp2040::generated::runtime::devices::rp2040::driver_
 // I2C0 — datasheet Tables 2-5 (pin allowlist) + 2-7 (DREQs).
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kPresent);
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kBaseAddress == 0x40044000u);
-static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kDmaReqTx == 32u);
-static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kDmaReqRx == 33u);
+static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kDreqTx == 32u);
+static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kDreqRx == 33u);
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kValidSdaPins.size() == 8u);
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kValidSdaPins[0] == dev::PinId::GP0);
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C0>::kValidSclPins[7] == dev::PinId::GP29);
 
 // I2C1 — distinct DREQs and pad set.
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C1>::kBaseAddress == 0x40048000u);
-static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C1>::kDmaReqTx == 34u);
-static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C1>::kDmaReqRx == 35u);
+static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C1>::kDreqTx == 34u);
+static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C1>::kDreqRx == 35u);
 static_assert(ds::I2cPeripheralTraits<ds::RuntimeI2cCtrlId::I2C1>::kValidSdaPins[0] == dev::PinId::GP2);
 
 // Primary template defaults.

@@ -132,8 +132,8 @@ def test_rp2040_i2c0_records_datasheet_pin_constraints_and_dreqs(
 
     i2c0 = _struct_block(content, "I2cPeripheralTraits<RuntimeI2cCtrlId::I2C0>")
     assert "static constexpr bool kPresent = true;" in i2c0
-    assert "static constexpr std::uint8_t kDmaReqTx = 32u;" in i2c0
-    assert "static constexpr std::uint8_t kDmaReqRx = 33u;" in i2c0
+    assert "static constexpr std::uint8_t kDreqTx = 32u;" in i2c0
+    assert "static constexpr std::uint8_t kDreqRx = 33u;" in i2c0
     for pad in ("GP0", "GP4", "GP8", "GP12", "GP16", "GP20", "GP24", "GP28"):
         assert f'PinId::{pad}' in i2c0
     for pad in ("GP1", "GP5", "GP9", "GP13", "GP17", "GP21", "GP25", "GP29"):
@@ -148,8 +148,8 @@ def test_rp2040_i2c1_records_distinct_constraints_and_dreqs(
     content = _emit_i2c_hpp(rp2040_execution_context, "rp2040")
 
     i2c1 = _struct_block(content, "I2cPeripheralTraits<RuntimeI2cCtrlId::I2C1>")
-    assert "static constexpr std::uint8_t kDmaReqTx = 34u;" in i2c1
-    assert "static constexpr std::uint8_t kDmaReqRx = 35u;" in i2c1
+    assert "static constexpr std::uint8_t kDreqTx = 34u;" in i2c1
+    assert "static constexpr std::uint8_t kDreqRx = 35u;" in i2c1
     for pad in ("GP2", "GP6", "GP10", "GP14", "GP18", "GP26"):
         assert f'PinId::{pad}' in i2c1
 
