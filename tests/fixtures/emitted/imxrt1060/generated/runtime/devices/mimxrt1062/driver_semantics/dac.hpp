@@ -36,6 +36,7 @@ struct DacSemanticTraits {
   static constexpr RuntimeIndexedFieldRef kTriggerSelectPattern = kInvalidIndexedFieldRef;
   static constexpr RuntimeIndexedFieldRef kDataPattern = kInvalidIndexedFieldRef;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
 template<PeripheralId Id, std::size_t ChannelIndex>

@@ -37,6 +37,7 @@ struct UartSemanticTraits {
   static constexpr bool kSupportsAutoBaud = false;
   static constexpr bool kSupportsWakeFromStop = false;
   static constexpr std::uint8_t kDmaBindingCount = 0u;
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;
@@ -134,6 +135,7 @@ struct UartSemanticTraits<PeripheralId::LPUART1> {
   static constexpr bool kSupportsAutoBaud = false;
   static constexpr bool kSupportsWakeFromStop = true;
   static constexpr std::uint8_t kDmaBindingCount = 0u;
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;

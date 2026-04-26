@@ -106,6 +106,7 @@ class GpioSemanticRow:
     direction_field: RuntimeFieldRef
     output_type_field: RuntimeFieldRef
     pull_field: RuntimeFieldRef
+    speed_field: RuntimeFieldRef
     input_field: RuntimeFieldRef
     output_value_field: RuntimeFieldRef
     output_set_field: RuntimeFieldRef
@@ -746,6 +747,8 @@ class DacSemanticRow:
     data_pattern: RuntimeIndexedFieldRef
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -958,6 +961,8 @@ class EthSemanticRow:
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1200,6 +1205,8 @@ class TimerSemanticRow:
     capture_irq_number: int | None = None
     break_irq_number: int | None = None
     trigger_irq_number: int | None = None
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1817,6 +1824,66 @@ def _adc_external_trigger_expr(trig: AdcExternalTrigger) -> str:
     )
 
 
+def _dma_binding_direction_token(signal: str) -> str:
+    """Map a UART/SPI/etc. ``signal`` field to the typed
+    ``DmaBindingDirection`` enum used by the shared ``DmaBindingRef``
+    record (add-peripheral-dma-cross-references)."""
+    upper = signal.upper()
+    if upper == "TX":
+        return "DmaBindingDirection::Tx"
+    if upper == "RX":
+        return "DmaBindingDirection::Rx"
+    return "DmaBindingDirection::none"
+
+
+def _dma_binding_ref_expr(
+    *,
+    controller_id: str,
+    binding_id: str,
+    request_value: int,
+    signal: str,
+    transfer_width_bits: int,
+) -> str:
+    return (
+        "DmaBindingRef{"
+        f"DmaControllerId::{controller_id}, "
+        f"DmaBindingId::{binding_id}, "
+        f"{request_value}u, "
+        f"{_dma_binding_direction_token(signal)}, "
+        f"{transfer_width_bits}u, true}}"
+    )
+
+
+def _dma_binding_ref_array_lines(
+    bindings: tuple[UartDmaBindingRow, ...] | tuple[SpiDmaBindingRow, ...],
+) -> list[str]:
+    """Render `kDmaBindings` as a `std::array<DmaBindingRef, N>`.
+
+    Both UartDmaBindingRow and SpiDmaBindingRow expose the same field
+    names (`controller_id`, `binding_id`, `request_value`, `signal`,
+    `transfer_width_bits`) so a single helper covers them.
+    """
+    if not bindings:
+        return ["  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};"]
+    item_lines = [
+        "    "
+        + _dma_binding_ref_expr(
+            controller_id=binding.controller_id,
+            binding_id=binding.binding_id,
+            request_value=binding.request_value,
+            signal=binding.signal,
+            transfer_width_bits=binding.transfer_width_bits,
+        )
+        + ","
+        for binding in bindings
+    ]
+    return [
+        f"  static constexpr std::array<DmaBindingRef, {len(bindings)}> kDmaBindings = {{{{",
+        *item_lines,
+        "  }};",
+    ]
+
+
 def _adc_dma_binding_expr(binding: AdcDmaBindingRow) -> str:
     return (
         "AdcDmaBinding{"
@@ -2116,6 +2183,15 @@ def _st_gpio_semantics(
             fallback_bit_offset=line_index * 2,
             fallback_bit_width=2,
         ),
+        speed_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="OSPEEDR",
+            field_names=(f"OSPEED{line_index}", f"OSPEEDR{line_index}"),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=line_index * 2,
+            fallback_bit_width=2,
+        ),
         input_field=_resolve_field_ref(
             context,
             peripheral_name=peripheral_name,
@@ -2197,6 +2273,7 @@ def _microchip_gpio_semantics(
         direction_field=_invalid_field_ref(),
         output_type_field=_invalid_field_ref(),
         pull_field=_invalid_field_ref(),
+        speed_field=_invalid_field_ref(),
         input_field=_invalid_field_ref(),
         output_value_field=_invalid_field_ref(),
         output_set_field=_invalid_field_ref(),
@@ -2242,6 +2319,7 @@ def _nxp_gpio_semantics(
         ),
         output_type_field=_invalid_field_ref(base),
         pull_field=_invalid_field_ref(base),
+        speed_field=_invalid_field_ref(base),
         input_field=_resolve_field_ref(
             context,
             peripheral_name=peripheral_name,
@@ -3453,7 +3531,7 @@ def _build_i2c_rows(context: _SemanticContext) -> tuple[I2cSemanticRow, ...]:
                     is_stub=True,
                 )
             )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=8)  # type: ignore[return-value]
 
 
 def _st_spi_row(
@@ -3866,6 +3944,67 @@ def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str)
     )
 
 
+def _enrich_with_dma_bindings(
+    context: _SemanticContext,
+    rows: tuple[object, ...],
+    *,
+    transfer_width_bits: int = 8,
+) -> tuple[object, ...]:
+    """Thread `dma_bindings` onto each row that exposes a
+    `peripheral_name` and `dma_bindings` attribute.  Used by the
+    I2C/TIMER/DAC/SDMMC/QSPI/ETH builders so consumer headers see
+    the populated `kDmaBindings` array on every specialisation."""
+    import dataclasses as _dc
+
+    enriched: list[object] = []
+    for row in rows:
+        if not hasattr(row, "peripheral_name") or not hasattr(row, "dma_bindings"):
+            enriched.append(row)
+            continue
+        bindings = _generic_dma_bindings_for_peripheral(
+            context,
+            peripheral_name=row.peripheral_name,
+            transfer_width_bits=transfer_width_bits,
+        )
+        if not bindings:
+            enriched.append(row)
+            continue
+        enriched.append(_dc.replace(row, dma_bindings=bindings))
+    return tuple(enriched)
+
+
+def _generic_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    transfer_width_bits: int = 8,
+) -> tuple[UartDmaBindingRow, ...]:
+    """Generic DMA-binding helper used by I2C/TIMER/DAC/SDMMC/QSPI/ETH.
+
+    Mirrors the UART/SPI helper shape but does not filter by signal —
+    every binding admitted for the peripheral is surfaced.  ``signal``
+    falls back to an empty string when the IR carries ``None`` so the
+    typed ``DmaBindingDirection`` enum maps to ``::none`` (the
+    direction is meaningful for UART/SPI; for the other peripherals it
+    is informational).
+    """
+    bindings: list[UartDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        bindings.append(
+            UartDmaBindingRow(
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
+                signal=(binding.signal or "").upper(),
+                transfer_width_bits=transfer_width_bits,
+            )
+        )
+    return tuple(bindings)
+
+
 def _uart_dma_bindings_for_peripheral(
     context: _SemanticContext,
     *,
@@ -3882,23 +4021,15 @@ def _uart_dma_bindings_for_peripheral(
     for binding in _runtime_lite_dma_bindings(context.device):
         if binding.peripheral != peripheral_name:
             continue
-        signal = (getattr(binding, "signal", None) or "").upper()
+        signal = (binding.signal or "").upper()
         if signal not in {"TX", "RX"}:
-            continue
-        controller_peri = getattr(binding, "controller", None) or getattr(
-            binding, "controller_peripheral", None
-        )
-        controller_id = getattr(binding, "controller_id", None)
-        binding_id = getattr(binding, "binding_id", None)
-        request_value = getattr(binding, "request_value", None) or 0
-        if controller_peri is None or controller_id is None or binding_id is None:
             continue
         bindings.append(
             UartDmaBindingRow(
-                controller_peripheral=str(controller_peri),
-                controller_id=str(controller_id),
-                binding_id=str(binding_id),
-                request_value=int(request_value),
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
                 signal=signal,
                 transfer_width_bits=8,
             )
@@ -4139,23 +4270,15 @@ def _spi_dma_bindings_for_peripheral(
     for binding in _runtime_lite_dma_bindings(context.device):
         if binding.peripheral != peripheral_name:
             continue
-        signal = (getattr(binding, "signal", None) or "").upper()
+        signal = (binding.signal or "").upper()
         if signal not in {"TX", "RX"}:
-            continue
-        controller_peri = getattr(binding, "controller", None) or getattr(
-            binding, "controller_peripheral", None
-        )
-        controller_id = getattr(binding, "controller_id", None)
-        binding_id = getattr(binding, "binding_id", None)
-        request_value = getattr(binding, "request_value", None) or 0
-        if controller_peri is None or controller_id is None or binding_id is None:
             continue
         bindings.append(
             SpiDmaBindingRow(
-                controller_peripheral=str(controller_peri),
-                controller_id=str(controller_id),
-                binding_id=str(binding_id),
-                request_value=int(request_value),
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
                 signal=signal,
                 transfer_width_bits=width,
             )
@@ -4182,20 +4305,12 @@ def _adc_dma_bindings_for_peripheral(
     for binding in _runtime_lite_dma_bindings(context.device):
         if binding.peripheral != peripheral_name:
             continue
-        controller_peri = getattr(binding, "controller", None) or getattr(
-            binding, "controller_peripheral", None
-        )
-        controller_id = getattr(binding, "controller_id", None)
-        binding_id = getattr(binding, "binding_id", None)
-        request_value = getattr(binding, "request_value", None) or 0
-        if controller_peri is None or controller_id is None or binding_id is None:
-            continue
         bindings.append(
             AdcDmaBindingRow(
-                controller_peripheral=str(controller_peri),
-                controller_id=str(controller_id),
-                binding_id=str(binding_id),
-                request_value=int(request_value),
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
                 data_register=data_register,
                 transfer_width_bits=transfer_width_bits,
             )
@@ -6023,7 +6138,8 @@ def _build_dac_rows(
             channel_rows.extend(
                 _microchip_dac_channel_rows(context, peripheral_name=peripheral.name)
             )
-    return tuple(rows), tuple(channel_rows)
+    enriched = _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=16)
+    return tuple(enriched), tuple(channel_rows)  # type: ignore[return-value]
 
 
 def _st_rtc_row(
@@ -7705,7 +7821,7 @@ def _build_eth_rows(context: _SemanticContext) -> tuple[EthSemanticRow, ...]:
                 is_stub=True,
             )
         )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=32)  # type: ignore[return-value]
 
 
 def _st_usb_row(
@@ -8508,7 +8624,7 @@ def _build_qspi_rows(context: _SemanticContext) -> tuple[QspiSemanticRow, ...]:
                     schema_id=schema_id,
                 )
             )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=32)  # type: ignore[return-value]
 
 
 def _microchip_hsmci_sdmmc_row(
@@ -8911,7 +9027,7 @@ def _build_sdmmc_rows(context: _SemanticContext) -> tuple[SdmmcSemanticRow, ...]
                     schema_id=schema_id,
                 )
             )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=32)  # type: ignore[return-value]
 
 
 def _microchip_watchdog_row(
@@ -10288,7 +10404,10 @@ def _build_timer_rows(
                     capture_select_field=invalid_field,
                 )
             )
-    return tuple(timer_rows), tuple(channel_rows)
+    enriched_timer_rows = _enrich_with_dma_bindings(
+        context, tuple(timer_rows), transfer_width_bits=16
+    )
+    return tuple(enriched_timer_rows), tuple(channel_rows)  # type: ignore[return-value]
 
 
 def _st_pwm_row(
@@ -11045,6 +11164,27 @@ def _emit_driver_semantics_common_header(
             "  bool valid = false;",
             "};",
             "",
+            "enum class DmaBindingDirection : std::uint8_t {",
+            "  none,",
+            "  Tx,",
+            "  Rx,",
+            "};",
+            "",
+            "struct DmaBindingRef {",
+            "  // Generic peripheral->DMA binding cross-reference (",
+            "  // add-peripheral-dma-cross-references).  ``binding_id``",
+            "  // and ``controller_id`` cross-reference the per-device",
+            "  // ``DmaSemanticTraits`` / ``BindingTraits`` enums emitted",
+            "  // in ``dma_bindings.hpp`` so consumer code can resolve the",
+            "  // full route descriptor without a textual scan.",
+            "  DmaControllerId controller_id = DmaControllerId::none;",
+            "  DmaBindingId binding_id = DmaBindingId::none;",
+            "  std::uint16_t request_value = 0u;",
+            "  DmaBindingDirection direction = DmaBindingDirection::none;",
+            "  std::uint8_t transfer_width_bits = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
             "struct AdcDmaModeOption {",
             "  AdcDmaMode mode = AdcDmaMode::none;",
             "  std::uint8_t field_value = 0u;",
@@ -11130,6 +11270,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kInputField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kOutputValueField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;",
@@ -11204,6 +11345,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
                 f"  static constexpr RuntimeFieldRef kDirectionField = {_field_ref_expr(row.direction_field)};",
                 f"  static constexpr RuntimeFieldRef kOutputTypeField = {_field_ref_expr(row.output_type_field)};",
                 f"  static constexpr RuntimeFieldRef kPullField = {_field_ref_expr(row.pull_field)};",
+                f"  static constexpr RuntimeFieldRef kSpeedField = {_field_ref_expr(row.speed_field)};",
                 f"  static constexpr RuntimeFieldRef kInputField = {_field_ref_expr(row.input_field)};",
                 f"  static constexpr RuntimeFieldRef kOutputValueField = {_field_ref_expr(row.output_value_field)};",
                 f"  static constexpr RuntimeFieldRef kOutputSetField = {_field_ref_expr(row.output_set_field)};",
@@ -11228,15 +11370,68 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         pin_rows.append(f"  PinId::{pin_id},")
 
     # AF-only specializations: pins that have alt-function topology but no
-    # register-level GPIO row (typical for STM32G0 / STM32F4 today, where the
-    # register-level GPIO emitter has not yet been wired up for the family).
-    # These specializations expose ``kPresent = true`` and the four AF fields,
-    # but leave register/field references invalid — alloy concept checks for
-    # AF assignment use only the AF fields, so this is sufficient for the
-    # ``add-gpio-hal`` compile-time pin-routing validation.
+    # register-level GPIO row.  On STM32 (where no GPIO connection_candidates
+    # are produced today) we still resolve the four Tier-1 register fields —
+    # ``MODER``/``OSPEEDR``/``OTYPER``/``PUPDR`` — by deriving the
+    # peripheral name from the pin's port letter and looking up the field via
+    # the standard fallbacks.  The ``fill-gpio-tier-1-fields`` change makes
+    # those compile-time references valid on STM32 instead of
+    # `kInvalidFieldRef`, so the alloy GPIO HAL can synthesise register
+    # writes without falling back to vendor headers.
+    def _stm32_tier1_fields(pin: GpioPinDescriptor) -> tuple[RuntimeFieldRef, ...]:
+        port_letter = pin.pin_id[1:2] if len(pin.pin_id) >= 2 else ""
+        peripheral_name = f"GPIO{port_letter}"
+        peripheral = context.peripheral_by_name.get(peripheral_name)
+        if peripheral is None or peripheral.backend_schema_id is None:
+            return (
+                _invalid_field_ref(),
+                _invalid_field_ref(),
+                _invalid_field_ref(),
+                _invalid_field_ref(),
+            )
+        if not peripheral.backend_schema_id.startswith("alloy.gpio.st-"):
+            return (
+                _invalid_field_ref(peripheral.base_address),
+                _invalid_field_ref(peripheral.base_address),
+                _invalid_field_ref(peripheral.base_address),
+                _invalid_field_ref(peripheral.base_address),
+            )
+        idx = pin.pin_index
+        return (
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="MODER",
+                field_names=(f"MODE{idx}", f"MODER{idx}"),
+                fallback_register_offset=0x00,
+                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+            ),
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="OSPEEDR",
+                field_names=(f"OSPEED{idx}", f"OSPEEDR{idx}"),
+                fallback_register_offset=0x08,
+                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+            ),
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="OTYPER",
+                field_names=(f"OT{idx}", f"OT_{idx}"),
+                fallback_register_offset=0x04,
+                fallback_bit_offset=idx, fallback_bit_width=1,
+            ),
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="PUPDR",
+                field_names=(f"PUPD{idx}", f"PUPDR{idx}"),
+                fallback_register_offset=0x0C,
+                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+            ),
+        )
+
     for pin_id, pin in sorted(af_pins_by_id.items()):
         if pin_id in consumed_pin_ids:
             continue
+        mode_f, speed_f, otype_f, pull_f = _stm32_tier1_fields(pin)
         trait_lines.extend(
             [
                 "template<>",
@@ -11245,10 +11440,11 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
                 "  static constexpr PeripheralId kPeripheralId = PeripheralId::none;",
                 "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
                 "  static constexpr std::uint32_t kLineIndex = 0u;",
-                "  static constexpr RuntimeFieldRef kModeField = kInvalidFieldRef;",
+                f"  static constexpr RuntimeFieldRef kModeField = {_field_ref_expr(mode_f)};",
                 "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
-                "  static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;",
-                "  static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;",
+                f"  static constexpr RuntimeFieldRef kOutputTypeField = {_field_ref_expr(otype_f)};",
+                f"  static constexpr RuntimeFieldRef kPullField = {_field_ref_expr(pull_f)};",
+                f"  static constexpr RuntimeFieldRef kSpeedField = {_field_ref_expr(speed_f)};",
                 "  static constexpr RuntimeFieldRef kInputField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kOutputValueField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;",
@@ -11340,11 +11536,23 @@ def _emit_peripheral_semantics_header(
     peripheral_rows: list[str] = []
     for row in rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
+        # add-peripheral-dma-cross-references: append kDmaBindings to every
+        # specialisation that exposes a `dma_bindings` tuple.  UART/SPI/ADC
+        # already emit this inline via their tier 2/3/4 helpers; the other
+        # peripherals (I2C/TIMER/DAC/SDMMC/QSPI/ETH) get it appended here
+        # so the unspecialised primary template's `kDmaBindings` field is
+        # always shadowed by a real array in each specialisation.
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any(
+            "kDmaBindings = " in line for line in row_lines
+        ):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
                 "template<>",
                 f"struct {trait_name}<PeripheralId::{peripheral_id}> {{",
-                *specialization_builder(row),
+                *row_lines,
                 "};",
                 "",
             ]
@@ -11473,6 +11681,7 @@ def _uart_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsAutoBaud = {'true' if flags and flags.supports_auto_baud else 'false'};",
             f"  static constexpr bool kSupportsWakeFromStop = {'true' if flags and flags.supports_wake_from_stop else 'false'};",
             f"  static constexpr std::uint8_t kDmaBindingCount = {len(row.dma_bindings)}u;",
+            *_dma_binding_ref_array_lines(row.dma_bindings),
         ]
 
     def _build(row: UartSemanticRow) -> list[str]:
@@ -11892,6 +12101,7 @@ def _spi_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsLsbFirst = {'true' if flags and flags.supports_lsb_first else 'false'};",
             f"  static constexpr bool kSupportsNssHwManagement = {'true' if flags and flags.supports_nss_hw_management else 'false'};",
             f"  static constexpr std::uint8_t kSpiDmaBindingCount = {len(row.spi_dma_bindings)}u;",
+            *_dma_binding_ref_array_lines(row.spi_dma_bindings),
         ]
 
     def _build(row: SpiSemanticRow) -> list[str]:
@@ -14063,6 +14273,7 @@ def emit_runtime_driver_uart_semantics_header(
         "  static constexpr bool kSupportsAutoBaud = false;",
         "  static constexpr bool kSupportsWakeFromStop = false;",
         "  static constexpr std::uint8_t kDmaBindingCount = 0u;",
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -14283,6 +14494,7 @@ def emit_runtime_driver_spi_semantics_header(
         "  static constexpr bool kSupportsLsbFirst = false;",
         "  static constexpr bool kSupportsNssHwManagement = false;",
         "  static constexpr std::uint8_t kSpiDmaBindingCount = 0u;",
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
@@ -14578,6 +14790,8 @@ def emit_runtime_driver_dac_semantics_header(
         "  static constexpr RuntimeIndexedFieldRef kDataPattern = kInvalidIndexedFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "};",
         "",
     ]
@@ -14585,11 +14799,15 @@ def emit_runtime_driver_dac_semantics_header(
     specialization_builder = _dac_specialization_builder(context)
     for row in dac_rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any("kDmaBindings = " in line for line in row_lines):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
                 "template<>",
                 f"struct DacSemanticTraits<PeripheralId::{peripheral_id}> {{",
-                *specialization_builder(row),
+                *row_lines,
                 "};",
                 "",
             ]
@@ -14900,6 +15118,8 @@ def emit_runtime_driver_eth_semantics_header(
         "  static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -15176,6 +15396,8 @@ def emit_runtime_driver_timer_semantics_header(
         "  static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;",
         "  static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;",
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "};",
         "",
     ]
@@ -15183,11 +15405,15 @@ def emit_runtime_driver_timer_semantics_header(
     specialization_builder = _timer_specialization_builder(context)
     for row in timer_rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any("kDmaBindings = " in line for line in row_lines):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
                 "template<>",
                 f"struct TimerSemanticTraits<PeripheralId::{peripheral_id}> {{",
-                *specialization_builder(row),
+                *row_lines,
                 "};",
                 "",
             ]

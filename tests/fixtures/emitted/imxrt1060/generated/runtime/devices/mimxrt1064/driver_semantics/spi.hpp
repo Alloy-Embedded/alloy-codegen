@@ -40,6 +40,7 @@ struct SpiSemanticTraits {
   static constexpr bool kSupportsLsbFirst = false;
   static constexpr bool kSupportsNssHwManagement = false;
   static constexpr std::uint8_t kSpiDmaBindingCount = 0u;
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;
@@ -118,6 +119,7 @@ struct SpiSemanticTraits<PeripheralId::LPSPI1> {
   static constexpr bool kSupportsLsbFirst = true;
   static constexpr bool kSupportsNssHwManagement = true;
   static constexpr std::uint8_t kSpiDmaBindingCount = 0u;
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kSrRegister = RuntimeRegisterRef{RegisterId::none, 0x40394000u, 20u, true};

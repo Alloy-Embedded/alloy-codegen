@@ -165,6 +165,27 @@ struct AdcDmaBinding {
   bool valid = false;
 };
 
+enum class DmaBindingDirection : std::uint8_t {
+  none,
+  Tx,
+  Rx,
+};
+
+struct DmaBindingRef {
+  // Generic peripheral->DMA binding cross-reference (
+  // add-peripheral-dma-cross-references).  ``binding_id``
+  // and ``controller_id`` cross-reference the per-device
+  // ``DmaSemanticTraits`` / ``BindingTraits`` enums emitted
+  // in ``dma_bindings.hpp`` so consumer code can resolve the
+  // full route descriptor without a textual scan.
+  DmaControllerId controller_id = DmaControllerId::none;
+  DmaBindingId binding_id = DmaBindingId::none;
+  std::uint16_t request_value = 0u;
+  DmaBindingDirection direction = DmaBindingDirection::none;
+  std::uint8_t transfer_width_bits = 0u;
+  bool valid = false;
+};
+
 struct AdcDmaModeOption {
   AdcDmaMode mode = AdcDmaMode::none;
   std::uint8_t field_value = 0u;

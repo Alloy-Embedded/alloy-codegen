@@ -37,6 +37,7 @@ struct UartSemanticTraits {
   static constexpr bool kSupportsAutoBaud = false;
   static constexpr bool kSupportsWakeFromStop = false;
   static constexpr std::uint8_t kDmaBindingCount = 0u;
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;
@@ -133,7 +134,11 @@ struct UartSemanticTraits<PeripheralId::USART1> {
   static constexpr bool kSupportsSynchronous = true;
   static constexpr bool kSupportsAutoBaud = true;
   static constexpr bool kSupportsWakeFromStop = true;
-  static constexpr std::uint8_t kDmaBindingCount = 0u;
+  static constexpr std::uint8_t kDmaBindingCount = 2u;
+  static constexpr std::array<DmaBindingRef, 2> kDmaBindings = {{
+    DmaBindingRef{DmaControllerId::DMA1, DmaBindingId::dma_binding_usart1_rx_dma1_dma1_ch1, 50u, DmaBindingDirection::Rx, 8u, true},
+    DmaBindingRef{DmaControllerId::DMA1, DmaBindingId::dma_binding_usart1_tx_dma1_dma1_ch2, 51u, DmaBindingDirection::Tx, 8u, true},
+  }};
   static constexpr RuntimeRegisterRef kCr1Register = RuntimeRegisterRef{RegisterId::register_usart1_cr1, 0x40013800u, 0u, true};
   static constexpr RuntimeRegisterRef kCr2Register = RuntimeRegisterRef{RegisterId::register_usart1_cr2, 0x40013800u, 4u, true};
   static constexpr RuntimeRegisterRef kBrrRegister = RuntimeRegisterRef{RegisterId::register_usart1_brr, 0x40013800u, 12u, true};

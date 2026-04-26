@@ -22,6 +22,7 @@ struct GpioSemanticTraits {
   static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kInputField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kOutputValueField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;
@@ -55,6 +56,7 @@ struct GpioSemanticTraits<PinId::GPIO_AD_B0_00> {
   static constexpr RuntimeFieldRef kDirectionField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio1_gdir, 0x401B8000u, 4u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kInputField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio1_psr, 0x401B8000u, 8u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kOutputValueField = RuntimeFieldRef{FieldId::field_gpio1_dr_data, RuntimeRegisterRef{RegisterId::register_gpio1_dr, 0x401B8000u, 0u, true}, 0u, 32u, true};
   static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;
@@ -88,6 +90,7 @@ struct GpioSemanticTraits<PinId::GPIO_AD_B0_01> {
   static constexpr RuntimeFieldRef kDirectionField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio1_gdir, 0x401B8000u, 4u, true}, 1u, 1u, true};
   static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kInputField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio1_psr, 0x401B8000u, 8u, true}, 1u, 1u, true};
   static constexpr RuntimeFieldRef kOutputValueField = RuntimeFieldRef{FieldId::field_gpio1_dr_data, RuntimeRegisterRef{RegisterId::register_gpio1_dr, 0x401B8000u, 0u, true}, 0u, 32u, true};
   static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;
@@ -121,6 +124,7 @@ struct GpioSemanticTraits<PinId::GPIO_EMC_00> {
   static constexpr RuntimeFieldRef kDirectionField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio4_gdir, 0x401C4000u, 4u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kInputField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio4_psr, 0x401C4000u, 8u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kOutputValueField = RuntimeFieldRef{FieldId::field_gpio4_dr_data, RuntimeRegisterRef{RegisterId::register_gpio4_dr, 0x401C4000u, 0u, true}, 0u, 32u, true};
   static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;
@@ -154,6 +158,7 @@ struct GpioSemanticTraits<PinId::GPIO_EMC_01> {
   static constexpr RuntimeFieldRef kDirectionField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio4_gdir, 0x401C4000u, 4u, true}, 1u, 1u, true};
   static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;
+  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kInputField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::register_gpio4_psr, 0x401C4000u, 8u, true}, 1u, 1u, true};
   static constexpr RuntimeFieldRef kOutputValueField = RuntimeFieldRef{FieldId::field_gpio4_dr_data, RuntimeRegisterRef{RegisterId::register_gpio4_dr, 0x401C4000u, 0u, true}, 0u, 32u, true};
   static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;
