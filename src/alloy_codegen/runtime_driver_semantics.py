@@ -14439,6 +14439,8 @@ def emit_runtime_driver_i2c_semantics_header(
         "  static constexpr RuntimeFieldRef kArblstField = kInvalidFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (added by ``add-peripheral-dma-cross-references``).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         # Kernel-clock defaults (added by ``add-kernel-clock-traits``).
         "  static constexpr RuntimeFieldRef kKernelClockSelectorField = kInvalidFieldRef;",
         "  static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};",
