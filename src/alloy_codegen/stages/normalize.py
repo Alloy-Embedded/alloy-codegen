@@ -1081,6 +1081,72 @@ def _build_st_gpio_pins(
     return tuple(descriptors)
 
 
+def _build_avr_da_gpio_pins(
+    *,
+    pins: tuple[PinDefinition, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+    provenance: Provenance,
+) -> tuple[GpioPinDescriptor, ...]:
+    """Derive `GpioPinDescriptor` entries for the Microchip AVR-DA family.
+
+    AVR-DA exposes one register block per port (`PORTA`, `PORTB`, …); the
+    pin port-letter (`pin.port = "A"`) maps to the peripheral name with the
+    `PORT` prefix.  ``port_offset`` is the peripheral base offset from
+    ``PORTA``.  Alternate-function selection on AVR-DA flows through
+    ``PORTMUX``; the canonical IR records the per-signal channel index in
+    ``af_number``, so this helper reuses the same flattening logic as the
+    STM32 path.
+
+    AVR-DA has no input-only pads; ``is_input_only`` is always ``False``.
+    """
+    port_base_by_name: dict[str, int] = {
+        peripheral.name: peripheral.base_address
+        for peripheral in peripherals
+        if peripheral.name.startswith("PORT") and len(peripheral.name) == 5
+    }
+    if not port_base_by_name:
+        return ()
+    first_port_base = min(port_base_by_name.values())
+
+    descriptors: list[GpioPinDescriptor] = []
+    for pin in pins:
+        if pin.port is None:
+            continue
+        port_name = f"PORT{pin.port}"
+        if port_name not in port_base_by_name:
+            continue
+        seen_af: dict[tuple[int, str], AltFunctionDescriptor] = {}
+        for signal in pin.signals:
+            if signal.af_number is None or signal.peripheral is None:
+                continue
+            signal_name = signal.signal or signal.function
+            if signal_name is None:
+                continue
+            seen_af.setdefault(
+                (signal.af_number, signal_name),
+                AltFunctionDescriptor(
+                    af_number=signal.af_number,
+                    signal_name=signal_name,
+                    peripheral=signal.peripheral,
+                ),
+            )
+        alt_functions = tuple(
+            sorted(seen_af.values(), key=lambda af: (af.af_number, af.signal_name))
+        )
+        descriptors.append(
+            GpioPinDescriptor(
+                pin_id=pin.name,
+                port=port_name,
+                pin_index=pin.number,
+                port_offset=port_base_by_name[port_name] - first_port_base,
+                alt_functions=alt_functions,
+                is_input_only=False,
+                provenance=provenance,
+            )
+        )
+    return tuple(descriptors)
+
+
 def _build_espressif_gpio_pins(
     *,
     pins: tuple[PinDefinition, ...],
@@ -2266,6 +2332,11 @@ def _build_avr_da_device_ir(
             _system_clock_profile_to_ir(p, patch_provenance) for p in patch.system_clock_profiles
         ),
         peripheral_clock_bindings=(),
+        gpio_pins=_build_avr_da_gpio_pins(
+            pins=pins,
+            peripherals=avr_peripherals,
+            provenance=atdf_provenance,
+        ),
     )
 
 

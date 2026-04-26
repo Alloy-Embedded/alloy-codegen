@@ -155,3 +155,27 @@ def test_esp32_classic_input_only_pads_marked(
         assert "static constexpr bool kIsInputOnly = true;" in block, (
             f"GPIO{pad} on classic ESP32 must be input-only"
         )
+
+
+# --- Phase D: Microchip AVR-DA -------------------------------------------
+
+
+def test_avr128da32_gpio_pins_emit_port_topology(
+    microchip_avr_da_execution_context: ExecutionContext,
+) -> None:
+    """AVR-DA exposes one register block per port (PORTA, PORTB, …); pin
+    port-letter ``A`` maps to ``PORTA``.  Verify port-offset spacing and
+    a populated alternate-function entry from PORTMUX."""
+    content = _emit_gpio_hpp(microchip_avr_da_execution_context, "avr128da32")
+
+    pa0 = _struct_block(content, "GpioSemanticTraits<PinId::PA0>")
+    assert "static constexpr bool kPresent = true;" in pa0
+    assert "static constexpr std::uint32_t kPortOffset = 0x00000000u;" in pa0
+    assert "static constexpr std::uint32_t kPinIndex = 0u;" in pa0
+    assert "kValidAltFunctions = {{0u}};" in pa0  # USART0_TX via PORTMUX
+
+    # PORTC is the next admitted port in the AVR-DA test slice — its base
+    # is 0x40 above PORTA on AVR-DA silicon.
+    pc0 = _struct_block(content, "GpioSemanticTraits<PinId::PC0>")
+    assert "static constexpr std::uint32_t kPortOffset = 0x00000040u;" in pc0
+    assert "static constexpr std::uint32_t kPinIndex = 0u;" in pc0

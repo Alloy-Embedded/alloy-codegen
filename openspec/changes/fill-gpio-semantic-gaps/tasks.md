@@ -100,12 +100,21 @@ breaking already-passing families.
       via IO matrix) and a guard that input-only pads on classic ESP32
       carry `kIsInputOnly = true` when present.
 
-## 5. AVR-DA (Phase D — pending)
+## 5. AVR-DA (Phase D — done in this commit)
 
-- [ ] 5.1 Add `_build_avr_da_gpio_pins` reading `<module name="PORT">` and
-      `<module name="PORTMUX">` from the AVR128DA32 ATDF; populate
-      `port` (PORTA/B/...), `pin_index`, and AF data from PORTMUX.
-- [ ] 5.2 Goldens + invariant tests for `avr128da32`.
+- [x] 5.1 `_build_avr_da_gpio_pins` keys off the per-port ATDF `PORTx`
+      peripherals already loaded by the AVR-DA normalizer; the
+      pin-letter (`pin.port = "A"`) is mapped to the peripheral name
+      (`PORTA`).  ``port_offset`` is the per-port base offset relative
+      to ``PORTA`` (32-byte stride on AVR-DA), and `is_input_only` is
+      always `False`.  The PORTMUX channel index already flows in via
+      `RawPinSignal.af_number`, so the helper reuses the same flatten
+      logic as STM32 / ESP32.
+- [x] 5.2 Canonical IR fixture regenerated for `avr128da32`; the new
+      Phase-D test `tests/test_gpio_semantic_traits.py::test_avr128da32_gpio_pins_emit_port_topology`
+      asserts `PA0` records `kPortOffset = 0`, `kPinIndex = 0`,
+      `kValidAltFunctions = {{0u}}` (USART0_TX), and `PC0` records
+      `kPortOffset = 0x40`.
 
 ## 6. CI gate + documentation (Phase E — pending)
 
