@@ -128,7 +128,10 @@ struct AdcSampleTimeOption {
   // ``cycles_q8`` carries the cycle count in Q8.8 fixed-point so
   // fractional cycles (1.5, 7.5, ...) survive without floats.  Apps
   // do ``cycles_q8 / 256.0f`` to recover a float, or compare integers.
-  std::uint16_t cycles_q8 = 0u;
+  // 32-bit holds up to 16.7M cycles which covers every documented
+  // ADC sample time across admitted vendors (STM32F4 ADC sample 480
+  // cycles → 122880 in Q8.8 fixed-point — exceeds uint16_t).
+  std::uint32_t cycles_q8 = 0u;
   std::uint8_t field_value = 0u;
   bool valid = false;
 };

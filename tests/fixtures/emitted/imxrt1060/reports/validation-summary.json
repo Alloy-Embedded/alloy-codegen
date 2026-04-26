@@ -38,7 +38,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 86 rule(s).",
+      "message": "gate-c passed with 87 rule(s).",
       "passed": true,
       "rule_ids": [
         "mimxrt1064-package-pin-count-covers-known-pins",
@@ -48,6 +48,7 @@
         "mimxrt1064-alternate-functions-explicit",
         "mimxrt1064-memory-sizes-positive",
         "mimxrt1064-peripheral-bases-unique",
+        "mimxrt1064-adc-semantics-populated",
         "mimxrt1064-interrupts-present",
         "mimxrt1064-interrupts-reference-known-peripherals",
         "mimxrt1064-referenced-peripherals-have-rcc-enable",

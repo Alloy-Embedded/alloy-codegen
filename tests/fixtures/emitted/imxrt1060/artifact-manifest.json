@@ -34,7 +34,7 @@
       {
         "local_path": "/Users/lgili/Documents/01 - Codes/01 - Github/alloy-codegen/tests/fixtures/nxp-mcux-imxrt1060/svd/MIMXRT1064/MIMXRT1064.xml",
         "origin_url": "https://github.com/nxp-mcuxpresso/mcux-soc-svd",
-        "revision": "content-sha256:828ed914cfe2e62ec6f5f0ba2286bda80323cbbf3a57318d1ee5fea219941587",
+        "revision": "content-sha256:7bcbbefeee8cff78b620e45b563d1faac486182c61b6502868af8256b21613eb",
         "scope": {
           "device": "mimxrt1064",
           "family": "imxrt1060",
@@ -63,5 +63,5 @@
     ]
   },
   "validation_report_id": "bootstrap-validation-v1",
-  "validation_report_sha256": "18154b1861a4ea2d19b7933fff2ef0e6c3e41d11f31baeb3cbd3a32766995738"
+  "validation_report_sha256": "a95fb3b5530e47db93184fd83e0c7e08d558db48ab226c345365526dc8d23bea"
 }

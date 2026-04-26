@@ -1662,6 +1662,60 @@
       "rcc_reset_signal": null
     },
     {
+      "backend_schema_id": "alloy.eth.nxp-enet",
+      "base_address": 1076723712,
+      "instance": 0,
+      "ip_name": "enet",
+      "ip_version": null,
+      "name": "ENET",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.usb.nxp-usb",
+      "base_address": 1076756480,
+      "instance": 1,
+      "ip_name": "usb",
+      "ip_version": null,
+      "name": "USB1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.iomuxc.nxp-iomuxc",
+      "base_address": 1075806208,
+      "instance": 0,
+      "ip_name": "iomuxc",
+      "ip_version": null,
+      "name": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
       "backend_schema_id": "alloy.ccm.nxp-ccm",
       "base_address": 1074774016,
       "instance": 0,
@@ -2304,6 +2358,78 @@
       },
       "register_id": "register:gpio1:dr",
       "register_name": "DR"
+    },
+    {
+      "access": null,
+      "bit_offset": 0,
+      "bit_width": 3,
+      "field_id": "field:iomuxc:sw-mux-ctl-pad-gpio-emc-00:mux-mode",
+      "name": "MUX_MODE",
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-emc-00",
+      "register_name": "SW_MUX_CTL_PAD_GPIO_EMC_00"
+    },
+    {
+      "access": null,
+      "bit_offset": 0,
+      "bit_width": 3,
+      "field_id": "field:iomuxc:sw-mux-ctl-pad-gpio-emc-01:mux-mode",
+      "name": "MUX_MODE",
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-emc-01",
+      "register_name": "SW_MUX_CTL_PAD_GPIO_EMC_01"
+    },
+    {
+      "access": null,
+      "bit_offset": 0,
+      "bit_width": 3,
+      "field_id": "field:iomuxc:sw-mux-ctl-pad-gpio-ad-b0-00:mux-mode",
+      "name": "MUX_MODE",
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-ad-b0-00",
+      "register_name": "SW_MUX_CTL_PAD_GPIO_AD_B0_00"
+    },
+    {
+      "access": null,
+      "bit_offset": 0,
+      "bit_width": 3,
+      "field_id": "field:iomuxc:sw-mux-ctl-pad-gpio-ad-b0-01:mux-mode",
+      "name": "MUX_MODE",
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-ad-b0-01",
+      "register_name": "SW_MUX_CTL_PAD_GPIO_AD_B0_01"
     },
     {
       "access": "read-write",
@@ -3321,6 +3447,102 @@
         "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "register_id": "register:gpio1:psr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "ECR",
+      "offset_bytes": 36,
+      "peripheral": "ENET",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:enet:ecr",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "USBCMD",
+      "offset_bytes": 320,
+      "peripheral": "USB1",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:usb1:usbcmd",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "SW_MUX_CTL_PAD_GPIO_EMC_00",
+      "offset_bytes": 20,
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-emc-00",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "SW_MUX_CTL_PAD_GPIO_EMC_01",
+      "offset_bytes": 24,
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-emc-01",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "SW_MUX_CTL_PAD_GPIO_AD_B0_00",
+      "offset_bytes": 36,
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-ad-b0-00",
+      "size_bits": null
+    },
+    {
+      "access": null,
+      "name": "SW_MUX_CTL_PAD_GPIO_AD_B0_01",
+      "offset_bytes": 40,
+      "peripheral": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "register_id": "register:iomuxc:sw-mux-ctl-pad-gpio-ad-b0-01",
       "size_bits": null
     },
     {
@@ -4650,7 +4872,7 @@
       "value_ref_kind": "selector"
     }
   ],
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "signal_endpoints": [
     {
       "direction": null,
