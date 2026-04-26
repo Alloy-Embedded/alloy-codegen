@@ -1395,6 +1395,15 @@ def _build_rp2040_dma_controller_hw(
             supports_chaining=True,
             supports_byte_swap=True,
             irq_numbers=irq_lines,
+            # fill-dma-controller-hw-traits: RP2040 datasheet §2.5.
+            priority_level_count=4,
+            supported_burst_sizes=(1, 2, 4),  # transfer_size: byte/halfword/word
+            supported_data_widths=(8, 16, 32),
+            supports_circular=False,  # RP2040 uses chain_to / ring_buffer instead
+            supports_double_buffer=False,
+            supports_mem_to_mem=True,
+            supports_descriptor_chaining=True,  # via chain_to register
+            supports_scatter_gather=True,  # via sniff CRC + chain mode
         ),
     )
 
@@ -2058,7 +2067,7 @@ def _build_st_device_ir(
         ),
     )
     ip_version_table = parse_ip_version_table(mcu_path)
-    return build_canonical_ir(
+    ir = build_canonical_ir(
         raw,
         patch,
         pin_data,
@@ -2066,6 +2075,66 @@ def _build_st_device_ir(
         vendor=vendor,
         family=family,
     )
+    st_dma_hw = _build_st_dma_controller_hw(
+        family=family,
+        controllers=ir.dma_controllers,
+        peripherals=ir.peripherals,
+        interrupts=ir.interrupts,
+    )
+    if st_dma_hw:
+        ir = dataclasses.replace(ir, rp2040_dma_controller_hw=st_dma_hw)
+    return ir
+
+
+def _build_st_dma_controller_hw(
+    *,
+    family: str,
+    controllers: tuple[DmaControllerDescriptor, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+    interrupts: tuple[InterruptDefinition, ...],
+) -> tuple[Rp2040DmaControllerHwDescriptor, ...]:
+    """fill-dma-controller-hw-traits: build per-controller HW
+    descriptors for STM32 families.  Reuses the
+    ``Rp2040DmaControllerHwDescriptor`` shape (now generic across
+    every admitted DMA controller) and surfaces channel count, max
+    transfer count (16-bit NDTR on STM32), priority levels (4 on
+    every STM32 admitted today), and capability flags."""
+    if not controllers:
+        return ()
+    base_by_name = {p.name: p.base_address for p in peripherals}
+    descriptors: list[Rp2040DmaControllerHwDescriptor] = []
+    for ctrl in sorted(controllers, key=lambda c: c.controller):
+        base = base_by_name.get(ctrl.controller, 0)
+        # STM32G0 / STM32F4: NDTR is 16-bit so max transfer = 0xFFFF
+        # words; per-channel priority field is 2 bits → 4 levels.
+        irq_lines = tuple(
+            sorted(
+                irq.line
+                for irq in interrupts
+                if irq.peripheral == ctrl.controller and "DMA" in irq.name.upper()
+            )
+        )
+        is_stm32f4 = family == "stm32f4"
+        descriptors.append(
+            Rp2040DmaControllerHwDescriptor(
+                controller_id=ctrl.controller,
+                base_address=base,
+                channel_count=ctrl.channel_count or 0,
+                max_transfer_count=0xFFFF,
+                supports_chaining=False,
+                supports_byte_swap=False,
+                irq_numbers=irq_lines,
+                priority_level_count=4,
+                supported_burst_sizes=(1, 4, 8, 16) if is_stm32f4 else (1,),
+                supported_data_widths=(8, 16, 32),
+                supports_circular=True,
+                supports_double_buffer=is_stm32f4,
+                supports_mem_to_mem=True,
+                supports_descriptor_chaining=False,
+                supports_scatter_gather=is_stm32f4,
+            )
+        )
+    return tuple(descriptors)
 
 
 def _build_microchip_device_ir(

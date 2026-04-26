@@ -845,6 +845,19 @@ class Rp2040DmaControllerHwDescriptor:
     # consumers select the IRQ by writing the channel mask, not by
     # per-channel hardware IRQ ID.
     irq_numbers: tuple[int, ...] = ()
+    # Tier 2/3/4 controller capabilities (added by
+    # ``fill-dma-controller-hw-traits``).  Despite the legacy
+    # ``Rp2040`` prefix, this descriptor is now produced for every
+    # admitted DMA controller (STM32G0 DMA1, STM32F4 DMA1/2,
+    # iMXRT eDMA, …) — see ``device.rp2040_dma_controller_hw``.
+    priority_level_count: int = 0
+    supported_burst_sizes: tuple[int, ...] = ()  # bytes (1, 4, 8, 16)
+    supported_data_widths: tuple[int, ...] = ()  # bits (8, 16, 32)
+    supports_circular: bool = False
+    supports_double_buffer: bool = False
+    supports_mem_to_mem: bool = False
+    supports_descriptor_chaining: bool = False
+    supports_scatter_gather: bool = False
 
 
 @dataclass(frozen=True, slots=True)

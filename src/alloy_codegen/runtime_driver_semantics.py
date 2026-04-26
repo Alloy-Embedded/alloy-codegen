@@ -13796,10 +13796,29 @@ def _dma_controller_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
             "  static constexpr bool kSupportsChaining = false;",
             "  static constexpr bool kSupportsByteSwap = false;",
             "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+            # fill-dma-controller-hw-traits: Tier 2/3/4 HW capabilities.
+            "  static constexpr std::uint8_t kPriorityLevelCount = 0u;",
+            "  static constexpr std::array<std::uint8_t, 0> kSupportedBurstSizes = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kSupportedDataWidths = {};",
+            "  static constexpr bool kSupportsCircular = false;",
+            "  static constexpr bool kSupportsDoubleBuffer = false;",
+            "  static constexpr bool kSupportsMemToMem = false;",
+            "  static constexpr bool kSupportsDescriptorChaining = false;",
+            "  static constexpr bool kSupportsScatterGather = false;",
             "};",
             "",
         ]
     )
+
+    def _u8_array(name: str, items: tuple[int, ...]) -> str:
+        if not items:
+            return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
+        values = ", ".join(f"{v}u" for v in items)
+        return (
+            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = "
+            f"{{{{{values}}}}};"
+        )
+
     for ctrl in device.rp2040_dma_controller_hw:
         if ctrl.irq_numbers:
             irq_items = ", ".join(f"{n}u" for n in ctrl.irq_numbers)
@@ -13820,6 +13839,14 @@ def _dma_controller_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
                 f"  static constexpr bool kSupportsChaining = {'true' if ctrl.supports_chaining else 'false'};",
                 f"  static constexpr bool kSupportsByteSwap = {'true' if ctrl.supports_byte_swap else 'false'};",
                 irq_line,
+                f"  static constexpr std::uint8_t kPriorityLevelCount = {ctrl.priority_level_count}u;",
+                _u8_array("kSupportedBurstSizes", ctrl.supported_burst_sizes),
+                _u8_array("kSupportedDataWidths", ctrl.supported_data_widths),
+                f"  static constexpr bool kSupportsCircular = {'true' if ctrl.supports_circular else 'false'};",
+                f"  static constexpr bool kSupportsDoubleBuffer = {'true' if ctrl.supports_double_buffer else 'false'};",
+                f"  static constexpr bool kSupportsMemToMem = {'true' if ctrl.supports_mem_to_mem else 'false'};",
+                f"  static constexpr bool kSupportsDescriptorChaining = {'true' if ctrl.supports_descriptor_chaining else 'false'};",
+                f"  static constexpr bool kSupportsScatterGather = {'true' if ctrl.supports_scatter_gather else 'false'};",
                 "};",
                 "",
             ]

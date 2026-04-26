@@ -219,6 +219,14 @@ struct DmaControllerHwTraits {
   static constexpr bool kSupportsChaining = false;
   static constexpr bool kSupportsByteSwap = false;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::uint8_t kPriorityLevelCount = 0u;
+  static constexpr std::array<std::uint8_t, 0> kSupportedBurstSizes = {};
+  static constexpr std::array<std::uint8_t, 0> kSupportedDataWidths = {};
+  static constexpr bool kSupportsCircular = false;
+  static constexpr bool kSupportsDoubleBuffer = false;
+  static constexpr bool kSupportsMemToMem = false;
+  static constexpr bool kSupportsDescriptorChaining = false;
+  static constexpr bool kSupportsScatterGather = false;
 };
 
 template<>
@@ -230,6 +238,14 @@ struct DmaControllerHwTraits<RuntimeDmaCtrlId::DMA> {
   static constexpr bool kSupportsChaining = true;
   static constexpr bool kSupportsByteSwap = true;
   static constexpr std::array<std::uint32_t, 2> kIrqNumbers = {{11u, 12u}};
+  static constexpr std::uint8_t kPriorityLevelCount = 4u;
+  static constexpr std::array<std::uint8_t, 3> kSupportedBurstSizes = {{1u, 2u, 4u}};
+  static constexpr std::array<std::uint8_t, 3> kSupportedDataWidths = {{8u, 16u, 32u}};
+  static constexpr bool kSupportsCircular = false;
+  static constexpr bool kSupportsDoubleBuffer = false;
+  static constexpr bool kSupportsMemToMem = true;
+  static constexpr bool kSupportsDescriptorChaining = true;
+  static constexpr bool kSupportsScatterGather = true;
 };
 
 }

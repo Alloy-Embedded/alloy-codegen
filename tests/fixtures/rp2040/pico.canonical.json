@@ -18894,7 +18894,23 @@
       "irq_numbers": [
         11,
         12
-      ]
+      ],
+      "priority_level_count": 4,
+      "supported_burst_sizes": [
+        1,
+        2,
+        4
+      ],
+      "supported_data_widths": [
+        8,
+        16,
+        32
+      ],
+      "supports_circular": false,
+      "supports_double_buffer": false,
+      "supports_mem_to_mem": true,
+      "supports_descriptor_chaining": true,
+      "supports_scatter_gather": true
     }
   ],
   "rp2040_timer_controller_hw": [

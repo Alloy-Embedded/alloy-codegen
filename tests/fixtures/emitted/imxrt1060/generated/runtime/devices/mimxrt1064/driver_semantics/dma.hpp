@@ -46,6 +46,14 @@ struct DmaControllerHwTraits {
   static constexpr bool kSupportsChaining = false;
   static constexpr bool kSupportsByteSwap = false;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::uint8_t kPriorityLevelCount = 0u;
+  static constexpr std::array<std::uint8_t, 0> kSupportedBurstSizes = {};
+  static constexpr std::array<std::uint8_t, 0> kSupportedDataWidths = {};
+  static constexpr bool kSupportsCircular = false;
+  static constexpr bool kSupportsDoubleBuffer = false;
+  static constexpr bool kSupportsMemToMem = false;
+  static constexpr bool kSupportsDescriptorChaining = false;
+  static constexpr bool kSupportsScatterGather = false;
 };
 
 }

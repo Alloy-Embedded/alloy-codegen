@@ -4990,6 +4990,33 @@
       }
     }
   ],
+  "rp2040_dma_controller_hw": [
+    {
+      "controller_id": "DMA1",
+      "base_address": 1073872896,
+      "channel_count": 7,
+      "max_transfer_count": 65535,
+      "supports_chaining": false,
+      "supports_byte_swap": false,
+      "irq_numbers": [
+        9
+      ],
+      "priority_level_count": 4,
+      "supported_burst_sizes": [
+        1
+      ],
+      "supported_data_widths": [
+        8,
+        16,
+        32
+      ],
+      "supports_circular": true,
+      "supports_double_buffer": false,
+      "supports_mem_to_mem": true,
+      "supports_descriptor_chaining": false,
+      "supports_scatter_gather": false
+    }
+  ],
   "stm_timer_pwm_peripherals": [
     {
       "controller_id": "TIM1",
