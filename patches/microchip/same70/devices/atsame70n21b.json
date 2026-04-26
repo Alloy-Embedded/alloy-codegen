@@ -4,6 +4,20 @@
   "package": "lqfp100",
   "core": "cortex-m7f",
   "summary": "Second SAME70 package variant used to validate package-sensitive normalization.",
+  "adc_internal_channels": [
+    { "peripheral": "AFEC0", "kind": "temperature_sensor", "channel_index": 11 }
+  ],
+  "adc_resolution_options": [
+    { "peripheral": "AFEC0", "bits": 10, "field_value": 0 },
+    { "peripheral": "AFEC0", "bits": 12, "field_value": 1 },
+    { "peripheral": "AFEC0", "bits": 13, "field_value": 2 },
+    { "peripheral": "AFEC0", "bits": 14, "field_value": 3 },
+    { "peripheral": "AFEC1", "bits": 10, "field_value": 0 },
+    { "peripheral": "AFEC1", "bits": 12, "field_value": 1 },
+    { "peripheral": "AFEC1", "bits": 13, "field_value": 2 },
+    { "peripheral": "AFEC1", "bits": 14, "field_value": 3 }
+  ],
+  "adc_max_clock_hz": 40000000,
   "system_clock_profiles": [
     {
       "profile_id": "safe-internal-12mhz",

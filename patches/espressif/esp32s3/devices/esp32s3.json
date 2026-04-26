@@ -49,6 +49,14 @@
     "gdma-spi2-rx",  "gdma-spi2-tx",
     "gdma-adc"
   ],
+  "adc_internal_channels": [
+    { "peripheral": "APB_SARADC", "kind": "temperature_sensor", "channel_index": 14 }
+  ],
+  "adc_resolution_options": [
+    { "peripheral": "APB_SARADC", "bits": 12, "field_value": 0 },
+    { "peripheral": "APB_SARADC", "bits": 13, "field_value": 1 }
+  ],
+  "adc_max_clock_hz": 5000000,
   "system_clock_profiles": [
     {
       "profile_id": "safe-rc-fast-8mhz",

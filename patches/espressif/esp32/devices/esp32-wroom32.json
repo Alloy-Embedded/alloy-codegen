@@ -33,6 +33,13 @@
   "register_fields": [],
   "peripherals": ["GPIO", "UART0", "SPI0", "I2C0", "TIMG0", "LEDC", "RMT", "DPORT", "SENS"],
   "dma_request_refs": [],
+  "adc_resolution_options": [
+    { "peripheral": "SENS", "bits": 9,  "field_value": 0 },
+    { "peripheral": "SENS", "bits": 10, "field_value": 1 },
+    { "peripheral": "SENS", "bits": 11, "field_value": 2 },
+    { "peripheral": "SENS", "bits": 12, "field_value": 3 }
+  ],
+  "adc_max_clock_hz": 5000000,
   "system_clock_profiles": [
     {
       "profile_id": "safe-rc-fast-8mhz",

@@ -4,6 +4,25 @@
   "package": "bga196",
   "core": "cortex-m7f",
   "summary": "NXP MIMXRT1064DVL6A i.MX RT1060 Crossover MCU with 1 MB OCRAM and 4 MB on-chip flash.",
+  "adc_resolution_options": [
+    { "peripheral": "ADC1", "bits": 8,  "field_value": 0 },
+    { "peripheral": "ADC1", "bits": 10, "field_value": 1 },
+    { "peripheral": "ADC1", "bits": 12, "field_value": 2 },
+    { "peripheral": "ADC2", "bits": 8,  "field_value": 0 },
+    { "peripheral": "ADC2", "bits": 10, "field_value": 1 },
+    { "peripheral": "ADC2", "bits": 12, "field_value": 2 }
+  ],
+  "adc_sample_time_options": [
+    { "peripheral": "ADC1", "cycles_q8": 512,  "field_value": 0 },
+    { "peripheral": "ADC1", "cycles_q8": 1024, "field_value": 1 },
+    { "peripheral": "ADC1", "cycles_q8": 2048, "field_value": 2 },
+    { "peripheral": "ADC1", "cycles_q8": 4096, "field_value": 3 },
+    { "peripheral": "ADC2", "cycles_q8": 512,  "field_value": 0 },
+    { "peripheral": "ADC2", "cycles_q8": 1024, "field_value": 1 },
+    { "peripheral": "ADC2", "cycles_q8": 2048, "field_value": 2 },
+    { "peripheral": "ADC2", "cycles_q8": 4096, "field_value": 3 }
+  ],
+  "adc_max_clock_hz": 40000000,
   "system_clock_profiles": [
     {
       "profile_id": "safe-osc24m",

@@ -50,6 +50,10 @@
     "gdma-spi2-rx",  "gdma-spi2-tx",
     "gdma-adc"
   ],
+  "adc_resolution_options": [
+    { "peripheral": "APB_SARADC", "bits": 12, "field_value": 0 }
+  ],
+  "adc_max_clock_hz": 5000000,
   "system_clock_profiles": [
     {
       "profile_id": "safe-rc-fast-8mhz",
