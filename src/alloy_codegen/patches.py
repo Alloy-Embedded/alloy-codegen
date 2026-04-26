@@ -460,6 +460,122 @@ class AdcExternalTriggerPatch:
     default_polarity: int = 1  # 0=disabled, 1=rising (default), 2=falling, 3=both
 
 
+# ---------------------------------------------------------------------------
+# UART + SPI Tier 2/3/4 patch types (added by add-uart-spi-tier-2-3-4-data)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class UartBaudClockSourcePatch:
+    """One UART baud-rate clock source + the field value that selects it."""
+
+    peripheral: str
+    source: str  # UartBaudClockSource enum entry (e.g. "pclk", "hsi16")
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartBaudOversamplingOptionPatch:
+    """8x / 16x oversampling (OVER8 field on STM32, OSR field on LPUART)."""
+
+    peripheral: str
+    ratio: int  # 8 or 16
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartFifoTriggerOptionPatch:
+    """One FIFO trigger level (e.g. 1/4 / 1/2 / 3/4 / full → field value)."""
+
+    peripheral: str
+    fraction_q8: int  # Q8.8 fixed-point fraction (Q8(1/4)=64, Q8(1/2)=128, Q8(1)=256)
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartDataBitsOptionPatch:
+    """One supported data-bits option + the M0/M1 field combination."""
+
+    peripheral: str
+    bits: int  # 5 / 6 / 7 / 8 / 9
+    m0_value: int = 0
+    m1_value: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class UartParityOptionPatch:
+    """One parity option (none / even / odd / mark / space)."""
+
+    peripheral: str
+    parity: str  # UartParity enum entry
+    pce_value: int  # parity control enable bit
+    ps_value: int = 0  # parity select bit
+
+
+@dataclass(frozen=True, slots=True)
+class UartStopBitsOptionPatch:
+    """One stop-bits option (½ / 1 / 1½ / 2)."""
+
+    peripheral: str
+    stop_bits_q8: int  # Q8.8 fixed-point: Q8(0.5)=128, Q8(1)=256, Q8(2)=512
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartModeFlagsPatch:
+    """Per-UART mode capability flags (one block per peripheral)."""
+
+    peripheral: str
+    supports_lin: bool = False
+    supports_irda: bool = False
+    supports_smartcard: bool = False
+    supports_half_duplex: bool = False
+    supports_synchronous: bool = False
+    supports_auto_baud: bool = False
+    supports_wake_from_stop: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class SpiBaudPrescalerOptionPatch:
+    """One SPI baud-rate prescaler option (e.g. STM32 BR /2../256)."""
+
+    peripheral: str
+    divisor: int  # 2, 4, 8, 16, 32, 64, 128, 256
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiFrameSizeOptionPatch:
+    """One supported SPI frame size in bits + the DS / DFF field value."""
+
+    peripheral: str
+    bits: int  # 4..32 depending on family
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiFifoThresholdOptionPatch:
+    """One SPI FIFO threshold (8-bit / 16-bit on STM32 FRXTH)."""
+
+    peripheral: str
+    threshold_bits: int  # 8 or 16
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiModeFlagsPatch:
+    """Per-SPI mode capability flags (one block per peripheral)."""
+
+    peripheral: str
+    supports_crc: bool = False
+    supports_ti_frame: bool = False
+    supports_motorola_frame: bool = True  # Most SPIs are Motorola by default
+    supports_i2s_submode: bool = False
+    supports_bidirectional_3wire: bool = False
+    supports_lsb_first: bool = False
+    supports_nss_hw_management: bool = False
+
+
 @dataclass(frozen=True, slots=True)
 class DevicePatch:
     """Patch document for one bootstrap device."""
@@ -498,6 +614,21 @@ class DevicePatch:
     adc_oversampling_options: tuple[AdcOversamplingOptionPatch, ...] = ()
     adc_external_triggers: tuple[AdcExternalTriggerPatch, ...] = ()
     adc_max_clock_hz: int = 0
+    # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  All
+    # optional — families that don't curate UART/SPI config carry empty
+    # tuples and the *SemanticTraits fields default to empty arrays.
+    uart_baud_clock_sources: tuple[UartBaudClockSourcePatch, ...] = ()
+    uart_baud_oversampling_options: tuple[UartBaudOversamplingOptionPatch, ...] = ()
+    uart_fifo_trigger_options: tuple[UartFifoTriggerOptionPatch, ...] = ()
+    uart_data_bits_options: tuple[UartDataBitsOptionPatch, ...] = ()
+    uart_parity_options: tuple[UartParityOptionPatch, ...] = ()
+    uart_stop_bits_options: tuple[UartStopBitsOptionPatch, ...] = ()
+    uart_mode_flags: tuple[UartModeFlagsPatch, ...] = ()
+    uart_max_baud_hz: int = 0
+    spi_baud_prescaler_options: tuple[SpiBaudPrescalerOptionPatch, ...] = ()
+    spi_frame_size_options: tuple[SpiFrameSizeOptionPatch, ...] = ()
+    spi_fifo_threshold_options: tuple[SpiFifoThresholdOptionPatch, ...] = ()
+    spi_mode_flags: tuple[SpiModeFlagsPatch, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -1883,6 +2014,51 @@ def load_device_patch(
             for item in payload.get("adc_external_triggers", ())
         ),
         adc_max_clock_hz=int(payload.get("adc_max_clock_hz", 0) or 0),
+        uart_baud_clock_sources=tuple(
+            _parse_uart_baud_clock_source_patch(item)
+            for item in payload.get("uart_baud_clock_sources", ())
+        ),
+        uart_baud_oversampling_options=tuple(
+            _parse_uart_baud_oversampling_option_patch(item)
+            for item in payload.get("uart_baud_oversampling_options", ())
+        ),
+        uart_fifo_trigger_options=tuple(
+            _parse_uart_fifo_trigger_option_patch(item)
+            for item in payload.get("uart_fifo_trigger_options", ())
+        ),
+        uart_data_bits_options=tuple(
+            _parse_uart_data_bits_option_patch(item)
+            for item in payload.get("uart_data_bits_options", ())
+        ),
+        uart_parity_options=tuple(
+            _parse_uart_parity_option_patch(item)
+            for item in payload.get("uart_parity_options", ())
+        ),
+        uart_stop_bits_options=tuple(
+            _parse_uart_stop_bits_option_patch(item)
+            for item in payload.get("uart_stop_bits_options", ())
+        ),
+        uart_mode_flags=tuple(
+            _parse_uart_mode_flags_patch(item)
+            for item in payload.get("uart_mode_flags", ())
+        ),
+        uart_max_baud_hz=int(payload.get("uart_max_baud_hz", 0) or 0),
+        spi_baud_prescaler_options=tuple(
+            _parse_spi_baud_prescaler_option_patch(item)
+            for item in payload.get("spi_baud_prescaler_options", ())
+        ),
+        spi_frame_size_options=tuple(
+            _parse_spi_frame_size_option_patch(item)
+            for item in payload.get("spi_frame_size_options", ())
+        ),
+        spi_fifo_threshold_options=tuple(
+            _parse_spi_fifo_threshold_option_patch(item)
+            for item in payload.get("spi_fifo_threshold_options", ())
+        ),
+        spi_mode_flags=tuple(
+            _parse_spi_mode_flags_patch(item)
+            for item in payload.get("spi_mode_flags", ())
+        ),
     )
 
 
@@ -1955,4 +2131,127 @@ def _parse_adc_external_trigger_patch(payload: dict[str, object]) -> AdcExternal
         source=str(payload["source"]),
         extsel_value=int(payload["extsel_value"]),
         default_polarity=int(payload.get("default_polarity", 1) or 1),
+    )
+
+
+# ---------------------------------------------------------------------------
+# UART + SPI Tier 2/3/4 parsers (added by add-uart-spi-tier-2-3-4-data)
+# ---------------------------------------------------------------------------
+
+
+def _parse_uart_baud_clock_source_patch(
+    payload: dict[str, object],
+) -> UartBaudClockSourcePatch:
+    return UartBaudClockSourcePatch(
+        peripheral=str(payload["peripheral"]),
+        source=str(payload["source"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_uart_baud_oversampling_option_patch(
+    payload: dict[str, object],
+) -> UartBaudOversamplingOptionPatch:
+    return UartBaudOversamplingOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        ratio=int(payload["ratio"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_uart_fifo_trigger_option_patch(
+    payload: dict[str, object],
+) -> UartFifoTriggerOptionPatch:
+    return UartFifoTriggerOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        fraction_q8=int(payload["fraction_q8"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_uart_data_bits_option_patch(
+    payload: dict[str, object],
+) -> UartDataBitsOptionPatch:
+    return UartDataBitsOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        bits=int(payload["bits"]),
+        m0_value=int(payload.get("m0_value", 0) or 0),
+        m1_value=int(payload.get("m1_value", 0) or 0),
+    )
+
+
+def _parse_uart_parity_option_patch(
+    payload: dict[str, object],
+) -> UartParityOptionPatch:
+    return UartParityOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        parity=str(payload["parity"]),
+        pce_value=int(payload["pce_value"]),
+        ps_value=int(payload.get("ps_value", 0) or 0),
+    )
+
+
+def _parse_uart_stop_bits_option_patch(
+    payload: dict[str, object],
+) -> UartStopBitsOptionPatch:
+    return UartStopBitsOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        stop_bits_q8=int(payload["stop_bits_q8"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_uart_mode_flags_patch(payload: dict[str, object]) -> UartModeFlagsPatch:
+    return UartModeFlagsPatch(
+        peripheral=str(payload["peripheral"]),
+        supports_lin=bool(payload.get("supports_lin", False)),
+        supports_irda=bool(payload.get("supports_irda", False)),
+        supports_smartcard=bool(payload.get("supports_smartcard", False)),
+        supports_half_duplex=bool(payload.get("supports_half_duplex", False)),
+        supports_synchronous=bool(payload.get("supports_synchronous", False)),
+        supports_auto_baud=bool(payload.get("supports_auto_baud", False)),
+        supports_wake_from_stop=bool(payload.get("supports_wake_from_stop", False)),
+    )
+
+
+def _parse_spi_baud_prescaler_option_patch(
+    payload: dict[str, object],
+) -> SpiBaudPrescalerOptionPatch:
+    return SpiBaudPrescalerOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        divisor=int(payload["divisor"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_spi_frame_size_option_patch(
+    payload: dict[str, object],
+) -> SpiFrameSizeOptionPatch:
+    return SpiFrameSizeOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        bits=int(payload["bits"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_spi_fifo_threshold_option_patch(
+    payload: dict[str, object],
+) -> SpiFifoThresholdOptionPatch:
+    return SpiFifoThresholdOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        threshold_bits=int(payload["threshold_bits"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_spi_mode_flags_patch(payload: dict[str, object]) -> SpiModeFlagsPatch:
+    return SpiModeFlagsPatch(
+        peripheral=str(payload["peripheral"]),
+        supports_crc=bool(payload.get("supports_crc", False)),
+        supports_ti_frame=bool(payload.get("supports_ti_frame", False)),
+        supports_motorola_frame=bool(payload.get("supports_motorola_frame", True)),
+        supports_i2s_submode=bool(payload.get("supports_i2s_submode", False)),
+        supports_bidirectional_3wire=bool(payload.get("supports_bidirectional_3wire", False)),
+        supports_lsb_first=bool(payload.get("supports_lsb_first", False)),
+        supports_nss_hw_management=bool(payload.get("supports_nss_hw_management", False)),
     )

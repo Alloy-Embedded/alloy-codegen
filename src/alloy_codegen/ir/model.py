@@ -1008,6 +1008,44 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     adc_max_clock_hz: int = field(default=0, metadata={"omit_if_default": True})
+    # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Same
+    # pass-through pattern as ADC: tuples of patch dataclasses, the typed
+    # C++ rendering happens in ``runtime_driver_semantics``.  Empty for
+    # families whose device patches don't curate the data.
+    uart_baud_clock_sources: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_baud_oversampling_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_fifo_trigger_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_data_bits_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_parity_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_stop_bits_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_max_baud_hz: int = field(default=0, metadata={"omit_if_default": True})
+    spi_baud_prescaler_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_frame_size_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_fifo_threshold_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Multi-core topology + APP_CPU control plane (added by
     # expose-xtensa-dual-core-facts).  ``multicore_topology`` defaults to
     # ``"single_core"`` so existing single-core fixtures keep validating
