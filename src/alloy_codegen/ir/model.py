@@ -843,6 +843,41 @@ class Rp2040AdcPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class I2cPeripheralDescriptor:
+    """Per-controller I2C / TWI hardware-feature facts (added by
+    ``fill-i2c-semantic-gaps``).
+
+    Single descriptor type spans every admitted family — STM32 (DMAMUX +
+    AF table), Espressif (IO matrix), RP2040 (datasheet pin constraint
+    table), AVR-DA (PORTMUX), SAME70 (TWI/TWIHS).  Fields not relevant
+    to a family default to ``None`` / empty so the IR JSON stays
+    byte-stable for devices that don't ship that bit of detail.
+
+    The empty tuple on ``valid_sda_pins`` / ``valid_scl_pins`` is a
+    *sentinel* meaning ``AllGpios{}`` — Espressif's IO matrix accepts
+    any GPIO pad, so the per-pad allowlist is unconstrained.
+    """
+
+    peripheral_id: str
+    base_address: int
+    clock_source: str | None = None
+    dreq_tx: int | None = None
+    dreq_rx: int | None = None
+    # Canonical pin names (``"PA10"``, ``"GP12"``, ``"PORTA_PIN2"``, …)
+    # — strings rather than integers so the field works uniformly across
+    # STM32 (per-port indexing), RP2040 (flat pad numbering 0..29), AVR
+    # (PORTx_PINn), and Espressif (sentinel: empty tuple == AllGpios).
+    valid_sda_pins: tuple[str, ...] = ()
+    valid_scl_pins: tuple[str, ...] = ()
+    gpio_matrix_in_sda_signal: int | None = None
+    gpio_matrix_in_scl_signal: int | None = None
+    gpio_matrix_out_sda_signal: int | None = None
+    gpio_matrix_out_scl_signal: int | None = None
+    supports_fast_mode_plus: bool = False
+    portmux_alt: bool | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class PioDescriptor:
     """Compile-time topology of one Programmable I/O block.
 
@@ -1125,6 +1160,13 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     rp2040_pwm_slice_hw: tuple[Rp2040PwmSliceHwDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    # I2C / TWI hardware-feature descriptors (added by
+    # ``fill-i2c-semantic-gaps``).  Empty for devices without I2C / TWI
+    # controllers; populated per family as the change rolls out.
+    i2c_peripherals: tuple[I2cPeripheralDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

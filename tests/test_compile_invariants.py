@@ -158,3 +158,36 @@ def test_stm32g0_gpio_traits_compile_invariants() -> None:
         },
         include_dirs=[driver_root, stm32g0_root],
     )
+
+
+def test_rp2040_i2c_traits_compile_invariants() -> None:
+    """Compile-test for ``fill-i2c-semantic-gaps`` Phase C.
+
+    Asserts the populated I2cPeripheralTraits specializations carry the
+    documented base addresses, DREQs, and PinId pad allowlists.
+    """
+    source = COMPILE_TESTS_DIR / "test_rp2040_i2c_traits.cpp"
+    rp2040_root = (
+        FIXTURES_EMITTED
+        / "rp2040"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "rp2040"
+    )
+    driver_root = rp2040_root / "driver_semantics"
+    i2c_header = driver_root / "i2c.hpp"
+    pins_header = rp2040_root / "pins.hpp"
+    assert i2c_header.exists(), i2c_header
+    assert pins_header.exists(), pins_header
+    common_header = driver_root / "common.hpp"
+    if not common_header.exists():
+        common_header.write_text("#pragma once\n", encoding="utf-8")
+    _compile(
+        source=source,
+        defines={
+            "ALLOY_CODEGEN_RP2040_I2C_HEADER": f'"{i2c_header}"',
+            "ALLOY_CODEGEN_RP2040_PINS_HEADER": f'"{pins_header}"',
+        },
+        include_dirs=[driver_root, rp2040_root],
+    )
