@@ -100,8 +100,12 @@
       until SAME70 USART/UART is admitted upstream.
 - [x] 5.2 SPI row pass-through identical (Phase 3.3 covers it).
 - [x] 5.3 NXP `_nxp_uart_row` / `_nxp_spi_row` pull from IR (Phase 3.3).
-- [x] 5.4 SAME70 — no admitted USART/UART/SPI peripherals in the test
-      fixture; population deferred until the schema is wired upstream.
+- [x] 5.4 SAME70 device patches populated for `atsame70n21b` +
+      `atsame70q21b`: USART0/1/2 (full-featured — 5..9 data bits, LIN /
+      IrDA / smartcard / half-duplex / synchronous all true, 16x+8x
+      oversampling), UART0..4 (basic — 8 bits, 1 stop, no LIN), SPI0/1
+      (8..16-bit frames, Motorola only, hardware NSS).  Max baud
+      8 MHz across all eight UART instances.
 - [x] 5.5 iMXRT1060 device patches populated for `mimxrt1062` +
       `mimxrt1064` (LPUART1..8 + LPSPI1..4).
 

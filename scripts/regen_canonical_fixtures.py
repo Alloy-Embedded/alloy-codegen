@@ -32,6 +32,7 @@ NXP = {
     "nxp-mcux-soc-svd": str(FIXTURES / "nxp-mcux-imxrt1060" / "svd"),
     "nxp-mcux-sdk": str(FIXTURES / "nxp-mcux-imxrt1060" / "sdk"),
 }
+SAME70 = {"microchip-dfp-extract": str(FIXTURES / "microchip-dfp-same70")}
 
 JOBS = [
     # (fixture-dir, device-name, source-overrides)
@@ -47,6 +48,8 @@ JOBS = [
     ("avr-da", "avr128da32", AVR),
     ("imxrt1060", "mimxrt1062", NXP),
     ("imxrt1060", "mimxrt1064", NXP),
+    ("same70", "atsame70n21b", SAME70),
+    ("same70", "atsame70q21b", SAME70),
 ]
 
 

@@ -371,6 +371,116 @@ def esp_spi_blocks(periph: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# SAME70 — USART0/1/2 (full-featured) + UART0..4 (basic) + SPI0/1.
+# ---------------------------------------------------------------------------
+
+
+def same70_usart_blocks(periph: str) -> dict:
+    """SAME70 full-featured USART (alloy.uart.microchip-usart-zw)."""
+    return {
+        "uart_baud_clock_sources": [
+            {"peripheral": periph, "source": "mck", "field_value": 0},
+        ],
+        "uart_baud_oversampling_options": [
+            {"peripheral": periph, "ratio": 16, "field_value": 0},
+            {"peripheral": periph, "ratio": 8, "field_value": 1},
+        ],
+        "uart_data_bits_options": [
+            {"peripheral": periph, "bits": 5, "m0_value": 0, "m1_value": 0},
+            {"peripheral": periph, "bits": 6, "m0_value": 1, "m1_value": 0},
+            {"peripheral": periph, "bits": 7, "m0_value": 2, "m1_value": 0},
+            {"peripheral": periph, "bits": 8, "m0_value": 3, "m1_value": 0},
+            {"peripheral": periph, "bits": 9, "m0_value": 0, "m1_value": 1},
+        ],
+        "uart_parity_options": [
+            {"peripheral": periph, "parity": "even", "pce_value": 0, "ps_value": 0},
+            {"peripheral": periph, "parity": "odd", "pce_value": 1, "ps_value": 0},
+            {"peripheral": periph, "parity": "none", "pce_value": 4, "ps_value": 0},
+        ],
+        "uart_stop_bits_options": [
+            {"peripheral": periph, "stop_bits_q8": 256, "field_value": 0},
+            {"peripheral": periph, "stop_bits_q8": 384, "field_value": 1},
+            {"peripheral": periph, "stop_bits_q8": 512, "field_value": 2},
+        ],
+        "uart_mode_flags": [
+            {
+                "peripheral": periph,
+                "supports_lin": True,
+                "supports_irda": True,
+                "supports_smartcard": True,
+                "supports_half_duplex": True,
+                "supports_synchronous": True,
+                "supports_auto_baud": False,
+                "supports_wake_from_stop": True,
+            }
+        ],
+        "uart_max_baud_hz": 8_000_000,
+    }
+
+
+def same70_uart_blocks(periph: str) -> dict:
+    """SAME70 basic UART (alloy.uart.microchip-uart-r) — 8 data bits, 1 stop,
+    no LIN/IrDA/smartcard/half-duplex/synchronous."""
+    return {
+        "uart_baud_clock_sources": [
+            {"peripheral": periph, "source": "mck", "field_value": 0},
+        ],
+        "uart_baud_oversampling_options": [
+            {"peripheral": periph, "ratio": 16, "field_value": 0},
+        ],
+        "uart_data_bits_options": [
+            {"peripheral": periph, "bits": 8, "m0_value": 0, "m1_value": 0},
+        ],
+        "uart_parity_options": [
+            {"peripheral": periph, "parity": "even", "pce_value": 0, "ps_value": 0},
+            {"peripheral": periph, "parity": "odd", "pce_value": 1, "ps_value": 0},
+            {"peripheral": periph, "parity": "none", "pce_value": 4, "ps_value": 0},
+        ],
+        "uart_stop_bits_options": [
+            {"peripheral": periph, "stop_bits_q8": 256, "field_value": 0},
+        ],
+        "uart_mode_flags": [
+            {
+                "peripheral": periph,
+                "supports_lin": False,
+                "supports_irda": False,
+                "supports_smartcard": False,
+                "supports_half_duplex": False,
+                "supports_synchronous": False,
+                "supports_auto_baud": False,
+                "supports_wake_from_stop": False,
+            }
+        ],
+        "uart_max_baud_hz": 8_000_000,
+    }
+
+
+def same70_spi_blocks(periph: str) -> dict:
+    """SAME70 SPI (alloy.spi.microchip-spi-zm) — 8..16 bits, MCK / SCBR
+    prescaler (representative subset), Motorola only, hardware NSS."""
+    return {
+        "spi_baud_prescaler_options": [
+            {"peripheral": periph, "divisor": 1 << i, "field_value": 1 << i} for i in range(0, 8)
+        ],
+        "spi_frame_size_options": [
+            {"peripheral": periph, "bits": bits, "field_value": bits - 8} for bits in range(8, 17)
+        ],
+        "spi_mode_flags": [
+            {
+                "peripheral": periph,
+                "supports_crc": False,
+                "supports_ti_frame": False,
+                "supports_motorola_frame": True,
+                "supports_i2s_submode": False,
+                "supports_bidirectional_3wire": False,
+                "supports_lsb_first": False,
+                "supports_nss_hw_management": True,
+            }
+        ],
+    }
+
+
+# ---------------------------------------------------------------------------
 # Apply blocks
 # ---------------------------------------------------------------------------
 
@@ -420,6 +530,21 @@ def main() -> None:
             stm32f4_uart_blocks("USART2"),
             stm32f4_spi_blocks("SPI1"),
         )
+        _save(path, payload)
+        print(f"  populated {path.relative_to(ROOT)}")
+
+    # SAME70 — per-device.json (USART0/1/2 + UART0..4 + SPI0/1).
+    for dev in ("atsame70n21b.json", "atsame70q21b.json"):
+        path = ROOT / "patches" / "microchip" / "same70" / "devices" / dev
+        payload = _load(path)
+        blocks: list[dict] = []
+        for i in range(3):
+            blocks.append(same70_usart_blocks(f"USART{i}"))
+        for i in range(5):
+            blocks.append(same70_uart_blocks(f"UART{i}"))
+        for i in range(2):
+            blocks.append(same70_spi_blocks(f"SPI{i}"))
+        apply_blocks(payload, *blocks)
         _save(path, payload)
         print(f"  populated {path.relative_to(ROOT)}")
 
