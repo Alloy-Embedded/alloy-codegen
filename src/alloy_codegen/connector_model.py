@@ -1637,6 +1637,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         adc_oversampling_options=device.adc_oversampling_options,
         adc_external_triggers=device.adc_external_triggers,
         adc_max_clock_hz=device.adc_max_clock_hz,
+        # Carry forward multicore-topology facts (added by
+        # ``expose-xtensa-dual-core-facts``) for the same reason.
+        multicore_topology=device.multicore_topology,
+        app_cpu_control_plane=device.app_cpu_control_plane,
     )
 
 

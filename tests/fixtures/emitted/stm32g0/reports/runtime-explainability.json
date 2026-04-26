@@ -102,7 +102,7 @@
           "peripheral_class": "uart"
         }
       ],
-      "capability_decision_count": 17,
+      "capability_decision_count": 19,
       "capability_decisions": [
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
@@ -125,6 +125,28 @@
           "peripheral_class": "dac",
           "scope": "runtime_contract",
           "value": "true"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "decision_id": "device:core-count",
+          "decision_kind": "inferred_runtime_support",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "name": "core-count",
+          "peripheral": null,
+          "peripheral_class": "device",
+          "scope": "device",
+          "value": "1"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "decision_id": "device:multicore-topology",
+          "decision_kind": "inferred_runtime_support",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "name": "multicore-topology",
+          "peripheral": null,
+          "peripheral_class": "device",
+          "scope": "device",
+          "value": "single-core"
         },
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
@@ -320,7 +342,7 @@
           "signal": "TX"
         }
       ],
-      "heuristic_fact_count": 19,
+      "heuristic_fact_count": 21,
       "heuristic_facts": [
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
@@ -332,6 +354,18 @@
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
           "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
           "fact_id": "runtime-support:dac",
+          "fact_kind": "capability"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "fact_id": "device:core-count",
+          "fact_kind": "capability"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "fact_id": "device:multicore-topology",
           "fact_kind": "capability"
         },
         {

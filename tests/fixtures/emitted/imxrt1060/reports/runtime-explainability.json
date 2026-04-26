@@ -219,7 +219,7 @@
           "peripheral_class": "watchdog"
         }
       ],
-      "capability_decision_count": 26,
+      "capability_decision_count": 28,
       "capability_decisions": [
         {
           "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
@@ -242,6 +242,28 @@
           "peripheral_class": "can",
           "scope": "runtime_contract",
           "value": "true"
+        },
+        {
+          "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
+          "decision_id": "device:core-count",
+          "decision_kind": "inferred_runtime_support",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "name": "core-count",
+          "peripheral": null,
+          "peripheral_class": "device",
+          "scope": "device",
+          "value": "1"
+        },
+        {
+          "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
+          "decision_id": "device:multicore-topology",
+          "decision_kind": "inferred_runtime_support",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "name": "multicore-topology",
+          "peripheral": null,
+          "peripheral_class": "device",
+          "scope": "device",
+          "value": "single-core"
         },
         {
           "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
@@ -511,7 +533,7 @@
       "device": "mimxrt1064",
       "dma_binding_decision_count": 0,
       "dma_binding_decisions": [],
-      "heuristic_fact_count": 18,
+      "heuristic_fact_count": 20,
       "heuristic_facts": [
         {
           "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
@@ -523,6 +545,18 @@
           "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
           "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
           "fact_id": "runtime-support:can",
+          "fact_kind": "capability"
+        },
+        {
+          "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "fact_id": "device:core-count",
+          "fact_kind": "capability"
+        },
+        {
+          "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "fact_id": "device:multicore-topology",
           "fact_kind": "capability"
         },
         {

@@ -1,5 +1,15 @@
 {
   "patch_id": "espressif-esp32s3-family-bootstrap-v1",
+  "multicore_topology": {
+    "topology": "xtensa-asymmetric-dual-core",
+    "core_count": 2,
+    "app_cpu_control_plane": {
+      "register": "SYSTEM.CORE_1_CONTROL_0",
+      "register_secondary": "SYSTEM.CORE_1_CONTROL_1",
+      "operation": "clear-runstall-after-clkgate",
+      "start_vector_symbol": "_vectors_cpu1"
+    }
+  },
   "__source_notes": {
     "io_matrix_reference": "esp-idf/components/soc/esp32s3/include/soc/gpio_sig_map.h",
     "io_matrix_comment": "af_number on ESP32-S3 PinSignals is the IO Matrix signal index (U0RXD_IN_IDX=6, U0TXD_OUT_IDX=6, U1RXD_IN_IDX=9, U1TXD_OUT_IDX=9, U2RXD_IN_IDX=13, U2TXD_OUT_IDX=17, I2CEXT0_SDA_IN/OUT=9/10, FSPIQ_IN/FSPID_OUT=64/63 on ESP32-S3). Consumer: alloy.pinmux.espressif-iomatrix-v1.",

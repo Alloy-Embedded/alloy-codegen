@@ -224,6 +224,43 @@ class FamilyPatchCatalog:
     # field are silently omitted from the caveats section.  See
     # ``add-publication-scale-features``.
     readme_caveat: str | None = None
+    # Multicore topology block from ``family.json::multicore_topology``
+    # (added by ``expose-xtensa-dual-core-facts``).  Single-core families
+    # carry ``None`` here and downstream consumers default to ``"single_core"``
+    # at IR-build time.  Asymmetric Xtensa families (ESP32 classic, ESP32-S3)
+    # populate the block with the APP_CPU control register name in
+    # ``"PERIPHERAL.REGISTER"`` form — the normalizer resolves it to a typed
+    # ``register_id`` after register filtering.
+    multicore_topology: "MulticoreTopologyPatch | None" = None
+
+
+@dataclass(frozen=True, slots=True)
+class AppCpuControlPlanePatch:
+    """APP_CPU release sequence carried in ``family.json::multicore_topology``.
+
+    ``register`` and ``register_secondary`` are ``"PERIPHERAL.REGISTER"``
+    strings; the normalizer resolves them to typed ``register_id`` values.
+    """
+
+    register: str
+    operation: str
+    start_vector_symbol: str
+    register_secondary: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class MulticoreTopologyPatch:
+    """Family-level multicore topology block.
+
+    ``topology`` maps to the IR ``MulticoreTopology`` enum:
+    ``"single-core"`` → ``"single_core"``,
+    ``"symmetric-dual-core"`` → ``"symmetric_dual_core"``,
+    ``"xtensa-asymmetric-dual-core"`` → ``"xtensa_asymmetric_dual_core"``.
+    """
+
+    topology: str
+    core_count: int
+    app_cpu_control_plane: AppCpuControlPlanePatch | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -814,6 +851,46 @@ def load_family_patch_catalog(
             _parse_dma_request_catalog_entry(item) for item in payload.get("dma_requests", ())
         ),
         readme_caveat=_extract_readme_caveat(payload),
+        multicore_topology=_parse_multicore_topology_patch(payload.get("multicore_topology")),
+    )
+
+
+def _parse_multicore_topology_patch(
+    payload: object,
+) -> MulticoreTopologyPatch | None:
+    """Parse `family.json::multicore_topology` block when present."""
+    if not isinstance(payload, dict):
+        return None
+    topology_value = payload.get("topology")
+    core_count = payload.get("core_count")
+    if not isinstance(topology_value, str) or not isinstance(core_count, int):
+        return None
+    app_cpu_payload = payload.get("app_cpu_control_plane")
+    app_cpu = None
+    if isinstance(app_cpu_payload, dict):
+        register_value = app_cpu_payload.get("register")
+        operation_value = app_cpu_payload.get("operation")
+        start_vector_value = app_cpu_payload.get("start_vector_symbol")
+        register_secondary_value = app_cpu_payload.get("register_secondary")
+        if (
+            isinstance(register_value, str)
+            and isinstance(operation_value, str)
+            and isinstance(start_vector_value, str)
+        ):
+            app_cpu = AppCpuControlPlanePatch(
+                register=register_value,
+                operation=operation_value,
+                start_vector_symbol=start_vector_value,
+                register_secondary=(
+                    register_secondary_value
+                    if isinstance(register_secondary_value, str)
+                    else None
+                ),
+            )
+    return MulticoreTopologyPatch(
+        topology=topology_value,
+        core_count=core_count,
+        app_cpu_control_plane=app_cpu,
     )
 
 

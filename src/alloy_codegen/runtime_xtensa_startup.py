@@ -44,41 +44,101 @@ def _is_xtensa_device(device: CanonicalDeviceIR) -> bool:
     return device.identity.core.lower().startswith("xtensa")
 
 
+def _resolve_register_address(
+    device: CanonicalDeviceIR, register_id: str
+) -> tuple[int, int, str, str] | None:
+    """Return ``(absolute_address, peripheral_base, peripheral_name, register_name)``.
+
+    Walks ``device.registers`` and ``device.peripherals`` so the bring-up
+    body addresses are derived from the IR rather than hardcoded constants
+    (refactor landed by ``expose-xtensa-dual-core-facts``).  Returns
+    ``None`` if either lookup fails — callers fall back to the legacy
+    "no sequence registered" comment.
+    """
+    register = next(
+        (reg for reg in device.registers if reg.register_id == register_id),
+        None,
+    )
+    if register is None:
+        return None
+    peripheral = next(
+        (per for per in device.peripherals if per.name == register.peripheral),
+        None,
+    )
+    if peripheral is None:
+        return None
+    return (
+        peripheral.base_address + register.offset_bytes,
+        peripheral.base_address,
+        peripheral.name,
+        register.name,
+    )
+
+
 def _bring_up_app_cpu_body(device: CanonicalDeviceIR) -> tuple[str, ...]:
     """Return the C++ body lines for ``bring_up_app_cpu()``.
 
-    The function differs by family:
+    Driven by ``device.app_cpu_control_plane`` — the IR field added by
+    ``expose-xtensa-dual-core-facts``.  The two supported operations are:
 
-    - **ESP32 classic (LX6)**: writes ``DPORT.APPCPU_CTRL_B`` bit 0 to
-      release APP_CPU.  ROM has already configured APP_CPU's VECBASE to
-      ``Reset_Handler_CPU1``-equivalent; we just unhold it.
-    - **ESP32-S3 (LX7)**: enables ``SYSTEM.CORE_1_CONTROL_0.CLKGATE_EN``
-      then clears ``SYSTEM.CORE_1_CONTROL_1.RUNSTALL`` to let APP_CPU
-      execute.
+    - ``set-bit-0``: ESP32 classic (LX6) writes ``DPORT.APPCPU_CTRL_B`` = 1
+      to release APP_CPU.  ROM has already pointed APP_CPU's VECBASE at the
+      application image; this just unholds it.
+    - ``clear-runstall-after-clkgate``: ESP32-S3 (LX7) enables CLKGATE on
+      ``SYSTEM.CORE_1_CONTROL_0`` (bit 1) then clears RUNSTALL on
+      ``SYSTEM.CORE_1_CONTROL_1`` (bit 0).
 
     On host smoke builds the body is empty (the registers don't exist).
     """
-    core = device.identity.core.lower()
-    if core == "xtensa-lx6":
+    plane = device.app_cpu_control_plane
+    if plane is None:
         return (
-            "    // ESP32 classic: write DPORT.APPCPU_CTRL_B bit 0 (APPCPU_CLKGATE_EN)",
+            f"    // No bring-up sequence registered for core '{device.identity.core}'.",
+            "    // Application must implement APP_CPU release manually.",
+        )
+    if plane.operation == "set-bit-0":
+        primary = _resolve_register_address(device, plane.release_register)
+        if primary is None:
+            return (
+                f"    // No bring-up sequence registered for core '{device.identity.core}'.",
+                "    // Application must implement APP_CPU release manually.",
+            )
+        addr, _peri_base, peri_name, reg_name = primary
+        addr_literal = f"0x{addr >> 16:04X}'{addr & 0xFFFF:04X}u"
+        return (
+            f"    // ESP32 classic: write {peri_name}.{reg_name} bit 0 (APPCPU_CLKGATE_EN)",
             "    // to release APP_CPU from reset.  ROM has already pointed APP_CPU's",
             "    // VECBASE at the application image; this just unholds it.",
             "    auto* const dport_appcpu_ctrl_b = reinterpret_cast<volatile std::uint32_t*>(",
-            "        0x3FF0'0030u);",
+            f"        {addr_literal});",
             "    *dport_appcpu_ctrl_b = 1u;",
         )
-    if core == "xtensa-lx7":
+    if plane.operation == "clear-runstall-after-clkgate":
+        primary = _resolve_register_address(device, plane.release_register)
+        secondary = (
+            _resolve_register_address(device, plane.release_register_secondary)
+            if plane.release_register_secondary is not None
+            else None
+        )
+        if primary is None or secondary is None:
+            return (
+                f"    // No bring-up sequence registered for core '{device.identity.core}'.",
+                "    // Application must implement APP_CPU release manually.",
+            )
+        _addr0, peri_base, peri_name0, reg_name0 = primary
+        _addr1, _peri_base1, _peri_name1, reg_name1 = secondary
+        offset0 = primary[0] - peri_base
+        offset1 = secondary[0] - peri_base
+        peri_base_literal = f"0x{peri_base >> 16:04X}'{peri_base & 0xFFFF:04X}u"
         return (
             "    // ESP32-S3: clock-gate APP_CPU then clear its runstall.",
             "    auto* const sys_core_1_ctrl_0 = reinterpret_cast<volatile std::uint32_t*>(",
-            "        0x6000'8000u + 0x0DCu);  // SYSTEM.CORE_1_CONTROL_0",
+            f"        {peri_base_literal} + 0x{offset0:03X}u);  // {peri_name0}.{reg_name0}",
             "    auto* const sys_core_1_ctrl_1 = reinterpret_cast<volatile std::uint32_t*>(",
-            "        0x6000'8000u + 0x0E0u);  // SYSTEM.CORE_1_CONTROL_1",
+            f"        {peri_base_literal} + 0x{offset1:03X}u);  // {peri_name0}.{reg_name1}",
             "    *sys_core_1_ctrl_0 |= (1u << 1);   // CONTROL_CORE_1_CLKGATE_EN",
             "    *sys_core_1_ctrl_1 &= ~(1u << 0);  // CONTROL_CORE_1_RUNSTALL",
         )
-    # Unknown Xtensa core: keep emission deterministic but document the gap.
     return (
         f"    // No bring-up sequence registered for core '{device.identity.core}'.",
         "    // Application must implement APP_CPU release manually.",

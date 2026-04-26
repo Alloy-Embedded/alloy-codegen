@@ -1,5 +1,14 @@
 {
   "patch_id": "espressif-esp32-family-bootstrap-v1",
+  "multicore_topology": {
+    "topology": "xtensa-asymmetric-dual-core",
+    "core_count": 2,
+    "app_cpu_control_plane": {
+      "register": "DPORT.APPCPU_CTRL_B",
+      "operation": "set-bit-0",
+      "start_vector_symbol": "_vectors_cpu1"
+    }
+  },
   "__source_notes": {
     "io_matrix_reference": "esp-idf/components/soc/esp32/include/soc/gpio_sig_map.h",
     "io_matrix_comment": "Pin signal AF numbers (IO Matrix indices) are deferred to a follow-on; this bootstrap leaves pin_signals empty and lets the ESP32 device IR carry pins without IO Matrix routing — same posture the ESP32-S3 took initially.",

@@ -221,6 +221,50 @@ def runtime_capability_rows(device: CanonicalDeviceIR) -> tuple[RuntimeCapabilit
             ),
         )
 
+    # Device-level multicore facts (added by ``expose-xtensa-dual-core-facts``).
+    # The two unconditional keys (`multicore-topology`, `core-count`) ride on
+    # every device so consumers can branch on topology without a fallback.
+    # `secondary-core-release-register` is emitted only for asymmetric Xtensa
+    # devices where the IR carries an ``app_cpu_control_plane``.
+    topology_value = {
+        "single_core": "single-core",
+        "symmetric_dual_core": "symmetric-dual-core",
+        "xtensa_asymmetric_dual_core": "xtensa-dual-core",
+    }.get(device.multicore_topology, "single-core")
+    core_count = 1 if device.multicore_topology == "single_core" else 2
+    rows_by_id["device:multicore-topology"] = RuntimeCapabilityRow(
+        capability_id="device:multicore-topology",
+        scope="device",
+        peripheral_class="device",
+        name="multicore-topology",
+        value=topology_value,
+        peripheral=None,
+    )
+    rows_by_id["device:core-count"] = RuntimeCapabilityRow(
+        capability_id="device:core-count",
+        scope="device",
+        peripheral_class="device",
+        name="core-count",
+        value=str(core_count),
+        peripheral=None,
+    )
+    plane = device.app_cpu_control_plane
+    if plane is not None:
+        if plane.release_register_secondary is not None:
+            register_value = (
+                f"[{plane.release_register},{plane.release_register_secondary}]"
+            )
+        else:
+            register_value = plane.release_register
+        rows_by_id["device:secondary-core-release-register"] = RuntimeCapabilityRow(
+            capability_id="device:secondary-core-release-register",
+            scope="device",
+            peripheral_class="device",
+            name="secondary-core-release-register",
+            value=register_value,
+            peripheral=None,
+        )
+
     return tuple(
         sorted(
             rows_by_id.values(),

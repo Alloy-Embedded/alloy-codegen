@@ -589,9 +589,9 @@ void bring_up_app_cpu() {
 #else
     // ESP32-S3: clock-gate APP_CPU then clear its runstall.
     auto* const sys_core_1_ctrl_0 = reinterpret_cast<volatile std::uint32_t*>(
-        0x6000'8000u + 0x0DCu);  // SYSTEM.CORE_1_CONTROL_0
+        0x600C'0000u + 0x000u);  // SYSTEM.CORE_1_CONTROL_0
     auto* const sys_core_1_ctrl_1 = reinterpret_cast<volatile std::uint32_t*>(
-        0x6000'8000u + 0x0E0u);  // SYSTEM.CORE_1_CONTROL_1
+        0x600C'0000u + 0x004u);  // SYSTEM.CORE_1_CONTROL_1
     *sys_core_1_ctrl_0 |= (1u << 1);   // CONTROL_CORE_1_CLKGATE_EN
     *sys_core_1_ctrl_1 &= ~(1u << 0);  // CONTROL_CORE_1_RUNSTALL
 #endif

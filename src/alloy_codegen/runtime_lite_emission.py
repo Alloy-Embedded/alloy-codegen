@@ -69,6 +69,10 @@ def _runtime_lite_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> d
         for device in devices
         for peripheral in device.peripherals
     )
+    # Synthetic ``device`` peripheral class added by
+    # ``expose-xtensa-dual-core-facts`` so device-scope multicore capability
+    # rows have a valid ``PeripheralClassId`` to reference.
+    peripheral_class_values.add("device")
     catalog["peripheral_class_enum_map"] = _semantic_enum_map(
         peripheral_class_values,
         prefix="class",
@@ -384,6 +388,14 @@ def _runtime_lite_register_ids(device: CanonicalDeviceIR) -> set[str]:
         for operation in operation_by_id.values()
         if operation.register_id is not None
     )
+    # APP_CPU control plane registers (added by
+    # ``expose-xtensa-dual-core-facts``).  These are not owned by a runtime
+    # peripheral but the secondary-core-release sequence step needs them in
+    # the typed ``RegisterId`` enum so consumers can resolve the address.
+    if device.app_cpu_control_plane is not None:
+        register_ids.add(device.app_cpu_control_plane.release_register)
+        if device.app_cpu_control_plane.release_register_secondary is not None:
+            register_ids.add(device.app_cpu_control_plane.release_register_secondary)
     return register_ids
 
 
@@ -768,6 +780,10 @@ def emit_runtime_lite_registers_header(
         peripheral.name: peripheral.base_address for peripheral in device.peripherals
     }
     register_enum_rows = [f"  {_enum_identifier(register.register_id)}," for register in registers]
+    # ``RegisterRole`` enum (added by ``expose-xtensa-dual-core-facts``) is
+    # emitted on every device so consumers can branch on role uniformly;
+    # devices with no role-tagged registers see only ``general``.
+    role_enum_rows = ["  general,", "  secondary_core_release,"]
     trait_lines: list[str] = [
         "template<RegisterId Id>",
         "struct RegisterTraits {",
@@ -776,6 +792,7 @@ def emit_runtime_lite_registers_header(
         "  static constexpr std::uint32_t kOffsetBytes = 0u;",
         "  static constexpr AccessKindId kAccessId = AccessKindId::none;",
         "  static constexpr int kSizeBits = -1;",
+        "  static constexpr RegisterRole kRole = RegisterRole::general;",
         "};",
         "",
     ]
@@ -784,6 +801,11 @@ def emit_runtime_lite_registers_header(
         register_id = _enum_identifier(register.register_id)
         base_address = f"0x{base_address_by_peripheral[register.peripheral]:08X}u"
         size_bits = -1 if register.size_bits is None else register.size_bits
+        role_value = (
+            "RegisterRole::secondary_core_release"
+            if register.role == "secondary_core_release"
+            else "RegisterRole::general"
+        )
         trait_name = f"RegisterTraits<RegisterId::{register_id}>"
         trait_lines.extend(
             [
@@ -800,6 +822,7 @@ def emit_runtime_lite_registers_header(
                 )
                 + ";",
                 f"  static constexpr int kSizeBits = {size_bits};",
+                f"  static constexpr RegisterRole kRole = {role_value};",
                 "};",
                 "",
             ]
@@ -809,6 +832,11 @@ def emit_runtime_lite_registers_header(
         "enum class RegisterId : std::uint16_t {",
         "  none,",
         *register_enum_rows,
+        "};",
+        "",
+        "enum class RegisterRole : std::uint16_t {",
+        "  none,",
+        *role_enum_rows,
         "};",
         "",
         *trait_lines,

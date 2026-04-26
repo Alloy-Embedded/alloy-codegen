@@ -448,3 +448,63 @@ def test_canonical_device_ir_serializes_memory_address_space_when_present() -> N
     payload = enriched.to_dict()
 
     assert payload["memories"][0]["address_space"] == "prog"
+
+
+def test_canonical_device_ir_default_multicore_topology_is_single_core() -> None:
+    """Added by expose-xtensa-dual-core-facts: default keeps existing
+    fixtures byte-stable since ``omit_if_default`` strips the field."""
+    from alloy_codegen.ir.model import AppCpuControlPlane
+
+    device = _base_device()
+    assert device.multicore_topology == "single_core"
+    assert device.app_cpu_control_plane is None
+
+    payload = device.to_dict()
+    assert "multicore_topology" not in payload
+    assert "app_cpu_control_plane" not in payload
+
+    acp = AppCpuControlPlane(
+        release_register="register_dport_appcpu_ctrl_b",
+        operation="set-bit-0",
+        start_vector_symbol="_vectors_cpu1",
+    )
+    populated = replace(
+        device,
+        multicore_topology="xtensa_asymmetric_dual_core",
+        app_cpu_control_plane=acp,
+    )
+    payload = populated.to_dict()
+    assert payload["multicore_topology"] == "xtensa_asymmetric_dual_core"
+    assert (
+        payload["app_cpu_control_plane"]["release_register"]
+        == "register_dport_appcpu_ctrl_b"
+    )
+    assert payload["app_cpu_control_plane"]["operation"] == "set-bit-0"
+    assert (
+        payload["app_cpu_control_plane"]["start_vector_symbol"] == "_vectors_cpu1"
+    )
+
+
+def test_register_descriptor_default_role_is_general_and_omitted() -> None:
+    """RegisterDescriptor.role default 'general' is dropped from JSON so
+    existing register-level fixtures stay byte-stable.  Flagged registers
+    surface ``role`` in the output."""
+    from alloy_codegen.ir.model import RegisterDescriptor
+    from alloy_codegen.serialization import to_primitive
+
+    provenance = Provenance(source_id="test", source_path="test", patch_ids=())
+    register = RegisterDescriptor(
+        register_id="register_dport_appcpu_ctrl_b",
+        peripheral="DPORT",
+        name="APPCPU_CTRL_B",
+        offset_bytes=0x30,
+        access="read-write",
+        size_bits=32,
+        provenance=provenance,
+    )
+    assert register.role == "general"
+    payload = to_primitive(register)
+    assert "role" not in payload
+
+    flagged = replace(register, role="secondary_core_release")
+    assert to_primitive(flagged)["role"] == "secondary_core_release"

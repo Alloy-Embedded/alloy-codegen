@@ -25,7 +25,16 @@ SYSTEM_SEQUENCES_HEADER = "system_sequences.hpp"
 
 @dataclass(frozen=True, slots=True)
 class RuntimeSystemSequenceStep:
-    """One typed bring-up sequence step."""
+    """One typed bring-up sequence step.
+
+    ``secondary_core_release_register_id`` and
+    ``secondary_core_release_register_secondary_id`` (added by
+    ``expose-xtensa-dual-core-facts``) carry the typed ``register_id`` of
+    the APP_CPU control register(s) for ``kind == "secondary-core-release"``
+    steps.  ``secondary_core_release_operation`` carries the bit-level
+    operation (``set-bit-0`` / ``clear-runstall-after-clkgate``).  All three
+    fields are ``None`` for every other step kind.
+    """
 
     sequence_id: str
     ordinal: int
@@ -33,6 +42,9 @@ class RuntimeSystemSequenceStep:
     startup_descriptor_id: str | None
     peripheral_name: str | None
     system_clock_profile_id: str | None
+    secondary_core_release_register_id: str | None = None
+    secondary_core_release_register_secondary_id: str | None = None
+    secondary_core_release_operation: str | None = None
 
 
 def runtime_system_sequence_steps(
@@ -86,6 +98,36 @@ def runtime_system_sequence_steps(
                 system_clock_profile_id=default_profile.profile_id,
             )
         )
+        ordinal += 1
+
+    # Secondary-core release (added by ``expose-xtensa-dual-core-facts``).
+    # Emitted only on asymmetric Xtensa devices.  The step references the
+    # APP_CPU control register(s) by typed ``register_id``; the bit-level
+    # operation is carried alongside so consumers can inline the writes
+    # without parsing the register name.
+    if (
+        device.multicore_topology == "xtensa_asymmetric_dual_core"
+        and device.app_cpu_control_plane is not None
+    ):
+        steps.append(
+            RuntimeSystemSequenceStep(
+                sequence_id="default_bringup",
+                ordinal=ordinal,
+                kind="secondary-core-release",
+                startup_descriptor_id=None,
+                peripheral_name=None,
+                system_clock_profile_id=None,
+                secondary_core_release_register_id=(
+                    device.app_cpu_control_plane.release_register
+                ),
+                secondary_core_release_register_secondary_id=(
+                    device.app_cpu_control_plane.release_register_secondary
+                ),
+                secondary_core_release_operation=(
+                    device.app_cpu_control_plane.operation
+                ),
+            )
+        )
 
     return tuple(steps)
 
@@ -126,6 +168,11 @@ def emit_runtime_system_sequences_header(
         "startup-descriptor": "startup_descriptor",
         "startup-control": "startup_control",
         "system-clock-profile": "system_clock_profile",
+        "secondary-core-release": "secondary_core_release",
+    }
+    secondary_release_operation_enum_map = {
+        "set-bit-0": "set_bit_0",
+        "clear-runstall-after-clkgate": "clear_runstall_after_clkgate",
     }
 
     def _startup_descriptor_ref(descriptor_id: str | None) -> str:
@@ -143,6 +190,19 @@ def emit_runtime_system_sequences_header(
             return "SystemClockProfileId::none"
         return f"SystemClockProfileId::{_enum_identifier(profile_id)}"
 
+    def _register_ref(register_id: str | None) -> str:
+        if register_id is None:
+            return "RegisterId::none"
+        return f"RegisterId::{_enum_identifier(register_id)}"
+
+    def _operation_ref(operation: str | None) -> str:
+        if operation is None:
+            return "SecondaryCoreReleaseOperationId::none"
+        ident = secondary_release_operation_enum_map.get(operation)
+        if ident is None:
+            return "SecondaryCoreReleaseOperationId::none"
+        return f"SecondaryCoreReleaseOperationId::{ident}"
+
     descriptor_count = len(startup_descriptors)
     startup_control_count = len(startup_controls)
     step_rows: list[str] = []
@@ -154,7 +214,10 @@ def emit_runtime_system_sequences_header(
             f"SystemSequenceStepKindId::{step_kind_enum_map[step.kind]}, "
             f"{_startup_descriptor_ref(step.startup_descriptor_id)}, "
             f"{_peripheral_ref(step.peripheral_name)}, "
-            f"{_profile_ref(step.system_clock_profile_id)}"
+            f"{_profile_ref(step.system_clock_profile_id)}, "
+            f"{_register_ref(step.secondary_core_release_register_id)}, "
+            f"{_register_ref(step.secondary_core_release_register_secondary_id)}, "
+            f"{_operation_ref(step.secondary_core_release_operation)}"
             "},"
         )
 
@@ -170,6 +233,11 @@ def emit_runtime_system_sequences_header(
             *_enum_rows(step_kind_enum_map, empty_identifier=None),
             "};",
             "",
+            "enum class SecondaryCoreReleaseOperationId : std::uint16_t {",
+            "  none,",
+            *_enum_rows(secondary_release_operation_enum_map, empty_identifier=None),
+            "};",
+            "",
             "struct SystemSequenceStepDescriptor {",
             "  SystemSequenceId sequence_id;",
             "  std::uint16_t ordinal;",
@@ -177,6 +245,9 @@ def emit_runtime_system_sequences_header(
             "  StartupDescriptorId startup_descriptor_id;",
             "  PeripheralId peripheral_id;",
             "  SystemClockProfileId system_clock_profile_id;",
+            "  RegisterId secondary_core_release_register_id;",
+            "  RegisterId secondary_core_release_register_secondary_id;",
+            "  SecondaryCoreReleaseOperationId secondary_core_release_operation_id;",
             "};",
             *_std_array_lines(
                 type_name="SystemSequenceStepDescriptor",
@@ -217,6 +288,7 @@ def emit_runtime_system_sequences_header(
             "#include <array>",
             "#include <cstdint>",
             '#include "peripheral_instances.hpp"',
+            '#include "registers.hpp"',
             '#include "startup.hpp"',
             '#include "system_clock.hpp"',
             "",

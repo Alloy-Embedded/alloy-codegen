@@ -17,6 +17,22 @@
       "value": "true"
     },
     {
+      "capability_id": "device:core-count",
+      "name": "core-count",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "1"
+    },
+    {
+      "capability_id": "device:multicore-topology",
+      "name": "multicore-topology",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "single-core"
+    },
+    {
       "capability_id": "runtime-support:dma",
       "name": "runtime-supported",
       "peripheral": null,

@@ -2,7 +2,7 @@
   "devices": [
     {
       "device": "mimxrt1064",
-      "fact_count": 95,
+      "fact_count": 97,
       "facts": [
         {
           "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/startup.hpp",
@@ -1757,6 +1757,62 @@
             "runtime-peripheral:CAN2",
             "runtime-peripheral:CAN3"
           ]
+        },
+        {
+          "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
+          "derivation_kind": "inferred",
+          "detail": {
+            "capability_id": "device:core-count",
+            "name": "core-count",
+            "peripheral": null,
+            "peripheral_class": "device",
+            "scope": "device",
+            "value": "1"
+          },
+          "fact_id": "capability:device:core-count",
+          "fact_kind": "capability",
+          "inference_rule": "runtime-capability-from-multicore-topology",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1064-bootstrap"
+            ],
+            "source_ids": [
+              "nxp-mcux-soc-svd"
+            ],
+            "source_paths": [
+              "MIMXRT1064/MIMXRT1064.xml"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",
+          "derivation_kind": "inferred",
+          "detail": {
+            "capability_id": "device:multicore-topology",
+            "name": "multicore-topology",
+            "peripheral": null,
+            "peripheral_class": "device",
+            "scope": "device",
+            "value": "single-core"
+          },
+          "fact_id": "capability:device:multicore-topology",
+          "fact_kind": "capability",
+          "inference_rule": "runtime-capability-from-multicore-topology",
+          "provenance": {
+            "patch_ids": [
+              "nxp-imxrt1060-family-bootstrap-v1",
+              "nxp-imxrt1060-mimxrt1064-bootstrap"
+            ],
+            "source_ids": [
+              "nxp-mcux-soc-svd"
+            ],
+            "source_paths": [
+              "MIMXRT1064/MIMXRT1064.xml"
+            ]
+          },
+          "supporting_fact_ids": []
         },
         {
           "artifact_path": "nxp/imxrt1060/generated/runtime/devices/mimxrt1064/capabilities.hpp",

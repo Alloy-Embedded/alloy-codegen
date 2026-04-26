@@ -32,6 +32,19 @@
         },
         {
           "capability_names": [
+            "core-count",
+            "multicore-topology"
+          ],
+          "class_capability_count": 0,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "device",
+          "peripheral_count": 0,
+          "peripherals": [],
+          "present": false
+        },
+        {
+          "capability_names": [
             "runtime-supported"
           ],
           "class_capability_count": 1,
@@ -158,6 +171,7 @@
   "driver_classes": [
     "adc",
     "dac",
+    "device",
     "dma",
     "dma-router",
     "gpio",

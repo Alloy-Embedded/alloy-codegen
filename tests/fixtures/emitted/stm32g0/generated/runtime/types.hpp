@@ -28,6 +28,7 @@ enum class PeripheralClassId : std::uint16_t {
   none,
   class_adc,
   class_dac,
+  class_device,
   class_dma,
   class_dma_router,
   class_flash,

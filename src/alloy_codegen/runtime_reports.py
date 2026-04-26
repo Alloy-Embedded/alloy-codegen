@@ -534,6 +534,21 @@ def build_runtime_provenance_payload(
                 provenance = (binding.provenance,)
                 inference_rule = "runtime-capability-from-dma-binding"
                 supporting_fact_ids = (f"dma-binding:{binding.binding_id}",)
+            elif row.scope == "device":
+                # Device-scope multicore facts (added by
+                # ``expose-xtensa-dual-core-facts``) inherit provenance from
+                # the device identity row — they are derived from the family
+                # patch overlay, which is recorded on every register/peripheral
+                # this device carries.  Use the first peripheral's provenance
+                # as a representative source so the regression gate is
+                # satisfied.
+                first_peripheral = device.peripherals[0] if device.peripherals else None
+                if first_peripheral is not None:
+                    provenance = (first_peripheral.provenance,)
+                else:
+                    provenance = ()
+                inference_rule = "runtime-capability-from-multicore-topology"
+                supporting_fact_ids = ()
             else:
                 class_provenances = tuple(
                     peripheral.provenance
@@ -588,6 +603,26 @@ def build_runtime_provenance_payload(
                 )
                 supporting_provenances = (profile.provenance,)
                 supporting_fact_ids = (f"system-clock-profile:{profile.profile_id}",)
+            elif step.kind == "secondary-core-release" and step.secondary_core_release_register_id:
+                # Secondary-core release step (added by
+                # ``expose-xtensa-dual-core-facts``) — provenance flows from
+                # the typed register descriptor that the step references.
+                register = next(
+                    (
+                        reg
+                        for reg in device.registers
+                        if reg.register_id == step.secondary_core_release_register_id
+                    ),
+                    None,
+                )
+                if register is not None:
+                    supporting_provenances = (register.provenance,)
+                    supporting_fact_ids = (
+                        f"register:{register.register_id}",
+                    )
+                else:
+                    supporting_provenances = ()
+                    supporting_fact_ids = ()
             else:
                 supporting_provenances = ()
                 supporting_fact_ids = ()

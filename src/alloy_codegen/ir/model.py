@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Literal
 
 from alloy_codegen.serialization import to_primitive
 
@@ -26,6 +27,46 @@ class DeviceIdentity:
     package: str
     core: str
     summary: str
+
+
+# Multi-core topology vocabulary (added by expose-xtensa-dual-core-facts).
+#
+# - ``single_core``: trivially one CPU (default).  Most ARM Cortex-M devices,
+#   ESP32-C3, AVR-Dx fall here.
+# - ``symmetric_dual_core``: two homogeneous cores sharing one bring-up
+#   sequence (RP2040-style).
+# - ``xtensa_asymmetric_dual_core``: PRO_CPU (core 0) brings up APP_CPU
+#   (core 1) by writing a dedicated control register.  ESP32 classic and
+#   ESP32-S3 fall here; the LX6/LX7 wiring differs.
+MulticoreTopology = Literal[
+    "single_core",
+    "symmetric_dual_core",
+    "xtensa_asymmetric_dual_core",
+]
+
+
+@dataclass(frozen=True, slots=True)
+class AppCpuControlPlane:
+    """APP_CPU release sequence for asymmetric Xtensa dual-core devices.
+
+    ``operation`` distinguishes the LX6 ``set bit 0 of DPORT.APPCPU_CTRL_B``
+    sequence from the LX7 ``enable CLKGATE then clear RUNSTALL`` sequence.
+    ``release_register`` carries the typed ``register_id`` of the primary
+    write target.  ``release_register_secondary`` is populated when the
+    sequence requires two writes (LX7).
+    """
+
+    release_register: str
+    operation: str  # "set-bit-0" | "clear-runstall-after-clkgate"
+    start_vector_symbol: str
+    release_register_secondary: str | None = None
+
+
+# Register-role tag (added by expose-xtensa-dual-core-facts).  ``general`` is
+# the default; ``secondary_core_release`` flags registers that participate in
+# the APP_CPU bring-up sequence so consumers can find them by enum equality
+# instead of name matching.
+RegisterRole = Literal["general", "secondary_core_release"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -145,7 +186,15 @@ class IpBlockDefinition:
 
 @dataclass(frozen=True, slots=True)
 class RegisterDescriptor:
-    """One normalized register descriptor owned by a peripheral instance."""
+    """One normalized register descriptor owned by a peripheral instance.
+
+    ``role`` (added by expose-xtensa-dual-core-facts) flags registers that
+    play a special part in device bring-up so consumers can find them by
+    typed enum equality instead of fragile name matching.  Defaults to
+    ``"general"`` for every register; overridden per-register in the
+    normalizer (e.g. ESP32 ``DPORT.APPCPU_CTRL_B`` →
+    ``"secondary_core_release"``).
+    """
 
     register_id: str
     peripheral: str
@@ -154,6 +203,9 @@ class RegisterDescriptor:
     access: str | None
     size_bits: int | None
     provenance: Provenance
+    role: RegisterRole = field(
+        default="general", metadata={"omit_if_default": True}
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -664,6 +716,18 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     adc_max_clock_hz: int = field(default=0, metadata={"omit_if_default": True})
+    # Multi-core topology + APP_CPU control plane (added by
+    # expose-xtensa-dual-core-facts).  ``multicore_topology`` defaults to
+    # ``"single_core"`` so existing single-core fixtures keep validating
+    # without changes.  ``app_cpu_control_plane`` is populated only for
+    # asymmetric Xtensa devices (ESP32 classic + ESP32-S3); single-core
+    # devices and symmetric dual-core devices (RP2040) carry ``None``.
+    multicore_topology: MulticoreTopology = field(
+        default="single_core", metadata={"omit_if_default": True}
+    )
+    app_cpu_control_plane: AppCpuControlPlane | None = field(
+        default=None, metadata={"omit_if_empty": True}
+    )
 
     def to_dict(self) -> dict[str, object]:
         return to_primitive(self)

@@ -10,6 +10,7 @@ from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
+    AppCpuControlPlane,
     CanonicalDeviceIR,
     ClockGateDescriptor,
     ClockNodeLite,
@@ -140,6 +141,33 @@ RAW_PERIPHERAL_ALIASES = {
 ANALOG_IP_NAMES = {"adc", "dac", "comp", "opamp"}
 DEBUG_SIGNAL_TOKENS = ("SWD", "JTAG", "TRACE", "TMS", "TCK", "TDI", "TDO", "SWCLK", "SWDIO")
 WAKEUP_SIGNAL_TOKENS = ("WKUP",)
+
+
+def _resolve_register_id(
+    registers: tuple[RegisterDescriptor, ...],
+    qualified_name: str,
+) -> str | None:
+    """Resolve a ``"PERIPHERAL.REGISTER"`` string to a typed ``register_id``.
+
+    Used by ``expose-xtensa-dual-core-facts`` to lift the APP_CPU control
+    register naming out of patch JSON and into the typed IR.  Returns the
+    canonical ``register_id`` (e.g. ``"register:dport:appcpu-ctrl-b"``) when
+    the named register is present in the device's filtered register set,
+    or ``None`` when it is not — callers raise a ``StageExecutionError`` so
+    a dropped register surfaces fast instead of silently disappearing.
+    """
+    if "." not in qualified_name:
+        return None
+    peripheral_part, register_part = qualified_name.split(".", 1)
+    peripheral_target = peripheral_part.strip()
+    register_target = register_part.strip()
+    for register in registers:
+        if (
+            register.peripheral == peripheral_target
+            and register.name == register_target
+        ):
+            return register.register_id
+    return None
 
 
 def _sanitize_token(value: str) -> str:
@@ -2090,9 +2118,73 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         except StageExecutionError:
             enriched_devices.append(device)
             continue
+        # Multicore topology + APP_CPU control plane facts (added by
+        # ``expose-xtensa-dual-core-facts``).  Lives on the family patch
+        # catalog because it is family-wide; defaults to ``single_core``
+        # when the family overlay has no block.
+        topology_value: str = device.multicore_topology
+        app_cpu_plane: AppCpuControlPlane | None = device.app_cpu_control_plane
+        registers = device.registers
+        try:
+            family_catalog = load_family_patch_catalog(
+                execution_context,
+                vendor=device.identity.vendor,
+                family=device.identity.family,
+            )
+        except StageExecutionError:
+            family_catalog = None
+        if family_catalog is not None and family_catalog.multicore_topology is not None:
+            mc_patch = family_catalog.multicore_topology
+            topology_map = {
+                "single-core": "single_core",
+                "symmetric-dual-core": "symmetric_dual_core",
+                "xtensa-asymmetric-dual-core": "xtensa_asymmetric_dual_core",
+            }
+            mapped = topology_map.get(mc_patch.topology)
+            if mapped is not None:
+                topology_value = mapped
+            if mc_patch.app_cpu_control_plane is not None:
+                primary_id = _resolve_register_id(
+                    registers, mc_patch.app_cpu_control_plane.register
+                )
+                if primary_id is None:
+                    raise StageExecutionError(
+                        "multicore_topology.app_cpu_control_plane.register "
+                        f"'{mc_patch.app_cpu_control_plane.register}' not "
+                        f"present in {device.identity.device} register set."
+                    )
+                secondary_id: str | None = None
+                if mc_patch.app_cpu_control_plane.register_secondary is not None:
+                    secondary_id = _resolve_register_id(
+                        registers, mc_patch.app_cpu_control_plane.register_secondary
+                    )
+                    if secondary_id is None:
+                        raise StageExecutionError(
+                            "multicore_topology.app_cpu_control_plane."
+                            "register_secondary "
+                            f"'{mc_patch.app_cpu_control_plane.register_secondary}'"
+                            f" not present in {device.identity.device} register set."
+                        )
+                app_cpu_plane = AppCpuControlPlane(
+                    release_register=primary_id,
+                    operation=mc_patch.app_cpu_control_plane.operation,
+                    start_vector_symbol=mc_patch.app_cpu_control_plane.start_vector_symbol,
+                    release_register_secondary=secondary_id,
+                )
+                # Tag the matching RegisterDescriptors with role.
+                role_targets = {primary_id}
+                if secondary_id is not None:
+                    role_targets.add(secondary_id)
+                registers = tuple(
+                    dataclasses.replace(reg, role="secondary_core_release")
+                    if reg.register_id in role_targets
+                    else reg
+                    for reg in registers
+                )
         enriched_devices.append(
             dataclasses.replace(
                 device,
+                registers=registers,
                 adc_internal_channels=patch.adc_internal_channels,
                 adc_calibration_data_points=patch.adc_calibration_data_points,
                 adc_calibration_context=patch.adc_calibration_context,
@@ -2101,6 +2193,8 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 adc_oversampling_options=patch.adc_oversampling_options,
                 adc_external_triggers=patch.adc_external_triggers,
                 adc_max_clock_hz=patch.adc_max_clock_hz,
+                multicore_topology=topology_value,
+                app_cpu_control_plane=app_cpu_plane,
             )
         )
     return StageResult(
