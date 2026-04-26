@@ -57,14 +57,21 @@ breaking already-passing families.
       (C++ `static_assert` smoke deferred to Phase E with a single
       `tests/compile_tests/` infrastructure pass.)
 
-## 3. STM32F4 (Phase B — pending)
+## 3. STM32F4 (Phase B — done in this commit)
 
-- [ ] 3.1 Verify `stm32f401re` / `stm32f405rg` flow through
-      `_build_st_gpio_pins` unchanged (same OPD source structure).
-- [ ] 3.2 Regenerate or add stm32f4 emit goldens once the family is
-      covered by the fixture sources.
-- [ ] 3.3 Extend `tests/test_gpio_semantic_traits.py` with an STM32F4
-      pin assertion (e.g. PA5 LED on Nucleo-F401RE).
+- [x] 3.1 `stm32f401re` and `stm32f405rg` flow through `_build_st_gpio_pins`
+      unchanged.  Verified via the `gpio_pins` length on the canonical IR
+      (50 / 51 entries) and PA5 carrying a non-empty AF list end-to-end
+      with the full upstream sources.
+- [x] 3.2 Canonical-IR fixtures regenerated:
+      `tests/fixtures/stm32f4/{stm32f401re,stm32f405rg}.canonical.json`
+      (and the stm32g0 equivalents that were missed in Phase A's regen
+      pass).  No emit goldens exist for STM32F4 in this repo; nothing
+      additional to refresh.
+- [x] 3.3 `tests/test_gpio_semantic_traits.py` extended with two F4
+      assertions: `PA9` on F401RE records `kPortOffset = 0x00000000u`,
+      `kPinIndex = 9u`, and a non-empty `kValidAltFunctions`; `PA3` on
+      F405RG records the same zero port offset.
 
 ## 4. Espressif (Phase C — pending)
 

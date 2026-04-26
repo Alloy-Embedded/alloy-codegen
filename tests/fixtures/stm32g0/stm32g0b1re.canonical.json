@@ -819,6 +819,116 @@
       "signal": "TX"
     }
   ],
+  "gpio_pins": [
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "PA0",
+      "pin_index": 0,
+      "port": "GPIOA",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "PA8",
+      "pin_index": 8,
+      "port": "GPIOA",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 3,
+          "peripheral": "FDCAN1",
+          "signal_name": "RX"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "PA11",
+      "pin_index": 11,
+      "port": "GPIOA",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 3,
+          "peripheral": "FDCAN1",
+          "signal_name": "TX"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "PA12",
+      "pin_index": 12,
+      "port": "GPIOA",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "PB8",
+      "pin_index": 8,
+      "port": "GPIOB",
+      "port_offset": 1024,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "PB9",
+      "pin_index": 9,
+      "port": "GPIOB",
+      "port_offset": 1024,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g0b1re-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G0B1R(B-C-E)Tx.xml"
+      }
+    }
+  ],
   "identity": {
     "core": "cortex-m0plus",
     "device": "stm32g0b1re",

@@ -75,3 +75,40 @@ def test_stm32g071rb_emits_at_least_one_present_specialization(
 ) -> None:
     content = _emit_gpio_hpp(execution_context, "stm32g071rb")
     assert content.count("kPresent = true;") >= 1
+
+
+# --- Phase B: STM32F4 ----------------------------------------------------
+
+
+def test_stm32f401re_emits_populated_gpio_specializations(
+    execution_context: ExecutionContext,
+) -> None:
+    """STM32F4 reuses the Phase A normalizer; verify it produces ``kPresent =
+    true`` specializations populated with real port-offset / pin-index data
+    for the same fixture-source slice that covers F401RE."""
+    content = _emit_gpio_hpp(execution_context, "stm32f401re")
+
+    primary = _struct_block(content, "GpioSemanticTraits")
+    assert "static constexpr std::uint32_t kPortOffset = 0u;" in primary
+    assert "static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};" in primary
+
+    # The test OPD slice exposes a small set of pins for STM32F4 (PA2/3/9/10).
+    # PA9 is the USART1_TX pin on Nucleo-F401RE; we use it as the smoke
+    # check since it is guaranteed to carry alt-function entries.
+    pa9 = _struct_block(content, "GpioSemanticTraits<PinId::PA9>")
+    assert "static constexpr bool kPresent = true;" in pa9
+    assert "static constexpr std::uint32_t kPortOffset = 0x00000000u;" in pa9  # GPIOA base
+    assert "static constexpr std::uint32_t kPinIndex = 9u;" in pa9
+    assert "kValidAltFunctions = {{" in pa9  # non-empty array literal
+
+
+def test_stm32f405rg_pa3_records_port_topology(
+    execution_context: ExecutionContext,
+) -> None:
+    """STM32F405 reuses the same emitter path; verify a port-A pin renders
+    with the expected zero offset and bit index."""
+    content = _emit_gpio_hpp(execution_context, "stm32f405rg")
+
+    pa3 = _struct_block(content, "GpioSemanticTraits<PinId::PA3>")
+    assert "static constexpr std::uint32_t kPortOffset = 0x00000000u;" in pa3
+    assert "static constexpr std::uint32_t kPinIndex = 3u;" in pa3
