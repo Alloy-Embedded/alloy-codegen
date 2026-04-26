@@ -735,6 +735,26 @@
       },
       "additionalProperties": false
     },
+    "i2c_peripheral_descriptor": {
+      "type": "object",
+      "required": ["peripheral_id", "base_address"],
+      "properties": {
+        "peripheral_id": { "type": "string" },
+        "base_address":  { "type": "integer", "minimum": 0 },
+        "clock_source":  { "type": ["string", "null"] },
+        "dma_req_tx":    { "type": ["integer", "null"] },
+        "dma_req_rx":    { "type": ["integer", "null"] },
+        "valid_sda_pins": { "type": "array", "items": { "type": "string" } },
+        "valid_scl_pins": { "type": "array", "items": { "type": "string" } },
+        "gpio_matrix_in_sda_signal":  { "type": ["integer", "null"] },
+        "gpio_matrix_in_scl_signal":  { "type": ["integer", "null"] },
+        "gpio_matrix_out_sda_signal": { "type": ["integer", "null"] },
+        "gpio_matrix_out_scl_signal": { "type": ["integer", "null"] },
+        "supports_fast_mode_plus":    { "type": "boolean" },
+        "portmux_alt": { "type": ["boolean", "null"] }
+      },
+      "additionalProperties": false
+    },
     "uart_peripheral_descriptor": {
       "type": "object",
       "required": [
@@ -994,6 +1014,10 @@
     "gpio_pins": {
       "type": "array",
       "items": { "$ref": "#/$defs/gpio_pin_descriptor" }
+    },
+    "i2c_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/i2c_peripheral_descriptor" }
     },
     "uart_peripherals": {
       "type": "array",

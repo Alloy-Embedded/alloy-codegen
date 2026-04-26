@@ -641,6 +641,7 @@ def test_usb_controller_descriptor_round_trips_through_canonical_ir():
     """``Device.usb_controllers`` survives ``to_dict`` round-trip with all
     optional fields populated (added by add-usb-semantic-traits)."""
     from dataclasses import replace
+
     from alloy_codegen.ir.model import UsbControllerDescriptor
 
     device = _base_device()

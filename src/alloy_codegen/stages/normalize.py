@@ -12,29 +12,20 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
     AdcUnitDescriptor,
-    Rp2040AdcPeripheralDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
-    Rp2040DmaControllerHwDescriptor,
-    Rp2040PwmSliceHwDescriptor,
-    Rp2040SpiPeripheralDescriptor,
-    Rp2040TimerControllerHwDescriptor,
-    Rp2040UartPeripheralDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
-    DmaChannelDescriptor,
-    LedcDescriptor,
-    SpiPeripheralDescriptor,
-    TimerUnitDescriptor,
-    UartPeripheralDescriptor,
-    UsbControllerDescriptor,
     ClockNodeLite,
     ClockSelectorLite,
     DeviceIdentity,
+    DmaChannelDescriptor,
     DmaControllerDescriptor,
     DmaRequestDefinition,
     GpioPinDescriptor,
+    I2cPeripheralDescriptor,
     InterruptDefinition,
+    LedcDescriptor,
     MemoryRegion,
     PackageDefinition,
     PackagePad,
@@ -48,7 +39,17 @@ from alloy_codegen.ir.model import (
     RegisterDescriptor,
     RegisterFieldDescriptor,
     ResetDescriptor,
+    Rp2040AdcPeripheralDescriptor,
+    Rp2040DmaControllerHwDescriptor,
+    Rp2040PwmSliceHwDescriptor,
+    Rp2040SpiPeripheralDescriptor,
+    Rp2040TimerControllerHwDescriptor,
+    Rp2040UartPeripheralDescriptor,
+    SpiPeripheralDescriptor,
     SystemClockProfile,
+    TimerUnitDescriptor,
+    UartPeripheralDescriptor,
+    UsbControllerDescriptor,
 )
 from alloy_codegen.patches import (
     ClockGatePatch,
@@ -1022,6 +1023,92 @@ def _register_fields_from_raw_peripherals(
     return tuple(fields)
 
 
+def _st_canonical_peripherals_for_helpers(
+    *,
+    raw_peripherals,
+    peripheral_patches,
+    ip_version_table,
+    provenance,
+) -> tuple[PeripheralInstance, ...]:
+    """Materialize the canonical PeripheralInstance tuple that the
+    family-derivation helpers (`_build_st_gpio_pins`,
+    `_build_st_i2c_peripherals`, …) need.  Avoids duplicating the
+    inline construction at every call site."""
+    return tuple(
+        _peripheral_to_ir(
+            peripheral_name=_canonical_peripheral_name(peripheral.name),
+            base_address=peripheral.base_address,
+            patch_metadata=peripheral_patches.get(_canonical_peripheral_name(peripheral.name)),
+            ip_version=None
+            if ip_version_table is None
+            else ip_version_table.get(_canonical_peripheral_name(peripheral.name)),
+            provenance=provenance,
+        )
+        for peripheral in raw_peripherals
+    )
+
+
+def _build_st_i2c_peripherals(
+    *,
+    pins: tuple[PinDefinition, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[I2cPeripheralDescriptor, ...]:
+    """Derive `I2cPeripheralDescriptor` entries for the STM32 family.
+
+    STM32 I2C controllers expose fixed base addresses (from SVD) and a
+    set of valid SDA/SCL pads sourced from the ST Open Pin Data AF
+    table.  Pads are collected by filtering `pins[*].signals` for entries
+    whose ``peripheral`` matches the controller name and whose ``signal``
+    is exactly ``SDA`` or ``SCL``.  Other I2C signals (``SMBA``) are
+    intentionally skipped — they are not part of the master I2C wire.
+
+    Both STM32G0 and STM32F4 support Fast Mode Plus (1 MHz); we set
+    ``supports_fast_mode_plus = True`` for both.  ``clock_source`` is
+    set to ``"pclk"`` (the post-reset default on G0/F4); a follow-up
+    can wire the runtime-selectable clock source per device.
+
+    DMA request line indices are out of scope for Phase A (set to
+    ``None``) — STM32G0's DMAMUX and STM32F4's DMA stream/channel
+    encoding land in a follow-up.
+    """
+    i2c_bases: dict[str, int] = {
+        peripheral.name: peripheral.base_address
+        for peripheral in peripherals
+        if peripheral.name.startswith("I2C")
+    }
+    if not i2c_bases:
+        return ()
+
+    # Build sda/scl pad sets per controller from pin signals.  Pad keys
+    # are the canonical pin names (PA10, PB7, …) so consumers can map
+    # back to a port + bit index unambiguously across STM32's per-port
+    # indexing.
+    sda_by_ctrl: dict[str, set[str]] = {ctrl: set() for ctrl in i2c_bases}
+    scl_by_ctrl: dict[str, set[str]] = {ctrl: set() for ctrl in i2c_bases}
+    for pin in pins:
+        for signal in pin.signals:
+            if signal.peripheral not in i2c_bases:
+                continue
+            if signal.signal == "SDA":
+                sda_by_ctrl[signal.peripheral].add(pin.name)
+            elif signal.signal == "SCL":
+                scl_by_ctrl[signal.peripheral].add(pin.name)
+
+    descriptors: list[I2cPeripheralDescriptor] = []
+    for ctrl in sorted(i2c_bases):
+        descriptors.append(
+            I2cPeripheralDescriptor(
+                peripheral_id=ctrl,
+                base_address=i2c_bases[ctrl],
+                clock_source="pclk",
+                valid_sda_pins=tuple(sorted(sda_by_ctrl[ctrl])),
+                valid_scl_pins=tuple(sorted(scl_by_ctrl[ctrl])),
+                supports_fast_mode_plus=True,
+            )
+        )
+    return tuple(descriptors)
+
+
 def _build_st_gpio_pins(
     *,
     pins: tuple[PinDefinition, ...],
@@ -1549,21 +1636,22 @@ def build_canonical_ir(
         ),
         gpio_pins=_build_st_gpio_pins(
             pins=pins,
-            peripherals=tuple(
-                _peripheral_to_ir(
-                    peripheral_name=_canonical_peripheral_name(peripheral.name),
-                    base_address=peripheral.base_address,
-                    patch_metadata=peripheral_patches.get(
-                        _canonical_peripheral_name(peripheral.name)
-                    ),
-                    ip_version=None
-                    if ip_version_table is None
-                    else ip_version_table.get(_canonical_peripheral_name(peripheral.name)),
-                    provenance=svd_provenance,
-                )
-                for peripheral in raw_peripherals
+            peripherals=_st_canonical_peripherals_for_helpers(
+                raw_peripherals=raw_peripherals,
+                peripheral_patches=peripheral_patches,
+                ip_version_table=ip_version_table,
+                provenance=svd_provenance,
             ),
             provenance=pin_provenance,
+        ),
+        i2c_peripherals=_build_st_i2c_peripherals(
+            pins=pins,
+            peripherals=_st_canonical_peripherals_for_helpers(
+                raw_peripherals=raw_peripherals,
+                peripheral_patches=peripheral_patches,
+                ip_version_table=ip_version_table,
+                provenance=svd_provenance,
+            ),
         ),
     )
 

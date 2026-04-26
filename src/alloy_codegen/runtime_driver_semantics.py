@@ -10428,6 +10428,12 @@ def _emit_peripheral_semantics_header(
             "",
             "#include <array>",
             "#include <cstdint>",
+            # ``<string_view>`` is required by the per-controller I2C trait
+            # block contributed by ``fill-i2c-semantic-gaps`` (string-keyed
+            # ``kValidSdaPins`` / ``kValidSclPins`` arrays).  Including it
+            # uniformly across every driver-semantics header keeps the
+            # include set small and stable.
+            "#include <string_view>",
             '#include "common.hpp"',
             # ``../pins.hpp`` provides the typed ``PinId`` enum referenced by
             # USB ``kDmPin`` / ``kDpPin`` traits (added by
@@ -12215,7 +12221,7 @@ def _uart_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     for ctrl in device.rp2040_uart_peripherals:
         def _arr(pads: tuple[int, ...]) -> str:
             if not pads:
-                return f"  static constexpr std::array<std::uint8_t, 0> kPads = {{}};"
+                return "  static constexpr std::array<std::uint8_t, 0> kPads = {};"
             return ", ".join(f"{p}u" for p in pads)
         lines.extend(
             [
@@ -12378,6 +12384,87 @@ def _pwm_slice_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
                 f"  static constexpr std::uint8_t kCounterBits = {ctrl.counter_bits}u;",
                 f"  static constexpr std::uint16_t kClockDivMinQ4 = {ctrl.clock_div_min_q4}u;",
                 f"  static constexpr std::uint16_t kClockDivMaxQ4 = {ctrl.clock_div_max_q4}u;",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """fill-i2c-semantic-gaps: per-controller I2C / TWI trait struct.
+
+    Emits a `RuntimeI2cCtrlId` enum + `I2cPeripheralTraits<RuntimeI2cCtrlId>`
+    template populated from `device.i2c_peripherals`.  Pad lists are
+    string-keyed (canonical pin names like ``"PA10"``, ``"GP12"``);
+    we serialize them as `std::array<std::string_view, N>` so consumer
+    concept checks can string-compare without runtime parsing.
+    """
+    lines = [
+        "// fill-i2c-semantic-gaps: per-controller I2C / TWI HW facts.",
+        "enum class RuntimeI2cCtrlId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.i2c_peripherals, start=1):
+        lines.append(f"  {ctrl.peripheral_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeI2cCtrlId Id>",
+            "struct I2cPeripheralTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::string_view kClockSource = std::string_view{};",
+            "  static constexpr std::uint8_t kDmaReqTx = 0u;",
+            "  static constexpr std::uint8_t kDmaReqRx = 0u;",
+            "  static constexpr std::array<std::string_view, 0> kValidSdaPins = {};",
+            "  static constexpr std::array<std::string_view, 0> kValidSclPins = {};",
+            "  static constexpr std::uint16_t kInSdaSignal = 0xFFFFu;",
+            "  static constexpr std::uint16_t kInSclSignal = 0xFFFFu;",
+            "  static constexpr std::uint16_t kOutSdaSignal = 0xFFFFu;",
+            "  static constexpr std::uint16_t kOutSclSignal = 0xFFFFu;",
+            "  static constexpr bool kSupportsFastModePlus = false;",
+            "  static constexpr bool kPortmuxAlt = false;",
+            "};",
+            "",
+        ]
+    )
+
+    def _pad_array(name: str, pads: tuple[str, ...]) -> str:
+        if not pads:
+            return f"  static constexpr std::array<std::string_view, 0> {name} = {{}};"
+        items = ", ".join(f'std::string_view{{"{p}"}}' for p in pads)
+        return (
+            f"  static constexpr std::array<std::string_view, {len(pads)}> "
+            f"{name} = {{{{{items}}}}};"
+        )
+
+    def _opt_signal(value: int | None) -> str:
+        return "0xFFFFu" if value is None else f"{value}u"
+
+    for ctrl in device.i2c_peripherals:
+        clock_token = ctrl.clock_source or ""
+        lines.extend(
+            [
+                "template<>",
+                f"struct I2cPeripheralTraits<RuntimeI2cCtrlId::{ctrl.peripheral_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                (
+                    f'  static constexpr std::string_view kClockSource = '
+                    f'std::string_view{{"{clock_token}"}};'
+                ),
+                f"  static constexpr std::uint8_t kDmaReqTx = {ctrl.dma_req_tx or 0}u;",
+                f"  static constexpr std::uint8_t kDmaReqRx = {ctrl.dma_req_rx or 0}u;",
+                _pad_array("kValidSdaPins", ctrl.valid_sda_pins),
+                _pad_array("kValidSclPins", ctrl.valid_scl_pins),
+                f"  static constexpr std::uint16_t kInSdaSignal = {_opt_signal(ctrl.gpio_matrix_in_sda_signal)};",
+                f"  static constexpr std::uint16_t kInSclSignal = {_opt_signal(ctrl.gpio_matrix_in_scl_signal)};",
+                f"  static constexpr std::uint16_t kOutSdaSignal = {_opt_signal(ctrl.gpio_matrix_out_sda_signal)};",
+                f"  static constexpr std::uint16_t kOutSclSignal = {_opt_signal(ctrl.gpio_matrix_out_scl_signal)};",
+                f"  static constexpr bool kSupportsFastModePlus = {'true' if ctrl.supports_fast_mode_plus else 'false'};",
+                f"  static constexpr bool kPortmuxAlt = {'true' if ctrl.portmux_alt else 'false'};",
                 "};",
                 "",
             ]
@@ -12684,6 +12771,7 @@ def emit_runtime_driver_i2c_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_i2c_specialization_builder(context),
+        extra_body_lines=_i2c_peripheral_traits_block(device),
     )
 
 

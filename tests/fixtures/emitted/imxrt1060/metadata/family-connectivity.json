@@ -12,10 +12,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "shared_group": null
     },
@@ -29,10 +29,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "shared_group": null
     },
@@ -46,10 +46,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "shared_group": null
     },
@@ -63,10 +63,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "shared_group": null
     }
@@ -78,10 +78,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-sdk",
-        "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+        "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
       }
     }
   ],
@@ -96,10 +96,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -114,10 +114,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -132,10 +132,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -150,10 +150,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -168,10 +168,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -186,10 +186,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -204,10 +204,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -222,10 +222,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -240,10 +240,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -258,10 +258,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -276,10 +276,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -294,10 +294,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": "CCM_CCGR1.CG13",
       "rcc_reset_signal": null
@@ -312,10 +312,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": "CCM_CCGR3.CG13",
       "rcc_reset_signal": null
@@ -330,10 +330,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -348,10 +348,28 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+      },
+      "rcc_enable_signal": null,
+      "rcc_reset_signal": null
+    },
+    {
+      "backend_schema_id": "alloy.iomuxc.nxp-iomuxc",
+      "base_address": 1075806208,
+      "instance": 0,
+      "ip_name": "iomuxc",
+      "ip_version": null,
+      "name": "IOMUXC",
+      "provenance": {
+        "patch_ids": [
+          "nxp-imxrt1060-family-bootstrap-v1",
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
+        ],
+        "source_id": "nxp-mcux-soc-svd",
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -366,10 +384,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": "CCM_CCGR2.CG2",
       "rcc_reset_signal": null
@@ -384,10 +402,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": "CCM_CCGR1.CG0",
       "rcc_reset_signal": null
@@ -402,10 +420,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": "CCM_CCGR5.CG12",
       "rcc_reset_signal": null
@@ -420,10 +438,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": "CCM_CCGR0.CG6",
       "rcc_reset_signal": null
@@ -438,10 +456,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -456,10 +474,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -474,10 +492,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -492,10 +510,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -510,10 +528,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -528,10 +546,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -546,10 +564,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -564,10 +582,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -582,10 +600,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1064-bootstrap"
+          "nxp-imxrt1060-mimxrt1062-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1064/MIMXRT1064.xml"
+        "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
       "rcc_enable_signal": null,
       "rcc_reset_signal": null
@@ -594,6 +612,7 @@
   "pins": [
     {
       "devices": [
+        "mimxrt1062",
         "mimxrt1064"
       ],
       "name": "GPIO_AD_B0_00",
@@ -610,10 +629,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "IO00"
         },
@@ -624,10 +643,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "SCL"
         },
@@ -638,10 +657,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "TX"
         }
@@ -649,6 +668,7 @@
     },
     {
       "devices": [
+        "mimxrt1062",
         "mimxrt1064"
       ],
       "name": "GPIO_AD_B0_01",
@@ -665,10 +685,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "IO01"
         },
@@ -679,10 +699,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "SDA"
         },
@@ -693,10 +713,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "RX"
         }
@@ -704,6 +724,7 @@
     },
     {
       "devices": [
+        "mimxrt1062",
         "mimxrt1064"
       ],
       "name": "GPIO_EMC_00",
@@ -720,10 +741,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "IO00"
         },
@@ -734,10 +755,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "SCK"
         }
@@ -745,6 +766,7 @@
     },
     {
       "devices": [
+        "mimxrt1062",
         "mimxrt1064"
       ],
       "name": "GPIO_EMC_01",
@@ -761,10 +783,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "IO01"
         },
@@ -775,10 +797,10 @@
           "provenance": {
             "patch_ids": [
               "nxp-imxrt1060-family-bootstrap-v1",
-              "nxp-imxrt1060-mimxrt1064-bootstrap"
+              "nxp-imxrt1060-mimxrt1062-bootstrap"
             ],
             "source_id": "nxp-mcux-sdk",
-            "source_path": "devices/MIMXRT1064/drivers/fsl_iomuxc.h"
+            "source_path": "devices/MIMXRT1062/drivers/fsl_iomuxc.h"
           },
           "signal": "PCS0"
         }

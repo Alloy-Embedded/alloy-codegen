@@ -231,21 +231,21 @@ class FamilyPatchCatalog:
     # populate the block with the APP_CPU control register name in
     # ``"PERIPHERAL.REGISTER"`` form — the normalizer resolves it to a typed
     # ``register_id`` after register filtering.
-    multicore_topology: "MulticoreTopologyPatch | None" = None
+    multicore_topology: MulticoreTopologyPatch | None = None
     # USB controller hardware-feature blocks (added by
     # ``add-usb-semantic-traits``).  Empty tuple for families without USB.
     # The normalizer mirrors each entry into a ``UsbControllerDescriptor``
     # on the device IR.
-    usb_controllers: tuple["UsbControllerPatch", ...] = ()
+    usb_controllers: tuple[UsbControllerPatch, ...] = ()
     # Hardware-feature blocks added by ``fill-espressif-semantic-gaps``.
     # Empty for families without explicit overlay; populated for ESP32 /
     # ESP32-C3 / ESP32-S3.
-    uart_peripherals: tuple["UartPeripheralPatch", ...] = ()
-    spi_peripherals: tuple["SpiPeripheralPatch", ...] = ()
-    adc_units: tuple["AdcUnitPatch", ...] = ()
-    timer_units: tuple["TimerUnitPatch", ...] = ()
-    ledc: "LedcPatch | None" = None
-    dma_channels: tuple["DmaChannelPatch", ...] = ()
+    uart_peripherals: tuple[UartPeripheralPatch, ...] = ()
+    spi_peripherals: tuple[SpiPeripheralPatch, ...] = ()
+    adc_units: tuple[AdcUnitPatch, ...] = ()
+    timer_units: tuple[TimerUnitPatch, ...] = ()
+    ledc: LedcPatch | None = None
+    dma_channels: tuple[DmaChannelPatch, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1018,7 +1018,7 @@ def _flag(payload: dict, key: str) -> bool:
     return bool(payload.get(key, False))
 
 
-def _parse_uart_peripheral_patch(payload: object) -> "UartPeripheralPatch | None":
+def _parse_uart_peripheral_patch(payload: object) -> UartPeripheralPatch | None:
     if not isinstance(payload, dict):
         return None
     pid = payload.get("peripheral_id")
@@ -1036,7 +1036,7 @@ def _parse_uart_peripheral_patch(payload: object) -> "UartPeripheralPatch | None
     )
 
 
-def _parse_spi_peripheral_patch(payload: object) -> "SpiPeripheralPatch | None":
+def _parse_spi_peripheral_patch(payload: object) -> SpiPeripheralPatch | None:
     if not isinstance(payload, dict):
         return None
     pid = payload.get("peripheral_id")
@@ -1065,7 +1065,7 @@ def _parse_spi_peripheral_patch(payload: object) -> "SpiPeripheralPatch | None":
     )
 
 
-def _parse_adc_unit_patch(payload: object) -> "AdcUnitPatch | None":
+def _parse_adc_unit_patch(payload: object) -> AdcUnitPatch | None:
     if not isinstance(payload, dict):
         return None
     uid = payload.get("unit_id")
@@ -1084,7 +1084,7 @@ def _parse_adc_unit_patch(payload: object) -> "AdcUnitPatch | None":
     )
 
 
-def _parse_timer_unit_patch(payload: object) -> "TimerUnitPatch | None":
+def _parse_timer_unit_patch(payload: object) -> TimerUnitPatch | None:
     if not isinstance(payload, dict):
         return None
     tid = payload.get("timer_id")
@@ -1110,7 +1110,7 @@ def _parse_timer_unit_patch(payload: object) -> "TimerUnitPatch | None":
     )
 
 
-def _parse_ledc_patch(payload: object) -> "LedcPatch | None":
+def _parse_ledc_patch(payload: object) -> LedcPatch | None:
     if not isinstance(payload, dict):
         return None
     base = payload.get("base_address")
@@ -1131,7 +1131,7 @@ def _parse_ledc_patch(payload: object) -> "LedcPatch | None":
     )
 
 
-def _parse_dma_channel_patch(payload: object) -> "DmaChannelPatch | None":
+def _parse_dma_channel_patch(payload: object) -> DmaChannelPatch | None:
     if not isinstance(payload, dict):
         return None
     cid = payload.get("channel_id")
@@ -1160,7 +1160,7 @@ def _parse_dma_channel_patch(payload: object) -> "DmaChannelPatch | None":
     )
 
 
-def _parse_usb_controller_patch(payload: object) -> "UsbControllerPatch | None":
+def _parse_usb_controller_patch(payload: object) -> UsbControllerPatch | None:
     """Parse one ``family.json::usb_controllers[*]`` entry."""
     if not isinstance(payload, dict):
         return None
