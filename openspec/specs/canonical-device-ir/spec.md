@@ -183,8 +183,12 @@ between internal programmable flash and read-execute memory accessed via an XIP 
 ### Requirement: IR SHALL capture PIO as a present peripheral with an explicit stub schema
 
 The canonical IR SHALL capture Programmable I/O (PIO) peripherals as present entries
-with a named stub schema that explicitly signals the semantics are not yet fully modeled,
-rather than omitting them entirely or mapping them to an unrelated existing schema.
+with a named stub schema that explicitly signals the program-execution semantics
+(state-machine instruction format, assembled program payloads) are not yet fully
+modeled, while the topology of each block is structured via `PioDescriptor`
+(see "IR SHALL model PIO blocks with a structured PioDescriptor"). The stub
+schema designation applies only to program-execution semantics; topology is
+no longer stubbed.
 
 #### Scenario: PIO0 and PIO1 are present in RP2040 canonical IR
 
@@ -198,7 +202,7 @@ rather than omitting them entirely or mapping them to an unrelated existing sche
 - **WHEN** the RP2040 vendor-admission gates are evaluated
 - **THEN** the presence of PIO with a stub schema does not cause any CI gate to fail
 - **AND** the stub schema is explicitly recognized as admission-valid until a full
-  PIO semantic driver spec is approved
+  PIO program-execution spec is approved
 
 ### Requirement: IR SHALL model dual-core topology with single-core-perspective annotation
 
@@ -590,4 +594,79 @@ without USB hardware so existing fixtures stay byte-stable.
   ESP32 classic, AVR-DA, ESP32-C3)
 - **THEN** `Device.usb_controllers` is the empty tuple
 - **AND** the field is omitted from the serialized canonical IR JSON
+
+### Requirement: IR SHALL model PIO blocks with a structured PioDescriptor
+
+The canonical device IR SHALL represent each Programmable I/O block as a
+`PioDescriptor` carrying the compile-time facts that downstream emitters need to
+populate driver-semantic traits (state-machine count, instruction memory depth,
+TX/RX FIFO depth, GPIO range, base address, and TX/RX DMA DREQ bases).
+
+`PioDescriptor` SHALL be carried on `CanonicalDeviceIR` as `pio_blocks: list[PioDescriptor]`,
+defaulting to an empty list for devices without PIO hardware.
+
+#### Scenario: RP2040 IR exposes two structured PIO descriptors
+
+- **WHEN** the RP2040 device is normalized
+- **THEN** `device.pio_blocks` contains two entries with `pio_id` `Pio0` and `Pio1`
+- **AND** each entry records `state_machine_count = 4`, `instruction_memory_depth = 32`,
+  `tx_fifo_depth = 4`, `rx_fifo_depth = 4`, `gpio_base = 0`, `gpio_count = 30`
+- **AND** `Pio0.base_address == 0x50200000` and `Pio1.base_address == 0x50300000`
+- **AND** `Pio0.dreq_tx_base == 0`, `Pio0.dreq_rx_base == 4`,
+  `Pio1.dreq_tx_base == 8`, `Pio1.dreq_rx_base == 12`
+
+#### Scenario: Devices without PIO leave pio_blocks empty
+
+- **WHEN** any non-RP2040 admitted device is normalized
+- **THEN** `device.pio_blocks` is an empty list
+- **AND** the canonical IR JSON serialization omits or emits an empty `pio_blocks` array
+
+#### Scenario: PioDescriptor data is patch-sourced and provenance-tagged
+
+- **WHEN** the RP2040 normalizer assembles `pio_blocks`
+- **THEN** the values are loaded from `patches/raspberrypi/rp2040/pio.json`
+- **AND** each `PioDescriptor` carries provenance referencing that patch file
+
+### Requirement: IR SHALL model GPIO pin alternate-function topology with structured descriptors
+
+The canonical IR SHALL represent the alternate-function (AF) topology of every
+GPIO-capable pin on a device using two new structured types:
+
+- `AltFunctionDescriptor(af_number: int, signal_name: str, peripheral: str)`
+  records one entry of the per-pin AF table.
+- `GpioPinDescriptor(pin_id, port, pin_index, port_offset, alt_functions,
+  is_input_only, provenance)` records the compile-time facts that downstream
+  emitters need to populate `GpioSemanticTraits<PinId>` AF specializations
+  (port enum / port-base offset, bit-position within the port, the sorted
+  list of valid AF numbers, and an input-only flag for pads such as
+  Espressif GPIO34–39).
+
+`GpioPinDescriptor` SHALL be carried on `CanonicalDeviceIR` as
+`gpio_pins: tuple[GpioPinDescriptor, ...]`, defaulting to an empty tuple for
+devices whose normalizers have not yet been wired to populate it.
+
+#### Scenario: STM32G071RB IR exposes GPIO pin topology
+
+- **WHEN** the STM32G071RB device is normalized
+- **THEN** `device.gpio_pins` is non-empty
+- **AND** every entry has a non-null `port` (e.g. `"GPIOA"`) and a
+  `pin_index` in `[0, 15]`
+- **AND** entries with at least one alternate-function signal carry a
+  non-empty `alt_functions` tuple sorted by `(af_number, signal_name)`
+- **AND** every `AltFunctionDescriptor` references a peripheral that
+  appears in `device.peripherals`
+
+#### Scenario: Devices without GPIO topology leave gpio_pins empty
+
+- **WHEN** any device whose normalizer has not yet been wired to populate
+  GPIO topology is normalized
+- **THEN** `device.gpio_pins` is an empty tuple
+- **AND** the canonical IR JSON serialization omits the `gpio_pins` array
+
+#### Scenario: GpioPinDescriptor data is provenance-tagged
+
+- **WHEN** `device.gpio_pins` is populated from a vendor source
+- **THEN** each `GpioPinDescriptor` carries provenance referencing the
+  upstream artifact (e.g. ST Open Pin Data XML, Espressif gpio_sig_map.h,
+  AVR ATDF) plus any patch ids that contributed to the entry
 

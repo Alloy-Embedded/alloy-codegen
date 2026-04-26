@@ -71,11 +71,10 @@
 
 ## 6. Documentation
 
-- [ ] 6.1 Update `docs/COVERAGE_MATRIX.md`: **deferred** — that document does
-      not exist in the repository. Per-family coverage is tracked in the
-      auto-generated `<vendor>/<family>/reports/coverage.json` artifact and
-      surfaced through the published `alloy-devices` README. Adding a
-      hand-curated matrix is its own follow-up proposal.
+- [x] 6.1 `docs/COVERAGE_MATRIX.md` created with a `pio_traits` column —
+      RP2040 marked ✓, every other admitted family N/A.  The doc also
+      cross-references the live `<vendor>/<family>/reports/coverage.json`
+      artifact and the openspec proposals that introduced each column.
 - [x] 6.2 Inline docstring in `emit_runtime_driver_pio_semantics_header`
       documents that `PioSemanticTraits<PioId::PioN>::kDreqTx` is the SM0
       base; per-SM consumers can either index into

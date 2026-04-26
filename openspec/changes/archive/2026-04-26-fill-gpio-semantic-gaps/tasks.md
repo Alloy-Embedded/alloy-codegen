@@ -136,8 +136,9 @@ breaking already-passing families.
       * `test_rp2040_pio_traits.cpp` — fulfills the previously-deferred
         `define-pio-semantic-struct` task 5.2 (PioId, base addresses,
         per-SM DREQ derivation).
-- [ ] 6.3 `docs/COVERAGE_MATRIX.md`: still **deferred** for the same
-      reason called out on `define-pio-semantic-struct`'s 6.1 — that
-      document does not exist; per-family coverage is tracked in the
-      auto-generated `<vendor>/<family>/reports/coverage.json`
-      artifact.  Adding a hand-curated matrix is its own follow-up.
+- [x] 6.3 `docs/COVERAGE_MATRIX.md` now exists with a `gpio_traits`
+      column showing the AF source per family (STM32 OPD, AVR PORTMUX,
+      Espressif IO matrix, NXP register-level + AF zero-defaults) and
+      flags RP2040 as ⏳ pending behind `complete-rp2040-semantics`.
+      Live per-family coverage stays in
+      `<vendor>/<family>/reports/coverage.json`.
