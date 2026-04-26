@@ -1259,6 +1259,19 @@ class CanonicalDeviceIR:
     spi_mode_flags: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
+    # Timer Tier 2/3/4 (add-timer-tier-2-3-4-data).
+    timer_prescaler_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_trigger_sources: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_master_outputs: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
     peripheral_max_clock_hz: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}

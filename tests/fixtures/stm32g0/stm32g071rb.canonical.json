@@ -4778,6 +4778,116 @@
       "supports_nss_hw_management": true
     }
   ],
+  "timer_prescaler_options": [
+    {
+      "peripheral": "TIM1",
+      "max_prescaler": 65535,
+      "max_auto_reload": 65535
+    },
+    {
+      "peripheral": "TIM14",
+      "max_prescaler": 65535,
+      "max_auto_reload": 65535
+    }
+  ],
+  "timer_trigger_sources": [
+    {
+      "peripheral": "TIM1",
+      "source": "itr0",
+      "field_value": 0
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "itr1",
+      "field_value": 1
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "itr2",
+      "field_value": 2
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "itr3",
+      "field_value": 3
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "ti1f_ed",
+      "field_value": 4
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "ti1fp1",
+      "field_value": 5
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "ti2fp2",
+      "field_value": 6
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "etrf",
+      "field_value": 7
+    }
+  ],
+  "timer_master_outputs": [
+    {
+      "peripheral": "TIM1",
+      "source": "reset",
+      "field_value": 0
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "enable",
+      "field_value": 1
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "update",
+      "field_value": 2
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "compare_pulse",
+      "field_value": 3
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc1ref",
+      "field_value": 4
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc2ref",
+      "field_value": 5
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc3ref",
+      "field_value": 6
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc4ref",
+      "field_value": 7
+    }
+  ],
+  "timer_mode_flags": [
+    {
+      "peripheral": "TIM1",
+      "supports_dma_burst": true,
+      "supports_repetition_counter": true,
+      "supports_xor_input": true
+    },
+    {
+      "peripheral": "TIM14",
+      "supports_dma_burst": false,
+      "supports_repetition_counter": false,
+      "supports_xor_input": false
+    }
+  ],
   "peripheral_max_clock_hz": [
     {
       "peripheral": "USART1",

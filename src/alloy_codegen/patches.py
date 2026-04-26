@@ -621,6 +621,43 @@ class SpiModeFlagsPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class TimerPrescalerOptionPatch:
+    """Per-timer prescaler limits (added by ``add-timer-tier-2-3-4-data``)."""
+
+    peripheral: str
+    max_prescaler: int  # 0xFFFF for 16-bit PSC, 0xFFFFFFFF for 32-bit
+    max_auto_reload: int = 0  # 0 = same as max_prescaler
+
+
+@dataclass(frozen=True, slots=True)
+class TimerTriggerSourcePatch:
+    """One timer trigger-source row (ITRx / ETR / TI1F / ...)."""
+
+    peripheral: str
+    source: str  # "itr0" | "itr1" | ... | "etr" | "ti1f_ed" | "ti1fp1" | "ti2fp2"
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class TimerMasterOutputPatch:
+    """One timer master-output (TRGO) source binding."""
+
+    peripheral: str
+    source: str  # "reset" | "enable" | "update" | "compare_pulse" | "oc1ref".."oc4ref"
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class TimerModeFlagsPatch:
+    """Per-timer capability flags."""
+
+    peripheral: str
+    supports_dma_burst: bool = False
+    supports_repetition_counter: bool = False
+    supports_xor_input: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class DevicePatch:
     """Patch document for one bootstrap device."""
 
@@ -675,6 +712,11 @@ class DevicePatch:
     spi_mode_flags: tuple[SpiModeFlagsPatch, ...] = ()
     # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
     peripheral_max_clock_hz: tuple[PeripheralMaxClockPatch, ...] = ()
+    # add-timer-tier-2-3-4-data
+    timer_prescaler_options: tuple[TimerPrescalerOptionPatch, ...] = ()
+    timer_trigger_sources: tuple[TimerTriggerSourcePatch, ...] = ()
+    timer_master_outputs: tuple[TimerMasterOutputPatch, ...] = ()
+    timer_mode_flags: tuple[TimerModeFlagsPatch, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -2106,6 +2148,22 @@ def load_device_patch(
             _parse_peripheral_max_clock_patch(item)
             for item in payload.get("peripheral_max_clock_hz", ())
         ),
+        timer_prescaler_options=tuple(
+            _parse_timer_prescaler_option_patch(item)
+            for item in payload.get("timer_prescaler_options", ())
+        ),
+        timer_trigger_sources=tuple(
+            _parse_timer_trigger_source_patch(item)
+            for item in payload.get("timer_trigger_sources", ())
+        ),
+        timer_master_outputs=tuple(
+            _parse_timer_master_output_patch(item)
+            for item in payload.get("timer_master_outputs", ())
+        ),
+        timer_mode_flags=tuple(
+            _parse_timer_mode_flags_patch(item)
+            for item in payload.get("timer_mode_flags", ())
+        ),
     )
 
 
@@ -2114,7 +2172,40 @@ def _parse_peripheral_max_clock_patch(
 ) -> PeripheralMaxClockPatch:
     return PeripheralMaxClockPatch(
         peripheral=str(payload["peripheral"]),
-        max_clock_hz=int(payload["max_clock_hz"]),
+        max_clock_hz=int(payload["max_clock_hz"]),  # type: ignore[arg-type]
+    )
+
+
+def _parse_timer_prescaler_option_patch(payload: dict[str, object]) -> TimerPrescalerOptionPatch:
+    return TimerPrescalerOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        max_prescaler=int(payload["max_prescaler"]),  # type: ignore[arg-type]
+        max_auto_reload=int(payload.get("max_auto_reload", 0)),  # type: ignore[arg-type]
+    )
+
+
+def _parse_timer_trigger_source_patch(payload: dict[str, object]) -> TimerTriggerSourcePatch:
+    return TimerTriggerSourcePatch(
+        peripheral=str(payload["peripheral"]),
+        source=str(payload["source"]),
+        field_value=int(payload["field_value"]),  # type: ignore[arg-type]
+    )
+
+
+def _parse_timer_master_output_patch(payload: dict[str, object]) -> TimerMasterOutputPatch:
+    return TimerMasterOutputPatch(
+        peripheral=str(payload["peripheral"]),
+        source=str(payload["source"]),
+        field_value=int(payload["field_value"]),  # type: ignore[arg-type]
+    )
+
+
+def _parse_timer_mode_flags_patch(payload: dict[str, object]) -> TimerModeFlagsPatch:
+    return TimerModeFlagsPatch(
+        peripheral=str(payload["peripheral"]),
+        supports_dma_burst=bool(payload.get("supports_dma_burst", False)),
+        supports_repetition_counter=bool(payload.get("supports_repetition_counter", False)),
+        supports_xor_input=bool(payload.get("supports_xor_input", False)),
     )
 
 

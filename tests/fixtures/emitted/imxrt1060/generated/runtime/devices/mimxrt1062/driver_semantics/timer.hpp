@@ -60,6 +60,13 @@ struct TimerSemanticTraits {
   static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
   static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
+  static constexpr std::uint32_t kMaxPrescaler = 0u;
+  static constexpr std::uint32_t kMaxAutoReload = 0u;
+  static constexpr std::array<std::uint8_t, 0> kTriggerSources = {};
+  static constexpr std::array<std::uint8_t, 0> kMasterOutputModes = {};
+  static constexpr bool kSupportsDmaBurst = false;
+  static constexpr bool kSupportsRepetitionCounter = false;
+  static constexpr bool kSupportsXorInput = false;
 };
 
 template<>
@@ -109,6 +116,13 @@ struct TimerSemanticTraits<PeripheralId::GPT1> {
   static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;
   static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::uint32_t kMaxPrescaler = 0u;
+  static constexpr std::uint32_t kMaxAutoReload = 0u;
+  static constexpr std::array<std::uint8_t, 0> kTriggerSources = {};
+  static constexpr std::array<std::uint8_t, 0> kMasterOutputModes = {};
+  static constexpr bool kSupportsDmaBurst = false;
+  static constexpr bool kSupportsRepetitionCounter = false;
+  static constexpr bool kSupportsXorInput = false;
   static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
@@ -159,6 +173,13 @@ struct TimerSemanticTraits<PeripheralId::GPT2> {
   static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;
   static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::uint32_t kMaxPrescaler = 0u;
+  static constexpr std::uint32_t kMaxAutoReload = 0u;
+  static constexpr std::array<std::uint8_t, 0> kTriggerSources = {};
+  static constexpr std::array<std::uint8_t, 0> kMasterOutputModes = {};
+  static constexpr bool kSupportsDmaBurst = false;
+  static constexpr bool kSupportsRepetitionCounter = false;
+  static constexpr bool kSupportsXorInput = false;
   static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
@@ -209,6 +230,13 @@ struct TimerSemanticTraits<PeripheralId::PIT> {
   static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;
   static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::uint32_t kMaxPrescaler = 0u;
+  static constexpr std::uint32_t kMaxAutoReload = 0u;
+  static constexpr std::array<std::uint8_t, 0> kTriggerSources = {};
+  static constexpr std::array<std::uint8_t, 0> kMasterOutputModes = {};
+  static constexpr bool kSupportsDmaBurst = false;
+  static constexpr bool kSupportsRepetitionCounter = false;
+  static constexpr bool kSupportsXorInput = false;
   static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 

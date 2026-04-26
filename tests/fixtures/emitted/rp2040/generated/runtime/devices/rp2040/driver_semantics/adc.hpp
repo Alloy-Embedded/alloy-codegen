@@ -121,8 +121,10 @@ struct AdcSemanticTraits<PeripheralId::ADC> {
   static constexpr std::uint32_t kSupportedOversamplingCount = 0u;
   static constexpr std::array<AdcOversamplingOption, 0> kSupportedOversamplings = {};
   static constexpr std::uint32_t kAdcMaxClockHz = 48000000u;
-  static constexpr std::uint32_t kDmaBindingCount = 0u;
-  static constexpr std::array<AdcDmaBinding, 0> kDmaBindings = {};
+  static constexpr std::uint32_t kDmaBindingCount = 1u;
+  static constexpr std::array<AdcDmaBinding, 1> kDmaBindings = {{
+    AdcDmaBinding{PeripheralId::DMA, DmaControllerId::DMA, DmaBindingId::dma_binding_adc_fifo_dma_adc, 36u, RuntimeRegisterRef{RegisterId::register_adc_result, 0x4004C000u, 4u, true}, 16u, true},
+  }};
   static constexpr std::uint32_t kExternalTriggerCount = 0u;
   static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};
   static constexpr std::uint32_t kSupportedDmaModeCount = 0u;

@@ -1207,6 +1207,14 @@ class TimerSemanticRow:
     trigger_irq_number: int | None = None
     # DMA cross-references (add-peripheral-dma-cross-references).
     dma_bindings: tuple[UartDmaBindingRow, ...] = ()
+    # Tier 2/3/4 facts (add-timer-tier-2-3-4-data).
+    max_prescaler: int = 0
+    max_auto_reload: int = 0
+    trigger_sources: tuple[tuple[str, int], ...] = ()  # (source, field_value)
+    master_outputs: tuple[tuple[str, int], ...] = ()  # (source, field_value)
+    supports_dma_burst: bool = False
+    supports_repetition_counter: bool = False
+    supports_xor_input: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -10407,7 +10415,61 @@ def _build_timer_rows(
     enriched_timer_rows = _enrich_with_dma_bindings(
         context, tuple(timer_rows), transfer_width_bits=16
     )
+    enriched_timer_rows = _enrich_timer_tier234(context, enriched_timer_rows)
     return tuple(enriched_timer_rows), tuple(channel_rows)  # type: ignore[return-value]
+
+
+def _enrich_timer_tier234(
+    context: _SemanticContext,
+    rows: tuple[object, ...],
+) -> tuple[object, ...]:
+    """add-timer-tier-2-3-4-data: thread Tier 2/3/4 facts onto each
+    timer row from the device patch's `timer_*` tuples."""
+    import dataclasses as _dc
+
+    device = context.device
+    prescalers = {
+        getattr(p, "peripheral", ""): p for p in getattr(device, "timer_prescaler_options", ())
+    }
+    flags = {
+        getattr(f, "peripheral", ""): f for f in getattr(device, "timer_mode_flags", ())
+    }
+    triggers: dict[str, list[tuple[str, int]]] = {}
+    for t in getattr(device, "timer_trigger_sources", ()):
+        triggers.setdefault(getattr(t, "peripheral", ""), []).append(
+            (getattr(t, "source", ""), int(getattr(t, "field_value", 0)))
+        )
+    masters: dict[str, list[tuple[str, int]]] = {}
+    for m in getattr(device, "timer_master_outputs", ()):
+        masters.setdefault(getattr(m, "peripheral", ""), []).append(
+            (getattr(m, "source", ""), int(getattr(m, "field_value", 0)))
+        )
+    enriched: list[object] = []
+    for row in rows:
+        peripheral = getattr(row, "peripheral_name", None)
+        if peripheral is None:
+            enriched.append(row)
+            continue
+        psc = prescalers.get(peripheral)
+        flg = flags.get(peripheral)
+        kw: dict[str, object] = {}
+        if psc is not None:
+            kw["max_prescaler"] = int(getattr(psc, "max_prescaler", 0))
+            ar = int(getattr(psc, "max_auto_reload", 0))
+            kw["max_auto_reload"] = ar if ar else int(getattr(psc, "max_prescaler", 0))
+        if flg is not None:
+            kw["supports_dma_burst"] = bool(getattr(flg, "supports_dma_burst", False))
+            kw["supports_repetition_counter"] = bool(getattr(flg, "supports_repetition_counter", False))
+            kw["supports_xor_input"] = bool(getattr(flg, "supports_xor_input", False))
+        if peripheral in triggers:
+            kw["trigger_sources"] = tuple(triggers[peripheral])
+        if peripheral in masters:
+            kw["master_outputs"] = tuple(masters[peripheral])
+        if not kw:
+            enriched.append(row)
+            continue
+        enriched.append(_dc.replace(row, **kw))
+    return tuple(enriched)
 
 
 def _st_pwm_row(
@@ -13166,6 +13228,7 @@ def _timer_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
                 *_timer_irq_lines(row),
+                *_timer_tier234_lines(row),
             ]
         register_members = {
             "kControlRegister": row.control_reg,
@@ -13228,9 +13291,38 @@ def _timer_specialization_builder(context: _SemanticContext):
             for name, value in field_members.items()
         )
         lines.extend(_timer_irq_lines(row))
+        lines.extend(_timer_tier234_lines(row))
         return lines
 
     return _build
+
+
+def _timer_tier234_lines(row: TimerSemanticRow) -> list[str]:
+    """add-timer-tier-2-3-4-data: max prescaler + trigger sources +
+    master outputs + capability flags constexprs."""
+
+    def _option_array(name: str, items: tuple[tuple[str, int], ...]) -> str:
+        # The source label is informational; only ``field_value`` is needed
+        # at compile time to drive the SMS / MMS register write.  The
+        # boundary test forbids string literals in runtime C++, so we emit
+        # a typed `std::array<std::uint8_t, N>` keyed by field_value.
+        if not items:
+            return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
+        values = ", ".join(f"{val}u" for _, val in items)
+        return (
+            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = "
+            f"{{{{{values}}}}};"
+        )
+
+    return [
+        f"  static constexpr std::uint32_t kMaxPrescaler = {row.max_prescaler}u;",
+        f"  static constexpr std::uint32_t kMaxAutoReload = {row.max_auto_reload}u;",
+        _option_array("kTriggerSources", row.trigger_sources),
+        _option_array("kMasterOutputModes", row.master_outputs),
+        f"  static constexpr bool kSupportsDmaBurst = {'true' if row.supports_dma_burst else 'false'};",
+        f"  static constexpr bool kSupportsRepetitionCounter = {'true' if row.supports_repetition_counter else 'false'};",
+        f"  static constexpr bool kSupportsXorInput = {'true' if row.supports_xor_input else 'false'};",
+    ]
 
 
 def _timer_channel_specialization_lines(
@@ -15400,6 +15492,14 @@ def emit_runtime_driver_timer_semantics_header(
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
         # DMA cross-references (add-peripheral-dma-cross-references).
         "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
+        # Tier 2/3/4 facts (add-timer-tier-2-3-4-data).
+        "  static constexpr std::uint32_t kMaxPrescaler = 0u;",
+        "  static constexpr std::uint32_t kMaxAutoReload = 0u;",
+        "  static constexpr std::array<std::uint8_t, 0> kTriggerSources = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kMasterOutputModes = {};",
+        "  static constexpr bool kSupportsDmaBurst = false;",
+        "  static constexpr bool kSupportsRepetitionCounter = false;",
+        "  static constexpr bool kSupportsXorInput = false;",
         "};",
         "",
     ]

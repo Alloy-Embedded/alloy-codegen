@@ -40,6 +40,7 @@ struct SpiSemanticTraits {
   static constexpr bool kSupportsLsbFirst = false;
   static constexpr bool kSupportsNssHwManagement = false;
   static constexpr std::uint8_t kSpiDmaBindingCount = 0u;
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;
@@ -117,7 +118,11 @@ struct SpiSemanticTraits<PeripheralId::SPI0> {
   static constexpr bool kSupportsBidirectional3Wire = false;
   static constexpr bool kSupportsLsbFirst = false;
   static constexpr bool kSupportsNssHwManagement = true;
-  static constexpr std::uint8_t kSpiDmaBindingCount = 0u;
+  static constexpr std::uint8_t kSpiDmaBindingCount = 2u;
+  static constexpr std::array<DmaBindingRef, 2> kDmaBindings = {{
+    DmaBindingRef{DmaControllerId::DMA, DmaBindingId::dma_binding_spi0_rx_dma_spi0_rx, 16u, DmaBindingDirection::Rx, 16u, true},
+    DmaBindingRef{DmaControllerId::DMA, DmaBindingId::dma_binding_spi0_tx_dma_spi0_tx, 17u, DmaBindingDirection::Tx, 16u, true},
+  }};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;
@@ -195,7 +200,11 @@ struct SpiSemanticTraits<PeripheralId::SPI1> {
   static constexpr bool kSupportsBidirectional3Wire = false;
   static constexpr bool kSupportsLsbFirst = false;
   static constexpr bool kSupportsNssHwManagement = true;
-  static constexpr std::uint8_t kSpiDmaBindingCount = 0u;
+  static constexpr std::uint8_t kSpiDmaBindingCount = 2u;
+  static constexpr std::array<DmaBindingRef, 2> kDmaBindings = {{
+    DmaBindingRef{DmaControllerId::DMA, DmaBindingId::dma_binding_spi1_rx_dma_spi1_rx, 18u, DmaBindingDirection::Rx, 16u, true},
+    DmaBindingRef{DmaControllerId::DMA, DmaBindingId::dma_binding_spi1_tx_dma_spi1_tx, 19u, DmaBindingDirection::Tx, 16u, true},
+  }};
   static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;
   static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;
