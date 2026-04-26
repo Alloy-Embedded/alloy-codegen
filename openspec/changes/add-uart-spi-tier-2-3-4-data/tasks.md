@@ -28,7 +28,7 @@
 
 ## Phase 2: DMA bindings helpers
 
-- [ ] 2.1 New helper `_dma_bindings_for_uart_peripheral(device,
+- [x] 2.1 New helper `_dma_bindings_for_uart_peripheral(device,
       peripheral_name)` in `runtime_driver_semantics.py`: walks
       `device.dma_requests` filtered by `peripheral == peripheral_name`,
       builds `UartDmaBindingRow` rows with controller / signal (TX or
@@ -36,7 +36,7 @@
       transfer-width (UART always transfers bytes — even when 9-bit
       data uses a 16-bit register, DMA stride stays 8-bit on every
       admitted family)
-- [ ] 2.2 New helper `_dma_bindings_for_spi_peripheral(device,
+- [x] 2.2 New helper `_dma_bindings_for_spi_peripheral(device,
       peripheral_name)`: same pattern; transfer-width from
       `spi_frame_size_options` (≤8 → 8-bit, 9..16 → 16-bit, 17..32 →
       32-bit on iMXRT/ESP32)
@@ -48,10 +48,10 @@
 
 ## Phase 3: Trait surface + safe defaults
 
-- [ ] 3.1 Extend `UartSemanticRow` with the new Tier 2/3/4 fields
+- [x] 3.1 Extend `UartSemanticRow` with the new Tier 2/3/4 fields
       (~13 new fields including `kSupportedDataBits`, mode-flag bools,
       `kMaxBaudHz`, `kDmaBindings`)
-- [ ] 3.2 Extend `SpiSemanticRow` with the new Tier 2/3/4 fields
+- [x] 3.2 Extend `SpiSemanticRow` with the new Tier 2/3/4 fields
       (~10 new fields)
 - [ ] 3.3 Extend `_uart_specialization_builder` + `_spi_specialization_builder`
       stub + non-stub branches to emit the new constexprs.  Stub branch
