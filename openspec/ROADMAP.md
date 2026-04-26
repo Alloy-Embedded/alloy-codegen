@@ -65,6 +65,18 @@ in alloy is gated on them yet, but cheap to land once Stage 2 is in.
 | 7 | `add-pwm-tier-2-3-4-data` | After TIMER — adds prescaler range, deadtime options, break inputs |
 | 8 | `fill-dma-controller-hw-traits` | Channel count, burst sizes, max-transfer, priority levels.  `dma.hpp` controller side is mostly stubbed today |
 
+## Stage 3.5 — adoption + ergonomics (P1, "kill modm")
+
+These three close the modm ergonomics gap and prove the multi-language
+IR thesis.  Higher leverage than continuing to fill Tier 2/3/4 on
+peripherals only used by 9 devices.
+
+| # | Change | What it adds | Why now |
+|---|---|---|---|
+| 9 | `add-board-support-package-emitter` | Per-board BSP header (`Leds::kGreen`, `DebugUart`, `kDefaultClockProfile`) sourced from new board.json overlays | matches modm's `<modm/board.hpp>` "5-line blinky" — biggest onboarding-friction gap |
+| 10 | `add-cmake-package-config` | `find_package(AlloyDevice REQUIRED COMPONENTS stm32g071rb)` ships per-device INTERFACE library + per-core toolchain fragment | drops consumer onboarding from ~30 lines of CMake plumbing to 2 |
+| 11 | `add-typed-peripheral-enums-everywhere` | Per-peripheral typed `enum class`es (`UartParityOf<USART1>::type::even`) replace `std::uint8_t` field-value shims across UART/SPI/I2C/TIMER/PWM | catches "wrong field value" bugs at compile time; matches modm's typed-enum ergonomics |
+
 ## Stage 4 — niche peripherals (P3, on demand)
 
 Defer until the corresponding alloy HAL driver is on the roadmap.
