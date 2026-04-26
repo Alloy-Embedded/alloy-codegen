@@ -1,0 +1,33 @@
+{
+  "patch_id": "raspberrypi-rp2040-pio-topology-v1",
+  "__source_notes": {
+    "__reference": "RP2040 datasheet (rev e), §3 (PIO) and Table 2-7 (DREQ assignments)",
+    "__notes": "Each PIO block has 4 state machines, 32-instruction shared instruction memory, and 4-word TX/RX FIFOs per SM (joinable to 8 via SHIFTCTRL). Both blocks can address all 30 GPIO pins. Per-state-machine DREQs are derived as `dreq_{tx,rx}_base + sm_index`."
+  },
+  "pio_blocks": [
+    {
+      "pio_id": "Pio0",
+      "base_address": "0x50200000",
+      "state_machine_count": 4,
+      "instruction_memory_depth": 32,
+      "tx_fifo_depth": 4,
+      "rx_fifo_depth": 4,
+      "gpio_base": 0,
+      "gpio_count": 30,
+      "dreq_tx_base": 0,
+      "dreq_rx_base": 4
+    },
+    {
+      "pio_id": "Pio1",
+      "base_address": "0x50300000",
+      "state_machine_count": 4,
+      "instruction_memory_depth": 32,
+      "tx_fifo_depth": 4,
+      "rx_fifo_depth": 4,
+      "gpio_base": 0,
+      "gpio_count": 30,
+      "dreq_tx_base": 8,
+      "dreq_rx_base": 12
+    }
+  ]
+}

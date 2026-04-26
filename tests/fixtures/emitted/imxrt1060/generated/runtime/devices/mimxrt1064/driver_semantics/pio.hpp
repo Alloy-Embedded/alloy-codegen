@@ -9,7 +9,7 @@ namespace imxrt1060 {
 namespace generated {
 namespace runtime {
 namespace devices {
-namespace mimxrt1062 {
+namespace mimxrt1064 {
 namespace driver_semantics {
 enum class PioId : std::uint8_t {
   None = 0,

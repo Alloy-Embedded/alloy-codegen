@@ -8540,6 +8540,50 @@
       ]
     }
   ],
+  "pio_blocks": [
+    {
+      "base_address": 1344274432,
+      "dreq_rx_base": 4,
+      "dreq_tx_base": 0,
+      "gpio_base": 0,
+      "gpio_count": 30,
+      "instruction_memory_depth": 32,
+      "pio_id": "Pio0",
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap",
+          "raspberrypi-rp2040-pio-topology-v1"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/raspberrypi/rp2040/pio.json"
+      },
+      "rx_fifo_depth": 4,
+      "state_machine_count": 4,
+      "tx_fifo_depth": 4
+    },
+    {
+      "base_address": 1345323008,
+      "dreq_rx_base": 12,
+      "dreq_tx_base": 8,
+      "gpio_base": 0,
+      "gpio_count": 30,
+      "instruction_memory_depth": 32,
+      "pio_id": "Pio1",
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap",
+          "raspberrypi-rp2040-pio-topology-v1"
+        ],
+        "source_id": "bootstrap-patch",
+        "source_path": "patches/raspberrypi/rp2040/pio.json"
+      },
+      "rx_fifo_depth": 4,
+      "state_machine_count": 4,
+      "tx_fifo_depth": 4
+    }
+  ],
   "provenance": {
     "patch_ids": [
       "raspberrypi-rp2040-family-bootstrap-v1",

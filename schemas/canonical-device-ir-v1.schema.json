@@ -635,6 +635,36 @@
         "provenance": { "$ref": "#/$defs/provenance" }
       },
       "additionalProperties": false
+    },
+    "pio_descriptor": {
+      "type": "object",
+      "required": [
+        "pio_id",
+        "base_address",
+        "state_machine_count",
+        "instruction_memory_depth",
+        "tx_fifo_depth",
+        "rx_fifo_depth",
+        "gpio_base",
+        "gpio_count",
+        "dreq_tx_base",
+        "dreq_rx_base",
+        "provenance"
+      ],
+      "properties": {
+        "pio_id": { "type": "string" },
+        "base_address": { "type": "integer", "minimum": 0 },
+        "state_machine_count": { "type": "integer", "minimum": 0 },
+        "instruction_memory_depth": { "type": "integer", "minimum": 0 },
+        "tx_fifo_depth": { "type": "integer", "minimum": 0 },
+        "rx_fifo_depth": { "type": "integer", "minimum": 0 },
+        "gpio_base": { "type": "integer", "minimum": 0 },
+        "gpio_count": { "type": "integer", "minimum": 0 },
+        "dreq_tx_base": { "type": "integer", "minimum": 0 },
+        "dreq_rx_base": { "type": "integer", "minimum": 0 },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
     }
   },
   "type": "object",
@@ -817,6 +847,10 @@
     "dma_conflict_groups": {
       "type": "array",
       "items": { "$ref": "#/$defs/dma_conflict_group" }
+    },
+    "pio_blocks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pio_descriptor" }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"

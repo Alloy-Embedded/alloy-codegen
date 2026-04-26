@@ -575,6 +575,30 @@ class DmaConflictGroup:
 
 
 @dataclass(frozen=True, slots=True)
+class PioDescriptor:
+    """Compile-time topology of one Programmable I/O block.
+
+    Carries the facts needed by ``runtime_driver_semantics.pio.hpp`` to populate
+    ``PioSemanticTraits<PioId>`` and ``StateMachineSemanticTraits<PioId, Sm>``
+    specializations. Values are sourced from a vendor patch overlay (e.g.
+    ``patches/raspberrypi/rp2040/pio.json``) — this dataclass is a thin
+    pass-through.
+    """
+
+    pio_id: str
+    base_address: int
+    state_machine_count: int
+    instruction_memory_depth: int
+    tx_fifo_depth: int
+    rx_fifo_depth: int
+    gpio_base: int
+    gpio_count: int
+    dreq_tx_base: int
+    dreq_rx_base: int
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
 class CanonicalDeviceIR:
     """Canonical device description used by validation and emitters."""
 
@@ -726,7 +750,13 @@ class CanonicalDeviceIR:
         default="single_core", metadata={"omit_if_default": True}
     )
     app_cpu_control_plane: AppCpuControlPlane | None = field(
-        default=None, metadata={"omit_if_empty": True}
+        default=None, metadata={"omit_if_empty": True},
+    )
+    # PIO block topology (added by define-pio-semantic-struct).  Empty for
+    # devices without Programmable I/O hardware.
+    pio_blocks: tuple[PioDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
     )
 
     def to_dict(self) -> dict[str, object]:

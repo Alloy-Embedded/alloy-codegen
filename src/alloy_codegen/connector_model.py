@@ -1641,6 +1641,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         # ``expose-xtensa-dual-core-facts``) for the same reason.
         multicore_topology=device.multicore_topology,
         app_cpu_control_plane=device.app_cpu_control_plane,
+        pio_blocks=device.pio_blocks,
     )
 
 

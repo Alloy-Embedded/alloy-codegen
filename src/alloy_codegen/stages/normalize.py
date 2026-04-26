@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import re
 
 from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, IR_SCHEMA_VERSION
@@ -27,6 +28,7 @@ from alloy_codegen.ir.model import (
     PinConstraint,
     PinDefinition,
     PinSignal,
+    PioDescriptor,
     Provenance,
     RegisterDescriptor,
     RegisterFieldDescriptor,
@@ -1546,6 +1548,69 @@ def _build_rp2040_pins(
     return tuple(pins)
 
 
+def _coerce_int_field(payload: dict[str, object], key: str) -> int:
+    value = payload[key]
+    if isinstance(value, int) and not isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return int(value, 0)
+    raise StageExecutionError(f"Invalid integer value for '{key}': {value!r}")
+
+
+def _load_rp2040_pio_blocks_overlay(
+    context: ExecutionContext,
+    *,
+    vendor: str,
+    family: str,
+    family_patch_ids: tuple[str, ...],
+) -> tuple[PioDescriptor, ...]:
+    """Load `patches/<vendor>/<family>/pio.json` if present and parse PIO blocks.
+
+    The overlay is optional — devices without PIO hardware simply omit it.
+    Each ``PioDescriptor`` carries provenance referencing this overlay (plus
+    inherited family patch ids) so consumers can trace topology back to source.
+    """
+    overlay_path = context.patch_root / vendor / family / "pio.json"
+    if not overlay_path.exists():
+        return ()
+
+    payload = json.loads(overlay_path.read_text())
+    overlay_patch_id = str(payload["patch_id"])
+    patch_ids = (*family_patch_ids, overlay_patch_id)
+    provenance = Provenance(
+        source_id="bootstrap-patch",
+        source_path=f"patches/{vendor}/{family}/pio.json",
+        patch_ids=patch_ids,
+    )
+
+    raw_blocks = payload.get("pio_blocks", ())
+    if not isinstance(raw_blocks, list):
+        raise StageExecutionError(
+            f"'pio_blocks' in {overlay_path} must be a list, got {type(raw_blocks).__name__}"
+        )
+
+    blocks: list[PioDescriptor] = []
+    for entry in raw_blocks:
+        if not isinstance(entry, dict):
+            raise StageExecutionError(f"Invalid pio_blocks entry in {overlay_path}: {entry!r}")
+        blocks.append(
+            PioDescriptor(
+                pio_id=str(entry["pio_id"]),
+                base_address=_coerce_int_field(entry, "base_address"),
+                state_machine_count=_coerce_int_field(entry, "state_machine_count"),
+                instruction_memory_depth=_coerce_int_field(entry, "instruction_memory_depth"),
+                tx_fifo_depth=_coerce_int_field(entry, "tx_fifo_depth"),
+                rx_fifo_depth=_coerce_int_field(entry, "rx_fifo_depth"),
+                gpio_base=_coerce_int_field(entry, "gpio_base"),
+                gpio_count=_coerce_int_field(entry, "gpio_count"),
+                dreq_tx_base=_coerce_int_field(entry, "dreq_tx_base"),
+                dreq_rx_base=_coerce_int_field(entry, "dreq_rx_base"),
+                provenance=provenance,
+            )
+        )
+    return tuple(blocks)
+
+
 def build_rp2040_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -1553,6 +1618,7 @@ def build_rp2040_canonical_ir(
     *,
     vendor: str,
     family: str,
+    pio_blocks: tuple[PioDescriptor, ...] = (),
     svd_source_id: str = "pico-sdk",
 ) -> CanonicalDeviceIR:
     """Build canonical IR from pico-sdk SVD and RP2040 family patch catalog.
@@ -1685,6 +1751,7 @@ def build_rp2040_canonical_ir(
         peripheral_clock_bindings=tuple(
             _peripheral_clock_binding_to_ir(b, patch_provenance) for b in peripheral_clock_bindings
         ),
+        pio_blocks=pio_blocks,
     )
 
 
@@ -1699,12 +1766,24 @@ def _build_rp2040_device_ir(
     family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
     svd_path = resolve_pico_svd_path(execution_context, device_name, vendor=vendor, family=family)
     raw = parse_raw_device_document(svd_path)
+    family_patch_ids = (
+        (patch.family_patch_id, patch.patch_id)
+        if patch.family_patch_id is not None
+        else (patch.patch_id,)
+    )
+    pio_blocks = _load_rp2040_pio_blocks_overlay(
+        execution_context,
+        vendor=vendor,
+        family=family,
+        family_patch_ids=family_patch_ids,
+    )
     return build_rp2040_canonical_ir(
         raw,
         patch,
         family_catalog,
         vendor=vendor,
         family=family,
+        pio_blocks=pio_blocks,
     )
 
 

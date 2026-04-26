@@ -26,6 +26,7 @@ from alloy_codegen.ir.model import (
     PinConstraint,
     PinDefinition,
     PinSignal,
+    PioDescriptor,
     Provenance,
     RegisterFieldDescriptor,
     ResetDescriptor,
@@ -140,6 +141,52 @@ def test_canonical_device_ir_omits_empty_transitional_domains() -> None:
     assert "clock_nodes" not in payload
     assert "dma_bindings" not in payload
     assert "dma_routes" not in payload
+    assert "pio_blocks" not in payload
+
+
+def test_canonical_device_ir_serializes_pio_blocks_when_populated() -> None:
+    base = _base_device()
+    provenance = base.provenance
+    enriched = replace(
+        base,
+        pio_blocks=(
+            PioDescriptor(
+                pio_id="Pio0",
+                base_address=0x50200000,
+                state_machine_count=4,
+                instruction_memory_depth=32,
+                tx_fifo_depth=4,
+                rx_fifo_depth=4,
+                gpio_base=0,
+                gpio_count=30,
+                dreq_tx_base=0,
+                dreq_rx_base=4,
+                provenance=provenance,
+            ),
+        ),
+    )
+
+    payload = enriched.to_dict()
+
+    assert payload["pio_blocks"] == [
+        {
+            "pio_id": "Pio0",
+            "base_address": 0x50200000,
+            "state_machine_count": 4,
+            "instruction_memory_depth": 32,
+            "tx_fifo_depth": 4,
+            "rx_fifo_depth": 4,
+            "gpio_base": 0,
+            "gpio_count": 30,
+            "dreq_tx_base": 0,
+            "dreq_rx_base": 4,
+            "provenance": {
+                "source_id": provenance.source_id,
+                "source_path": provenance.source_path,
+                "patch_ids": list(provenance.patch_ids),
+            },
+        },
+    ]
 
 
 def test_canonical_device_ir_serializes_connector_driven_domains_when_present() -> None:
