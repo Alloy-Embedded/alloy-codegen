@@ -1932,8 +1932,7 @@ def _kernel_clock_lines(
         # ``fill-espressif-semantic-gaps`` (which describes the SPI's *own*
         # max output frequency, not its kernel-clock input).
         f"  static constexpr std::uint32_t kKernelMaxClockHz = {int(max_clock_hz)}u;",
-        f"  static constexpr RuntimeFieldRef kClockGateField = "
-        f"{_field_ref_expr(gate)};",
+        f"  static constexpr RuntimeFieldRef kClockGateField = {_field_ref_expr(gate)};",
     ]
 
 
@@ -4078,9 +4077,7 @@ def _kernel_clock_for_peripheral(
                 None,
             )
             if gate is not None:
-                gate_field = _resolve_field_ref_by_id(
-                    context, field_id=gate.register_field_id
-                )
+                gate_field = _resolve_field_ref_by_id(context, field_id=gate.register_field_id)
 
     return {
         "kernel_clock_selector_field": selector_field,

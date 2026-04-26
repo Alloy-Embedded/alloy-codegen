@@ -699,5 +699,15 @@
       "supports_lsb_first": true,
       "supports_nss_hw_management": true
     }
+  ],
+  "peripheral_max_clock_hz": [
+    {
+      "peripheral": "USART2",
+      "max_clock_hz": 64000000
+    },
+    {
+      "peripheral": "SPI1",
+      "max_clock_hz": 64000000
+    }
   ]
 }

@@ -3329,6 +3329,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 spi_frame_size_options=patch.spi_frame_size_options,
                 spi_fifo_threshold_options=patch.spi_fifo_threshold_options,
                 spi_mode_flags=patch.spi_mode_flags,
+                peripheral_max_clock_hz=patch.peripheral_max_clock_hz,
                 multicore_topology=topology_value,
                 app_cpu_control_plane=app_cpu_plane,
                 usb_controllers=usb_controllers,

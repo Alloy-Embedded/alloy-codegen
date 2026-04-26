@@ -36,6 +36,7 @@ SAME70 = {"microchip-dfp-extract": str(FIXTURES / "microchip-dfp-same70")}
 
 JOBS = [
     # (fixture-dir, device-name, source-overrides)
+    ("stm32g0", "stm32g071rb", ST),
     ("stm32g0", "stm32g030f6", ST),
     ("stm32g0", "stm32g0b1re", ST),
     ("stm32f4", "stm32f401re", ST),

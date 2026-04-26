@@ -96182,6 +96182,20 @@
       "supports_nss_hw_management": true
     }
   ],
+  "peripheral_max_clock_hz": [
+    {
+      "peripheral": "UART0",
+      "max_clock_hz": 80000000
+    },
+    {
+      "peripheral": "UART1",
+      "max_clock_hz": 80000000
+    },
+    {
+      "peripheral": "SPI2",
+      "max_clock_hz": 80000000
+    }
+  ],
   "uart_peripherals": [
     {
       "peripheral_id": "UART0",

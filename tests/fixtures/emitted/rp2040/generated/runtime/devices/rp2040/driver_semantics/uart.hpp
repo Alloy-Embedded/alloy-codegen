@@ -102,6 +102,11 @@ struct UartSemanticTraits {
   static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr RuntimeFieldRef kKernelClockSelectorField = kInvalidFieldRef;
+  static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};
+  static constexpr std::uint32_t kKernelMaxClockHz = 0u;
+  static constexpr RuntimeFieldRef kClockGateField = kInvalidFieldRef;
 };
 
 template<>
@@ -114,17 +119,17 @@ struct UartSemanticTraits<PeripheralId::UART0> {
   static constexpr std::int16_t kTxSignalIdx = -1;
   static constexpr std::int16_t kRxSignalIdx = -1;
   static constexpr bool kSupportsDma = false;
-  static constexpr std::array<std::uint8_t, 0> kSupportedDataBits = {{}};
-  static constexpr std::array<std::uint8_t, 0> kSupportedParityRaw = {{}};
-  static constexpr std::array<std::uint16_t, 0> kSupportedStopBitsQ8 = {{}};
-  static constexpr std::array<std::uint8_t, 0> kBaudOversamplingOptions = {{}};
-  static constexpr std::array<std::uint8_t, 0> kBaudClockSourceRaw = {{}};
-  static constexpr std::array<std::uint16_t, 0> kFifoTriggerFractionsQ8 = {{}};
-  static constexpr std::uint32_t kMaxBaudHz = 0u;
+  static constexpr std::array<std::uint8_t, 4> kSupportedDataBits = {{5u, 6u, 7u, 8u}};
+  static constexpr std::array<std::uint8_t, 3> kSupportedParityRaw = {{0u, 1u, 2u}};
+  static constexpr std::array<std::uint16_t, 2> kSupportedStopBitsQ8 = {{256u, 512u}};
+  static constexpr std::array<std::uint8_t, 1> kBaudOversamplingOptions = {{16u}};
+  static constexpr std::array<std::uint8_t, 1> kBaudClockSourceRaw = {{0u}};
+  static constexpr std::array<std::uint16_t, 5> kFifoTriggerFractionsQ8 = {{32u, 64u, 128u, 192u, 224u}};
+  static constexpr std::uint32_t kMaxBaudHz = 7812500u;
   static constexpr bool kSupportsLin = false;
-  static constexpr bool kSupportsIrda = false;
+  static constexpr bool kSupportsIrda = true;
   static constexpr bool kSupportsSmartcard = false;
-  static constexpr bool kSupportsHalfDuplex = false;
+  static constexpr bool kSupportsHalfDuplex = true;
   static constexpr bool kSupportsSynchronous = false;
   static constexpr bool kSupportsAutoBaud = false;
   static constexpr bool kSupportsWakeFromStop = false;
@@ -194,6 +199,11 @@ struct UartSemanticTraits<PeripheralId::UART0> {
   static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 1> kIrqNumbers = {{20u}};
+  static constexpr RuntimeFieldRef kKernelClockSelectorField = kInvalidFieldRef;
+  static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};
+  static constexpr std::uint32_t kKernelMaxClockHz = 125000000u;
+  static constexpr RuntimeFieldRef kClockGateField = RuntimeFieldRef{FieldId::field_resets_reset_uart0, RuntimeRegisterRef{RegisterId::register_resets_reset, 0x4000C000u, 0u, true}, 22u, 1u, true};
 };
 
 template<>
@@ -206,17 +216,17 @@ struct UartSemanticTraits<PeripheralId::UART1> {
   static constexpr std::int16_t kTxSignalIdx = -1;
   static constexpr std::int16_t kRxSignalIdx = -1;
   static constexpr bool kSupportsDma = false;
-  static constexpr std::array<std::uint8_t, 0> kSupportedDataBits = {{}};
-  static constexpr std::array<std::uint8_t, 0> kSupportedParityRaw = {{}};
-  static constexpr std::array<std::uint16_t, 0> kSupportedStopBitsQ8 = {{}};
-  static constexpr std::array<std::uint8_t, 0> kBaudOversamplingOptions = {{}};
-  static constexpr std::array<std::uint8_t, 0> kBaudClockSourceRaw = {{}};
-  static constexpr std::array<std::uint16_t, 0> kFifoTriggerFractionsQ8 = {{}};
-  static constexpr std::uint32_t kMaxBaudHz = 0u;
+  static constexpr std::array<std::uint8_t, 4> kSupportedDataBits = {{5u, 6u, 7u, 8u}};
+  static constexpr std::array<std::uint8_t, 3> kSupportedParityRaw = {{0u, 1u, 2u}};
+  static constexpr std::array<std::uint16_t, 2> kSupportedStopBitsQ8 = {{256u, 512u}};
+  static constexpr std::array<std::uint8_t, 1> kBaudOversamplingOptions = {{16u}};
+  static constexpr std::array<std::uint8_t, 1> kBaudClockSourceRaw = {{0u}};
+  static constexpr std::array<std::uint16_t, 5> kFifoTriggerFractionsQ8 = {{32u, 64u, 128u, 192u, 224u}};
+  static constexpr std::uint32_t kMaxBaudHz = 7812500u;
   static constexpr bool kSupportsLin = false;
-  static constexpr bool kSupportsIrda = false;
+  static constexpr bool kSupportsIrda = true;
   static constexpr bool kSupportsSmartcard = false;
-  static constexpr bool kSupportsHalfDuplex = false;
+  static constexpr bool kSupportsHalfDuplex = true;
   static constexpr bool kSupportsSynchronous = false;
   static constexpr bool kSupportsAutoBaud = false;
   static constexpr bool kSupportsWakeFromStop = false;
@@ -286,6 +296,11 @@ struct UartSemanticTraits<PeripheralId::UART1> {
   static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 1> kIrqNumbers = {{21u}};
+  static constexpr RuntimeFieldRef kKernelClockSelectorField = kInvalidFieldRef;
+  static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};
+  static constexpr std::uint32_t kKernelMaxClockHz = 125000000u;
+  static constexpr RuntimeFieldRef kClockGateField = RuntimeFieldRef{FieldId::field_resets_reset_uart1, RuntimeRegisterRef{RegisterId::register_resets_reset, 0x4000C000u, 0u, true}, 23u, 1u, true};
 };
 
 inline constexpr std::array<PeripheralId, 0> kUartSemanticPeripherals = {};

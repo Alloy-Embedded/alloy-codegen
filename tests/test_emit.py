@@ -2002,3 +2002,30 @@ def test_stm32g071rb_uart_traits_emit_irq_numbers(
     # USART1 specialization carries the NVIC line number.
     assert "struct UartSemanticTraits<PeripheralId::USART1>" in content
     assert "static constexpr std::array<std::uint32_t, 1> kIrqNumbers = {{27u}};" in content
+
+
+def test_stm32g071rb_uart_traits_emit_kernel_clock(
+    execution_context: ExecutionContext,
+) -> None:
+    """add-kernel-clock-traits: STM32G0 USART1 carries the four
+    kernel-clock constexprs — selector field, source-option array
+    (PCLK / SYSCLK / HSI16 / LSE), 64 MHz max, and the RCC enable
+    gate field reference."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/uart.hpp"
+    content = arts[p].content
+    # Unspecialized defaults.
+    assert (
+        "static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};"
+    ) in content
+    # USART1 specialization carries 4 sources + 64 MHz max + valid gate.
+    assert "struct UartSemanticTraits<PeripheralId::USART1>" in content
+    assert "static constexpr std::uint32_t kKernelMaxClockHz = 64000000u;" in content
+    assert (
+        "static constexpr std::array<KernelClockSourceOption, 4> kKernelClockSourceOptions = {{"
+    ) in content
+    assert "KernelClockSource::sysclk" in content
+    assert "KernelClockSource::hsi16" in content
+    assert "KernelClockSource::lse" in content
+    assert "FieldId::field_rcc_apbenr2_usart1en" in content

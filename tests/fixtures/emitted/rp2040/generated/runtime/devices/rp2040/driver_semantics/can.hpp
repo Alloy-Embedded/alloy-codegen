@@ -70,6 +70,7 @@ struct CanSemanticTraits {
   static constexpr RuntimeFieldRef kTxFifoQueueFreeLevelField = kInvalidFieldRef;
   static constexpr RuntimeIndexedFieldRef kTxBufferAddRequestPattern = kInvalidIndexedFieldRef;
   static constexpr RuntimeIndexedFieldRef kTxBufferPendingPattern = kInvalidIndexedFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 0> kCanSemanticPeripherals = {};

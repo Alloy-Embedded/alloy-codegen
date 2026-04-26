@@ -500,6 +500,16 @@ class AdcExternalTriggerPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class PeripheralMaxClockPatch:
+    """Datasheet-sourced peripheral input-clock ceiling (added by
+    ``add-kernel-clock-traits``).  E.g. ``USART1`` → ``84_000_000`` Hz on
+    STM32F4, ``42_000_000`` Hz on STM32G0 PCLK1 peripherals."""
+
+    peripheral: str
+    max_clock_hz: int
+
+
+@dataclass(frozen=True, slots=True)
 class UartBaudClockSourcePatch:
     """One UART baud-rate clock source + the field value that selects it."""
 
@@ -663,6 +673,8 @@ class DevicePatch:
     spi_frame_size_options: tuple[SpiFrameSizeOptionPatch, ...] = ()
     spi_fifo_threshold_options: tuple[SpiFifoThresholdOptionPatch, ...] = ()
     spi_mode_flags: tuple[SpiModeFlagsPatch, ...] = ()
+    # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
+    peripheral_max_clock_hz: tuple[PeripheralMaxClockPatch, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -2090,6 +2102,19 @@ def load_device_patch(
         spi_mode_flags=tuple(
             _parse_spi_mode_flags_patch(item) for item in payload.get("spi_mode_flags", ())
         ),
+        peripheral_max_clock_hz=tuple(
+            _parse_peripheral_max_clock_patch(item)
+            for item in payload.get("peripheral_max_clock_hz", ())
+        ),
+    )
+
+
+def _parse_peripheral_max_clock_patch(
+    payload: dict[str, object],
+) -> PeripheralMaxClockPatch:
+    return PeripheralMaxClockPatch(
+        peripheral=str(payload["peripheral"]),
+        max_clock_hz=int(payload["max_clock_hz"]),
     )
 
 

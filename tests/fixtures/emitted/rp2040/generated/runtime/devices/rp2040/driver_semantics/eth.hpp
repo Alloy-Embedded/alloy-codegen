@@ -48,6 +48,7 @@ struct EthSemanticTraits {
   static constexpr RuntimeFieldRef kTxCompleteInterruptField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kRxCompleteInterruptEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 0> kEthSemanticPeripherals = {};

@@ -54,6 +54,11 @@ struct TimerSemanticTraits {
   static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;
+  static constexpr std::uint32_t kUpdateIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::uint32_t kCaptureIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<>
@@ -98,6 +103,11 @@ struct TimerSemanticTraits<PeripheralId::TIMER> {
   static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;
+  static constexpr std::uint32_t kUpdateIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::uint32_t kCaptureIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<PeripheralId Id, std::size_t ChannelIndex>

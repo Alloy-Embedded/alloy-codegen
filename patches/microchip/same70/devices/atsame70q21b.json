@@ -820,5 +820,47 @@
       "supports_lsb_first": false,
       "supports_nss_hw_management": true
     }
+  ],
+  "peripheral_max_clock_hz": [
+    {
+      "peripheral": "USART0",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "USART1",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "USART2",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "UART0",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "UART1",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "UART2",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "UART3",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "UART4",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "SPI0",
+      "max_clock_hz": 150000000
+    },
+    {
+      "peripheral": "SPI1",
+      "max_clock_hz": 150000000
+    }
   ]
 }

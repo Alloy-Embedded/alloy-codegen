@@ -61,6 +61,10 @@ struct QspiSemanticTraits {
   static constexpr RuntimeFieldRef kDummyCyclesField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kScramblingEnableField = kInvalidFieldRef;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr RuntimeFieldRef kKernelClockSelectorField = kInvalidFieldRef;
+  static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};
+  static constexpr std::uint32_t kKernelMaxClockHz = 0u;
+  static constexpr RuntimeFieldRef kClockGateField = kInvalidFieldRef;
 };
 
 inline constexpr std::array<PeripheralId, 0> kQspiSemanticPeripherals = {};

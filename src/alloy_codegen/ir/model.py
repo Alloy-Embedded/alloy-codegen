@@ -1259,6 +1259,10 @@ class CanonicalDeviceIR:
     spi_mode_flags: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
+    # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
+    peripheral_max_clock_hz: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Multi-core topology + APP_CPU control plane (added by
     # expose-xtensa-dual-core-facts).  ``multicore_topology`` defaults to
     # ``"single_core"`` so existing single-core fixtures keep validating

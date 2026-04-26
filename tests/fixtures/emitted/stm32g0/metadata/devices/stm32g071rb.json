@@ -1463,6 +1463,28 @@
       "selector_id": "selector:usart1-kernel"
     }
   ],
+  "peripheral_max_clock_hz": [
+    {
+      "max_clock_hz": 64000000,
+      "peripheral": "USART1"
+    },
+    {
+      "max_clock_hz": 64000000,
+      "peripheral": "USART2"
+    },
+    {
+      "max_clock_hz": 64000000,
+      "peripheral": "SPI1"
+    },
+    {
+      "max_clock_hz": 64000000,
+      "peripheral": "I2C1"
+    },
+    {
+      "max_clock_hz": 64000000,
+      "peripheral": "I2C2"
+    }
+  ],
   "peripherals": [
     {
       "backend_schema_id": "alloy.gpio.st-stm32g07x-gpio-v1-0",

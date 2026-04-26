@@ -269,5 +269,15 @@
       "supports_lsb_first": true,
       "supports_nss_hw_management": true
     }
+  ],
+  "peripheral_max_clock_hz": [
+    {
+      "peripheral": "UART0",
+      "max_clock_hz": 80000000
+    },
+    {
+      "peripheral": "SPI0",
+      "max_clock_hz": 80000000
+    }
   ]
 }

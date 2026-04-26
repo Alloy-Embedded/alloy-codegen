@@ -170,6 +170,37 @@ struct AdcDmaModeOption {
   std::uint8_t field_value = 0u;
   bool valid = false;
 };
+
+// Kernel-clock source classifier (added by add-kernel-clock-traits).
+// Maps RCC mux parent-options onto a small enum so HAL drivers can
+// resolve the actual feeding clock (PCLK1, SYSCLK, HSI16, ...) from
+// system_clock_profiles at compile time.
+enum class KernelClockSource : std::uint8_t {
+  none,
+  pclk,
+  pclk1,
+  pclk2,
+  hclk,
+  sysclk,
+  hsi,
+  hsi16,
+  hse,
+  lsi,
+  lse,
+  xtal,
+  apb,
+  peri_clk,
+  clk_per,
+  lpuart_clk_root,
+  rc_fast,
+  ref_tick,
+};
+
+struct KernelClockSourceOption {
+  KernelClockSource source = KernelClockSource::none;
+  std::uint8_t field_value = 0u;
+  bool valid = false;
+};
 }
 }
 }

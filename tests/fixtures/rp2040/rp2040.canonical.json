@@ -18692,6 +18692,24 @@
       "supports_nss_hw_management": true
     }
   ],
+  "peripheral_max_clock_hz": [
+    {
+      "peripheral": "UART0",
+      "max_clock_hz": 125000000
+    },
+    {
+      "peripheral": "UART1",
+      "max_clock_hz": 125000000
+    },
+    {
+      "peripheral": "SPI0",
+      "max_clock_hz": 125000000
+    },
+    {
+      "peripheral": "SPI1",
+      "max_clock_hz": 125000000
+    }
+  ],
   "pio_blocks": [
     {
       "pio_id": "Pio0",
