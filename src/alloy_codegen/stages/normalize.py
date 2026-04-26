@@ -12,29 +12,19 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
     AdcUnitDescriptor,
-    Rp2040AdcPeripheralDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
-    Rp2040DmaControllerHwDescriptor,
-    Rp2040PwmSliceHwDescriptor,
-    Rp2040SpiPeripheralDescriptor,
-    Rp2040TimerControllerHwDescriptor,
-    Rp2040UartPeripheralDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
-    DmaChannelDescriptor,
-    LedcDescriptor,
-    SpiPeripheralDescriptor,
-    TimerUnitDescriptor,
-    UartPeripheralDescriptor,
-    UsbControllerDescriptor,
     ClockNodeLite,
     ClockSelectorLite,
     DeviceIdentity,
+    DmaChannelDescriptor,
     DmaControllerDescriptor,
     DmaRequestDefinition,
     GpioPinDescriptor,
     InterruptDefinition,
+    LedcDescriptor,
     MemoryRegion,
     PackageDefinition,
     PackagePad,
@@ -48,7 +38,17 @@ from alloy_codegen.ir.model import (
     RegisterDescriptor,
     RegisterFieldDescriptor,
     ResetDescriptor,
+    Rp2040AdcPeripheralDescriptor,
+    Rp2040DmaControllerHwDescriptor,
+    Rp2040PwmSliceHwDescriptor,
+    Rp2040SpiPeripheralDescriptor,
+    Rp2040TimerControllerHwDescriptor,
+    Rp2040UartPeripheralDescriptor,
+    SpiPeripheralDescriptor,
     SystemClockProfile,
+    TimerUnitDescriptor,
+    UartPeripheralDescriptor,
+    UsbControllerDescriptor,
 )
 from alloy_codegen.patches import (
     ClockGatePatch,
@@ -179,10 +179,7 @@ def _resolve_register_id(
     peripheral_target = peripheral_part.strip()
     register_target = register_part.strip()
     for register in registers:
-        if (
-            register.peripheral == peripheral_target
-            and register.name == register_target
-        ):
+        if register.peripheral == peripheral_target and register.name == register_target:
             return register.register_id
     return None
 

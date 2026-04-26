@@ -7114,9 +7114,7 @@ def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
     # builder below can enrich each register-level row with the static
     # silicon facts (base address, endpoint count, packet memory, fixed
     # pin assignment) that drive the alloy ``UsbDeviceController<T>`` HAL.
-    usb_hw_by_id = {
-        usb.controller_id: usb for usb in context.device.usb_controllers
-    }
+    usb_hw_by_id = {usb.controller_id: usb for usb in context.device.usb_controllers}
 
     import dataclasses as _dc
 
@@ -7176,8 +7174,7 @@ def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
     invalid_reg = _invalid_register_ref()
     invalid_field = _invalid_field_ref()
     runtime_peripheral_names = {
-        peripheral.name
-        for peripheral in context.runtime_peripherals_by_class.get("usb", ())
+        peripheral.name for peripheral in context.runtime_peripherals_by_class.get("usb", ())
     }
     for hw in context.device.usb_controllers:
         if hw.controller_id in covered:
@@ -10211,6 +10208,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         "};",
         "",
     ]
+
     def _af_lines(pin: GpioPinDescriptor | None) -> list[str]:
         if pin is None:
             return [
@@ -11527,12 +11525,8 @@ def _usb_specialization_builder(context: _SemanticContext):
             + ("true" if row.hardware_present else "false")
             + ";"
         )
-        lines.append(
-            f"  static constexpr std::uintptr_t kBaseAddress = 0x{row.base_address:08X}u;"
-        )
-        lines.append(
-            f"  static constexpr std::uint16_t kEndpointCount = {row.endpoint_count}u;"
-        )
+        lines.append(f"  static constexpr std::uintptr_t kBaseAddress = 0x{row.base_address:08X}u;")
+        lines.append(f"  static constexpr std::uint16_t kEndpointCount = {row.endpoint_count}u;")
         lines.append(
             "  static constexpr bool kSupportsHighSpeed = "
             + ("true" if row.supports_high_speed else "false")
@@ -11552,12 +11546,8 @@ def _usb_specialization_builder(context: _SemanticContext):
             f"0x{row.dpram_base_address:08X}u" if row.dpram_base_address is not None else "0u"
         )
         dpram_size = row.dpram_size_bytes if row.dpram_size_bytes is not None else 0
-        lines.append(
-            f"  static constexpr std::uintptr_t kDpramBaseAddress = {dpram_base};"
-        )
-        lines.append(
-            f"  static constexpr std::uint32_t kDpramSizeBytes = {dpram_size}u;"
-        )
+        lines.append(f"  static constexpr std::uintptr_t kDpramBaseAddress = {dpram_base};")
+        lines.append(f"  static constexpr std::uint32_t kDpramSizeBytes = {dpram_size}u;")
         lines.append(
             f"  static constexpr std::uint8_t kDmaChannelCount = {row.dma_channel_count}u;"
         )
@@ -12213,10 +12203,12 @@ def _uart_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
         ]
     )
     for ctrl in device.rp2040_uart_peripherals:
+
         def _arr(pads: tuple[int, ...]) -> str:
             if not pads:
-                return f"  static constexpr std::array<std::uint8_t, 0> kPads = {{}};"
+                return "  static constexpr std::array<std::uint8_t, 0> kPads = {};"
             return ", ".join(f"{p}u" for p in pads)
+
         lines.extend(
             [
                 "template<>",
@@ -12469,10 +12461,12 @@ def _spi_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
             "",
         ]
     )
+
     def _arr(pads: tuple[int, ...]) -> str:
         return ", ".join(f"{p}u" for p in pads)
 
     for ctrl in device.rp2040_spi_peripherals:
+
         def _pad_line(name: str, pads: tuple[int, ...]) -> str:
             if not pads:
                 return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"

@@ -1847,9 +1847,7 @@ def test_same70_usbhs_traits_emit_high_speed_dma_facts(
         microchip_execution_context,
     )
     arts = {a.path: a for a in result.payload.artifacts}
-    usb_path = (
-        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/usb.hpp"
-    )
+    usb_path = "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/usb.hpp"
     assert usb_path in arts
     content = arts[usb_path].content
     assert "struct UsbSemanticTraits<PeripheralId::USBHS>" in content

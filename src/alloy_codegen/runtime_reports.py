@@ -617,9 +617,7 @@ def build_runtime_provenance_payload(
                 )
                 if register is not None:
                     supporting_provenances = (register.provenance,)
-                    supporting_fact_ids = (
-                        f"register:{register.register_id}",
-                    )
+                    supporting_fact_ids = (f"register:{register.register_id}",)
                 else:
                     supporting_provenances = ()
                     supporting_fact_ids = ()

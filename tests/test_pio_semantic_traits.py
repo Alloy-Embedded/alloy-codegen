@@ -21,9 +21,8 @@ from alloy_codegen.stages.emit import run as run_emit
 
 def _emit_pio_hpp(context: ExecutionContext, device: str) -> str:
     result = run_emit(PipelineScope(device=device), context)
-    artifact = next(
-        a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/pio.hpp")
-    )
+    suffix = f"/{device}/driver_semantics/pio.hpp"
+    artifact = next(a for a in result.payload.artifacts if a.path.endswith(suffix))
     return artifact.content
 
 

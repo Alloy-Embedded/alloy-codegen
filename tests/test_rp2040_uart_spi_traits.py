@@ -18,9 +18,8 @@ from alloy_codegen.stages.emit import run as run_emit
 
 def _emit(context: ExecutionContext, device: str, header: str) -> str:
     result = run_emit(PipelineScope(device=device), context)
-    artifact = next(
-        a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/{header}")
-    )
+    suffix = f"/{device}/driver_semantics/{header}"
+    artifact = next(a for a in result.payload.artifacts if a.path.endswith(suffix))
     return artifact.content
 
 

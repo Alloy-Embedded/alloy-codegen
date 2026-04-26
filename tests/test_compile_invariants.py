@@ -37,7 +37,18 @@ def _compile(*, source: Path, defines: dict[str, str], include_dirs: list[Path])
     cxx = _find_cxx()
     if cxx is None:
         pytest.skip("no host C++ compiler available (c++/clang++/g++)")
-    cmd = [cxx, "-std=c++20", "-Werror", "-Wall", "-Wextra", "-pedantic", "-c", str(source), "-o", "/dev/null"]
+    cmd = [
+        cxx,
+        "-std=c++20",
+        "-Werror",
+        "-Wall",
+        "-Wextra",
+        "-pedantic",
+        "-c",
+        str(source),
+        "-o",
+        "/dev/null",
+    ]
     for key, value in defines.items():
         cmd.append(f"-D{key}={value}")
     for include in include_dirs:
@@ -97,23 +108,16 @@ def test_rp2040_peripheral_traits_compile_invariants() -> None:
     internal temperature sensor), and DMA / Timer / PWM HW topology.
     """
     source = COMPILE_TESTS_DIR / "test_rp2040_peripheral_traits.cpp"
-    rp2040_root = (
-        FIXTURES_EMITTED
-        / "rp2040"
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "rp2040"
-    )
+    rp2040_root = FIXTURES_EMITTED / "rp2040" / "generated" / "runtime" / "devices" / "rp2040"
     driver_root = rp2040_root / "driver_semantics"
     headers = {
-        "ALLOY_CODEGEN_RP2040_GPIO_HEADER":  driver_root / "gpio.hpp",
-        "ALLOY_CODEGEN_RP2040_UART_HEADER":  driver_root / "uart.hpp",
-        "ALLOY_CODEGEN_RP2040_SPI_HEADER":   driver_root / "spi.hpp",
-        "ALLOY_CODEGEN_RP2040_ADC_HEADER":   driver_root / "adc.hpp",
+        "ALLOY_CODEGEN_RP2040_GPIO_HEADER": driver_root / "gpio.hpp",
+        "ALLOY_CODEGEN_RP2040_UART_HEADER": driver_root / "uart.hpp",
+        "ALLOY_CODEGEN_RP2040_SPI_HEADER": driver_root / "spi.hpp",
+        "ALLOY_CODEGEN_RP2040_ADC_HEADER": driver_root / "adc.hpp",
         "ALLOY_CODEGEN_RP2040_TIMER_HEADER": driver_root / "timer.hpp",
-        "ALLOY_CODEGEN_RP2040_PWM_HEADER":   driver_root / "pwm.hpp",
-        "ALLOY_CODEGEN_RP2040_DMA_HEADER":   driver_root / "dma.hpp",
+        "ALLOY_CODEGEN_RP2040_PWM_HEADER": driver_root / "pwm.hpp",
+        "ALLOY_CODEGEN_RP2040_DMA_HEADER": driver_root / "dma.hpp",
     }
     for path in headers.values():
         assert path.exists(), path
@@ -136,12 +140,7 @@ def test_stm32g0_gpio_traits_compile_invariants() -> None:
     """
     source = COMPILE_TESTS_DIR / "test_stm32g0_gpio_traits.cpp"
     stm32g0_root = (
-        FIXTURES_EMITTED
-        / "stm32g0"
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "stm32g071rb"
+        FIXTURES_EMITTED / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb"
     )
     driver_root = stm32g0_root / "driver_semantics"
     gpio_header = driver_root / "gpio.hpp"

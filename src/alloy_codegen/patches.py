@@ -231,21 +231,21 @@ class FamilyPatchCatalog:
     # populate the block with the APP_CPU control register name in
     # ``"PERIPHERAL.REGISTER"`` form — the normalizer resolves it to a typed
     # ``register_id`` after register filtering.
-    multicore_topology: "MulticoreTopologyPatch | None" = None
+    multicore_topology: MulticoreTopologyPatch | None = None
     # USB controller hardware-feature blocks (added by
     # ``add-usb-semantic-traits``).  Empty tuple for families without USB.
     # The normalizer mirrors each entry into a ``UsbControllerDescriptor``
     # on the device IR.
-    usb_controllers: tuple["UsbControllerPatch", ...] = ()
+    usb_controllers: tuple[UsbControllerPatch, ...] = ()
     # Hardware-feature blocks added by ``fill-espressif-semantic-gaps``.
     # Empty for families without explicit overlay; populated for ESP32 /
     # ESP32-C3 / ESP32-S3.
-    uart_peripherals: tuple["UartPeripheralPatch", ...] = ()
-    spi_peripherals: tuple["SpiPeripheralPatch", ...] = ()
-    adc_units: tuple["AdcUnitPatch", ...] = ()
-    timer_units: tuple["TimerUnitPatch", ...] = ()
-    ledc: "LedcPatch | None" = None
-    dma_channels: tuple["DmaChannelPatch", ...] = ()
+    uart_peripherals: tuple[UartPeripheralPatch, ...] = ()
+    spi_peripherals: tuple[SpiPeripheralPatch, ...] = ()
+    adc_units: tuple[AdcUnitPatch, ...] = ()
+    timer_units: tuple[TimerUnitPatch, ...] = ()
+    ledc: LedcPatch | None = None
+    dma_channels: tuple[DmaChannelPatch, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -958,8 +958,7 @@ def load_family_patch_catalog(
         usb_controllers=tuple(
             entry
             for entry in (
-                _parse_usb_controller_patch(item)
-                for item in payload.get("usb_controllers", ())
+                _parse_usb_controller_patch(item) for item in payload.get("usb_controllers", ())
             )
             if entry is not None
         ),
@@ -968,41 +967,32 @@ def load_family_patch_catalog(
         uart_peripherals=tuple(
             entry
             for entry in (
-                _parse_uart_peripheral_patch(item)
-                for item in payload.get("uart_peripherals", ())
+                _parse_uart_peripheral_patch(item) for item in payload.get("uart_peripherals", ())
             )
             if entry is not None
         ),
         spi_peripherals=tuple(
             entry
             for entry in (
-                _parse_spi_peripheral_patch(item)
-                for item in payload.get("spi_peripherals", ())
+                _parse_spi_peripheral_patch(item) for item in payload.get("spi_peripherals", ())
             )
             if entry is not None
         ),
         adc_units=tuple(
             entry
-            for entry in (
-                _parse_adc_unit_patch(item)
-                for item in payload.get("adc_units", ())
-            )
+            for entry in (_parse_adc_unit_patch(item) for item in payload.get("adc_units", ()))
             if entry is not None
         ),
         timer_units=tuple(
             entry
-            for entry in (
-                _parse_timer_unit_patch(item)
-                for item in payload.get("timer_units", ())
-            )
+            for entry in (_parse_timer_unit_patch(item) for item in payload.get("timer_units", ()))
             if entry is not None
         ),
         ledc=_parse_ledc_patch(payload.get("ledc")),
         dma_channels=tuple(
             entry
             for entry in (
-                _parse_dma_channel_patch(item)
-                for item in payload.get("dma_channels", ())
+                _parse_dma_channel_patch(item) for item in payload.get("dma_channels", ())
             )
             if entry is not None
         ),
@@ -1018,7 +1008,7 @@ def _flag(payload: dict, key: str) -> bool:
     return bool(payload.get(key, False))
 
 
-def _parse_uart_peripheral_patch(payload: object) -> "UartPeripheralPatch | None":
+def _parse_uart_peripheral_patch(payload: object) -> UartPeripheralPatch | None:
     if not isinstance(payload, dict):
         return None
     pid = payload.get("peripheral_id")
@@ -1036,17 +1026,13 @@ def _parse_uart_peripheral_patch(payload: object) -> "UartPeripheralPatch | None
     )
 
 
-def _parse_spi_peripheral_patch(payload: object) -> "SpiPeripheralPatch | None":
+def _parse_spi_peripheral_patch(payload: object) -> SpiPeripheralPatch | None:
     if not isinstance(payload, dict):
         return None
     pid = payload.get("peripheral_id")
     base = payload.get("base_address")
     max_clock = payload.get("max_clock_hz")
-    if (
-        not isinstance(pid, str)
-        or not isinstance(base, int)
-        or not isinstance(max_clock, int)
-    ):
+    if not isinstance(pid, str) or not isinstance(base, int) or not isinstance(max_clock, int):
         return None
     return SpiPeripheralPatch(
         peripheral_id=pid,
@@ -1065,7 +1051,7 @@ def _parse_spi_peripheral_patch(payload: object) -> "SpiPeripheralPatch | None":
     )
 
 
-def _parse_adc_unit_patch(payload: object) -> "AdcUnitPatch | None":
+def _parse_adc_unit_patch(payload: object) -> AdcUnitPatch | None:
     if not isinstance(payload, dict):
         return None
     uid = payload.get("unit_id")
@@ -1084,7 +1070,7 @@ def _parse_adc_unit_patch(payload: object) -> "AdcUnitPatch | None":
     )
 
 
-def _parse_timer_unit_patch(payload: object) -> "TimerUnitPatch | None":
+def _parse_timer_unit_patch(payload: object) -> TimerUnitPatch | None:
     if not isinstance(payload, dict):
         return None
     tid = payload.get("timer_id")
@@ -1092,14 +1078,14 @@ def _parse_timer_unit_patch(payload: object) -> "TimerUnitPatch | None":
     ti = payload.get("timer_idx")
     base = payload.get("base_address")
     bits = payload.get("bits")
-    if not all(
-        isinstance(v, (str, int)) for v in (tid, gi, ti, base, bits)
-    ):
+    if not all(isinstance(v, (str, int)) for v in (tid, gi, ti, base, bits)):
         return None
     if not isinstance(tid, str):
         return None
     sources = payload.get("clock_sources") or ()
-    sources_tuple = tuple(s for s in sources if isinstance(s, str)) if isinstance(sources, list) else ()
+    sources_tuple = (
+        tuple(s for s in sources if isinstance(s, str)) if isinstance(sources, list) else ()
+    )
     return TimerUnitPatch(
         timer_id=tid,
         group_idx=int(gi),  # type: ignore[arg-type]
@@ -1110,7 +1096,7 @@ def _parse_timer_unit_patch(payload: object) -> "TimerUnitPatch | None":
     )
 
 
-def _parse_ledc_patch(payload: object) -> "LedcPatch | None":
+def _parse_ledc_patch(payload: object) -> LedcPatch | None:
     if not isinstance(payload, dict):
         return None
     base = payload.get("base_address")
@@ -1125,23 +1111,21 @@ def _parse_ledc_patch(payload: object) -> "LedcPatch | None":
         channel_count=cc,
         resolution_bits=rb,
         clock_sources=tuple(s for s in sources if isinstance(s, str))
-        if isinstance(sources, list) else (),
+        if isinstance(sources, list)
+        else (),
         output_signals=tuple(s for s in out_signals if isinstance(s, int))
-        if isinstance(out_signals, list) else (),
+        if isinstance(out_signals, list)
+        else (),
     )
 
 
-def _parse_dma_channel_patch(payload: object) -> "DmaChannelPatch | None":
+def _parse_dma_channel_patch(payload: object) -> DmaChannelPatch | None:
     if not isinstance(payload, dict):
         return None
     cid = payload.get("channel_id")
     ci = payload.get("channel_index")
     is_gdma = payload.get("is_gdma")
-    if (
-        not isinstance(cid, str)
-        or not isinstance(ci, int)
-        or not isinstance(is_gdma, bool)
-    ):
+    if not isinstance(cid, str) or not isinstance(ci, int) or not isinstance(is_gdma, bool):
         return None
     requests = payload.get("peripheral_requests") or {}
     requests_tuple: tuple[tuple[str, int], ...] = ()
@@ -1160,7 +1144,7 @@ def _parse_dma_channel_patch(payload: object) -> "DmaChannelPatch | None":
     )
 
 
-def _parse_usb_controller_patch(payload: object) -> "UsbControllerPatch | None":
+def _parse_usb_controller_patch(payload: object) -> UsbControllerPatch | None:
     """Parse one ``family.json::usb_controllers[*]`` entry."""
     if not isinstance(payload, dict):
         return None
@@ -1231,9 +1215,7 @@ def _parse_multicore_topology_patch(
                 operation=operation_value,
                 start_vector_symbol=start_vector_value,
                 register_secondary=(
-                    register_secondary_value
-                    if isinstance(register_secondary_value, str)
-                    else None
+                    register_secondary_value if isinstance(register_secondary_value, str) else None
                 ),
             )
     return MulticoreTopologyPatch(

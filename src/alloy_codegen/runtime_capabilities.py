@@ -251,9 +251,7 @@ def runtime_capability_rows(device: CanonicalDeviceIR) -> tuple[RuntimeCapabilit
     plane = device.app_cpu_control_plane
     if plane is not None:
         if plane.release_register_secondary is not None:
-            register_value = (
-                f"[{plane.release_register},{plane.release_register_secondary}]"
-            )
+            register_value = f"[{plane.release_register},{plane.release_register_secondary}]"
         else:
             register_value = plane.release_register
         rows_by_id["device:secondary-core-release-register"] = RuntimeCapabilityRow(

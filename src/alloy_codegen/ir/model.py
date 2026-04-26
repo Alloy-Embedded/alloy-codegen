@@ -331,9 +331,7 @@ class RegisterDescriptor:
     access: str | None
     size_bits: int | None
     provenance: Provenance
-    role: RegisterRole = field(
-        default="general", metadata={"omit_if_default": True}
-    )
+    role: RegisterRole = field(default="general", metadata={"omit_if_default": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -1020,7 +1018,8 @@ class CanonicalDeviceIR:
         default="single_core", metadata={"omit_if_default": True}
     )
     app_cpu_control_plane: AppCpuControlPlane | None = field(
-        default=None, metadata={"omit_if_empty": True},
+        default=None,
+        metadata={"omit_if_empty": True},
     )
     # PIO block topology (added by define-pio-semantic-struct).  Empty for
     # devices without Programmable I/O hardware.
@@ -1051,9 +1050,7 @@ class CanonicalDeviceIR:
     timer_units: tuple[TimerUnitDescriptor, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    ledc: LedcDescriptor | None = field(
-        default=None, metadata={"omit_if_empty": True}
-    )
+    ledc: LedcDescriptor | None = field(default=None, metadata={"omit_if_empty": True})
     dma_channels: tuple[DmaChannelDescriptor, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )

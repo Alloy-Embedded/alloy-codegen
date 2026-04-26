@@ -805,17 +805,12 @@ def test_esp32_secondary_core_release_step_emitted(
     device = run_normalize(scope, espressif_execution_context).payload.devices[0]
     assert device.multicore_topology == "xtensa_asymmetric_dual_core"
     assert device.app_cpu_control_plane is not None
-    assert (
-        device.app_cpu_control_plane.release_register == "register:dport:appcpu-ctrl-b"
-    )
+    assert device.app_cpu_control_plane.release_register == "register:dport:appcpu-ctrl-b"
     assert device.app_cpu_control_plane.operation == "set-bit-0"
     steps = runtime_system_sequence_steps(device)
     release_steps = [s for s in steps if s.kind == "secondary-core-release"]
     assert len(release_steps) == 1
-    assert (
-        release_steps[0].secondary_core_release_register_id
-        == "register:dport:appcpu-ctrl-b"
-    )
+    assert release_steps[0].secondary_core_release_register_id == "register:dport:appcpu-ctrl-b"
     assert release_steps[0].secondary_core_release_register_secondary_id is None
     assert release_steps[0].secondary_core_release_operation == "set-bit-0"
 
@@ -830,10 +825,7 @@ def test_esp32s3_secondary_core_release_step_emitted(
     device = run_normalize(scope, espressif_execution_context).payload.devices[0]
     assert device.multicore_topology == "xtensa_asymmetric_dual_core"
     assert device.app_cpu_control_plane is not None
-    assert (
-        device.app_cpu_control_plane.release_register
-        == "register:system:core-1-control-0"
-    )
+    assert device.app_cpu_control_plane.release_register == "register:system:core-1-control-0"
     assert (
         device.app_cpu_control_plane.release_register_secondary
         == "register:system:core-1-control-1"
@@ -842,18 +834,12 @@ def test_esp32s3_secondary_core_release_step_emitted(
     steps = runtime_system_sequence_steps(device)
     release_steps = [s for s in steps if s.kind == "secondary-core-release"]
     assert len(release_steps) == 1
-    assert (
-        release_steps[0].secondary_core_release_register_id
-        == "register:system:core-1-control-0"
-    )
+    assert release_steps[0].secondary_core_release_register_id == "register:system:core-1-control-0"
     assert (
         release_steps[0].secondary_core_release_register_secondary_id
         == "register:system:core-1-control-1"
     )
-    assert (
-        release_steps[0].secondary_core_release_operation
-        == "clear-runstall-after-clkgate"
-    )
+    assert release_steps[0].secondary_core_release_operation == "clear-runstall-after-clkgate"
 
 
 def test_esp32c3_has_no_secondary_core_release_step(
