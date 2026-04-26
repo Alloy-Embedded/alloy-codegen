@@ -77,18 +77,27 @@
       `portmux_alt = false` until PORTMUX support lands.
 - [ ] D.2 Test + golden regen.
 
-## Phase E — CI gate + docs + compile tests + archive
+## Phase E — CI gate + docs + compile tests + archive (this commit)
 
-- [ ] E.1 New `tests/test_i2c_semantic_coverage.py` — per-family gate
-      identical in shape to the GPIO coverage gate
-      (`test_gpio_semantic_coverage.py`).  Skips families whose
-      registered devices contain no I2C / TWI controller.
-- [ ] E.2 New `tests/compile_tests/test_stm32g0_i2c_traits.cpp` and
-      RP2040 / Espressif counterparts; harness in
-      `tests/test_compile_invariants.py` runs them when a host C++20
-      compiler is on `PATH`.
-- [ ] E.3 Update `docs/COVERAGE_MATRIX.md`: add `i2c_traits` column
-      with per-family annotation
-      (STM32 OPD, AVR PORTMUX, Espressif IO matrix, RP2040 datasheet
-      table).  RP2040 will flip last when Phase C lands.
-- [ ] E.4 `openspec archive fill-i2c-semantic-gaps`.
+- [x] E.1 `tests/test_i2c_semantic_coverage.py` per-family gate.
+      Espressif (esp32 / esp32c3 / esp32s3), RP2040 (rp2040 / pico),
+      and AVR-DA (avr128da32) carry hard `>= 1` assertions.  STM32G0
+      and iMXRT1060 are documented gaps: their fixture-context SVD
+      slices don't ship I2C peripherals so the gate runs but doesn't
+      assert non-zero — real silicon (default `ExecutionContext`)
+      *does* populate, exercised end-to-end through the
+      `test_i2c_peripheral_traits.py` primary-template assertion.
+- [x] E.2 `tests/compile_tests/test_rp2040_i2c_traits.cpp`
+      `static_assert`s on RP2040 I2C0 / I2C1 — base addresses, DREQs,
+      pad allowlist (`PinId::GP0` / `PinId::GP29`), primary-template
+      defaults.  `tests/test_compile_invariants.py` picks it up next
+      to the existing PIO / GPIO / per-peripheral RP2040 compile
+      gates.  STM32G0 / Espressif counterparts deferred — same
+      fixture-coverage gap as E.1.
+- [x] E.3 `docs/COVERAGE_MATRIX.md` extended with an `i2c_traits`
+      column annotated per family (STM32 AF table, AVR-DA TWI default,
+      Espressif IO matrix + S3 Fm+, RP2040 datasheet pin allowlist,
+      iMXRT register-level, SAME70 register-level).
+- [x] E.4 `openspec archive fill-i2c-semantic-gaps` — moved to
+      `openspec/changes/archive/2026-04-26-fill-i2c-semantic-gaps/`
+      and folded the spec deltas into the canonical specs.
