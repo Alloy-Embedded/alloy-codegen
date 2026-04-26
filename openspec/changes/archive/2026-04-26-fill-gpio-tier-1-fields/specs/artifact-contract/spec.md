@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: gpio.hpp SHALL surface valid Tier 1 field references on STM32
 
