@@ -1663,6 +1663,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         rp2040_pwm_slice_hw=device.rp2040_pwm_slice_hw,
         i2c_peripherals=device.i2c_peripherals,
         stm_timer_pwm_peripherals=device.stm_timer_pwm_peripherals,
+        mcpwm_peripherals=device.mcpwm_peripherals,
+        flex_pwm_peripherals=device.flex_pwm_peripherals,
+        avr_da_tca_pwm_peripherals=device.avr_da_tca_pwm_peripherals,
+        same70_pwm_peripherals=device.same70_pwm_peripherals,
     )
 
 

@@ -880,6 +880,106 @@ class I2cPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class AvrDaTcaPwmDescriptor:
+    """Microchip AVR-DA Timer-Counter Type A PWM (Phase D).
+
+    AVR-DA TCA0 (and TCA1 on larger packages) supports split-mode
+    PWM where one 16-bit timer becomes two 8-bit timers driving 6
+    PWM channels.  Default placement: ``"PA0"`` .. ``"PA5"`` on
+    TCA0; alternate placement via PORTMUX_TCAROUTEA records the
+    same descriptor with ``portmux_alt = True``.
+    """
+
+    controller_id: str
+    base_address: int
+    default_channel_pins: tuple[str, ...] = ()
+    split_mode_channels: int = 6
+    single_mode_channels: int = 3
+    counter_bits: int = 16
+    portmux_alt: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class Same70PwmDescriptor:
+    """Microchip SAME70 PWM controller / Timer-Counter waveform-mode
+    descriptor (Phase D).
+
+    SAME70 ships two `PWM` peripherals (4 channels each) and four
+    `TC` blocks each capable of waveform-mode PWM output (3 channels
+    each).  ``kind`` distinguishes ``"pwm"`` (full PWM) from ``"tc"``
+    (TC waveform mode).
+    """
+
+    controller_id: str
+    base_address: int
+    kind: str  # "pwm" | "tc"
+    channel_count: int
+    valid_pins_per_channel: tuple[tuple[str, ...], ...] = ()
+    supports_dead_time: bool = False
+    supports_fault_input: bool = False
+    supports_dma: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class FlexPwmDescriptor:
+    """NXP iMXRT FlexPWM controller (added by
+    ``extend-pwm-coverage-all-mcus`` Phase C).
+
+    iMXRT1060 ships four FlexPWM peripherals (``PWM1`` .. ``PWM4``).
+    Each block has 4 *submodules* with paired A/B PWM outputs, fault
+    inputs, dead-time generation, and force-init triggers (datasheet
+    §32 / IMXRT1060RM).
+
+    Per-submodule pin tuples are Phase-C-deferred: the iMXRT IOMUX
+    table flow into ``device.gpio_pins`` (already populated) but the
+    submodule → pad mapping requires an additional patch overlay.
+    Initial Phase C emission carries empty pin tuples; consumer
+    concept checks rely on the silicon-fixed flag fields.
+    """
+
+    controller_id: str
+    base_address: int
+    submodule_count: int = 4
+    paired_channels: bool = True
+    valid_a_pins_per_submodule: tuple[tuple[str, ...], ...] = ()
+    valid_b_pins_per_submodule: tuple[tuple[str, ...], ...] = ()
+    supports_complementary: bool = True
+    supports_deadtime: bool = True
+    supports_fault_input: bool = True
+    supports_force_initialization: bool = True
+    dma_req_lines: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class McpwmDescriptor:
+    """Espressif MCPWM (Motor Control PWM) controller (added by
+    ``extend-pwm-coverage-all-mcus`` Phase B).
+
+    ESP32 classic and ESP32-S3 each ship two MCPWM peripherals
+    (``MCPWM0`` / ``MCPWM1``); ESP32-C3 ships none.  Each MCPWM has
+    3 timers + 6 PWM outputs (3 paired A/B operators) + capture
+    inputs.
+
+    ``gpio_matrix_signals`` carries the IO-matrix output signal
+    indices for ``MCPWM_TIMER0_A_OUT`` .. ``MCPWM_TIMER2_B_OUT``;
+    ``capture_signals`` carries the input signal indices for the
+    capture submodule.  Both default to empty tuples on Phase B
+    (the test SVD slice doesn't ship MCPWM pin signals); a follow-up
+    will populate them by parsing ``gpio_sig_map.h``.
+    """
+
+    controller_id: str
+    base_address: int
+    timer_count: int = 3
+    output_signal_count: int = 6
+    gpio_matrix_signals: tuple[int, ...] = ()
+    capture_signals: tuple[int, ...] = ()
+    supports_deadtime: bool = True
+    supports_carrier_modulation: bool = True
+    supports_fault_input: bool = True
+
+
+@dataclass(frozen=True, slots=True)
 class StmTimerPwmDescriptor:
     """STM32 TIMx peripheral acting as a PWM generator (added by
     ``extend-pwm-coverage-all-mcus`` Phase A).
@@ -1174,6 +1274,26 @@ class CanonicalDeviceIR:
     #
     #   stm_timer_pwm_peripherals — STM32 TIMx in PWM mode (Phase A)
     stm_timer_pwm_peripherals: tuple[StmTimerPwmDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    #   mcpwm_peripherals — Espressif MCPWM (Phase B)
+    mcpwm_peripherals: tuple[McpwmDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    #   flex_pwm_peripherals — NXP iMXRT FlexPWM (Phase C)
+    flex_pwm_peripherals: tuple[FlexPwmDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    #   avr_da_tca_pwm_peripherals — Microchip AVR-DA TCA (Phase D)
+    avr_da_tca_pwm_peripherals: tuple[AvrDaTcaPwmDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    #   same70_pwm_peripherals — Microchip SAME70 PWM/TC waveform (Phase D)
+    same70_pwm_peripherals: tuple[Same70PwmDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

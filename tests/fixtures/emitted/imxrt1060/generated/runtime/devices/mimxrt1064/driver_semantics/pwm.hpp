@@ -564,6 +564,135 @@ struct StmTimerPwmTraits {
   static constexpr std::uint32_t kMaxClockHz = 0u;
 };
 
+
+// extend-pwm-coverage-all-mcus Phase B: Espressif MCPWM facts.
+enum class RuntimeMcpwmId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeMcpwmId Id>
+struct McpwmTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kTimerCount = 0u;
+  static constexpr std::uint8_t kOutputSignalCount = 0u;
+  static constexpr std::array<std::uint16_t, 0> kGpioMatrixSignals = {};
+  static constexpr std::array<std::uint16_t, 0> kCaptureSignals = {};
+  static constexpr bool kSupportsDeadtime = false;
+  static constexpr bool kSupportsCarrierModulation = false;
+  static constexpr bool kSupportsFaultInput = false;
+};
+
+
+// extend-pwm-coverage-all-mcus Phase C: NXP iMXRT FlexPWM facts.
+enum class RuntimeFlexPwmId : std::uint8_t {
+  None = 0,
+  PWM1 = 1,
+  PWM2 = 2,
+  PWM3 = 3,
+  PWM4 = 4,
+};
+
+template<RuntimeFlexPwmId Id>
+struct FlexPwmTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kSubmoduleCount = 0u;
+  static constexpr bool kPairedChannels = false;
+  static constexpr bool kSupportsComplementary = false;
+  static constexpr bool kSupportsDeadtime = false;
+  static constexpr bool kSupportsFaultInput = false;
+  static constexpr bool kSupportsForceInitialization = false;
+};
+
+template<>
+struct FlexPwmTraits<RuntimeFlexPwmId::PWM1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x403dc000u;
+  static constexpr std::uint8_t kSubmoduleCount = 4u;
+  static constexpr bool kPairedChannels = true;
+  static constexpr bool kSupportsComplementary = true;
+  static constexpr bool kSupportsDeadtime = true;
+  static constexpr bool kSupportsFaultInput = true;
+  static constexpr bool kSupportsForceInitialization = true;
+};
+
+template<>
+struct FlexPwmTraits<RuntimeFlexPwmId::PWM2> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x403e0000u;
+  static constexpr std::uint8_t kSubmoduleCount = 4u;
+  static constexpr bool kPairedChannels = true;
+  static constexpr bool kSupportsComplementary = true;
+  static constexpr bool kSupportsDeadtime = true;
+  static constexpr bool kSupportsFaultInput = true;
+  static constexpr bool kSupportsForceInitialization = true;
+};
+
+template<>
+struct FlexPwmTraits<RuntimeFlexPwmId::PWM3> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x403e4000u;
+  static constexpr std::uint8_t kSubmoduleCount = 4u;
+  static constexpr bool kPairedChannels = true;
+  static constexpr bool kSupportsComplementary = true;
+  static constexpr bool kSupportsDeadtime = true;
+  static constexpr bool kSupportsFaultInput = true;
+  static constexpr bool kSupportsForceInitialization = true;
+};
+
+template<>
+struct FlexPwmTraits<RuntimeFlexPwmId::PWM4> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x403e8000u;
+  static constexpr std::uint8_t kSubmoduleCount = 4u;
+  static constexpr bool kPairedChannels = true;
+  static constexpr bool kSupportsComplementary = true;
+  static constexpr bool kSupportsDeadtime = true;
+  static constexpr bool kSupportsFaultInput = true;
+  static constexpr bool kSupportsForceInitialization = true;
+};
+
+
+// extend-pwm-coverage-all-mcus Phase D: Microchip AVR-DA TCA PWM facts.
+enum class RuntimeAvrDaTcaPwmId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeAvrDaTcaPwmId Id>
+struct AvrDaTcaPwmTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::array<PinId, 0> kDefaultChannelPins = {};
+  static constexpr std::uint8_t kSplitModeChannels = 0u;
+  static constexpr std::uint8_t kSingleModeChannels = 0u;
+  static constexpr std::uint8_t kCounterBits = 0u;
+  static constexpr bool kPortmuxAlt = false;
+};
+
+
+// extend-pwm-coverage-all-mcus Phase D: Microchip SAM E70 PWM/TC facts.
+enum class RuntimeSame70PwmKind : std::uint8_t {
+  None = 0,
+  Pwm = 1,
+  Tc = 2,
+};
+
+enum class RuntimeSame70PwmId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeSame70PwmId Id>
+struct Same70PwmTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr RuntimeSame70PwmKind kKind = RuntimeSame70PwmKind::None;
+  static constexpr std::uint8_t kChannelCount = 0u;
+  static constexpr bool kSupportsDeadTime = false;
+  static constexpr bool kSupportsFaultInput = false;
+  static constexpr bool kSupportsDma = false;
+};
+
 }
 }
 }

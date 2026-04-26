@@ -12385,6 +12385,126 @@ def _pwm_slice_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
     return lines
 
 
+def _flex_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """extend-pwm-coverage-all-mcus Phase C: NXP iMXRT FlexPWM trait struct.
+
+    iMXRT1060 ships ``PWM1``..``PWM4`` (4 submodules, paired A/B
+    channels, complementary outputs, dead-time, fault input,
+    force-init).  Per-submodule pad arrays are Phase-C-deferred —
+    initial emission carries empty pad tuples; consumer concept
+    checks rely on the silicon-fixed flag fields.
+    """
+    lines = [
+        "// extend-pwm-coverage-all-mcus Phase C: NXP iMXRT FlexPWM facts.",
+        "enum class RuntimeFlexPwmId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.flex_pwm_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeFlexPwmId Id>",
+            "struct FlexPwmTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint8_t kSubmoduleCount = 0u;",
+            "  static constexpr bool kPairedChannels = false;",
+            "  static constexpr bool kSupportsComplementary = false;",
+            "  static constexpr bool kSupportsDeadtime = false;",
+            "  static constexpr bool kSupportsFaultInput = false;",
+            "  static constexpr bool kSupportsForceInitialization = false;",
+            "};",
+            "",
+        ]
+    )
+    for ctrl in device.flex_pwm_peripherals:
+        lines.extend(
+            [
+                "template<>",
+                f"struct FlexPwmTraits<RuntimeFlexPwmId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint8_t kSubmoduleCount = {ctrl.submodule_count}u;",
+                f"  static constexpr bool kPairedChannels = {'true' if ctrl.paired_channels else 'false'};",
+                f"  static constexpr bool kSupportsComplementary = {'true' if ctrl.supports_complementary else 'false'};",
+                f"  static constexpr bool kSupportsDeadtime = {'true' if ctrl.supports_deadtime else 'false'};",
+                f"  static constexpr bool kSupportsFaultInput = {'true' if ctrl.supports_fault_input else 'false'};",
+                f"  static constexpr bool kSupportsForceInitialization = {'true' if ctrl.supports_force_initialization else 'false'};",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _mcpwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """extend-pwm-coverage-all-mcus Phase B: Espressif MCPWM trait struct.
+
+    Emits a `RuntimeMcpwmId` enum + `McpwmTraits<RuntimeMcpwmId>`
+    template populated from `device.mcpwm_peripherals`.  ESP32 classic
+    + S3 ship two MCPWM peripherals each; ESP32-C3 ships none (the
+    descriptor list is empty there and only the primary template
+    fires).
+    """
+    lines = [
+        "// extend-pwm-coverage-all-mcus Phase B: Espressif MCPWM facts.",
+        "enum class RuntimeMcpwmId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.mcpwm_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeMcpwmId Id>",
+            "struct McpwmTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint8_t kTimerCount = 0u;",
+            "  static constexpr std::uint8_t kOutputSignalCount = 0u;",
+            "  static constexpr std::array<std::uint16_t, 0> kGpioMatrixSignals = {};",
+            "  static constexpr std::array<std::uint16_t, 0> kCaptureSignals = {};",
+            "  static constexpr bool kSupportsDeadtime = false;",
+            "  static constexpr bool kSupportsCarrierModulation = false;",
+            "  static constexpr bool kSupportsFaultInput = false;",
+            "};",
+            "",
+        ]
+    )
+
+    def _signal_array(name: str, signals: tuple[int, ...]) -> str:
+        if not signals:
+            return f"  static constexpr std::array<std::uint16_t, 0> {name} = {{}};"
+        items = ", ".join(f"{s}u" for s in signals)
+        return (
+            f"  static constexpr std::array<std::uint16_t, {len(signals)}> "
+            f"{name} = {{{items}}};"
+        )
+
+    for ctrl in device.mcpwm_peripherals:
+        lines.extend(
+            [
+                "template<>",
+                f"struct McpwmTraits<RuntimeMcpwmId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint8_t kTimerCount = {ctrl.timer_count}u;",
+                f"  static constexpr std::uint8_t kOutputSignalCount = {ctrl.output_signal_count}u;",
+                _signal_array("kGpioMatrixSignals", ctrl.gpio_matrix_signals),
+                _signal_array("kCaptureSignals", ctrl.capture_signals),
+                f"  static constexpr bool kSupportsDeadtime = {'true' if ctrl.supports_deadtime else 'false'};",
+                f"  static constexpr bool kSupportsCarrierModulation = {'true' if ctrl.supports_carrier_modulation else 'false'};",
+                f"  static constexpr bool kSupportsFaultInput = {'true' if ctrl.supports_fault_input else 'false'};",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
 def _stm_timer_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
     """extend-pwm-coverage-all-mcus Phase A: STM32 TIMx PWM trait struct.
 
@@ -12475,6 +12595,132 @@ def _stm_timer_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
                 f"  static constexpr bool kSupportsBrake = {'true' if ctrl.supports_brake else 'false'};",
                 f"  static constexpr bool kSupportsCenterAligned = {'true' if ctrl.supports_center_aligned else 'false'};",
                 f"  static constexpr std::uint32_t kMaxClockHz = {ctrl.max_clock_hz}u;",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _avr_da_tca_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """extend-pwm-coverage-all-mcus Phase D: AVR-DA TCA PWM trait struct.
+
+    Microchip AVR-DA exposes a single TCA0 routed via PORTMUX; emit a
+    `RuntimeAvrDaTcaPwmId` enum + `AvrDaTcaPwmTraits` template.  Pad
+    lists use the typed `PinId` enum so no string literals leak into
+    the runtime C++ output.
+    """
+    lines = [
+        "// extend-pwm-coverage-all-mcus Phase D: Microchip AVR-DA TCA PWM facts.",
+        "enum class RuntimeAvrDaTcaPwmId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.avr_da_tca_pwm_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeAvrDaTcaPwmId Id>",
+            "struct AvrDaTcaPwmTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::array<PinId, 0> kDefaultChannelPins = {};",
+            "  static constexpr std::uint8_t kSplitModeChannels = 0u;",
+            "  static constexpr std::uint8_t kSingleModeChannels = 0u;",
+            "  static constexpr std::uint8_t kCounterBits = 0u;",
+            "  static constexpr bool kPortmuxAlt = false;",
+            "};",
+            "",
+        ]
+    )
+
+    def _pad_array(name: str, pads: tuple[str, ...]) -> str:
+        if not pads:
+            return f"  static constexpr std::array<PinId, 0> {name} = {{}};"
+        items = ", ".join(f"PinId::{_enum_identifier(p)}" for p in pads)
+        return (
+            f"  static constexpr std::array<PinId, {len(pads)}> "
+            f"{name} = {{{items}}};"
+        )
+
+    for ctrl in device.avr_da_tca_pwm_peripherals:
+        lines.extend(
+            [
+                "template<>",
+                f"struct AvrDaTcaPwmTraits<RuntimeAvrDaTcaPwmId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                _pad_array("kDefaultChannelPins", ctrl.default_channel_pins),
+                f"  static constexpr std::uint8_t kSplitModeChannels = {ctrl.split_mode_channels}u;",
+                f"  static constexpr std::uint8_t kSingleModeChannels = {ctrl.single_mode_channels}u;",
+                f"  static constexpr std::uint8_t kCounterBits = {ctrl.counter_bits}u;",
+                f"  static constexpr bool kPortmuxAlt = {'true' if ctrl.portmux_alt else 'false'};",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _same70_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """extend-pwm-coverage-all-mcus Phase D: SAM E70 PWM + TC trait struct.
+
+    Emits a `RuntimeSame70PwmKind` enum (Pwm / Tc) plus a
+    `RuntimeSame70PwmId` enum + `Same70PwmTraits` template populated
+    from `device.same70_pwm_peripherals`.  Per-channel pad mapping is
+    Phase-D-deferred (left empty); silicon-fixed flag fields suffice
+    for consumer concept checks in this pass.
+    """
+    lines = [
+        "// extend-pwm-coverage-all-mcus Phase D: Microchip SAM E70 PWM/TC facts.",
+        "enum class RuntimeSame70PwmKind : std::uint8_t {",
+        "  None = 0,",
+        "  Pwm = 1,",
+        "  Tc = 2,",
+        "};",
+        "",
+        "enum class RuntimeSame70PwmId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.same70_pwm_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeSame70PwmId Id>",
+            "struct Same70PwmTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr RuntimeSame70PwmKind kKind = RuntimeSame70PwmKind::None;",
+            "  static constexpr std::uint8_t kChannelCount = 0u;",
+            "  static constexpr bool kSupportsDeadTime = false;",
+            "  static constexpr bool kSupportsFaultInput = false;",
+            "  static constexpr bool kSupportsDma = false;",
+            "};",
+            "",
+        ]
+    )
+
+    _kind_token = {
+        "pwm": "RuntimeSame70PwmKind::Pwm",
+        "tc": "RuntimeSame70PwmKind::Tc",
+    }
+
+    for ctrl in device.same70_pwm_peripherals:
+        kind_enum = _kind_token.get(ctrl.kind, "RuntimeSame70PwmKind::None")
+        lines.extend(
+            [
+                "template<>",
+                f"struct Same70PwmTraits<RuntimeSame70PwmId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr RuntimeSame70PwmKind kKind = {kind_enum};",
+                f"  static constexpr std::uint8_t kChannelCount = {ctrl.channel_count}u;",
+                f"  static constexpr bool kSupportsDeadTime = {'true' if ctrl.supports_dead_time else 'false'};",
+                f"  static constexpr bool kSupportsFaultInput = {'true' if ctrl.supports_fault_input else 'false'};",
+                f"  static constexpr bool kSupportsDma = {'true' if ctrl.supports_dma else 'false'};",
                 "};",
                 "",
             ]
@@ -13874,6 +14120,14 @@ def emit_runtime_driver_pwm_semantics_header(
             *_pwm_slice_hw_traits_block(device),
             "",
             *_stm_timer_pwm_traits_block(device),
+            "",
+            *_mcpwm_traits_block(device),
+            "",
+            *_flex_pwm_traits_block(device),
+            "",
+            *_avr_da_tca_pwm_traits_block(device),
+            "",
+            *_same70_pwm_traits_block(device),
         ]
     )
     namespace_block = _cpp_namespace_block(

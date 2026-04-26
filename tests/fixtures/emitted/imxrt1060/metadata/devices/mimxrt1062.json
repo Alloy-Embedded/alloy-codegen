@@ -1180,6 +1180,60 @@
     }
   ],
   "dma_requests": [],
+  "flex_pwm_peripherals": [
+    {
+      "base_address": 1077788672,
+      "controller_id": "PWM1",
+      "dma_req_lines": [],
+      "paired_channels": true,
+      "submodule_count": 4,
+      "supports_complementary": true,
+      "supports_deadtime": true,
+      "supports_fault_input": true,
+      "supports_force_initialization": true,
+      "valid_a_pins_per_submodule": [],
+      "valid_b_pins_per_submodule": []
+    },
+    {
+      "base_address": 1077805056,
+      "controller_id": "PWM2",
+      "dma_req_lines": [],
+      "paired_channels": true,
+      "submodule_count": 4,
+      "supports_complementary": true,
+      "supports_deadtime": true,
+      "supports_fault_input": true,
+      "supports_force_initialization": true,
+      "valid_a_pins_per_submodule": [],
+      "valid_b_pins_per_submodule": []
+    },
+    {
+      "base_address": 1077821440,
+      "controller_id": "PWM3",
+      "dma_req_lines": [],
+      "paired_channels": true,
+      "submodule_count": 4,
+      "supports_complementary": true,
+      "supports_deadtime": true,
+      "supports_fault_input": true,
+      "supports_force_initialization": true,
+      "valid_a_pins_per_submodule": [],
+      "valid_b_pins_per_submodule": []
+    },
+    {
+      "base_address": 1077837824,
+      "controller_id": "PWM4",
+      "dma_req_lines": [],
+      "paired_channels": true,
+      "submodule_count": 4,
+      "supports_complementary": true,
+      "supports_deadtime": true,
+      "supports_fault_input": true,
+      "supports_force_initialization": true,
+      "valid_a_pins_per_submodule": [],
+      "valid_b_pins_per_submodule": []
+    }
+  ],
   "identity": {
     "core": "cortex-m7f",
     "device": "mimxrt1062",

@@ -14,6 +14,7 @@ from alloy_codegen.ir.model import (
     AdcUnitDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
+    AvrDaTcaPwmDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
     ClockNodeLite,
@@ -22,8 +23,10 @@ from alloy_codegen.ir.model import (
     DmaChannelDescriptor,
     DmaControllerDescriptor,
     DmaRequestDefinition,
+    FlexPwmDescriptor,
     GpioPinDescriptor,
     I2cPeripheralDescriptor,
+    McpwmDescriptor,
     StmTimerPwmDescriptor,
     InterruptDefinition,
     LedcDescriptor,
@@ -46,6 +49,7 @@ from alloy_codegen.ir.model import (
     Rp2040SpiPeripheralDescriptor,
     Rp2040TimerControllerHwDescriptor,
     Rp2040UartPeripheralDescriptor,
+    Same70PwmDescriptor,
     SpiPeripheralDescriptor,
     SystemClockProfile,
     TimerUnitDescriptor,
@@ -1615,6 +1619,121 @@ def _build_rp2040_i2c_peripherals(
     return tuple(descriptors)
 
 
+def _build_nxp_flex_pwm_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[FlexPwmDescriptor, ...]:
+    """NXP iMXRT FlexPWM controllers (PWM1..PWM4 on iMXRT1060 silicon).
+
+    Per-submodule pad mapping deferred — the iMXRT IOMUX overlay
+    flows pin signals into ``device.gpio_pins`` but the
+    submodule->pad join needs an extra patch.  Phase C emits the
+    silicon-fixed flag fields (4 submodules, paired channels,
+    complementary, deadtime, fault, force-init).
+    """
+    pwm_peripherals = [
+        peripheral
+        for peripheral in peripherals
+        if peripheral.name in ("PWM1", "PWM2", "PWM3", "PWM4")
+    ]
+    if not pwm_peripherals:
+        return ()
+    return tuple(
+        FlexPwmDescriptor(
+            controller_id=peripheral.name,
+            base_address=peripheral.base_address,
+        )
+        for peripheral in sorted(pwm_peripherals, key=lambda p: p.name)
+    )
+
+
+def _build_espressif_mcpwm_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[McpwmDescriptor, ...]:
+    """ESP32 classic + ESP32-S3 ship two MCPWM peripherals
+    (``MCPWM0`` / ``MCPWM1``); ESP32-C3 ships none.  Returns one
+    descriptor per admitted MCPWM controller, with empty IO-matrix
+    signal tuples for Phase B (a follow-up will populate them by
+    parsing ``gpio_sig_map.h`` MCPWM signal-index tables).
+    """
+    mcpwm_peripherals = [p for p in peripherals if p.name.startswith("MCPWM")]
+    if not mcpwm_peripherals:
+        return ()
+    return tuple(
+        McpwmDescriptor(
+            controller_id=peripheral.name,
+            base_address=peripheral.base_address,
+        )
+        for peripheral in sorted(mcpwm_peripherals, key=lambda p: p.name)
+    )
+
+
+def _build_avr_da_tca_pwm_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[AvrDaTcaPwmDescriptor, ...]:
+    """Microchip AVR-DA TCA timers (single TCA0 instance on admitted parts).
+
+    AVR-DA exposes TCA0 routed via PORTMUX to PA0..PA5 (default) or
+    PORTC/PORTD via the PORTMUX alternate group.  Phase D emits the
+    silicon-fixed shape (split mode 6 ch / single mode 3 ch / 16-bit
+    counter) and the default port-A pad list; PORTMUX alternates land
+    in a follow-up pass when the runtime needs them.
+    """
+    tca_peripherals = [p for p in peripherals if p.name.startswith("TCA")]
+    if not tca_peripherals:
+        return ()
+    return tuple(
+        AvrDaTcaPwmDescriptor(
+            controller_id=peripheral.name,
+            base_address=peripheral.base_address,
+            default_channel_pins=("PA0", "PA1", "PA2", "PA3", "PA4", "PA5"),
+        )
+        for peripheral in sorted(tca_peripherals, key=lambda p: p.name)
+    )
+
+
+def _build_same70_pwm_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[Same70PwmDescriptor, ...]:
+    """Microchip SAM E70 PWM + TC controllers.
+
+    SAM E70 ships PWM0/PWM1 (4-channel each, complementary outputs,
+    deadtime, fault, DMA) plus TC0..TC3 (3-channel general-purpose
+    timers usable as PWM via TIOA/TIOB).  Phase D emits the
+    silicon-fixed shape; per-channel pad mapping is left empty in this
+    pass (PIOA/PIOB/PIOC peripheral A/B selections need a follow-up
+    overlay join).
+    """
+    descriptors: list[Same70PwmDescriptor] = []
+    for peripheral in sorted(peripherals, key=lambda p: p.name):
+        if peripheral.name.startswith("PWM"):
+            descriptors.append(
+                Same70PwmDescriptor(
+                    controller_id=peripheral.name,
+                    base_address=peripheral.base_address,
+                    kind="pwm",
+                    channel_count=4,
+                    supports_dead_time=True,
+                    supports_fault_input=True,
+                    supports_dma=True,
+                )
+            )
+        elif peripheral.name.startswith("TC") and peripheral.name != "TCM":
+            descriptors.append(
+                Same70PwmDescriptor(
+                    controller_id=peripheral.name,
+                    base_address=peripheral.base_address,
+                    kind="tc",
+                    channel_count=3,
+                    supports_dma=True,
+                )
+            )
+    return tuple(descriptors)
+
+
 def _build_espressif_i2c_peripherals(
     *,
     pins: tuple[PinDefinition, ...],
@@ -2228,6 +2347,18 @@ def build_nxp_canonical_ir(
             _peripheral_clock_binding_to_ir(binding, patch_provenance)
             for binding in peripheral_clock_bindings
         ),
+        flex_pwm_peripherals=_build_nxp_flex_pwm_peripherals(
+            peripherals=tuple(
+                _peripheral_to_ir(
+                    peripheral_name=_canonical_peripheral_name(peripheral.name),
+                    base_address=peripheral.base_address,
+                    patch_metadata=peripheral_patches.get(_canonical_peripheral_name(peripheral.name)),
+                    ip_version=None,
+                    provenance=svd_provenance,
+                )
+                for peripheral in raw_peripherals
+            ),
+        ),
     )
 
 
@@ -2717,6 +2848,10 @@ def _build_esp32_device_ir(
     if espressif_i2c:
         ir = dataclasses.replace(ir, i2c_peripherals=espressif_i2c)
 
+    espressif_mcpwm = _build_espressif_mcpwm_peripherals(peripherals=ir.peripherals)
+    if espressif_mcpwm:
+        ir = dataclasses.replace(ir, mcpwm_peripherals=espressif_mcpwm)
+
     return ir
 
 
@@ -2914,6 +3049,7 @@ def _build_avr_da_device_ir(
             provenance=atdf_provenance,
         ),
         i2c_peripherals=_build_avr_da_i2c_peripherals(peripherals=avr_peripherals),
+        avr_da_tca_pwm_peripherals=_build_avr_da_tca_pwm_peripherals(peripherals=avr_peripherals),
     )
 
 
@@ -2936,14 +3072,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             )
             continue
         if vendor == "microchip" and family == "same70":
-            devices.append(
-                _build_microchip_device_ir(
-                    execution_context=execution_context,
-                    device_name=device_name,
-                    vendor=vendor,
-                    family=family,
-                )
+            same70_ir = _build_microchip_device_ir(
+                execution_context=execution_context,
+                device_name=device_name,
+                vendor=vendor,
+                family=family,
             )
+            same70_pwm = _build_same70_pwm_peripherals(peripherals=same70_ir.peripherals)
+            if same70_pwm:
+                same70_ir = dataclasses.replace(same70_ir, same70_pwm_peripherals=same70_pwm)
+            devices.append(same70_ir)
             continue
         if vendor == "microchip" and family == "avr-da":
             devices.append(

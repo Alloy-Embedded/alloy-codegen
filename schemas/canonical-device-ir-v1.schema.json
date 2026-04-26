@@ -735,6 +735,78 @@
       },
       "additionalProperties": false
     },
+    "avr_da_tca_pwm_descriptor": {
+      "type": "object",
+      "required": ["controller_id", "base_address"],
+      "properties": {
+        "controller_id":         { "type": "string" },
+        "base_address":          { "type": "integer", "minimum": 0 },
+        "default_channel_pins":  { "type": "array", "items": { "type": "string" } },
+        "split_mode_channels":   { "type": "integer", "minimum": 0 },
+        "single_mode_channels":  { "type": "integer", "minimum": 0 },
+        "counter_bits":          { "type": "integer", "minimum": 0 },
+        "portmux_alt":           { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "same70_pwm_descriptor": {
+      "type": "object",
+      "required": ["controller_id", "base_address", "kind", "channel_count"],
+      "properties": {
+        "controller_id":         { "type": "string" },
+        "base_address":          { "type": "integer", "minimum": 0 },
+        "kind":                  { "type": "string", "enum": ["pwm", "tc"] },
+        "channel_count":         { "type": "integer", "minimum": 0 },
+        "valid_pins_per_channel":{
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "supports_dead_time":    { "type": "boolean" },
+        "supports_fault_input":  { "type": "boolean" },
+        "supports_dma":          { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "flex_pwm_descriptor": {
+      "type": "object",
+      "required": ["controller_id", "base_address"],
+      "properties": {
+        "controller_id":            { "type": "string" },
+        "base_address":             { "type": "integer", "minimum": 0 },
+        "submodule_count":          { "type": "integer", "minimum": 0 },
+        "paired_channels":          { "type": "boolean" },
+        "valid_a_pins_per_submodule": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "valid_b_pins_per_submodule": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "supports_complementary":         { "type": "boolean" },
+        "supports_deadtime":              { "type": "boolean" },
+        "supports_fault_input":           { "type": "boolean" },
+        "supports_force_initialization":  { "type": "boolean" },
+        "dma_req_lines":                  { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
+    "mcpwm_descriptor": {
+      "type": "object",
+      "required": ["controller_id", "base_address"],
+      "properties": {
+        "controller_id":      { "type": "string" },
+        "base_address":       { "type": "integer", "minimum": 0 },
+        "timer_count":        { "type": "integer", "minimum": 0 },
+        "output_signal_count":{ "type": "integer", "minimum": 0 },
+        "gpio_matrix_signals":{ "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "capture_signals":    { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "supports_deadtime":            { "type": "boolean" },
+        "supports_carrier_modulation":  { "type": "boolean" },
+        "supports_fault_input":         { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "stm_timer_pwm_descriptor": {
       "type": "object",
       "required": [
@@ -1053,6 +1125,22 @@
     "stm_timer_pwm_peripherals": {
       "type": "array",
       "items": { "$ref": "#/$defs/stm_timer_pwm_descriptor" }
+    },
+    "mcpwm_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/mcpwm_descriptor" }
+    },
+    "flex_pwm_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/flex_pwm_descriptor" }
+    },
+    "avr_da_tca_pwm_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/avr_da_tca_pwm_descriptor" }
+    },
+    "same70_pwm_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/same70_pwm_descriptor" }
     },
     "uart_peripherals": {
       "type": "array",
