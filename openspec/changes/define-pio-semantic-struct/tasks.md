@@ -57,13 +57,14 @@
       - 8 state-machine specializations exist with correct per-SM DREQs
         (`Pio0,3 → kDreqTx=3`, `Pio1,2 → kDreqTx=10`, etc.)
       - the rp2040 `pio.hpp` matches the regenerated golden byte-for-byte
-- [ ] 5.2 C++ compile-time `static_assert` smoke (`tests/compile_tests/...`):
-      **deferred** — the repo currently has only a single cross-family C++
-      smoke (`tests/codegen/published_runtime_lite_contract_smoke.cpp`); a
-      device-specific compile test would require new CMake/build wiring.
-      The Python test in 5.1 covers the same invariants. A follow-up change
-      can extend the existing smoke to include `pio.hpp` and gate the
-      RP2040-only asserts on a family macro.
+- [x] 5.2 C++ compile-time `static_assert` smoke landed alongside the
+      `fill-gpio-semantic-gaps` Phase E compile-test infra:
+      `tests/compile_tests/test_rp2040_pio_traits.cpp` is driven by
+      `tests/test_compile_invariants.py` (skipped when no host C++20
+      compiler is on PATH).  Asserts cover `kStateMachineCount`,
+      `kInstructionMemoryDepth`, both block base addresses, and per-SM
+      DREQ derivation (`Pio0,3 → kDreqTx=3`, `Pio1,2 → kDreqTx=10`,
+      `Pio1,3 → kDreqRx=15`).
 - [x] 5.3 Non-RP2040 family goldens (stm32g0, imxrt1060) keep
       `kStateMachineCount=0` on the primary template; verified via the
       regenerated fixtures and the new test.
