@@ -80,6 +80,18 @@
         "stm32g071rb"
       ],
       "dma_signals": [],
+      "peripheral_class": "i2c",
+      "total_peripheral_count": 2
+    },
+    {
+      "capability_names": [
+        "runtime-supported"
+      ],
+      "device_count": 1,
+      "devices": [
+        "stm32g071rb"
+      ],
+      "dma_signals": [],
       "peripheral_class": "rtc",
       "total_peripheral_count": 1
     },
@@ -223,6 +235,21 @@
           "peripherals": [
             "GPIOA",
             "GPIOB"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
+          "peripheral_class": "i2c",
+          "peripheral_count": 2,
+          "peripherals": [
+            "I2C1",
+            "I2C2"
           ],
           "present": true
         },

@@ -22,15 +22,19 @@ enum class RegisterId : std::uint16_t {
   register_gpiob_moder,
   register_gpiob_afrl,
   register_gpiob_afrh,
+  register_i2c1_cr1,
+  register_i2c2_cr1,
   register_iwdg_kr,
   register_rcc_cr,
   register_rcc_cfgr,
   register_rcc_pllcfgr,
   register_rcc_ioprstr,
   register_rcc_ahbrstr,
+  register_rcc_apbrstr1,
   register_rcc_apbrstr2,
   register_rcc_iopenr,
   register_rcc_ahbenr,
+  register_rcc_apbenr1,
   register_rcc_apbenr2,
   register_rtc_tr,
   register_spi1_cr1,
@@ -160,6 +164,26 @@ struct RegisterTraits<RegisterId::register_gpiob_afrh> {
 };
 
 template<>
+struct RegisterTraits<RegisterId::register_i2c1_cr1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40005400u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c2_cr1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40005800u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::access_kind_read_write;
+  static constexpr int kSizeBits = 32;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
 struct RegisterTraits<RegisterId::register_iwdg_kr> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x40003000u;
@@ -220,6 +244,16 @@ struct RegisterTraits<RegisterId::register_rcc_ahbrstr> {
 };
 
 template<>
+struct RegisterTraits<RegisterId::register_rcc_apbrstr1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
+  static constexpr std::uint32_t kOffsetBytes = 44u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
 struct RegisterTraits<RegisterId::register_rcc_apbrstr2> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
@@ -244,6 +278,16 @@ struct RegisterTraits<RegisterId::register_rcc_ahbenr> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
   static constexpr std::uint32_t kOffsetBytes = 56u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_rcc_apbenr1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40021000u;
+  static constexpr std::uint32_t kOffsetBytes = 60u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
   static constexpr RegisterRole kRole = RegisterRole::general;
@@ -349,7 +393,7 @@ struct RegisterTraits<RegisterId::register_usart1_tdr> {
   static constexpr RegisterRole kRole = RegisterRole::general;
 };
 
-inline constexpr std::array<RegisterId, 29> kRegisters = {{
+inline constexpr std::array<RegisterId, 33> kRegisters = {{
   RegisterId::register_adc1_isr,
   RegisterId::register_dac_cr,
   RegisterId::register_dma1_isr,
@@ -360,15 +404,19 @@ inline constexpr std::array<RegisterId, 29> kRegisters = {{
   RegisterId::register_gpiob_moder,
   RegisterId::register_gpiob_afrl,
   RegisterId::register_gpiob_afrh,
+  RegisterId::register_i2c1_cr1,
+  RegisterId::register_i2c2_cr1,
   RegisterId::register_iwdg_kr,
   RegisterId::register_rcc_cr,
   RegisterId::register_rcc_cfgr,
   RegisterId::register_rcc_pllcfgr,
   RegisterId::register_rcc_ioprstr,
   RegisterId::register_rcc_ahbrstr,
+  RegisterId::register_rcc_apbrstr1,
   RegisterId::register_rcc_apbrstr2,
   RegisterId::register_rcc_iopenr,
   RegisterId::register_rcc_ahbenr,
+  RegisterId::register_rcc_apbenr1,
   RegisterId::register_rcc_apbenr2,
   RegisterId::register_rtc_tr,
   RegisterId::register_spi1_cr1,

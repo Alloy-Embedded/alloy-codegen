@@ -375,10 +375,10 @@
       "rcc_reset_signal": null
     },
     {
-      "backend_schema_id": "alloy.lpi2c1.nxp-lpi2c-v1",
+      "backend_schema_id": "alloy.lpi2c.nxp-lpi2c-v1",
       "base_address": 1077870592,
-      "instance": 0,
-      "ip_name": "lpi2c1",
+      "instance": 1,
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "LPI2C1",
       "provenance": {

@@ -645,5 +645,44 @@
       "peripheral": "I2C1",
       "max_clock_hz": 42000000
     }
+  ],
+  "i2c_speed_options": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "mode": "fast"
+    }
+  ],
+  "i2c_timing_presets": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "source_clock_hz": 42000000,
+      "timingr_value": 276848265
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "source_clock_hz": 42000000,
+      "timingr_value": 11538986
+    }
+  ],
+  "i2c_mode_flags": [
+    {
+      "peripheral": "I2C1",
+      "supports_smbus": true,
+      "supports_pmbus": false,
+      "supports_dma": true,
+      "supports_slave": true,
+      "supports_dual_address": true,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": true
+    }
   ]
 }

@@ -147,7 +147,7 @@ from alloy_codegen.sources.stm32_open_pin_data import (
 from alloy_codegen.stages.common import StageResult
 from alloy_codegen.stages.patch import run as run_patch
 
-INSTANCE_PATTERN = re.compile(r"^(?P<ip>[A-Z]+?)(?P<instance>\d+)$")
+INSTANCE_PATTERN = re.compile(r"^(?P<ip>[A-Z][A-Z0-9]*?)(?P<instance>\d+)$")
 RAW_PERIPHERAL_ALIASES = {
     # "ADC" and "DMA" (no instance suffix) are intentionally excluded here so
     # that RP2040, which genuinely names its peripherals "ADC" and "DMA", is not
@@ -3334,6 +3334,9 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 timer_master_outputs=patch.timer_master_outputs,
                 timer_mode_flags=patch.timer_mode_flags,
                 peripheral_max_clock_hz=patch.peripheral_max_clock_hz,
+                i2c_speed_options=patch.i2c_speed_options,
+                i2c_timing_presets=patch.i2c_timing_presets,
+                i2c_mode_flags=patch.i2c_mode_flags,
                 multicore_topology=topology_value,
                 app_cpu_control_plane=app_cpu_plane,
                 usb_controllers=usb_controllers,

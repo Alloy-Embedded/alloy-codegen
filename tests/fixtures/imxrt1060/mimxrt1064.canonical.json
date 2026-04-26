@@ -305,9 +305,9 @@
     },
     {
       "name": "LPI2C1",
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
-      "instance": 0,
+      "instance": 1,
       "base_address": 1077870592,
       "rcc_enable_signal": "CCM_CCGR2.CG2",
       "rcc_reset_signal": null,
@@ -319,7 +319,7 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.lpi2c1.nxp-lpi2c-v1"
+      "backend_schema_id": "alloy.lpi2c.nxp-lpi2c-v1"
     },
     {
       "name": "LPSPI1",
@@ -2528,17 +2528,17 @@
       "backend_schema_id": "alloy.gpio.nxp-imxrt-gpio-v1"
     },
     {
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
-      "peripheral_class": "lpi2c1",
-      "register_profile": "lpi2c1:lpi2c-v1",
+      "peripheral_class": "lpi2c",
+      "register_profile": "lpi2c:lpi2c-v1",
       "signal_roles": [
         "scl",
         "sda"
       ],
       "capability_ids": [
-        "capability:lpi2c1:lpi2c-v1:scl",
-        "capability:lpi2c1:lpi2c-v1:sda"
+        "capability:lpi2c:lpi2c-v1:scl",
+        "capability:lpi2c:lpi2c-v1:sda"
       ],
       "provenance": {
         "source_id": "nxp-mcux-soc-svd",
@@ -2548,7 +2548,7 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       },
-      "backend_schema_id": "alloy.lpi2c1.nxp-lpi2c-v1"
+      "backend_schema_id": "alloy.lpi2c.nxp-lpi2c-v1"
     },
     {
       "ip_name": "lpspi",
@@ -2677,7 +2677,7 @@
     {
       "capability_id": "capability-instance:lpi2c1:bga196:scl",
       "scope": "instance-overlay",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "name": "available-signal",
       "value": "scl",
       "provenance": {
@@ -2688,7 +2688,7 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       },
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "peripheral": "LPI2C1",
       "package": "bga196"
@@ -2696,7 +2696,7 @@
     {
       "capability_id": "capability-instance:lpi2c1:bga196:sda",
       "scope": "instance-overlay",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "name": "available-signal",
       "value": "sda",
       "provenance": {
@@ -2707,7 +2707,7 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       },
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "peripheral": "LPI2C1",
       "package": "bga196"
@@ -2827,9 +2827,9 @@
       "package": null
     },
     {
-      "capability_id": "capability:lpi2c1:lpi2c-v1:scl",
+      "capability_id": "capability:lpi2c:lpi2c-v1:scl",
       "scope": "ip-block",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "name": "signal-role",
       "value": "scl",
       "provenance": {
@@ -2840,15 +2840,15 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       },
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "peripheral": null,
       "package": null
     },
     {
-      "capability_id": "capability:lpi2c1:lpi2c-v1:sda",
+      "capability_id": "capability:lpi2c:lpi2c-v1:sda",
       "scope": "ip-block",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "name": "signal-role",
       "value": "sda",
       "provenance": {
@@ -2859,7 +2859,7 @@
           "nxp-imxrt1060-mimxrt1064-bootstrap"
         ]
       },
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "peripheral": null,
       "package": null
@@ -3041,8 +3041,8 @@
       }
     },
     {
-      "endpoint_id": "endpoint:lpi2c1:scl",
-      "peripheral_class": "lpi2c1",
+      "endpoint_id": "endpoint:lpi2c:scl",
+      "peripheral_class": "lpi2c",
       "signal": "SCL",
       "direction": null,
       "provenance": {
@@ -3055,8 +3055,8 @@
       }
     },
     {
-      "endpoint_id": "endpoint:lpi2c1:sda",
-      "peripheral_class": "lpi2c1",
+      "endpoint_id": "endpoint:lpi2c:sda",
+      "peripheral_class": "lpi2c",
       "signal": "SDA",
       "direction": "bidirectional",
       "provenance": {
@@ -3974,7 +3974,7 @@
         "operation:route:gpio-ad-b0-00:lpi2c1:scl"
       ],
       "capability_ids": [
-        "capability:lpi2c1:lpi2c-v1:scl",
+        "capability:lpi2c:lpi2c-v1:scl",
         "capability-instance:lpi2c1:bga196:scl"
       ],
       "provenance": {
@@ -4067,7 +4067,7 @@
         "operation:route:gpio-ad-b0-01:lpi2c1:sda"
       ],
       "capability_ids": [
-        "capability:lpi2c1:lpi2c-v1:sda",
+        "capability:lpi2c:lpi2c-v1:sda",
         "capability-instance:lpi2c1:bga196:sda"
       ],
       "provenance": {

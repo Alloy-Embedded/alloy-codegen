@@ -46,6 +46,18 @@
           "name": "GPIOB"
         },
         {
+          "base_address": 1073763328,
+          "ip_name": "i2c",
+          "ip_version": null,
+          "name": "I2C1"
+        },
+        {
+          "base_address": 1073764352,
+          "ip_name": "i2c",
+          "ip_version": null,
+          "name": "I2C2"
+        },
+        {
           "base_address": 1073754112,
           "ip_name": "iwdg",
           "ip_version": null,

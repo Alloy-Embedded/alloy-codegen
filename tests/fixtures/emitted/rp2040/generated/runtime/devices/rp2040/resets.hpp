@@ -21,9 +21,11 @@ struct ResetDescriptor {
   FieldId field_id;
   ActiveLevelId active_level_id;
 };
-inline constexpr std::array<ResetDescriptor, 9> kResetDescriptors = {{
+inline constexpr std::array<ResetDescriptor, 11> kResetDescriptors = {{
   {ResetId::reset_adc, PeripheralId::ADC, RegisterId::register_resets_reset, FieldId::field_resets_reset_adc, ActiveLevelId::active_level_high},
   {ResetId::reset_dma, PeripheralId::DMA, RegisterId::register_resets_reset, FieldId::field_resets_reset_dma, ActiveLevelId::active_level_high},
+  {ResetId::reset_i2c0, PeripheralId::I2C0, RegisterId::register_resets_reset, FieldId::field_resets_reset_i2c0, ActiveLevelId::active_level_high},
+  {ResetId::reset_i2c1, PeripheralId::I2C1, RegisterId::register_resets_reset, FieldId::field_resets_reset_i2c1, ActiveLevelId::active_level_high},
   {ResetId::reset_pwm, PeripheralId::PWM, RegisterId::register_resets_reset, FieldId::field_resets_reset_pwm, ActiveLevelId::active_level_high},
   {ResetId::reset_rtc, PeripheralId::RTC, RegisterId::register_resets_reset, FieldId::field_resets_reset_rtc, ActiveLevelId::active_level_high},
   {ResetId::reset_spi0, PeripheralId::SPI0, RegisterId::register_resets_reset, FieldId::field_resets_reset_spi0, ActiveLevelId::active_level_high},

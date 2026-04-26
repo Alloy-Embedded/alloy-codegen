@@ -388,5 +388,30 @@
       "peripheral": "SPI0",
       "max_clock_hz": 24000000
     }
+  ],
+  "i2c_speed_options": [
+    {
+      "peripheral": "TWI0",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "TWI0",
+      "speed_hz": 400000,
+      "mode": "fast"
+    }
+  ],
+  "i2c_mode_flags": [
+    {
+      "peripheral": "TWI0",
+      "supports_smbus": false,
+      "supports_pmbus": false,
+      "supports_dma": false,
+      "supports_slave": true,
+      "supports_dual_address": false,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": false
+    }
   ]
 }

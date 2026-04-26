@@ -93,6 +93,21 @@
           "class_capability_count": 1,
           "dma_signals": [],
           "instance_capability_count": 0,
+          "peripheral_class": "i2c",
+          "peripheral_count": 2,
+          "peripherals": [
+            "I2C1",
+            "I2C2"
+          ],
+          "present": true
+        },
+        {
+          "capability_names": [
+            "runtime-supported"
+          ],
+          "class_capability_count": 1,
+          "dma_signals": [],
+          "instance_capability_count": 0,
           "peripheral_class": "rtc",
           "peripheral_count": 1,
           "peripherals": [
@@ -175,6 +190,7 @@
     "dma",
     "dma-router",
     "gpio",
+    "i2c",
     "rtc",
     "spi",
     "timer",

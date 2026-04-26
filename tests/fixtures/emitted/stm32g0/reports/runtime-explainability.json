@@ -62,6 +62,24 @@
           "coverage_kind": "class-only",
           "explanation": "Peripheral relies on class-level capability facts.",
           "instance_capability_count": 0,
+          "peripheral": "I2C1",
+          "peripheral_class": "i2c"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "class_capability_count": 1,
+          "coverage_kind": "class-only",
+          "explanation": "Peripheral relies on class-level capability facts.",
+          "instance_capability_count": 0,
+          "peripheral": "I2C2",
+          "peripheral_class": "i2c"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "class_capability_count": 1,
+          "coverage_kind": "class-only",
+          "explanation": "Peripheral relies on class-level capability facts.",
+          "instance_capability_count": 0,
           "peripheral": "IWDG",
           "peripheral_class": "watchdog"
         },
@@ -102,7 +120,7 @@
           "peripheral_class": "uart"
         }
       ],
-      "capability_decision_count": 19,
+      "capability_decision_count": 20,
       "capability_decisions": [
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
@@ -178,6 +196,17 @@
           "name": "runtime-supported",
           "peripheral": null,
           "peripheral_class": "gpio",
+          "scope": "runtime_contract",
+          "value": "true"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "decision_id": "runtime-support:i2c",
+          "decision_kind": "inferred_runtime_support",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "name": "runtime-supported",
+          "peripheral": null,
+          "peripheral_class": "i2c",
           "scope": "runtime_contract",
           "value": "true"
         },
@@ -342,7 +371,7 @@
           "signal": "TX"
         }
       ],
-      "heuristic_fact_count": 21,
+      "heuristic_fact_count": 22,
       "heuristic_facts": [
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
@@ -384,6 +413,12 @@
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
           "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
           "fact_id": "runtime-support:gpio",
+          "fact_kind": "capability"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "explanation": "Capability is synthesized to mark baseline runtime support for the peripheral class.",
+          "fact_id": "runtime-support:i2c",
           "fact_kind": "capability"
         },
         {
@@ -526,6 +561,24 @@
           "instance_capability_count": 0,
           "peripheral": "GPIOB",
           "peripheral_class": "gpio"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "class_capability_count": 1,
+          "coverage_kind": "class-only",
+          "explanation": "Peripheral relies on class-level capability facts.",
+          "instance_capability_count": 0,
+          "peripheral": "I2C1",
+          "peripheral_class": "i2c"
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "class_capability_count": 1,
+          "coverage_kind": "class-only",
+          "explanation": "Peripheral relies on class-level capability facts.",
+          "instance_capability_count": 0,
+          "peripheral": "I2C2",
+          "peripheral_class": "i2c"
         },
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",

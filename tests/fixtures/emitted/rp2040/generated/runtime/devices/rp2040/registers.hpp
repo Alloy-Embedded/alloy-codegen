@@ -25,6 +25,22 @@ enum class RegisterId : std::uint16_t {
   register_dma_ch0_ctrl_trig,
   register_dma_intr,
   register_dma_inte0,
+  register_i2c0_ic_con,
+  register_i2c0_ic_tar,
+  register_i2c0_ic_data_cmd,
+  register_i2c0_ic_ss_scl_hcnt,
+  register_i2c0_ic_ss_scl_lcnt,
+  register_i2c0_ic_intr_mask,
+  register_i2c0_ic_enable,
+  register_i2c0_ic_status,
+  register_i2c1_ic_con,
+  register_i2c1_ic_tar,
+  register_i2c1_ic_data_cmd,
+  register_i2c1_ic_ss_scl_hcnt,
+  register_i2c1_ic_ss_scl_lcnt,
+  register_i2c1_ic_intr_mask,
+  register_i2c1_ic_enable,
+  register_i2c1_ic_status,
   register_pwm_ch0_csr,
   register_pwm_ch0_div,
   register_pwm_ch0_ctr,
@@ -242,6 +258,166 @@ struct RegisterTraits<RegisterId::register_dma_inte0> {
   static constexpr bool kPresent = true;
   static constexpr std::uintptr_t kBaseAddress = 0x50000000u;
   static constexpr std::uint32_t kOffsetBytes = 1028u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_con> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_tar> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 4u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_data_cmd> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 16u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_ss_scl_hcnt> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 20u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_ss_scl_lcnt> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 24u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_intr_mask> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 48u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_enable> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 108u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c0_ic_status> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr std::uint32_t kOffsetBytes = 112u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_con> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 0u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_tar> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 4u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_data_cmd> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 16u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_ss_scl_hcnt> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 20u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_ss_scl_lcnt> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 24u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_intr_mask> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 48u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_enable> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 108u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+  static constexpr int kSizeBits = -1;
+  static constexpr RegisterRole kRole = RegisterRole::general;
+};
+
+template<>
+struct RegisterTraits<RegisterId::register_i2c1_ic_status> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr std::uint32_t kOffsetBytes = 112u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
   static constexpr int kSizeBits = -1;
   static constexpr RegisterRole kRole = RegisterRole::general;
@@ -987,7 +1163,7 @@ struct RegisterTraits<RegisterId::register_watchdog_tick> {
   static constexpr RegisterRole kRole = RegisterRole::general;
 };
 
-inline constexpr std::array<RegisterId, 87> kRegisters = {{
+inline constexpr std::array<RegisterId, 103> kRegisters = {{
   RegisterId::register_adc_cs,
   RegisterId::register_adc_result,
   RegisterId::register_adc_fcs,
@@ -1001,6 +1177,22 @@ inline constexpr std::array<RegisterId, 87> kRegisters = {{
   RegisterId::register_dma_ch0_ctrl_trig,
   RegisterId::register_dma_intr,
   RegisterId::register_dma_inte0,
+  RegisterId::register_i2c0_ic_con,
+  RegisterId::register_i2c0_ic_tar,
+  RegisterId::register_i2c0_ic_data_cmd,
+  RegisterId::register_i2c0_ic_ss_scl_hcnt,
+  RegisterId::register_i2c0_ic_ss_scl_lcnt,
+  RegisterId::register_i2c0_ic_intr_mask,
+  RegisterId::register_i2c0_ic_enable,
+  RegisterId::register_i2c0_ic_status,
+  RegisterId::register_i2c1_ic_con,
+  RegisterId::register_i2c1_ic_tar,
+  RegisterId::register_i2c1_ic_data_cmd,
+  RegisterId::register_i2c1_ic_ss_scl_hcnt,
+  RegisterId::register_i2c1_ic_ss_scl_lcnt,
+  RegisterId::register_i2c1_ic_intr_mask,
+  RegisterId::register_i2c1_ic_enable,
+  RegisterId::register_i2c1_ic_status,
   RegisterId::register_pwm_ch0_csr,
   RegisterId::register_pwm_ch0_div,
   RegisterId::register_pwm_ch0_ctr,

@@ -1655,6 +1655,9 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         timer_master_outputs=device.timer_master_outputs,
         timer_mode_flags=device.timer_mode_flags,
         peripheral_max_clock_hz=device.peripheral_max_clock_hz,
+        i2c_speed_options=device.i2c_speed_options,
+        i2c_timing_presets=device.i2c_timing_presets,
+        i2c_mode_flags=device.i2c_mode_flags,
         # Carry forward multicore-topology facts (added by
         # ``expose-xtensa-dual-core-facts``) for the same reason.
         multicore_topology=device.multicore_topology,

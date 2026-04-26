@@ -78,12 +78,12 @@
     },
     {
       "capability_id": "capability-instance:lpi2c1:bga196:scl",
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "available-signal",
       "package": "bga196",
       "peripheral": "LPI2C1",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -97,12 +97,12 @@
     },
     {
       "capability_id": "capability-instance:lpi2c1:bga196:sda",
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "available-signal",
       "package": "bga196",
       "peripheral": "LPI2C1",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -229,13 +229,13 @@
       "value": "io01"
     },
     {
-      "capability_id": "capability:lpi2c1:lpi2c-v1:scl",
-      "ip_name": "lpi2c1",
+      "capability_id": "capability:lpi2c:lpi2c-v1:scl",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "signal-role",
       "package": null,
       "peripheral": null,
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -248,13 +248,13 @@
       "value": "scl"
     },
     {
-      "capability_id": "capability:lpi2c1:lpi2c-v1:sda",
-      "ip_name": "lpi2c1",
+      "capability_id": "capability:lpi2c:lpi2c-v1:sda",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "signal-role",
       "package": null,
       "peripheral": null,
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",

@@ -2,7 +2,7 @@
   "devices": [
     {
       "device": "stm32g071rb",
-      "fact_count": 94,
+      "fact_count": 102,
       "facts": [
         {
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp",
@@ -850,6 +850,32 @@
           "derivation_kind": "patched",
           "detail": {
             "kind": "apb-domain",
+            "node_id": "clock-node:rcc-apbenr1",
+            "parent": "clock-root",
+            "selector": null
+          },
+          "fact_id": "clock-node:clock-node:rcc-apbenr1",
+          "fact_kind": "clock_node",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_graph.hpp",
+          "derivation_kind": "patched",
+          "detail": {
+            "kind": "apb-domain",
             "node_id": "clock-node:rcc-apbenr2",
             "parent": "clock-root",
             "selector": null
@@ -1083,6 +1109,58 @@
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp",
           "derivation_kind": "patched",
           "detail": {
+            "peripheral": "I2C1",
+            "register_field_id": null,
+            "register_id": "register:rcc:apbrstr1",
+            "reset_id": "reset:i2c1"
+          },
+          "fact_id": "reset:reset:i2c1",
+          "fact_kind": "reset_descriptor",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp",
+          "derivation_kind": "patched",
+          "detail": {
+            "peripheral": "I2C2",
+            "register_field_id": null,
+            "register_id": "register:rcc:apbrstr1",
+            "reset_id": "reset:i2c2"
+          },
+          "fact_id": "reset:reset:i2c2",
+          "fact_kind": "reset_descriptor",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp",
+          "derivation_kind": "patched",
+          "detail": {
             "peripheral": "SPI1",
             "register_field_id": null,
             "register_id": "register:rcc:apbrstr2",
@@ -1296,6 +1374,60 @@
           "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/enable_domains.hpp",
           "derivation_kind": "patched",
           "detail": {
+            "enable_domain_id": "gate:i2c1",
+            "parent_clock_node": "clock-node:rcc-apbenr1",
+            "peripheral": "I2C1",
+            "register_field_id": null,
+            "register_id": "register:rcc:apbenr1"
+          },
+          "fact_id": "enable-domain:gate:i2c1",
+          "fact_kind": "enable_domain",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/enable_domains.hpp",
+          "derivation_kind": "patched",
+          "detail": {
+            "enable_domain_id": "gate:i2c2",
+            "parent_clock_node": "clock-node:rcc-apbenr1",
+            "peripheral": "I2C2",
+            "register_field_id": null,
+            "register_id": "register:rcc:apbenr1"
+          },
+          "fact_id": "enable-domain:gate:i2c2",
+          "fact_kind": "enable_domain",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/enable_domains.hpp",
+          "derivation_kind": "patched",
+          "detail": {
             "enable_domain_id": "gate:spi1",
             "parent_clock_node": "clock-node:rcc-apbenr2",
             "peripheral": "SPI1",
@@ -1487,6 +1619,58 @@
             "selector_id": null
           },
           "fact_id": "clock-binding:GPIOB",
+          "fact_kind": "peripheral_clock_binding",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_bindings.hpp",
+          "derivation_kind": "patched",
+          "detail": {
+            "clock_gate_id": "gate:i2c1",
+            "peripheral": "I2C1",
+            "reset_id": "reset:i2c1",
+            "selector_id": null
+          },
+          "fact_id": "clock-binding:I2C1",
+          "fact_kind": "peripheral_clock_binding",
+          "inference_rule": null,
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": []
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_bindings.hpp",
+          "derivation_kind": "patched",
+          "detail": {
+            "clock_gate_id": "gate:i2c2",
+            "peripheral": "I2C2",
+            "reset_id": "reset:i2c2",
+            "selector_id": null
+          },
+          "fact_id": "clock-binding:I2C2",
           "fact_kind": "peripheral_clock_binding",
           "inference_rule": null,
           "provenance": {
@@ -2010,6 +2194,37 @@
           "supporting_fact_ids": [
             "runtime-peripheral:GPIOA",
             "runtime-peripheral:GPIOB"
+          ]
+        },
+        {
+          "artifact_path": "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp",
+          "derivation_kind": "inferred",
+          "detail": {
+            "capability_id": "runtime-support:i2c",
+            "name": "runtime-supported",
+            "peripheral": null,
+            "peripheral_class": "i2c",
+            "scope": "runtime_contract",
+            "value": "true"
+          },
+          "fact_id": "capability:runtime-support:i2c",
+          "fact_kind": "capability",
+          "inference_rule": "runtime-class-support-baseline",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_ids": [
+              "cmsis-svd-data"
+            ],
+            "source_paths": [
+              "STM32G071.svd"
+            ]
+          },
+          "supporting_fact_ids": [
+            "runtime-peripheral:I2C1",
+            "runtime-peripheral:I2C2"
           ]
         },
         {

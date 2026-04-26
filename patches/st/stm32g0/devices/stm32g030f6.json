@@ -119,6 +119,14 @@
       "offset_bytes": 0,
       "access": "write-only",
       "size_bits": 32
+    },
+    {
+      "peripheral": "I2C1",
+      "name": "CR1",
+      "base_address": 1073763328,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
     }
   ],
   "register_fields": [
@@ -244,7 +252,8 @@
     "SPI1",
     "TIM1",
     "RTC",
-    "IWDG"
+    "IWDG",
+    "I2C1"
   ],
   "dma_request_refs": [
     "dma1-usart2-tx",
@@ -708,6 +717,56 @@
     {
       "peripheral": "SPI1",
       "max_clock_hz": 64000000
+    }
+  ],
+  "i2c_speed_options": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "mode": "fast"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 1000000,
+      "mode": "fast_plus"
+    }
+  ],
+  "i2c_timing_presets": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 275807931
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 6300019
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 1000000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 3147289
+    }
+  ],
+  "i2c_mode_flags": [
+    {
+      "peripheral": "I2C1",
+      "supports_smbus": true,
+      "supports_pmbus": false,
+      "supports_dma": true,
+      "supports_slave": true,
+      "supports_dual_address": true,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": true
     }
   ]
 }

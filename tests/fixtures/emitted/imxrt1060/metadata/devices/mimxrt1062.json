@@ -153,12 +153,12 @@
     },
     {
       "capability_id": "capability-instance:lpi2c1:bga196:scl",
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "available-signal",
       "package": "bga196",
       "peripheral": "LPI2C1",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -172,12 +172,12 @@
     },
     {
       "capability_id": "capability-instance:lpi2c1:bga196:sda",
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "available-signal",
       "package": "bga196",
       "peripheral": "LPI2C1",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -304,13 +304,13 @@
       "value": "io01"
     },
     {
-      "capability_id": "capability:lpi2c1:lpi2c-v1:scl",
-      "ip_name": "lpi2c1",
+      "capability_id": "capability:lpi2c:lpi2c-v1:scl",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "signal-role",
       "package": null,
       "peripheral": null,
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -323,13 +323,13 @@
       "value": "scl"
     },
     {
-      "capability_id": "capability:lpi2c1:lpi2c-v1:sda",
-      "ip_name": "lpi2c1",
+      "capability_id": "capability:lpi2c:lpi2c-v1:sda",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "signal-role",
       "package": null,
       "peripheral": null,
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -790,7 +790,7 @@
     {
       "candidate_id": "candidate:gpio-ad-b0-00:lpi2c1:scl",
       "capability_ids": [
-        "capability:lpi2c1:lpi2c-v1:scl",
+        "capability:lpi2c:lpi2c-v1:scl",
         "capability-instance:lpi2c1:bga196:scl"
       ],
       "operation_ids": [
@@ -883,7 +883,7 @@
     {
       "candidate_id": "candidate:gpio-ad-b0-01:lpi2c1:sda",
       "capability_ids": [
-        "capability:lpi2c1:lpi2c-v1:sda",
+        "capability:lpi2c:lpi2c-v1:sda",
         "capability-instance:lpi2c1:bga196:sda"
       ],
       "operation_ids": [
@@ -1419,14 +1419,14 @@
       ]
     },
     {
-      "backend_schema_id": "alloy.lpi2c1.nxp-lpi2c-v1",
+      "backend_schema_id": "alloy.lpi2c.nxp-lpi2c-v1",
       "capability_ids": [
-        "capability:lpi2c1:lpi2c-v1:scl",
-        "capability:lpi2c1:lpi2c-v1:sda"
+        "capability:lpi2c:lpi2c-v1:scl",
+        "capability:lpi2c:lpi2c-v1:sda"
       ],
-      "ip_name": "lpi2c1",
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
-      "peripheral_class": "lpi2c1",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -1435,7 +1435,7 @@
         "source_id": "nxp-mcux-soc-svd",
         "source_path": "MIMXRT1062/MIMXRT1062.xml"
       },
-      "register_profile": "lpi2c1:lpi2c-v1",
+      "register_profile": "lpi2c:lpi2c-v1",
       "signal_roles": [
         "scl",
         "sda"
@@ -1769,10 +1769,10 @@
       "rcc_reset_signal": null
     },
     {
-      "backend_schema_id": "alloy.lpi2c1.nxp-lpi2c-v1",
+      "backend_schema_id": "alloy.lpi2c.nxp-lpi2c-v1",
       "base_address": 1077870592,
-      "instance": 0,
-      "ip_name": "lpi2c1",
+      "instance": 1,
+      "ip_name": "lpi2c",
       "ip_version": "lpi2c-v1",
       "name": "LPI2C1",
       "provenance": {
@@ -5083,8 +5083,8 @@
     },
     {
       "direction": null,
-      "endpoint_id": "endpoint:lpi2c1:scl",
-      "peripheral_class": "lpi2c1",
+      "endpoint_id": "endpoint:lpi2c:scl",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
@@ -5097,8 +5097,8 @@
     },
     {
       "direction": "bidirectional",
-      "endpoint_id": "endpoint:lpi2c1:sda",
-      "peripheral_class": "lpi2c1",
+      "endpoint_id": "endpoint:lpi2c:sda",
+      "peripheral_class": "lpi2c",
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",

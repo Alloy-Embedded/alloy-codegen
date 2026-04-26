@@ -57,6 +57,14 @@
       "value": "true"
     },
     {
+      "capability_id": "runtime-support:i2c",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
       "capability_id": "runtime-support:rtc",
       "name": "runtime-supported",
       "peripheral": null,

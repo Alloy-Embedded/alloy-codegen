@@ -97,6 +97,42 @@
           "register_peripheral": "RCC"
         },
         {
+          "enable_signal": "RCC_APBENR1.I2C1EN",
+          "gate_id": "gate:i2c1",
+          "parent_node": "clock-node:rcc-apbenr1",
+          "peripheral": "I2C1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbenr1",
+          "register_name": "APBENR1",
+          "register_offset": 60,
+          "register_peripheral": "RCC"
+        },
+        {
+          "enable_signal": "RCC_APBENR1.I2C2EN",
+          "gate_id": "gate:i2c2",
+          "parent_node": "clock-node:rcc-apbenr1",
+          "peripheral": "I2C2",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbenr1",
+          "register_name": "APBENR1",
+          "register_offset": 60,
+          "register_peripheral": "RCC"
+        },
+        {
           "enable_signal": "RCC_APBENR2.SPI1EN",
           "gate_id": "gate:spi1",
           "parent_node": "clock-node:rcc-apbenr2",
@@ -184,6 +220,20 @@
         {
           "kind": "ahb-domain",
           "node_id": "clock-node:rcc-ahbenr",
+          "parent": "clock-root",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "selector": null
+        },
+        {
+          "kind": "apb-domain",
+          "node_id": "clock-node:rcc-apbenr1",
           "parent": "clock-root",
           "provenance": {
             "patch_ids": [
@@ -634,6 +684,34 @@
           "selector_id": null
         },
         {
+          "clock_gate_id": "gate:i2c1",
+          "peripheral": "I2C1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "reset_id": "reset:i2c1",
+          "selector_id": null
+        },
+        {
+          "clock_gate_id": "gate:i2c2",
+          "peripheral": "I2C2",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "reset_id": "reset:i2c2",
+          "selector_id": null
+        },
+        {
           "clock_gate_id": "gate:spi1",
           "peripheral": "SPI1",
           "provenance": {
@@ -771,6 +849,42 @@
           "register_peripheral": "RCC",
           "reset_id": "reset:gpiob",
           "reset_signal": "RCC_IOPRSTR.GPIOBRST"
+        },
+        {
+          "active_level": "high",
+          "peripheral": "I2C1",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbrstr1",
+          "register_name": "APBRSTR1",
+          "register_offset": 44,
+          "register_peripheral": "RCC",
+          "reset_id": "reset:i2c1",
+          "reset_signal": "RCC_APBRSTR1.I2C1RST"
+        },
+        {
+          "active_level": "high",
+          "peripheral": "I2C2",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "cmsis-svd-data",
+            "source_path": "STM32G071.svd"
+          },
+          "register_id": "register:rcc:apbrstr1",
+          "register_name": "APBRSTR1",
+          "register_offset": 44,
+          "register_peripheral": "RCC",
+          "reset_id": "reset:i2c2",
+          "reset_signal": "RCC_APBRSTR1.I2C2RST"
         },
         {
           "active_level": "high",

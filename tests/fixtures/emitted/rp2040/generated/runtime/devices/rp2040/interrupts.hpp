@@ -42,10 +42,12 @@ struct InterruptDescriptor {
   std::uint16_t line;
   std::uint16_t vector_slot;
 };
-inline constexpr std::array<InterruptDescriptor, 13> kInterruptDescriptors = {{
+inline constexpr std::array<InterruptDescriptor, 15> kInterruptDescriptors = {{
   {InterruptId::ADC_IRQ_FIFO, PeripheralId::ADC, 22u, 38u},
   {InterruptId::DMA_IRQ_0, PeripheralId::DMA, 11u, 27u},
   {InterruptId::DMA_IRQ_1, PeripheralId::DMA, 12u, 28u},
+  {InterruptId::I2C0_IRQ, PeripheralId::I2C0, 23u, 39u},
+  {InterruptId::I2C1_IRQ, PeripheralId::I2C1, 24u, 40u},
   {InterruptId::PWM_IRQ_WRAP, PeripheralId::PWM, 4u, 20u},
   {InterruptId::RTC_IRQ, PeripheralId::RTC, 25u, 41u},
   {InterruptId::SPI0_IRQ, PeripheralId::SPI0, 18u, 34u},

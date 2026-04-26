@@ -37,6 +37,8 @@ enum class RouteId : std::uint16_t {
   candidate_gpio5_uart1_rx,
   candidate_gpio6_spi2_sck,
   candidate_gpio7_spi2_mosi,
+  candidate_gpio8_i2c0_sda,
+  candidate_gpio9_i2c0_scl,
 };
 
 struct RouteDescriptor {
@@ -143,7 +145,29 @@ struct RouteTraits<PinId::GPIO7, PeripheralId::SPI2, SignalId::signal_mosi> {
   }};
 };
 
-inline constexpr std::array<RouteDescriptor, 8> kRuntimeRoutes = {{
+template<>
+struct RouteTraits<PinId::GPIO8, PeripheralId::I2C0, SignalId::signal_sda> {
+  static constexpr bool kPresent = true;
+  static constexpr RouteId kRouteId = RouteId::candidate_gpio8_i2c0_sda;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::route_kind_mux;
+  static constexpr std::array<RouteOperation, 2> kOperations = {{
+    {BackendSchemaId::schema_alloy_clock_espressif_generic_clock_v1, OperationKindId::operation_kind_set_bit, OperationSubjectKindId::operation_subject_peripheral, RegisterId::register_pcr_i2c0_conf_reg, FieldId::field_pcr_i2c0_conf_reg_i2c0_clk_en, PinId::none, ClockGateId::gate_i2c0, ResetId::none, 1},
+    {BackendSchemaId::schema_alloy_pinmux_espressif_iomatrix_v1, OperationKindId::operation_kind_write_selector, OperationSubjectKindId::operation_subject_pin, RegisterId::none, FieldId::none, PinId::GPIO8, ClockGateId::none, ResetId::none, 15},
+  }};
+};
+
+template<>
+struct RouteTraits<PinId::GPIO9, PeripheralId::I2C0, SignalId::signal_scl> {
+  static constexpr bool kPresent = true;
+  static constexpr RouteId kRouteId = RouteId::candidate_gpio9_i2c0_scl;
+  static constexpr RouteKindId kRouteKindId = RouteKindId::route_kind_mux;
+  static constexpr std::array<RouteOperation, 2> kOperations = {{
+    {BackendSchemaId::schema_alloy_clock_espressif_generic_clock_v1, OperationKindId::operation_kind_set_bit, OperationSubjectKindId::operation_subject_peripheral, RegisterId::register_pcr_i2c0_conf_reg, FieldId::field_pcr_i2c0_conf_reg_i2c0_clk_en, PinId::none, ClockGateId::gate_i2c0, ResetId::none, 1},
+    {BackendSchemaId::schema_alloy_pinmux_espressif_iomatrix_v1, OperationKindId::operation_kind_write_selector, OperationSubjectKindId::operation_subject_pin, RegisterId::none, FieldId::none, PinId::GPIO9, ClockGateId::none, ResetId::none, 14},
+  }};
+};
+
+inline constexpr std::array<RouteDescriptor, 10> kRuntimeRoutes = {{
   {RouteId::candidate_gpio10_spi2_cs, PinId::GPIO10, PeripheralId::SPI2, SignalId::signal_cs, RouteKindId::route_kind_mux},
   {RouteId::candidate_gpio20_uart0_rx, PinId::GPIO20, PeripheralId::UART0, SignalId::signal_rx, RouteKindId::route_kind_mux},
   {RouteId::candidate_gpio21_uart0_tx, PinId::GPIO21, PeripheralId::UART0, SignalId::signal_tx, RouteKindId::route_kind_mux},
@@ -152,6 +176,8 @@ inline constexpr std::array<RouteDescriptor, 8> kRuntimeRoutes = {{
   {RouteId::candidate_gpio5_uart1_rx, PinId::GPIO5, PeripheralId::UART1, SignalId::signal_rx, RouteKindId::route_kind_mux},
   {RouteId::candidate_gpio6_spi2_sck, PinId::GPIO6, PeripheralId::SPI2, SignalId::signal_sck, RouteKindId::route_kind_mux},
   {RouteId::candidate_gpio7_spi2_mosi, PinId::GPIO7, PeripheralId::SPI2, SignalId::signal_mosi, RouteKindId::route_kind_mux},
+  {RouteId::candidate_gpio8_i2c0_sda, PinId::GPIO8, PeripheralId::I2C0, SignalId::signal_sda, RouteKindId::route_kind_mux},
+  {RouteId::candidate_gpio9_i2c0_scl, PinId::GPIO9, PeripheralId::I2C0, SignalId::signal_scl, RouteKindId::route_kind_mux},
 }};
 
 template<PinId Pin, PeripheralId Peripheral, SignalId Signal>
@@ -223,8 +249,25 @@ inline auto apply_route<PinId::GPIO7, PeripheralId::SPI2, SignalId::signal_mosi>
   *reinterpret_cast<volatile std::uint32_t*>(0x60004570u) = std::uint32_t{0x40u};
 }
 
+template<>
+inline auto apply_route<PinId::GPIO8, PeripheralId::I2C0, SignalId::signal_sda>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x600A001Cu) |=(std::uint32_t{1} << 1);
+  *reinterpret_cast<volatile std::uint32_t*>(0x60009024u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x60009024u) & ~(std::uint32_t{0x7} << 12)) | (std::uint32_t{0x1} << 12);
+  *reinterpret_cast<volatile std::uint32_t*>(0x60004574u) = std::uint32_t{0xFu};
+}
+
+template<>
+inline auto apply_route<PinId::GPIO9, PeripheralId::I2C0, SignalId::signal_scl>() noexcept -> void {
+  *reinterpret_cast<volatile std::uint32_t*>(0x600A001Cu) |=(std::uint32_t{1} << 1);
+  *reinterpret_cast<volatile std::uint32_t*>(0x60009028u) = 
+      (*reinterpret_cast<volatile std::uint32_t*>(0x60009028u) & ~(std::uint32_t{0x7} << 12)) | (std::uint32_t{0x1} << 12);
+  *reinterpret_cast<volatile std::uint32_t*>(0x60004578u) = std::uint32_t{0xEu};
+}
+
 enum class ConnectionGroupId : std::uint16_t {
   none,
+  group_i2c0_qfn32_scl_sda,
   group_spi2_qfn32_sck_mosi_miso,
   group_uart0_qfn32_tx_rx,
   group_uart1_qfn32_tx_rx,
@@ -235,6 +278,16 @@ struct ConnectionGroupTraits {
   static constexpr bool kPresent = false;
   static constexpr ConnectionGroupId kGroupId = ConnectionGroupId::none;
   static constexpr std::array<RouteId, 0> kRoutes = {};
+};
+
+template<>
+struct ConnectionGroupTraits<PeripheralId::I2C0, SignalId::signal_scl, SignalId::signal_sda> {
+  static constexpr bool kPresent = true;
+  static constexpr ConnectionGroupId kGroupId = ConnectionGroupId::group_i2c0_qfn32_scl_sda;
+  static constexpr std::array<RouteId, 2> kRoutes = {{
+    RouteId::candidate_gpio8_i2c0_sda,
+    RouteId::candidate_gpio9_i2c0_scl,
+  }};
 };
 
 template<>
@@ -273,7 +326,8 @@ struct ConnectionGroupDescriptor {
   PeripheralId peripheral_id;
   std::uint16_t route_count;
 };
-inline constexpr std::array<ConnectionGroupDescriptor, 3> kRuntimeConnectionGroups = {{
+inline constexpr std::array<ConnectionGroupDescriptor, 4> kRuntimeConnectionGroups = {{
+  {ConnectionGroupId::group_i2c0_qfn32_scl_sda, PeripheralId::I2C0, 2u},
   {ConnectionGroupId::group_spi2_qfn32_sck_mosi_miso, PeripheralId::SPI2, 3u},
   {ConnectionGroupId::group_uart0_qfn32_tx_rx, PeripheralId::UART0, 2u},
   {ConnectionGroupId::group_uart1_qfn32_tx_rx, PeripheralId::UART1, 2u},

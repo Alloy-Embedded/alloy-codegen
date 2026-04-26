@@ -18,8 +18,11 @@ enum class FieldId : std::uint16_t {
   field_dma_ch0_ctrl_trig_en,
   field_dma_ch0_ctrl_trig_chain_to,
   field_dma_ch0_ctrl_trig_treq_sel,
+  field_i2c0_ic_con_master_mode,
   field_resets_reset_adc,
   field_resets_reset_dma,
+  field_resets_reset_i2c0,
+  field_resets_reset_i2c1,
   field_resets_reset_pwm,
   field_resets_reset_rtc,
   field_resets_reset_spi0,
@@ -89,6 +92,15 @@ struct RegisterFieldTraits<FieldId::field_dma_ch0_ctrl_trig_treq_sel> {
 };
 
 template<>
+struct RegisterFieldTraits<FieldId::field_i2c0_ic_con_master_mode> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_i2c0_ic_con;
+  static constexpr std::uint16_t kBitOffset = 0u;
+  static constexpr std::uint16_t kBitWidth = 1u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+};
+
+template<>
 struct RegisterFieldTraits<FieldId::field_resets_reset_adc> {
   static constexpr bool kPresent = true;
   static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
@@ -102,6 +114,24 @@ struct RegisterFieldTraits<FieldId::field_resets_reset_dma> {
   static constexpr bool kPresent = true;
   static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
   static constexpr std::uint16_t kBitOffset = 2u;
+  static constexpr std::uint16_t kBitWidth = 1u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+};
+
+template<>
+struct RegisterFieldTraits<FieldId::field_resets_reset_i2c0> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
+  static constexpr std::uint16_t kBitOffset = 3u;
+  static constexpr std::uint16_t kBitWidth = 1u;
+  static constexpr AccessKindId kAccessId = AccessKindId::none;
+};
+
+template<>
+struct RegisterFieldTraits<FieldId::field_resets_reset_i2c1> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
+  static constexpr std::uint16_t kBitOffset = 4u;
   static constexpr std::uint16_t kBitWidth = 1u;
   static constexpr AccessKindId kAccessId = AccessKindId::none;
 };
@@ -214,14 +244,17 @@ struct RegisterFieldTraits<FieldId::field_watchdog_ctrl_enable> {
   static constexpr AccessKindId kAccessId = AccessKindId::none;
 };
 
-inline constexpr std::array<FieldId, 19> kRegisterFields = {{
+inline constexpr std::array<FieldId, 22> kRegisterFields = {{
   FieldId::field_adc_cs_en,
   FieldId::field_adc_cs_ainsel,
   FieldId::field_dma_ch0_ctrl_trig_en,
   FieldId::field_dma_ch0_ctrl_trig_chain_to,
   FieldId::field_dma_ch0_ctrl_trig_treq_sel,
+  FieldId::field_i2c0_ic_con_master_mode,
   FieldId::field_resets_reset_adc,
   FieldId::field_resets_reset_dma,
+  FieldId::field_resets_reset_i2c0,
+  FieldId::field_resets_reset_i2c1,
   FieldId::field_resets_reset_pwm,
   FieldId::field_resets_reset_rtc,
   FieldId::field_resets_reset_spi0,

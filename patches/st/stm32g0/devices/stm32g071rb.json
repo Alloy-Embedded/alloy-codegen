@@ -110,6 +110,22 @@
       "offset_bytes": 0,
       "access": "write-only",
       "size_bits": 32
+    },
+    {
+      "peripheral": "I2C1",
+      "name": "CR1",
+      "base_address": 1073763328,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "I2C2",
+      "name": "CR1",
+      "base_address": 1073764352,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
     }
   ],
   "register_fields": [
@@ -437,7 +453,9 @@
     "SPI1",
     "TIM1",
     "RTC",
-    "IWDG"
+    "IWDG",
+    "I2C1",
+    "I2C2"
   ],
   "dma_request_refs": [
     "dma1-usart1-rx",
@@ -718,35 +736,122 @@
     }
   ],
   "peripheral_max_clock_hz": [
-    { "peripheral": "USART1", "max_clock_hz": 64000000 },
-    { "peripheral": "USART2", "max_clock_hz": 64000000 },
-    { "peripheral": "SPI1",   "max_clock_hz": 64000000 },
-    { "peripheral": "I2C1",   "max_clock_hz": 64000000 },
-    { "peripheral": "I2C2",   "max_clock_hz": 64000000 }
+    {
+      "peripheral": "USART1",
+      "max_clock_hz": 64000000
+    },
+    {
+      "peripheral": "USART2",
+      "max_clock_hz": 64000000
+    },
+    {
+      "peripheral": "SPI1",
+      "max_clock_hz": 64000000
+    },
+    {
+      "peripheral": "I2C1",
+      "max_clock_hz": 64000000
+    },
+    {
+      "peripheral": "I2C2",
+      "max_clock_hz": 64000000
+    }
   ],
   "timer_prescaler_options": [
-    { "peripheral": "TIM1",  "max_prescaler": 65535, "max_auto_reload": 65535 },
-    { "peripheral": "TIM14", "max_prescaler": 65535, "max_auto_reload": 65535 }
+    {
+      "peripheral": "TIM1",
+      "max_prescaler": 65535,
+      "max_auto_reload": 65535
+    },
+    {
+      "peripheral": "TIM14",
+      "max_prescaler": 65535,
+      "max_auto_reload": 65535
+    }
   ],
   "timer_trigger_sources": [
-    { "peripheral": "TIM1", "source": "itr0", "field_value": 0 },
-    { "peripheral": "TIM1", "source": "itr1", "field_value": 1 },
-    { "peripheral": "TIM1", "source": "itr2", "field_value": 2 },
-    { "peripheral": "TIM1", "source": "itr3", "field_value": 3 },
-    { "peripheral": "TIM1", "source": "ti1f_ed", "field_value": 4 },
-    { "peripheral": "TIM1", "source": "ti1fp1", "field_value": 5 },
-    { "peripheral": "TIM1", "source": "ti2fp2", "field_value": 6 },
-    { "peripheral": "TIM1", "source": "etrf",   "field_value": 7 }
+    {
+      "peripheral": "TIM1",
+      "source": "itr0",
+      "field_value": 0
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "itr1",
+      "field_value": 1
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "itr2",
+      "field_value": 2
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "itr3",
+      "field_value": 3
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "ti1f_ed",
+      "field_value": 4
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "ti1fp1",
+      "field_value": 5
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "ti2fp2",
+      "field_value": 6
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "etrf",
+      "field_value": 7
+    }
   ],
   "timer_master_outputs": [
-    { "peripheral": "TIM1", "source": "reset",          "field_value": 0 },
-    { "peripheral": "TIM1", "source": "enable",         "field_value": 1 },
-    { "peripheral": "TIM1", "source": "update",         "field_value": 2 },
-    { "peripheral": "TIM1", "source": "compare_pulse",  "field_value": 3 },
-    { "peripheral": "TIM1", "source": "oc1ref",         "field_value": 4 },
-    { "peripheral": "TIM1", "source": "oc2ref",         "field_value": 5 },
-    { "peripheral": "TIM1", "source": "oc3ref",         "field_value": 6 },
-    { "peripheral": "TIM1", "source": "oc4ref",         "field_value": 7 }
+    {
+      "peripheral": "TIM1",
+      "source": "reset",
+      "field_value": 0
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "enable",
+      "field_value": 1
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "update",
+      "field_value": 2
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "compare_pulse",
+      "field_value": 3
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc1ref",
+      "field_value": 4
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc2ref",
+      "field_value": 5
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc3ref",
+      "field_value": 6
+    },
+    {
+      "peripheral": "TIM1",
+      "source": "oc4ref",
+      "field_value": 7
+    }
   ],
   "timer_mode_flags": [
     {
@@ -760,6 +865,100 @@
       "supports_dma_burst": false,
       "supports_repetition_counter": false,
       "supports_xor_input": false
+    }
+  ],
+  "i2c_speed_options": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "mode": "fast"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 1000000,
+      "mode": "fast_plus"
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 400000,
+      "mode": "fast"
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 1000000,
+      "mode": "fast_plus"
+    }
+  ],
+  "i2c_timing_presets": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 275807931
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 6300019
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 1000000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 3147289
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 100000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 275807931
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 400000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 6300019
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 1000000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 3147289
+    }
+  ],
+  "i2c_mode_flags": [
+    {
+      "peripheral": "I2C1",
+      "supports_smbus": true,
+      "supports_pmbus": false,
+      "supports_dma": true,
+      "supports_slave": true,
+      "supports_dual_address": true,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": true
+    },
+    {
+      "peripheral": "I2C2",
+      "supports_smbus": true,
+      "supports_pmbus": false,
+      "supports_dma": true,
+      "supports_slave": true,
+      "supports_dual_address": true,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": true
     }
   ]
 }

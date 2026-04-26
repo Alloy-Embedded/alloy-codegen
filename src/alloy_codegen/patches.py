@@ -621,6 +621,47 @@ class SpiModeFlagsPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class I2cSpeedOptionPatch:
+    """One supported I2C bus speed (added by ``add-i2c-tier-2-3-4-data``).
+
+    ``speed_hz`` is the bus frequency the peripheral can clock at
+    (100'000 / 400'000 / 1'000'000 typical).  ``mode`` is the modm-style
+    speed-class label (``standard`` / ``fast`` / ``fast_plus``).
+    """
+
+    peripheral: str
+    speed_hz: int
+    mode: str  # "standard" | "fast" | "fast_plus" | "high_speed"
+
+
+@dataclass(frozen=True, slots=True)
+class I2cTimingPresetPatch:
+    """Precomputed TIMINGR / CWGR value for one (peripheral, source clock,
+    target speed) triple.  Lets the alloy HAL pick the right register
+    value at compile time without a runtime calculator."""
+
+    peripheral: str
+    speed_hz: int
+    source_clock_hz: int
+    timingr_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class I2cModeFlagsPatch:
+    """Per-I2C mode capability flags (one block per peripheral)."""
+
+    peripheral: str
+    supports_smbus: bool = False
+    supports_pmbus: bool = False
+    supports_dma: bool = False
+    supports_slave: bool = True
+    supports_dual_address: bool = False
+    supports_general_call: bool = False
+    supports_7bit_addressing: bool = True
+    supports_10bit_addressing: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class TimerPrescalerOptionPatch:
     """Per-timer prescaler limits (added by ``add-timer-tier-2-3-4-data``)."""
 
@@ -717,6 +758,10 @@ class DevicePatch:
     timer_trigger_sources: tuple[TimerTriggerSourcePatch, ...] = ()
     timer_master_outputs: tuple[TimerMasterOutputPatch, ...] = ()
     timer_mode_flags: tuple[TimerModeFlagsPatch, ...] = ()
+    # I2C Tier 2/3/4 (added by ``add-i2c-tier-2-3-4-data``).
+    i2c_speed_options: tuple[I2cSpeedOptionPatch, ...] = ()
+    i2c_timing_presets: tuple[I2cTimingPresetPatch, ...] = ()
+    i2c_mode_flags: tuple[I2cModeFlagsPatch, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -2163,6 +2208,46 @@ def load_device_patch(
         timer_mode_flags=tuple(
             _parse_timer_mode_flags_patch(item) for item in payload.get("timer_mode_flags", ())
         ),
+        i2c_speed_options=tuple(
+            _parse_i2c_speed_option_patch(item) for item in payload.get("i2c_speed_options", ())
+        ),
+        i2c_timing_presets=tuple(
+            _parse_i2c_timing_preset_patch(item) for item in payload.get("i2c_timing_presets", ())
+        ),
+        i2c_mode_flags=tuple(
+            _parse_i2c_mode_flags_patch(item) for item in payload.get("i2c_mode_flags", ())
+        ),
+    )
+
+
+def _parse_i2c_speed_option_patch(payload: dict[str, object]) -> I2cSpeedOptionPatch:
+    return I2cSpeedOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        speed_hz=int(payload["speed_hz"]),  # type: ignore[arg-type]
+        mode=str(payload.get("mode", "standard")),
+    )
+
+
+def _parse_i2c_timing_preset_patch(payload: dict[str, object]) -> I2cTimingPresetPatch:
+    return I2cTimingPresetPatch(
+        peripheral=str(payload["peripheral"]),
+        speed_hz=int(payload["speed_hz"]),  # type: ignore[arg-type]
+        source_clock_hz=int(payload["source_clock_hz"]),  # type: ignore[arg-type]
+        timingr_value=int(payload["timingr_value"]),  # type: ignore[arg-type]
+    )
+
+
+def _parse_i2c_mode_flags_patch(payload: dict[str, object]) -> I2cModeFlagsPatch:
+    return I2cModeFlagsPatch(
+        peripheral=str(payload["peripheral"]),
+        supports_smbus=bool(payload.get("supports_smbus", False)),
+        supports_pmbus=bool(payload.get("supports_pmbus", False)),
+        supports_dma=bool(payload.get("supports_dma", False)),
+        supports_slave=bool(payload.get("supports_slave", True)),
+        supports_dual_address=bool(payload.get("supports_dual_address", False)),
+        supports_general_call=bool(payload.get("supports_general_call", False)),
+        supports_7bit_addressing=bool(payload.get("supports_7bit_addressing", True)),
+        supports_10bit_addressing=bool(payload.get("supports_10bit_addressing", False)),
     )
 
 

@@ -35,6 +35,20 @@ struct ClockGateTraits<ClockGateId::gate_dma> {
 };
 
 template<>
+struct ClockGateTraits<ClockGateId::gate_i2c0> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
+  static constexpr FieldId kFieldId = FieldId::field_resets_reset_i2c0;
+};
+
+template<>
+struct ClockGateTraits<ClockGateId::gate_i2c1> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
+  static constexpr FieldId kFieldId = FieldId::field_resets_reset_i2c1;
+};
+
+template<>
 struct ClockGateTraits<ClockGateId::gate_spi0> {
   static constexpr bool kPresent = true;
   static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
@@ -83,6 +97,22 @@ struct ResetTraits<ResetId::reset_dma> {
   static constexpr bool kPresent = true;
   static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
   static constexpr FieldId kFieldId = FieldId::field_resets_reset_dma;
+  static constexpr ActiveLevelId kActiveLevelId = ActiveLevelId::active_level_high;
+};
+
+template<>
+struct ResetTraits<ResetId::reset_i2c0> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
+  static constexpr FieldId kFieldId = FieldId::field_resets_reset_i2c0;
+  static constexpr ActiveLevelId kActiveLevelId = ActiveLevelId::active_level_high;
+};
+
+template<>
+struct ResetTraits<ResetId::reset_i2c1> {
+  static constexpr bool kPresent = true;
+  static constexpr RegisterId kRegisterId = RegisterId::register_resets_reset;
+  static constexpr FieldId kFieldId = FieldId::field_resets_reset_i2c1;
   static constexpr ActiveLevelId kActiveLevelId = ActiveLevelId::active_level_high;
 };
 
@@ -174,6 +204,22 @@ struct PeripheralClockBindingTraits<PeripheralId::DMA> {
 };
 
 template<>
+struct PeripheralClockBindingTraits<PeripheralId::I2C0> {
+  static constexpr bool kPresent = true;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_i2c0;
+  static constexpr ResetId kResetId = ResetId::reset_i2c0;
+  static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
+};
+
+template<>
+struct PeripheralClockBindingTraits<PeripheralId::I2C1> {
+  static constexpr bool kPresent = true;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_i2c1;
+  static constexpr ResetId kResetId = ResetId::reset_i2c1;
+  static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
+};
+
+template<>
 struct PeripheralClockBindingTraits<PeripheralId::PWM> {
   static constexpr bool kPresent = true;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
@@ -237,9 +283,11 @@ struct PeripheralClockBindingTraits<PeripheralId::WATCHDOG> {
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
 };
 
-inline constexpr std::array<PeripheralId, 10> kClockBoundPeripherals = {{
+inline constexpr std::array<PeripheralId, 12> kClockBoundPeripherals = {{
   PeripheralId::ADC,
   PeripheralId::DMA,
+  PeripheralId::I2C0,
+  PeripheralId::I2C1,
   PeripheralId::PWM,
   PeripheralId::RTC,
   PeripheralId::SPI0,

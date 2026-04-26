@@ -14,6 +14,8 @@ enum class PeripheralId : std::uint16_t {
   none,
   ADC,
   DMA,
+  I2C0,
+  I2C1,
   PWM,
   RTC,
   SPI0,
@@ -28,6 +30,8 @@ enum class ClockGateId : std::uint16_t {
   none,
   gate_adc,
   gate_dma,
+  gate_i2c0,
+  gate_i2c1,
   gate_spi0,
   gate_spi1,
   gate_uart0,
@@ -38,6 +42,8 @@ enum class ResetId : std::uint16_t {
   none,
   reset_adc,
   reset_dma,
+  reset_i2c0,
+  reset_i2c1,
   reset_pwm,
   reset_rtc,
   reset_spi0,
@@ -84,6 +90,30 @@ struct PeripheralInstanceTraits<PeripheralId::DMA> {
   static constexpr std::uintptr_t kBaseAddress = 0x50000000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::gate_dma;
   static constexpr ResetId kResetId = ResetId::reset_dma;
+  static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
+};
+
+template<>
+struct PeripheralInstanceTraits<PeripheralId::I2C0> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_i2c;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_i2c_raspberrypi_rp2040_i2c_v1;
+  static constexpr int kInstance = 0;
+  static constexpr std::uintptr_t kBaseAddress = 0x40044000u;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_i2c0;
+  static constexpr ResetId kResetId = ResetId::reset_i2c0;
+  static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
+};
+
+template<>
+struct PeripheralInstanceTraits<PeripheralId::I2C1> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_i2c;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_i2c_raspberrypi_rp2040_i2c_v1;
+  static constexpr int kInstance = 1;
+  static constexpr std::uintptr_t kBaseAddress = 0x40048000u;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_i2c1;
+  static constexpr ResetId kResetId = ResetId::reset_i2c1;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
 };
 
@@ -189,9 +219,11 @@ template <PeripheralId Id>
   return PeripheralInstanceTraits<Id>::kBaseAddress;
 }
 
-inline constexpr std::array<PeripheralId, 10> kRuntimePeripherals = {{
+inline constexpr std::array<PeripheralId, 12> kRuntimePeripherals = {{
   PeripheralId::ADC,
   PeripheralId::DMA,
+  PeripheralId::I2C0,
+  PeripheralId::I2C1,
   PeripheralId::PWM,
   PeripheralId::RTC,
   PeripheralId::SPI0,

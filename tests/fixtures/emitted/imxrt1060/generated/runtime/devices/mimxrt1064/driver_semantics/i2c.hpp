@@ -89,6 +89,15 @@ struct I2cSemanticTraits {
   static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};
   static constexpr std::uint32_t kKernelMaxClockHz = 0u;
   static constexpr RuntimeFieldRef kClockGateField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kSupportedSpeeds = {};
+  static constexpr std::array<I2cTimingPreset, 0> kTimingPresets = {};
+  static constexpr bool kSupportsSmbus = false;
+  static constexpr bool kSupportsPmbus = false;
+  static constexpr bool kSupportsSlave = false;
+  static constexpr bool kSupportsDualAddress = false;
+  static constexpr bool kSupportsGeneralCall = false;
+  static constexpr bool kSupports7BitAddressing = false;
+  static constexpr bool kSupports10BitAddressing = false;
 };
 
 inline constexpr std::array<PeripheralId, 0> kI2cSemanticPeripherals = {};

@@ -2029,3 +2029,28 @@ def test_stm32g071rb_uart_traits_emit_kernel_clock(
     assert "KernelClockSource::hsi16" in content
     assert "KernelClockSource::lse" in content
     assert "FieldId::field_rcc_apbenr2_usart1en" in content
+
+
+def test_stm32g071rb_i2c_traits_emit_specialization_and_tier234(
+    execution_context: ExecutionContext,
+) -> None:
+    """add-i2c-tier-2-3-4-data: STM32G0 I2C1 surfaces a populated
+    specialization (closing the broken-emission bug) carrying the
+    three Tier 2/3/4 speeds (100k/400k/1M), TIMINGR presets, and
+    the SMBus / 7-bit / 10-bit addressing flags."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/i2c.hpp"
+    content = arts[p].content
+    # Phase 1: I2C1 + I2C2 specializations exist (used to be empty).
+    assert "struct I2cSemanticTraits<PeripheralId::I2C1>" in content
+    assert "struct I2cSemanticTraits<PeripheralId::I2C2>" in content
+    assert "PeripheralId::I2C1" in content  # listed in kI2cSemanticPeripherals
+    # Phase 3+4: Tier 2/3/4 facts.
+    assert ("kSupportedSpeeds = {{100000u, 400000u, 1000000u}}") in content
+    assert "kSupportsSmbus = true;" in content
+    assert "kSupports7BitAddressing = true;" in content
+    assert "kSupports10BitAddressing = true;" in content
+    # TIMINGR preset for 400 kHz @ 64 MHz.
+    assert "kTimingPresets = {{" in content
+    assert "400000u, 64000000u" in content

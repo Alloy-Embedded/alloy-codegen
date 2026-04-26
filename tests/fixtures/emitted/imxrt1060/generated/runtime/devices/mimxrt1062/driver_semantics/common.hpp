@@ -222,6 +222,17 @@ struct KernelClockSourceOption {
   std::uint8_t field_value = 0u;
   bool valid = false;
 };
+
+// I2C trait support type (added by add-i2c-tier-2-3-4-data).
+// Precomputed TIMINGR / CWGR value for one (peripheral, source
+// clock, target speed) triple — lets the alloy HAL pick the right
+// register value at compile time without a runtime calculator.
+struct I2cTimingPreset {
+  std::uint32_t speed_hz = 0u;
+  std::uint32_t source_clock_hz = 0u;
+  std::uint32_t timingr_value = 0u;
+  bool valid = false;
+};
 }
 }
 }

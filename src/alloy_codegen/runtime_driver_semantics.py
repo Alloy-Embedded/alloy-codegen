@@ -23,6 +23,7 @@ from alloy_codegen.ir.model import (
 )
 from alloy_codegen.reporting import EmittedArtifact
 
+from .connector_model import canonical_peripheral_class
 from .emission import (
     _collect_runtime_semantics_catalog,
     _cpp_artifact,
@@ -306,6 +307,11 @@ class I2cSemanticRow:
     kernel_clock_source_options: tuple[KernelClockSourceOption, ...] = ()
     max_clock_hz: int = 0
     clock_gate_field: RuntimeFieldRef | None = None
+    # I2C Tier 2/3/4 (added by ``add-i2c-tier-2-3-4-data``).  Default-empty
+    # tuples / falsy mode-flags block; populated by per-family device patches.
+    speed_options: tuple[I2cSpeedOption, ...] = ()
+    timing_presets: tuple[I2cTimingPreset, ...] = ()
+    mode_flags: I2cModeFlags | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -532,6 +538,39 @@ class AdcDmaModeOption:
 
     mode: str  # "one_shot" | "circular"
     field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class I2cSpeedOption:
+    """One supported I2C bus speed (added by ``add-i2c-tier-2-3-4-data``)."""
+
+    speed_hz: int
+    mode: str  # "standard" | "fast" | "fast_plus" | "high_speed"
+
+
+@dataclass(frozen=True, slots=True)
+class I2cTimingPreset:
+    """Precomputed TIMINGR / CWGR value for a given source-clock + speed."""
+
+    speed_hz: int
+    source_clock_hz: int
+    timingr_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class I2cModeFlags:
+    """Per-I2C capability flags; ``valid`` flips ``true`` once the patch
+    populates the row."""
+
+    supports_smbus: bool = False
+    supports_pmbus: bool = False
+    supports_dma: bool = False
+    supports_slave: bool = True
+    supports_dual_address: bool = False
+    supports_general_call: bool = False
+    supports_7bit_addressing: bool = True
+    supports_10bit_addressing: bool = False
+    valid: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -1969,6 +2008,58 @@ def _timer_irq_lines(row: TimerSemanticRow) -> list[str]:
     return lines
 
 
+def _i2c_tier234_lines(row: I2cSemanticRow) -> list[str]:
+    """Render the I2C Tier 2/3/4 constexprs for a peripheral
+    specialisation.  Added by ``add-i2c-tier-2-3-4-data``.
+
+    Empty arrays / falsy mode flags by default until per-family
+    device patches populate the row's ``speed_options``,
+    ``timing_presets``, and ``mode_flags`` fields.
+    """
+    speed_n = len(row.speed_options)
+    if speed_n == 0:
+        speeds_line = "  static constexpr std::array<std::uint32_t, 0> kSupportedSpeeds = {};"
+    else:
+        joined = ", ".join(f"{o.speed_hz}u" for o in row.speed_options)
+        speeds_line = (
+            f"  static constexpr std::array<std::uint32_t, {speed_n}> "
+            f"kSupportedSpeeds = {{{{{joined}}}}};"
+        )
+
+    preset_n = len(row.timing_presets)
+    if preset_n == 0:
+        presets_line = "  static constexpr std::array<I2cTimingPreset, 0> kTimingPresets = {};"
+    else:
+        items = ", ".join(
+            f"{{{p.speed_hz}u, {p.source_clock_hz}u, {p.timingr_value:#010x}u, true}}"
+            for p in row.timing_presets
+        )
+        presets_line = (
+            f"  static constexpr std::array<I2cTimingPreset, {preset_n}> "
+            f"kTimingPresets = {{{{{items}}}}};"
+        )
+
+    flags = row.mode_flags
+    return [
+        speeds_line,
+        presets_line,
+        f"  static constexpr bool kSupportsSmbus = "
+        f"{'true' if flags and flags.supports_smbus else 'false'};",
+        f"  static constexpr bool kSupportsPmbus = "
+        f"{'true' if flags and flags.supports_pmbus else 'false'};",
+        f"  static constexpr bool kSupportsSlave = "
+        f"{'true' if flags is None or flags.supports_slave else 'false'};",
+        f"  static constexpr bool kSupportsDualAddress = "
+        f"{'true' if flags and flags.supports_dual_address else 'false'};",
+        f"  static constexpr bool kSupportsGeneralCall = "
+        f"{'true' if flags and flags.supports_general_call else 'false'};",
+        f"  static constexpr bool kSupports7BitAddressing = "
+        f"{'true' if flags is None or flags.supports_7bit_addressing else 'false'};",
+        f"  static constexpr bool kSupports10BitAddressing = "
+        f"{'true' if flags and flags.supports_10bit_addressing else 'false'};",
+    ]
+
+
 def _kernel_clock_lines(
     *,
     selector_field: RuntimeFieldRef | None,
@@ -2886,6 +2977,59 @@ def _spi_extension_for_peripheral(
     }
 
 
+def _i2c_extension_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, object]:
+    """Build the Tier 2/3/4 kwargs for ``I2cSemanticRow``.
+
+    Reads the device IR's I2C patch tuples (forwarded by
+    ``stages/normalize.run``) and returns a dict suitable for ``**``
+    unpacking into the row constructor.  Mirrors the UART/SPI Tier
+    2/3/4 helpers added by ``add-uart-spi-tier-2-3-4-data``.  Added by
+    ``add-i2c-tier-2-3-4-data``.
+    """
+    device = context.device
+    speed_options = tuple(
+        I2cSpeedOption(speed_hz=p.speed_hz, mode=p.mode)
+        for p in device.i2c_speed_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    timing_presets = tuple(
+        I2cTimingPreset(
+            speed_hz=p.speed_hz,
+            source_clock_hz=p.source_clock_hz,
+            timingr_value=p.timingr_value,
+        )
+        for p in device.i2c_timing_presets
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    flags_patch = next(
+        (p for p in device.i2c_mode_flags if getattr(p, "peripheral", None) == peripheral_name),
+        None,
+    )
+    if flags_patch is not None:
+        mode_flags = I2cModeFlags(
+            supports_smbus=flags_patch.supports_smbus,
+            supports_pmbus=flags_patch.supports_pmbus,
+            supports_dma=flags_patch.supports_dma,
+            supports_slave=flags_patch.supports_slave,
+            supports_dual_address=flags_patch.supports_dual_address,
+            supports_general_call=flags_patch.supports_general_call,
+            supports_7bit_addressing=flags_patch.supports_7bit_addressing,
+            supports_10bit_addressing=flags_patch.supports_10bit_addressing,
+            valid=True,
+        )
+    else:
+        mode_flags = None
+    return {
+        "speed_options": speed_options,
+        "timing_presets": timing_presets,
+        "mode_flags": mode_flags,
+    }
+
+
 def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
     # Hardware-feature lookup added by ``fill-espressif-semantic-gaps``: a
     # stub row whose peripheral has a ``UartPeripheralDescriptor`` is
@@ -3128,6 +3272,7 @@ def _st_i2c_v1_row(
         txrdy_field=empty_field,
         nack_field=empty_field,
         arblst_field=empty_field,
+        **_i2c_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3230,6 +3375,7 @@ def _st_i2c_v2_row(
         txrdy_field=empty_field,
         nack_field=empty_field,
         arblst_field=empty_field,
+        **_i2c_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3333,6 +3479,7 @@ def _microchip_i2c_row(
         txrdy_field=field("SR", "TXRDY", 0x20, 2),
         nack_field=field("SR", "NACK", 0x20, 8),
         arblst_field=field("SR", "ARBLST", 0x20, 9),
+        **_i2c_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3435,12 +3582,26 @@ def _nxp_i2c_row(
         txrdy_field=field("MSR", ("TDF",), 0x14, 0),
         nack_field=field("MSR", ("NDF",), 0x14, 10),
         arblst_field=field("MSR", ("ALF",), 0x14, 11),
+        **_i2c_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
 def _build_i2c_rows(context: _SemanticContext) -> tuple[I2cSemanticRow, ...]:
     rows: list[I2cSemanticRow] = []
-    for peripheral in context.candidate_peripherals_by_class.get("i2c", ()):
+    candidate_peripherals = list(context.candidate_peripherals_by_class.get("i2c", ()))
+    candidate_names = {p.name for p in candidate_peripherals}
+    # Also surface I2C peripherals admitted in the device patch but without
+    # admitted pin candidates (e.g. STM32G0 fixtures lack I2C pin_signals).
+    # The dispatch falls through to the stub branch when the schema isn't
+    # recognised, so the alloy HAL still gets ``kPresent`` + ``kIrqNumbers``
+    # + ``kDmaBindings`` + Tier 2/3/4 silicon facts.  Added by
+    # ``add-i2c-tier-2-3-4-data``.
+    for peripheral in sorted(context.device.peripherals, key=lambda item: item.name):
+        peripheral_class = canonical_peripheral_class(peripheral.ip_name)
+        if peripheral_class == "i2c" and peripheral.name not in candidate_names:
+            candidate_peripherals.append(peripheral)
+            candidate_names.add(peripheral.name)
+    for peripheral in candidate_peripherals:
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
@@ -3537,6 +3698,7 @@ def _build_i2c_rows(context: _SemanticContext) -> tuple[I2cSemanticRow, ...]:
                     nack_field=invalid_field,
                     arblst_field=invalid_field,
                     is_stub=True,
+                    **_i2c_extension_for_peripheral(context, peripheral_name=peripheral.name),
                 )
             )
     return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=8)  # type: ignore[return-value]
@@ -11283,6 +11445,17 @@ def _emit_driver_semantics_common_header(
             "  std::uint8_t field_value = 0u;",
             "  bool valid = false;",
             "};",
+            "",
+            "// I2C trait support type (added by add-i2c-tier-2-3-4-data).",
+            "// Precomputed TIMINGR / CWGR value for one (peripheral, source",
+            "// clock, target speed) triple — lets the alloy HAL pick the right",
+            "// register value at compile time without a runtime calculator.",
+            "struct I2cTimingPreset {",
+            "  std::uint32_t speed_hz = 0u;",
+            "  std::uint32_t source_clock_hz = 0u;",
+            "  std::uint32_t timingr_value = 0u;",
+            "  bool valid = false;",
+            "};",
         ]
     )
     namespace_block = _cpp_namespace_block(
@@ -12003,6 +12176,7 @@ def _i2c_specialization_builder(context: _SemanticContext):
                     max_clock_hz=row.max_clock_hz,
                     gate_field=row.clock_gate_field,
                 ),
+                *_i2c_tier234_lines(row),
             ]
         register_members = {
             "kCr1Register": row.cr1_reg,
@@ -12096,6 +12270,7 @@ def _i2c_specialization_builder(context: _SemanticContext):
                 gate_field=row.clock_gate_field,
             )
         )
+        lines.extend(_i2c_tier234_lines(row))
         return lines
 
     return _build
@@ -14543,6 +14718,16 @@ def emit_runtime_driver_i2c_semantics_header(
         "  static constexpr std::array<KernelClockSourceOption, 0> kKernelClockSourceOptions = {};",
         "  static constexpr std::uint32_t kKernelMaxClockHz = 0u;",
         "  static constexpr RuntimeFieldRef kClockGateField = kInvalidFieldRef;",
+        # I2C Tier 2/3/4 defaults (added by ``add-i2c-tier-2-3-4-data``).
+        "  static constexpr std::array<std::uint32_t, 0> kSupportedSpeeds = {};",
+        "  static constexpr std::array<I2cTimingPreset, 0> kTimingPresets = {};",
+        "  static constexpr bool kSupportsSmbus = false;",
+        "  static constexpr bool kSupportsPmbus = false;",
+        "  static constexpr bool kSupportsSlave = false;",
+        "  static constexpr bool kSupportsDualAddress = false;",
+        "  static constexpr bool kSupportsGeneralCall = false;",
+        "  static constexpr bool kSupports7BitAddressing = false;",
+        "  static constexpr bool kSupports10BitAddressing = false;",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,

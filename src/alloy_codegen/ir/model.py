@@ -1276,6 +1276,16 @@ class CanonicalDeviceIR:
     peripheral_max_clock_hz: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
+    # I2C Tier 2/3/4 (added by ``add-i2c-tier-2-3-4-data``).
+    i2c_speed_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    i2c_timing_presets: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    i2c_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Multi-core topology + APP_CPU control plane (added by
     # expose-xtensa-dual-core-facts).  ``multicore_topology`` defaults to
     # ``"single_core"`` so existing single-core fixtures keep validating

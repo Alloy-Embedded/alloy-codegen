@@ -517,6 +517,42 @@
         ]
       },
       "backend_schema_id": "alloy.watchdog.st-iwdg"
+    },
+    {
+      "name": "I2C1",
+      "ip_name": "i2c",
+      "ip_version": null,
+      "instance": 1,
+      "base_address": 1073763328,
+      "rcc_enable_signal": "RCC_APBENR1.I2C1EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.I2C1RST",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.i2c.st-i2c"
+    },
+    {
+      "name": "I2C2",
+      "ip_name": "i2c",
+      "ip_version": null,
+      "instance": 2,
+      "base_address": 1073764352,
+      "rcc_enable_signal": "RCC_APBENR1.I2C2EN",
+      "rcc_reset_signal": "RCC_APBRSTR1.I2C2RST",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "backend_schema_id": "alloy.i2c.st-i2c"
     }
   ],
   "interrupts": [
@@ -1118,6 +1154,38 @@
       "name": "KR",
       "offset_bytes": 0,
       "access": "write-only",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:i2c1:cr1",
+      "peripheral": "I2C1",
+      "name": "CR1",
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "register_id": "register:i2c2:cr1",
+      "peripheral": "I2C2",
+      "name": "CR1",
+      "offset_bytes": 0,
+      "access": "read-write",
       "size_bits": 32,
       "provenance": {
         "source_id": "cmsis-svd-data",
@@ -2293,6 +2361,42 @@
       "value_int": 1
     },
     {
+      "requirement_id": "requirement:clock-enable:i2c1",
+      "kind": "clock-enable",
+      "target": "RCC_APBENR1.I2C1EN",
+      "value": "1",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "target_ref_kind": "clock-gate",
+      "target_ref_id": "gate:i2c1",
+      "value_ref_kind": "int",
+      "value_int": 1
+    },
+    {
+      "requirement_id": "requirement:clock-enable:i2c2",
+      "kind": "clock-enable",
+      "target": "RCC_APBENR1.I2C2EN",
+      "value": "1",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "target_ref_kind": "clock-gate",
+      "target_ref_id": "gate:i2c2",
+      "value_ref_kind": "int",
+      "value_int": 1
+    },
+    {
       "requirement_id": "requirement:clock-enable:spi1",
       "kind": "clock-enable",
       "target": "RCC_APBENR2.SPI1EN",
@@ -2451,6 +2555,42 @@
       },
       "target_ref_kind": "reset",
       "target_ref_id": "reset:gpiob",
+      "value_ref_kind": "int",
+      "value_int": 0
+    },
+    {
+      "requirement_id": "requirement:reset-release:i2c1",
+      "kind": "reset-release",
+      "target": "RCC_APBRSTR1.I2C1RST",
+      "value": "0",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "target_ref_kind": "reset",
+      "target_ref_id": "reset:i2c1",
+      "value_ref_kind": "int",
+      "value_int": 0
+    },
+    {
+      "requirement_id": "requirement:reset-release:i2c2",
+      "kind": "reset-release",
+      "target": "RCC_APBRSTR1.I2C2RST",
+      "value": "0",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "target_ref_kind": "reset",
+      "target_ref_id": "reset:i2c2",
       "value_ref_kind": "int",
       "value_int": 0
     },
@@ -2697,6 +2837,56 @@
       "value_ref_kind": "int"
     },
     {
+      "operation_id": "operation:clock-enable:i2c1",
+      "kind": "set-bit",
+      "target": "RCC_APBENR1.I2C1EN",
+      "value": "1",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "I2C1",
+      "register_peripheral": "RCC",
+      "register_name": "APBENR1",
+      "register_offset": 60,
+      "value_int": 1,
+      "register_id": "register:rcc:apbenr1",
+      "target_ref_kind": "clock-gate",
+      "target_ref_id": "gate:i2c1",
+      "value_ref_kind": "int"
+    },
+    {
+      "operation_id": "operation:clock-enable:i2c2",
+      "kind": "set-bit",
+      "target": "RCC_APBENR1.I2C2EN",
+      "value": "1",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "I2C2",
+      "register_peripheral": "RCC",
+      "register_name": "APBENR1",
+      "register_offset": 60,
+      "value_int": 1,
+      "register_id": "register:rcc:apbenr1",
+      "target_ref_kind": "clock-gate",
+      "target_ref_id": "gate:i2c2",
+      "value_ref_kind": "int"
+    },
+    {
       "operation_id": "operation:clock-enable:spi1",
       "kind": "set-bit",
       "target": "RCC_APBENR2.SPI1EN",
@@ -2899,6 +3089,56 @@
       "register_field_id": "field:rcc:ioprstr:gpiobrst",
       "target_ref_kind": "reset",
       "target_ref_id": "reset:gpiob",
+      "value_ref_kind": "int"
+    },
+    {
+      "operation_id": "operation:reset-release:i2c1",
+      "kind": "clear-bit",
+      "target": "RCC_APBRSTR1.I2C1RST",
+      "value": "0",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "I2C1",
+      "register_peripheral": "RCC",
+      "register_name": "APBRSTR1",
+      "register_offset": 44,
+      "value_int": 0,
+      "register_id": "register:rcc:apbrstr1",
+      "target_ref_kind": "reset",
+      "target_ref_id": "reset:i2c1",
+      "value_ref_kind": "int"
+    },
+    {
+      "operation_id": "operation:reset-release:i2c2",
+      "kind": "clear-bit",
+      "target": "RCC_APBRSTR1.I2C2RST",
+      "value": "0",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "schema_id": "alloy.clock.st-rcc-g0-v1-0",
+      "subject_kind": "peripheral",
+      "subject_id": "I2C2",
+      "register_peripheral": "RCC",
+      "register_name": "APBRSTR1",
+      "register_offset": 44,
+      "value_int": 0,
+      "register_id": "register:rcc:apbrstr1",
+      "target_ref_kind": "reset",
+      "target_ref_id": "reset:i2c2",
       "value_ref_kind": "int"
     },
     {
@@ -3718,6 +3958,20 @@
       }
     },
     {
+      "node_id": "clock-node:rcc-apbenr1",
+      "kind": "apb-domain",
+      "parent": "clock-root",
+      "selector": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
       "node_id": "clock-node:rcc-apbenr2",
       "kind": "apb-domain",
       "parent": "clock-root",
@@ -3892,6 +4146,42 @@
       "register_field_id": "field:rcc:iopenr:gpioben"
     },
     {
+      "gate_id": "gate:i2c1",
+      "peripheral": "I2C1",
+      "enable_signal": "RCC_APBENR1.I2C1EN",
+      "parent_node": "clock-node:rcc-apbenr1",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "register_peripheral": "RCC",
+      "register_name": "APBENR1",
+      "register_offset": 60,
+      "register_id": "register:rcc:apbenr1"
+    },
+    {
+      "gate_id": "gate:i2c2",
+      "peripheral": "I2C2",
+      "enable_signal": "RCC_APBENR1.I2C2EN",
+      "parent_node": "clock-node:rcc-apbenr1",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "register_peripheral": "RCC",
+      "register_name": "APBENR1",
+      "register_offset": 60,
+      "register_id": "register:rcc:apbenr1"
+    },
+    {
       "gate_id": "gate:spi1",
       "peripheral": "SPI1",
       "enable_signal": "RCC_APBENR2.SPI1EN",
@@ -4043,6 +4333,42 @@
       "register_field_id": "field:rcc:ioprstr:gpiobrst"
     },
     {
+      "reset_id": "reset:i2c1",
+      "peripheral": "I2C1",
+      "reset_signal": "RCC_APBRSTR1.I2C1RST",
+      "active_level": "high",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "register_peripheral": "RCC",
+      "register_name": "APBRSTR1",
+      "register_offset": 44,
+      "register_id": "register:rcc:apbrstr1"
+    },
+    {
+      "reset_id": "reset:i2c2",
+      "peripheral": "I2C2",
+      "reset_signal": "RCC_APBRSTR1.I2C2RST",
+      "active_level": "high",
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      },
+      "register_peripheral": "RCC",
+      "register_name": "APBRSTR1",
+      "register_offset": 44,
+      "register_id": "register:rcc:apbrstr1"
+    },
+    {
       "reset_id": "reset:spi1",
       "peripheral": "SPI1",
       "reset_signal": "RCC_APBRSTR2.SPI1RST",
@@ -4159,6 +4485,34 @@
       "peripheral": "GPIOB",
       "clock_gate_id": "gate:gpiob",
       "reset_id": "reset:gpiob",
+      "selector_id": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "peripheral": "I2C1",
+      "clock_gate_id": "gate:i2c1",
+      "reset_id": "reset:i2c1",
+      "selector_id": null,
+      "provenance": {
+        "source_id": "cmsis-svd-data",
+        "source_path": "STM32G071.svd",
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ]
+      }
+    },
+    {
+      "peripheral": "I2C2",
+      "clock_gate_id": "gate:i2c2",
+      "reset_id": "reset:i2c2",
       "selector_id": null,
       "provenance": {
         "source_id": "cmsis-svd-data",
@@ -4910,6 +5264,100 @@
       "max_clock_hz": 64000000
     }
   ],
+  "i2c_speed_options": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "mode": "fast"
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 1000000,
+      "mode": "fast_plus"
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 100000,
+      "mode": "standard"
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 400000,
+      "mode": "fast"
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 1000000,
+      "mode": "fast_plus"
+    }
+  ],
+  "i2c_timing_presets": [
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 100000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 275807931
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 400000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 6300019
+    },
+    {
+      "peripheral": "I2C1",
+      "speed_hz": 1000000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 3147289
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 100000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 275807931
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 400000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 6300019
+    },
+    {
+      "peripheral": "I2C2",
+      "speed_hz": 1000000,
+      "source_clock_hz": 64000000,
+      "timingr_value": 3147289
+    }
+  ],
+  "i2c_mode_flags": [
+    {
+      "peripheral": "I2C1",
+      "supports_smbus": true,
+      "supports_pmbus": false,
+      "supports_dma": true,
+      "supports_slave": true,
+      "supports_dual_address": true,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": true
+    },
+    {
+      "peripheral": "I2C2",
+      "supports_smbus": true,
+      "supports_pmbus": false,
+      "supports_dma": true,
+      "supports_slave": true,
+      "supports_dual_address": true,
+      "supports_general_call": true,
+      "supports_7bit_addressing": true,
+      "supports_10bit_addressing": true
+    }
+  ],
   "usb_controllers": [
     {
       "controller_id": "USB",
@@ -5041,6 +5489,38 @@
           "st-stm32g0-stm32g071rb-bootstrap"
         ]
       }
+    }
+  ],
+  "i2c_peripherals": [
+    {
+      "peripheral_id": "I2C1",
+      "base_address": 1073763328,
+      "clock_source": "pclk",
+      "dreq_tx": null,
+      "dreq_rx": null,
+      "valid_sda_pins": [],
+      "valid_scl_pins": [],
+      "gpio_matrix_in_sda_signal": null,
+      "gpio_matrix_in_scl_signal": null,
+      "gpio_matrix_out_sda_signal": null,
+      "gpio_matrix_out_scl_signal": null,
+      "supports_fast_mode_plus": true,
+      "portmux_alt": null
+    },
+    {
+      "peripheral_id": "I2C2",
+      "base_address": 1073764352,
+      "clock_source": "pclk",
+      "dreq_tx": null,
+      "dreq_rx": null,
+      "valid_sda_pins": [],
+      "valid_scl_pins": [],
+      "gpio_matrix_in_sda_signal": null,
+      "gpio_matrix_in_scl_signal": null,
+      "gpio_matrix_out_sda_signal": null,
+      "gpio_matrix_out_scl_signal": null,
+      "supports_fast_mode_plus": true,
+      "portmux_alt": null
     }
   ],
   "stm_timer_pwm_peripherals": [

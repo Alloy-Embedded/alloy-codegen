@@ -13,6 +13,8 @@ namespace esp32 {
 enum class PeripheralId : std::uint16_t {
   none,
   GPIO,
+  I2C0,
+  I2C1,
   SENS,
   SPI0,
   SPI1,
@@ -25,6 +27,7 @@ enum class PeripheralId : std::uint16_t {
 
 enum class ClockGateId : std::uint16_t {
   none,
+  gate_i2c0,
   gate_spi0,
   gate_uart0,
 };
@@ -56,6 +59,30 @@ struct PeripheralInstanceTraits<PeripheralId::GPIO> {
   static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_gpio_espressif_esp32_gpio_v1;
   static constexpr int kInstance = 0;
   static constexpr std::uintptr_t kBaseAddress = 0x3FF44000u;
+  static constexpr ClockGateId kClockGateId = ClockGateId::none;
+  static constexpr ResetId kResetId = ResetId::none;
+  static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
+};
+
+template<>
+struct PeripheralInstanceTraits<PeripheralId::I2C0> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_i2c;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_i2c_espressif_esp32_i2c_v1;
+  static constexpr int kInstance = 0;
+  static constexpr std::uintptr_t kBaseAddress = 0x3FF53000u;
+  static constexpr ClockGateId kClockGateId = ClockGateId::gate_i2c0;
+  static constexpr ResetId kResetId = ResetId::none;
+  static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
+};
+
+template<>
+struct PeripheralInstanceTraits<PeripheralId::I2C1> {
+  static constexpr bool kPresent = true;
+  static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_i2c;
+  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::schema_alloy_i2c_espressif_i2c;
+  static constexpr int kInstance = 1;
+  static constexpr std::uintptr_t kBaseAddress = 0x3FF67000u;
   static constexpr ClockGateId kClockGateId = ClockGateId::none;
   static constexpr ResetId kResetId = ResetId::none;
   static constexpr ClockSelectorId kSelectorId = ClockSelectorId::none;
@@ -163,8 +190,10 @@ template <PeripheralId Id>
   return PeripheralInstanceTraits<Id>::kBaseAddress;
 }
 
-inline constexpr std::array<PeripheralId, 9> kRuntimePeripherals = {{
+inline constexpr std::array<PeripheralId, 11> kRuntimePeripherals = {{
   PeripheralId::GPIO,
+  PeripheralId::I2C0,
+  PeripheralId::I2C1,
   PeripheralId::SENS,
   PeripheralId::SPI0,
   PeripheralId::SPI1,
