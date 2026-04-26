@@ -161,6 +161,40 @@ def test_stm32g0_gpio_traits_compile_invariants() -> None:
     )
 
 
+def test_stm32g0_pwm_traits_compile_invariants() -> None:
+    """Compile-test for ``extend-pwm-coverage-all-mcus`` Phase A.
+
+    Asserts the populated `StmTimerPwmTraits<RuntimeStmTimerPwmId::TIM1>`
+    specialization carries the documented base address and the typed
+    `RuntimeStmTimerKind::Advanced` kind tag.
+    """
+    source = COMPILE_TESTS_DIR / "test_stm32g0_pwm_traits.cpp"
+    stm32g0_root = (
+        FIXTURES_EMITTED
+        / "stm32g0"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "stm32g071rb"
+    )
+    driver_root = stm32g0_root / "driver_semantics"
+    pwm_header = driver_root / "pwm.hpp"
+    pins_header = stm32g0_root / "pins.hpp"
+    assert pwm_header.exists(), pwm_header
+    assert pins_header.exists(), pins_header
+    common_header = driver_root / "common.hpp"
+    if not common_header.exists():
+        common_header.write_text("#pragma once\n", encoding="utf-8")
+    _compile(
+        source=source,
+        defines={
+            "ALLOY_CODEGEN_STM32G0_PWM_HEADER": f'"{pwm_header}"',
+            "ALLOY_CODEGEN_STM32G0_PINS_HEADER": f'"{pins_header}"',
+        },
+        include_dirs=[driver_root, stm32g0_root],
+    )
+
+
 def test_rp2040_i2c_traits_compile_invariants() -> None:
     """Compile-test for ``fill-i2c-semantic-gaps`` Phase C.
 

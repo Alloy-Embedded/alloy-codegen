@@ -6,17 +6,17 @@ Per-family coverage of the populated runtime-lite trait surfaces emitted by
 human-readable summary tracked alongside the openspec proposals that
 introduce each column.
 
-| Vendor      | Family    | Devices                              | gpio_traits | pio_traits | i2c_traits |
-|-------------|-----------|--------------------------------------|-------------|------------|------------|
-| st          | stm32g0   | stm32g030f6, stm32g071rb, stm32g0b1re | ✓ AF        | N/A        | ✓ AF table |
-| st          | stm32f4   | stm32f401re, stm32f405rg              | ✓ AF        | N/A        | ✓ AF table |
-| microchip   | same70    | atsame70n21b, atsame70q21b            | ✓ AF        | N/A        | ✓ register-level |
-| microchip   | avr-da    | avr128da32                            | ✓ PORTMUX   | N/A        | ✓ TWI default placement |
-| nxp         | imxrt1060 | mimxrt1062, mimxrt1064                | ✓ register-level + AF zero-defaults | N/A | ✓ register-level |
-| espressif   | esp32     | esp32, esp32-wroom32                  | ✓ IO matrix | N/A        | ✓ IO matrix |
-| espressif   | esp32c3   | esp32c3                               | ✓ IO matrix | N/A        | ✓ IO matrix |
-| espressif   | esp32s3   | esp32s3                               | ✓ IO matrix | N/A        | ✓ IO matrix + Fm+ |
-| raspberrypi | rp2040    | rp2040, pico                          | ✓ FUNCSEL   | ✓          | ✓ datasheet pin allowlist |
+| Vendor      | Family    | Devices                              | gpio_traits | pio_traits | i2c_traits | pwm_traits |
+|-------------|-----------|--------------------------------------|-------------|------------|------------|------------|
+| st          | stm32g0   | stm32g030f6, stm32g071rb, stm32g0b1re | ✓ AF        | N/A        | ✓ AF table | ✓ TIMx (advanced/general) |
+| st          | stm32f4   | stm32f401re, stm32f405rg              | ✓ AF        | N/A        | ✓ AF table | ✓ TIMx (advanced/general) |
+| microchip   | same70    | atsame70n21b, atsame70q21b            | ✓ AF        | N/A        | ✓ register-level | ✓ PWM/TC (deferred per-channel pads) |
+| microchip   | avr-da    | avr128da32                            | ✓ PORTMUX   | N/A        | ✓ TWI default placement | ✓ TCA0 (PORTMUX-A default) |
+| nxp         | imxrt1060 | mimxrt1062, mimxrt1064                | ✓ register-level + AF zero-defaults | N/A | ✓ register-level | ✓ FlexPWM (deferred per-submodule pads) |
+| espressif   | esp32     | esp32, esp32-wroom32                  | ✓ IO matrix | N/A        | ✓ IO matrix | ✓ MCPWM + LEDC |
+| espressif   | esp32c3   | esp32c3                               | ✓ IO matrix | N/A        | ✓ IO matrix | ✓ LEDC only (no MCPWM) |
+| espressif   | esp32s3   | esp32s3                               | ✓ IO matrix | N/A        | ✓ IO matrix + Fm+ | ✓ MCPWM + LEDC |
+| raspberrypi | rp2040    | rp2040, pico                          | ✓ FUNCSEL   | ✓          | ✓ datasheet pin allowlist | ✓ PWM slice HW |
 
 ### RP2040 peripheral coverage (added by `complete-rp2040-semantics`)
 
