@@ -32,31 +32,192 @@
     }
   ],
   "registers": [
-    { "peripheral": "RCC", "name": "CR", "base_address": 1073876992, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "RCC", "name": "CFGR", "base_address": 1073876992, "offset_bytes": 8, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "RCC", "name": "PLLCFGR", "base_address": 1073876992, "offset_bytes": 12, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "FLASH", "name": "ACR", "base_address": 1073881088, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "ADC1", "name": "ISR", "base_address": 1073816576, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "DMA1", "name": "ISR", "base_address": 1073872896, "offset_bytes": 0, "access": "read-only", "size_bits": 32 },
-    { "peripheral": "DMAMUX1", "name": "C0CR", "base_address": 1073874944, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "SPI1", "name": "CR1", "base_address": 1073819648, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "TIM1", "name": "CR1", "base_address": 1073818624, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "RTC", "name": "TR", "base_address": 1073752064, "offset_bytes": 0, "access": "read-write", "size_bits": 32 },
-    { "peripheral": "IWDG", "name": "KR", "base_address": 1073754112, "offset_bytes": 0, "access": "write-only", "size_bits": 32 }
+    {
+      "peripheral": "RCC",
+      "name": "CR",
+      "base_address": 1073876992,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "RCC",
+      "name": "CFGR",
+      "base_address": 1073876992,
+      "offset_bytes": 8,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "RCC",
+      "name": "PLLCFGR",
+      "base_address": 1073876992,
+      "offset_bytes": 12,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "FLASH",
+      "name": "ACR",
+      "base_address": 1073881088,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "ADC1",
+      "name": "ISR",
+      "base_address": 1073816576,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "DMA1",
+      "name": "ISR",
+      "base_address": 1073872896,
+      "offset_bytes": 0,
+      "access": "read-only",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "DMAMUX1",
+      "name": "C0CR",
+      "base_address": 1073874944,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "SPI1",
+      "name": "CR1",
+      "base_address": 1073819648,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "TIM1",
+      "name": "CR1",
+      "base_address": 1073818624,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "RTC",
+      "name": "TR",
+      "base_address": 1073752064,
+      "offset_bytes": 0,
+      "access": "read-write",
+      "size_bits": 32
+    },
+    {
+      "peripheral": "IWDG",
+      "name": "KR",
+      "base_address": 1073754112,
+      "offset_bytes": 0,
+      "access": "write-only",
+      "size_bits": 32
+    }
   ],
   "register_fields": [
-    { "peripheral": "RCC", "register_name": "CR", "name": "HSION", "bit_offset": 8, "bit_width": 1, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "CR", "name": "HSIRDY", "bit_offset": 10, "bit_width": 1, "access": "read-only" },
-    { "peripheral": "RCC", "register_name": "CR", "name": "PLLON", "bit_offset": 24, "bit_width": 1, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "CR", "name": "PLLRDY", "bit_offset": 25, "bit_width": 1, "access": "read-only" },
-    { "peripheral": "RCC", "register_name": "CFGR", "name": "SW", "bit_offset": 0, "bit_width": 3, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "CFGR", "name": "SWS", "bit_offset": 3, "bit_width": 3, "access": "read-only" },
-    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLSRC", "bit_offset": 0, "bit_width": 2, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLM", "bit_offset": 4, "bit_width": 3, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLN", "bit_offset": 8, "bit_width": 7, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLR", "bit_offset": 25, "bit_width": 2, "access": "read-write" },
-    { "peripheral": "RCC", "register_name": "PLLCFGR", "name": "PLLREN", "bit_offset": 24, "bit_width": 1, "access": "read-write" },
-    { "peripheral": "FLASH", "register_name": "ACR", "name": "LATENCY", "bit_offset": 0, "bit_width": 3, "access": "read-write" }
+    {
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "HSION",
+      "bit_offset": 8,
+      "bit_width": 1,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "HSIRDY",
+      "bit_offset": 10,
+      "bit_width": 1,
+      "access": "read-only"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "PLLON",
+      "bit_offset": 24,
+      "bit_width": 1,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "CR",
+      "name": "PLLRDY",
+      "bit_offset": 25,
+      "bit_width": 1,
+      "access": "read-only"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "CFGR",
+      "name": "SW",
+      "bit_offset": 0,
+      "bit_width": 3,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "CFGR",
+      "name": "SWS",
+      "bit_offset": 3,
+      "bit_width": 3,
+      "access": "read-only"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLSRC",
+      "bit_offset": 0,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLM",
+      "bit_offset": 4,
+      "bit_width": 3,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLN",
+      "bit_offset": 8,
+      "bit_width": 7,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLR",
+      "bit_offset": 25,
+      "bit_width": 2,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "RCC",
+      "register_name": "PLLCFGR",
+      "name": "PLLREN",
+      "bit_offset": 24,
+      "bit_width": 1,
+      "access": "read-write"
+    },
+    {
+      "peripheral": "FLASH",
+      "register_name": "ACR",
+      "name": "LATENCY",
+      "bit_offset": 0,
+      "bit_width": 3,
+      "access": "read-write"
+    }
   ],
   "memories": [
     {
@@ -74,17 +235,60 @@
       "access": "rwx"
     }
   ],
-  "peripherals": ["GPIOA", "USART2", "DMA1", "DMAMUX1", "ADC1", "SPI1", "TIM1", "RTC", "IWDG"],
-  "dma_request_refs": ["dma1-usart2-tx", "dma1-usart2-rx"],
+  "peripherals": [
+    "GPIOA",
+    "USART2",
+    "DMA1",
+    "DMAMUX1",
+    "ADC1",
+    "SPI1",
+    "TIM1",
+    "RTC",
+    "IWDG"
+  ],
+  "dma_request_refs": [
+    "dma1-usart2-tx",
+    "dma1-usart2-rx"
+  ],
   "adc_internal_channels": [
-    { "peripheral": "ADC1", "kind": "temperature_sensor", "channel_index": 12 },
-    { "peripheral": "ADC1", "kind": "vrefint",            "channel_index": 13 },
-    { "peripheral": "ADC1", "kind": "vbat",               "channel_index": 14 }
+    {
+      "peripheral": "ADC1",
+      "kind": "temperature_sensor",
+      "channel_index": 12
+    },
+    {
+      "peripheral": "ADC1",
+      "kind": "vrefint",
+      "channel_index": 13
+    },
+    {
+      "peripheral": "ADC1",
+      "kind": "vbat",
+      "channel_index": 14
+    }
   ],
   "adc_calibration_data_points": [
-    { "peripheral": "ADC1", "kind": "vrefint_cal", "address": "0x1FFF75AA", "size_bits": 16, "semantic_constant": 3000 },
-    { "peripheral": "ADC1", "kind": "ts_cal_low",  "address": "0x1FFF75A8", "size_bits": 16, "semantic_constant": 30 },
-    { "peripheral": "ADC1", "kind": "ts_cal_high", "address": "0x1FFF75CA", "size_bits": 16, "semantic_constant": 130 }
+    {
+      "peripheral": "ADC1",
+      "kind": "vrefint_cal",
+      "address": "0x1FFF75AA",
+      "size_bits": 16,
+      "semantic_constant": 3000
+    },
+    {
+      "peripheral": "ADC1",
+      "kind": "ts_cal_low",
+      "address": "0x1FFF75A8",
+      "size_bits": 16,
+      "semantic_constant": 30
+    },
+    {
+      "peripheral": "ADC1",
+      "kind": "ts_cal_high",
+      "address": "0x1FFF75CA",
+      "size_bits": 16,
+      "semantic_constant": 130
+    }
   ],
   "adc_calibration_context": {
     "peripheral": "ADC1",
@@ -94,36 +298,406 @@
     "vrefint_nominal_mv": 1212
   },
   "adc_resolution_options": [
-    { "peripheral": "ADC1", "bits": 12, "field_value": 0 },
-    { "peripheral": "ADC1", "bits": 10, "field_value": 1 },
-    { "peripheral": "ADC1", "bits": 8,  "field_value": 2 },
-    { "peripheral": "ADC1", "bits": 6,  "field_value": 3 }
+    {
+      "peripheral": "ADC1",
+      "bits": 12,
+      "field_value": 0
+    },
+    {
+      "peripheral": "ADC1",
+      "bits": 10,
+      "field_value": 1
+    },
+    {
+      "peripheral": "ADC1",
+      "bits": 8,
+      "field_value": 2
+    },
+    {
+      "peripheral": "ADC1",
+      "bits": 6,
+      "field_value": 3
+    }
   ],
   "adc_sample_time_options": [
-    { "peripheral": "ADC1", "cycles_q8": 384,    "field_value": 0 },
-    { "peripheral": "ADC1", "cycles_q8": 896,    "field_value": 1 },
-    { "peripheral": "ADC1", "cycles_q8": 1920,   "field_value": 2 },
-    { "peripheral": "ADC1", "cycles_q8": 3200,   "field_value": 3 },
-    { "peripheral": "ADC1", "cycles_q8": 4992,   "field_value": 4 },
-    { "peripheral": "ADC1", "cycles_q8": 10112,  "field_value": 5 },
-    { "peripheral": "ADC1", "cycles_q8": 20352,  "field_value": 6 },
-    { "peripheral": "ADC1", "cycles_q8": 41088,  "field_value": 7 }
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 384,
+      "field_value": 0
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 896,
+      "field_value": 1
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 1920,
+      "field_value": 2
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 3200,
+      "field_value": 3
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 4992,
+      "field_value": 4
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 10112,
+      "field_value": 5
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 20352,
+      "field_value": 6
+    },
+    {
+      "peripheral": "ADC1",
+      "cycles_q8": 41088,
+      "field_value": 7
+    }
   ],
   "adc_oversampling_options": [
-    { "peripheral": "ADC1", "ratio": 2,   "field_value": 0 },
-    { "peripheral": "ADC1", "ratio": 4,   "field_value": 1 },
-    { "peripheral": "ADC1", "ratio": 8,   "field_value": 2 },
-    { "peripheral": "ADC1", "ratio": 16,  "field_value": 3 },
-    { "peripheral": "ADC1", "ratio": 32,  "field_value": 4 },
-    { "peripheral": "ADC1", "ratio": 64,  "field_value": 5 },
-    { "peripheral": "ADC1", "ratio": 128, "field_value": 6 },
-    { "peripheral": "ADC1", "ratio": 256, "field_value": 7 }
+    {
+      "peripheral": "ADC1",
+      "ratio": 2,
+      "field_value": 0
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 4,
+      "field_value": 1
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 8,
+      "field_value": 2
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 16,
+      "field_value": 3
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 32,
+      "field_value": 4
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 64,
+      "field_value": 5
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 128,
+      "field_value": 6
+    },
+    {
+      "peripheral": "ADC1",
+      "ratio": 256,
+      "field_value": 7
+    }
   ],
   "adc_external_triggers": [
-    { "peripheral": "ADC1", "source": "tim1_trgo",  "extsel_value": 0 },
-    { "peripheral": "ADC1", "source": "tim1_cc4",   "extsel_value": 1 },
-    { "peripheral": "ADC1", "source": "tim3_trgo",  "extsel_value": 3 },
-    { "peripheral": "ADC1", "source": "exti11",     "extsel_value": 7 }
+    {
+      "peripheral": "ADC1",
+      "source": "tim1_trgo",
+      "extsel_value": 0
+    },
+    {
+      "peripheral": "ADC1",
+      "source": "tim1_cc4",
+      "extsel_value": 1
+    },
+    {
+      "peripheral": "ADC1",
+      "source": "tim3_trgo",
+      "extsel_value": 3
+    },
+    {
+      "peripheral": "ADC1",
+      "source": "exti11",
+      "extsel_value": 7
+    }
   ],
-  "adc_max_clock_hz": 35000000
+  "adc_max_clock_hz": 35000000,
+  "uart_baud_clock_sources": [
+    {
+      "peripheral": "USART2",
+      "source": "pclk",
+      "field_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "source": "sysclk",
+      "field_value": 1
+    },
+    {
+      "peripheral": "USART2",
+      "source": "hsi16",
+      "field_value": 2
+    },
+    {
+      "peripheral": "USART2",
+      "source": "lse",
+      "field_value": 3
+    }
+  ],
+  "uart_baud_oversampling_options": [
+    {
+      "peripheral": "USART2",
+      "ratio": 16,
+      "field_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "ratio": 8,
+      "field_value": 1
+    }
+  ],
+  "uart_fifo_trigger_options": [
+    {
+      "peripheral": "USART2",
+      "fraction_q8": 32,
+      "field_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "fraction_q8": 64,
+      "field_value": 1
+    },
+    {
+      "peripheral": "USART2",
+      "fraction_q8": 128,
+      "field_value": 2
+    },
+    {
+      "peripheral": "USART2",
+      "fraction_q8": 192,
+      "field_value": 3
+    },
+    {
+      "peripheral": "USART2",
+      "fraction_q8": 224,
+      "field_value": 4
+    },
+    {
+      "peripheral": "USART2",
+      "fraction_q8": 256,
+      "field_value": 5
+    }
+  ],
+  "uart_data_bits_options": [
+    {
+      "peripheral": "USART2",
+      "bits": 7,
+      "m0_value": 0,
+      "m1_value": 1
+    },
+    {
+      "peripheral": "USART2",
+      "bits": 8,
+      "m0_value": 0,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "bits": 9,
+      "m0_value": 1,
+      "m1_value": 0
+    }
+  ],
+  "uart_parity_options": [
+    {
+      "peripheral": "USART2",
+      "parity": "none",
+      "pce_value": 0,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "parity": "even",
+      "pce_value": 1,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "parity": "odd",
+      "pce_value": 1,
+      "ps_value": 1
+    }
+  ],
+  "uart_stop_bits_options": [
+    {
+      "peripheral": "USART2",
+      "stop_bits_q8": 128,
+      "field_value": 1
+    },
+    {
+      "peripheral": "USART2",
+      "stop_bits_q8": 256,
+      "field_value": 0
+    },
+    {
+      "peripheral": "USART2",
+      "stop_bits_q8": 384,
+      "field_value": 3
+    },
+    {
+      "peripheral": "USART2",
+      "stop_bits_q8": 512,
+      "field_value": 2
+    }
+  ],
+  "uart_mode_flags": [
+    {
+      "peripheral": "USART2",
+      "supports_lin": true,
+      "supports_irda": true,
+      "supports_smartcard": true,
+      "supports_half_duplex": true,
+      "supports_synchronous": true,
+      "supports_auto_baud": true,
+      "supports_wake_from_stop": true
+    }
+  ],
+  "uart_max_baud_hz": 4000000,
+  "spi_baud_prescaler_options": [
+    {
+      "peripheral": "SPI1",
+      "divisor": 2,
+      "field_value": 0
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 4,
+      "field_value": 1
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 8,
+      "field_value": 2
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 16,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 32,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 64,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 128,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 256,
+      "field_value": 7
+    }
+  ],
+  "spi_frame_size_options": [
+    {
+      "peripheral": "SPI1",
+      "bits": 4,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 5,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 6,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 7,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 8,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 9,
+      "field_value": 8
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 10,
+      "field_value": 9
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 11,
+      "field_value": 10
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 12,
+      "field_value": 11
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 13,
+      "field_value": 12
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 14,
+      "field_value": 13
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 15,
+      "field_value": 14
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 16,
+      "field_value": 15
+    }
+  ],
+  "spi_fifo_threshold_options": [
+    {
+      "peripheral": "SPI1",
+      "threshold_bits": 16,
+      "field_value": 0
+    },
+    {
+      "peripheral": "SPI1",
+      "threshold_bits": 8,
+      "field_value": 1
+    }
+  ],
+  "spi_mode_flags": [
+    {
+      "peripheral": "SPI1",
+      "supports_crc": true,
+      "supports_ti_frame": true,
+      "supports_motorola_frame": true,
+      "supports_i2s_submode": false,
+      "supports_bidirectional_3wire": true,
+      "supports_lsb_first": true,
+      "supports_nss_hw_management": true
+    }
+  ]
 }

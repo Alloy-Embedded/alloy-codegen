@@ -1637,6 +1637,19 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         adc_oversampling_options=device.adc_oversampling_options,
         adc_external_triggers=device.adc_external_triggers,
         adc_max_clock_hz=device.adc_max_clock_hz,
+        # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).
+        uart_baud_clock_sources=device.uart_baud_clock_sources,
+        uart_baud_oversampling_options=device.uart_baud_oversampling_options,
+        uart_fifo_trigger_options=device.uart_fifo_trigger_options,
+        uart_data_bits_options=device.uart_data_bits_options,
+        uart_parity_options=device.uart_parity_options,
+        uart_stop_bits_options=device.uart_stop_bits_options,
+        uart_mode_flags=device.uart_mode_flags,
+        uart_max_baud_hz=device.uart_max_baud_hz,
+        spi_baud_prescaler_options=device.spi_baud_prescaler_options,
+        spi_frame_size_options=device.spi_frame_size_options,
+        spi_fifo_threshold_options=device.spi_fifo_threshold_options,
+        spi_mode_flags=device.spi_mode_flags,
         # Carry forward multicore-topology facts (added by
         # ``expose-xtensa-dual-core-facts``) for the same reason.
         multicore_topology=device.multicore_topology,

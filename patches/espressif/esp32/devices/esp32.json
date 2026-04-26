@@ -30,13 +30,39 @@
   ],
   "registers": [],
   "register_fields": [],
-  "peripherals": ["GPIO", "UART0", "SPI0", "I2C0", "TIMG0", "LEDC", "RMT", "DPORT", "SENS"],
+  "peripherals": [
+    "GPIO",
+    "UART0",
+    "SPI0",
+    "I2C0",
+    "TIMG0",
+    "LEDC",
+    "RMT",
+    "DPORT",
+    "SENS"
+  ],
   "dma_request_refs": [],
   "adc_resolution_options": [
-    { "peripheral": "SENS", "bits": 9,  "field_value": 0 },
-    { "peripheral": "SENS", "bits": 10, "field_value": 1 },
-    { "peripheral": "SENS", "bits": 11, "field_value": 2 },
-    { "peripheral": "SENS", "bits": 12, "field_value": 3 }
+    {
+      "peripheral": "SENS",
+      "bits": 9,
+      "field_value": 0
+    },
+    {
+      "peripheral": "SENS",
+      "bits": 10,
+      "field_value": 1
+    },
+    {
+      "peripheral": "SENS",
+      "bits": 11,
+      "field_value": 2
+    },
+    {
+      "peripheral": "SENS",
+      "bits": 12,
+      "field_value": 3
+    }
   ],
   "adc_max_clock_hz": 5000000,
   "system_clock_profiles": [
@@ -61,6 +87,187 @@
       "pll_m": 0,
       "pll_r": 0,
       "flash_latency": 0
+    }
+  ],
+  "uart_baud_clock_sources": [
+    {
+      "peripheral": "UART0",
+      "source": "apb",
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "source": "ref_tick",
+      "field_value": 1
+    },
+    {
+      "peripheral": "UART0",
+      "source": "xtal",
+      "field_value": 2
+    },
+    {
+      "peripheral": "UART0",
+      "source": "rc_fast",
+      "field_value": 3
+    }
+  ],
+  "uart_baud_oversampling_options": [
+    {
+      "peripheral": "UART0",
+      "ratio": 16,
+      "field_value": 0
+    }
+  ],
+  "uart_data_bits_options": [
+    {
+      "peripheral": "UART0",
+      "bits": 5,
+      "m0_value": 0,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "bits": 6,
+      "m0_value": 1,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "bits": 7,
+      "m0_value": 2,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "bits": 8,
+      "m0_value": 3,
+      "m1_value": 0
+    }
+  ],
+  "uart_parity_options": [
+    {
+      "peripheral": "UART0",
+      "parity": "none",
+      "pce_value": 0,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "parity": "even",
+      "pce_value": 1,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "parity": "odd",
+      "pce_value": 1,
+      "ps_value": 1
+    }
+  ],
+  "uart_stop_bits_options": [
+    {
+      "peripheral": "UART0",
+      "stop_bits_q8": 256,
+      "field_value": 1
+    },
+    {
+      "peripheral": "UART0",
+      "stop_bits_q8": 384,
+      "field_value": 2
+    },
+    {
+      "peripheral": "UART0",
+      "stop_bits_q8": 512,
+      "field_value": 3
+    }
+  ],
+  "uart_mode_flags": [
+    {
+      "peripheral": "UART0",
+      "supports_lin": false,
+      "supports_irda": true,
+      "supports_smartcard": false,
+      "supports_half_duplex": true,
+      "supports_synchronous": false,
+      "supports_auto_baud": true,
+      "supports_wake_from_stop": true
+    }
+  ],
+  "uart_max_baud_hz": 5000000,
+  "spi_baud_prescaler_options": [
+    {
+      "peripheral": "SPI0",
+      "divisor": 2,
+      "field_value": 1
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 4,
+      "field_value": 2
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 8,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 16,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 32,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 64,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 128,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 256,
+      "field_value": 8
+    }
+  ],
+  "spi_frame_size_options": [
+    {
+      "peripheral": "SPI0",
+      "bits": 4,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 8,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 16,
+      "field_value": 15
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 32,
+      "field_value": 31
+    }
+  ],
+  "spi_mode_flags": [
+    {
+      "peripheral": "SPI0",
+      "supports_crc": false,
+      "supports_ti_frame": false,
+      "supports_motorola_frame": true,
+      "supports_i2s_submode": false,
+      "supports_bidirectional_3wire": true,
+      "supports_lsb_first": true,
+      "supports_nss_hw_management": true
     }
   ]
 }

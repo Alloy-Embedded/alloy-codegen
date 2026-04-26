@@ -24,7 +24,9 @@ from alloy_codegen.stages.emit import run as run_emit
 def _emit_i2c_hpp(context: ExecutionContext, device: str) -> str:
     result = run_emit(PipelineScope(device=device), context)
     artifact = next(
-        a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/i2c.hpp")
+        a
+        for a in result.payload.artifacts
+        if a.path.endswith(f"/{device}/driver_semantics/i2c.hpp")
     )
     return artifact.content
 
@@ -135,9 +137,9 @@ def test_rp2040_i2c0_records_datasheet_pin_constraints_and_dreqs(
     assert "static constexpr std::uint8_t kDreqTx = 32u;" in i2c0
     assert "static constexpr std::uint8_t kDreqRx = 33u;" in i2c0
     for pad in ("GP0", "GP4", "GP8", "GP12", "GP16", "GP20", "GP24", "GP28"):
-        assert f'PinId::{pad}' in i2c0
+        assert f"PinId::{pad}" in i2c0
     for pad in ("GP1", "GP5", "GP9", "GP13", "GP17", "GP21", "GP25", "GP29"):
-        assert f'PinId::{pad}' in i2c0
+        assert f"PinId::{pad}" in i2c0
 
 
 def test_rp2040_i2c1_records_distinct_constraints_and_dreqs(
@@ -151,7 +153,7 @@ def test_rp2040_i2c1_records_distinct_constraints_and_dreqs(
     assert "static constexpr std::uint8_t kDreqTx = 34u;" in i2c1
     assert "static constexpr std::uint8_t kDreqRx = 35u;" in i2c1
     for pad in ("GP2", "GP6", "GP10", "GP14", "GP18", "GP26"):
-        assert f'PinId::{pad}' in i2c1
+        assert f"PinId::{pad}" in i2c1
 
 
 # --- Phase D: Microchip AVR-DA -------------------------------------------
@@ -168,7 +170,7 @@ def test_avr128da32_twi0_records_default_pin_placement(
 
     twi0 = _struct_block(content, "I2cPeripheralTraits<RuntimeI2cCtrlId::TWI0>")
     assert "static constexpr bool kPresent = true;" in twi0
-    assert 'PinId::PA2' in twi0
-    assert 'PinId::PA3' in twi0
+    assert "PinId::PA2" in twi0
+    assert "PinId::PA3" in twi0
     assert "static constexpr bool kPortmuxAlt = false;" in twi0
     assert "static constexpr bool kSupportsFastModePlus = false;" in twi0

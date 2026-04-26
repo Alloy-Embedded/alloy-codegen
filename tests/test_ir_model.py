@@ -568,14 +568,9 @@ def test_canonical_device_ir_default_multicore_topology_is_single_core() -> None
     )
     payload = populated.to_dict()
     assert payload["multicore_topology"] == "xtensa_asymmetric_dual_core"
-    assert (
-        payload["app_cpu_control_plane"]["release_register"]
-        == "register_dport_appcpu_ctrl_b"
-    )
+    assert payload["app_cpu_control_plane"]["release_register"] == "register_dport_appcpu_ctrl_b"
     assert payload["app_cpu_control_plane"]["operation"] == "set-bit-0"
-    assert (
-        payload["app_cpu_control_plane"]["start_vector_symbol"] == "_vectors_cpu1"
-    )
+    assert payload["app_cpu_control_plane"]["start_vector_symbol"] == "_vectors_cpu1"
 
 
 def test_register_descriptor_default_role_is_general_and_omitted() -> None:

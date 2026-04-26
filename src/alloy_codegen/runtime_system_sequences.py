@@ -117,15 +117,11 @@ def runtime_system_sequence_steps(
                 startup_descriptor_id=None,
                 peripheral_name=None,
                 system_clock_profile_id=None,
-                secondary_core_release_register_id=(
-                    device.app_cpu_control_plane.release_register
-                ),
+                secondary_core_release_register_id=(device.app_cpu_control_plane.release_register),
                 secondary_core_release_register_secondary_id=(
                     device.app_cpu_control_plane.release_register_secondary
                 ),
-                secondary_core_release_operation=(
-                    device.app_cpu_control_plane.operation
-                ),
+                secondary_core_release_operation=(device.app_cpu_control_plane.operation),
             )
         )
 

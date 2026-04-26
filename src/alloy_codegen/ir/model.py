@@ -88,6 +88,15 @@ class UartPeripheralDescriptor:
     tx_signal_idx: int | None = None
     rx_signal_idx: int | None = None
     supports_dma: bool = False
+    # RP2040-style fixed pin pairs + DMA DREQ values (added by
+    # ``complete-rp2040-semantics``).  Empty / None on families that route
+    # via GPIO-matrix or don't expose DREQ values.
+    valid_tx_pins: tuple[int, ...] = ()
+    valid_rx_pins: tuple[int, ...] = ()
+    valid_cts_pins: tuple[int, ...] = ()
+    valid_rts_pins: tuple[int, ...] = ()
+    dreq_tx: int | None = None
+    dreq_rx: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,6 +117,14 @@ class SpiPeripheralDescriptor:
     iomux_clk_pin: int | None = None
     iomux_cs_pin: int | None = None
     supports_dma: bool = False
+    # RP2040-style fixed pin sets + DMA DREQ values (added by
+    # ``complete-rp2040-semantics``).
+    valid_mosi_pins: tuple[int, ...] = ()
+    valid_miso_pins: tuple[int, ...] = ()
+    valid_clk_pins: tuple[int, ...] = ()
+    valid_cs_pins: tuple[int, ...] = ()
+    dreq_tx: int | None = None
+    dreq_rx: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,6 +137,11 @@ class AdcUnitDescriptor:
     resolution_bits: int
     conflicts_with_wifi: bool = False
     channel_pins: tuple[int, ...] = ()
+    # RP2040-style ADC features (added by ``complete-rp2040-semantics``).
+    base_address: int = 0
+    supports_fifo: bool = False
+    fifo_depth: int = 0
+    dreq: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,6 +155,10 @@ class TimerUnitDescriptor:
     base_address: int
     bits: int
     clock_sources: tuple[str, ...] = ()
+    # RP2040-style alarm count + per-alarm DREQ values (added by
+    # ``complete-rp2040-semantics``).  Empty for non-RP2040 timers.
+    alarm_count: int = 0
+    alarm_dreqs: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -157,6 +183,26 @@ class DmaChannelDescriptor:
     is_gdma: bool
     max_transfer_bytes: int = 0
     peripheral_requests: tuple[tuple[str, int], ...] = ()
+    # RP2040-style controller-level features (added by
+    # ``complete-rp2040-semantics``).
+    base_address: int = 0
+    max_transfer_count: int = 0
+    supports_chaining: bool = False
+    supports_byte_swap: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class PwmSliceDescriptor:
+    """RP2040 PWM slice hardware-feature facts (added by
+    ``complete-rp2040-semantics``).  Each slice has 2 channels A/B with
+    fixed GPIO assignments and a fractional clock divider."""
+
+    slice_index: int
+    channel_a_pin: int
+    channel_b_pin: int
+    counter_bits: int = 16
+    clock_div_min_q4: int = 16  # Q12.4 fixed-point: 16 = 1.0 (min)
+    clock_div_max_q4: int = 4096  # Q12.4 fixed-point: 4096 = 256.0 (max)
 
 
 @dataclass(frozen=True, slots=True)
@@ -331,9 +377,7 @@ class RegisterDescriptor:
     access: str | None
     size_bits: int | None
     provenance: Provenance
-    role: RegisterRole = field(
-        default="general", metadata={"omit_if_default": True}
-    )
+    role: RegisterRole = field(default="general", metadata={"omit_if_default": True})
 
 
 @dataclass(frozen=True, slots=True)
@@ -1177,6 +1221,44 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     adc_max_clock_hz: int = field(default=0, metadata={"omit_if_default": True})
+    # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Same
+    # pass-through pattern as ADC: tuples of patch dataclasses, the typed
+    # C++ rendering happens in ``runtime_driver_semantics``.  Empty for
+    # families whose device patches don't curate the data.
+    uart_baud_clock_sources: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_baud_oversampling_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_fifo_trigger_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_data_bits_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_parity_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_stop_bits_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    uart_max_baud_hz: int = field(default=0, metadata={"omit_if_default": True})
+    spi_baud_prescaler_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_frame_size_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_fifo_threshold_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Multi-core topology + APP_CPU control plane (added by
     # expose-xtensa-dual-core-facts).  ``multicore_topology`` defaults to
     # ``"single_core"`` so existing single-core fixtures keep validating
@@ -1187,7 +1269,8 @@ class CanonicalDeviceIR:
         default="single_core", metadata={"omit_if_default": True}
     )
     app_cpu_control_plane: AppCpuControlPlane | None = field(
-        default=None, metadata={"omit_if_empty": True},
+        default=None,
+        metadata={"omit_if_empty": True},
     )
     # PIO block topology (added by define-pio-semantic-struct).  Empty for
     # devices without Programmable I/O hardware.
@@ -1218,10 +1301,12 @@ class CanonicalDeviceIR:
     timer_units: tuple[TimerUnitDescriptor, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    ledc: LedcDescriptor | None = field(
-        default=None, metadata={"omit_if_empty": True}
-    )
+    ledc: LedcDescriptor | None = field(default=None, metadata={"omit_if_empty": True})
     dma_channels: tuple[DmaChannelDescriptor, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    # RP2040 PWM slices (added by ``complete-rp2040-semantics``).
+    pwm_slices: tuple[PwmSliceDescriptor, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # GPIO pin alternate-function topology (added by fill-gpio-semantic-gaps).

@@ -22,17 +22,29 @@
     }
   ],
   "dma_request_refs": [
-    "dma-uart0-rx", "dma-uart0-tx",
-    "dma-uart1-rx", "dma-uart1-tx",
-    "dma-spi0-rx",  "dma-spi0-tx",
-    "dma-spi1-rx",  "dma-spi1-tx",
+    "dma-uart0-rx",
+    "dma-uart0-tx",
+    "dma-uart1-rx",
+    "dma-uart1-tx",
+    "dma-spi0-rx",
+    "dma-spi0-tx",
+    "dma-spi1-rx",
+    "dma-spi1-tx",
     "dma-adc"
   ],
   "adc_internal_channels": [
-    { "peripheral": "ADC", "kind": "temperature_sensor", "channel_index": 4 }
+    {
+      "peripheral": "ADC",
+      "kind": "temperature_sensor",
+      "channel_index": 4
+    }
   ],
   "adc_resolution_options": [
-    { "peripheral": "ADC", "bits": 12, "field_value": 0 }
+    {
+      "peripheral": "ADC",
+      "bits": 12,
+      "field_value": 0
+    }
   ],
   "adc_max_clock_hz": 48000000,
   "system_clock_profiles": [
@@ -56,6 +68,451 @@
       "pll_n": 125,
       "pll_p": 6,
       "pll_q": 2
+    }
+  ],
+  "uart_baud_clock_sources": [
+    {
+      "peripheral": "UART0",
+      "source": "clk_peri",
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "source": "clk_peri",
+      "field_value": 0
+    }
+  ],
+  "uart_baud_oversampling_options": [
+    {
+      "peripheral": "UART0",
+      "ratio": 16,
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "ratio": 16,
+      "field_value": 0
+    }
+  ],
+  "uart_fifo_trigger_options": [
+    {
+      "peripheral": "UART0",
+      "fraction_q8": 32,
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "fraction_q8": 64,
+      "field_value": 1
+    },
+    {
+      "peripheral": "UART0",
+      "fraction_q8": 128,
+      "field_value": 2
+    },
+    {
+      "peripheral": "UART0",
+      "fraction_q8": 192,
+      "field_value": 3
+    },
+    {
+      "peripheral": "UART0",
+      "fraction_q8": 224,
+      "field_value": 4
+    },
+    {
+      "peripheral": "UART1",
+      "fraction_q8": 32,
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "fraction_q8": 64,
+      "field_value": 1
+    },
+    {
+      "peripheral": "UART1",
+      "fraction_q8": 128,
+      "field_value": 2
+    },
+    {
+      "peripheral": "UART1",
+      "fraction_q8": 192,
+      "field_value": 3
+    },
+    {
+      "peripheral": "UART1",
+      "fraction_q8": 224,
+      "field_value": 4
+    }
+  ],
+  "uart_data_bits_options": [
+    {
+      "peripheral": "UART0",
+      "bits": 5,
+      "m0_value": 0,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "bits": 6,
+      "m0_value": 1,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "bits": 7,
+      "m0_value": 2,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "bits": 8,
+      "m0_value": 3,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "bits": 5,
+      "m0_value": 0,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "bits": 6,
+      "m0_value": 1,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "bits": 7,
+      "m0_value": 2,
+      "m1_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "bits": 8,
+      "m0_value": 3,
+      "m1_value": 0
+    }
+  ],
+  "uart_parity_options": [
+    {
+      "peripheral": "UART0",
+      "parity": "none",
+      "pce_value": 0,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "parity": "even",
+      "pce_value": 1,
+      "ps_value": 1
+    },
+    {
+      "peripheral": "UART0",
+      "parity": "odd",
+      "pce_value": 1,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "parity": "none",
+      "pce_value": 0,
+      "ps_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "parity": "even",
+      "pce_value": 1,
+      "ps_value": 1
+    },
+    {
+      "peripheral": "UART1",
+      "parity": "odd",
+      "pce_value": 1,
+      "ps_value": 0
+    }
+  ],
+  "uart_stop_bits_options": [
+    {
+      "peripheral": "UART0",
+      "stop_bits_q8": 256,
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART0",
+      "stop_bits_q8": 512,
+      "field_value": 1
+    },
+    {
+      "peripheral": "UART1",
+      "stop_bits_q8": 256,
+      "field_value": 0
+    },
+    {
+      "peripheral": "UART1",
+      "stop_bits_q8": 512,
+      "field_value": 1
+    }
+  ],
+  "uart_mode_flags": [
+    {
+      "peripheral": "UART0",
+      "supports_lin": false,
+      "supports_irda": true,
+      "supports_smartcard": false,
+      "supports_half_duplex": true,
+      "supports_synchronous": false,
+      "supports_auto_baud": false,
+      "supports_wake_from_stop": false
+    },
+    {
+      "peripheral": "UART1",
+      "supports_lin": false,
+      "supports_irda": true,
+      "supports_smartcard": false,
+      "supports_half_duplex": true,
+      "supports_synchronous": false,
+      "supports_auto_baud": false,
+      "supports_wake_from_stop": false
+    }
+  ],
+  "uart_max_baud_hz": 7812500,
+  "spi_baud_prescaler_options": [
+    {
+      "peripheral": "SPI0",
+      "divisor": 2,
+      "field_value": 1
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 4,
+      "field_value": 2
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 8,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 16,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 32,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 64,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 128,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI0",
+      "divisor": 256,
+      "field_value": 8
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 2,
+      "field_value": 1
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 4,
+      "field_value": 2
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 8,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 16,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 32,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 64,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 128,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI1",
+      "divisor": 256,
+      "field_value": 8
+    }
+  ],
+  "spi_frame_size_options": [
+    {
+      "peripheral": "SPI0",
+      "bits": 4,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 5,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 6,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 7,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 8,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 9,
+      "field_value": 8
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 10,
+      "field_value": 9
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 11,
+      "field_value": 10
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 12,
+      "field_value": 11
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 13,
+      "field_value": 12
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 14,
+      "field_value": 13
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 15,
+      "field_value": 14
+    },
+    {
+      "peripheral": "SPI0",
+      "bits": 16,
+      "field_value": 15
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 4,
+      "field_value": 3
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 5,
+      "field_value": 4
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 6,
+      "field_value": 5
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 7,
+      "field_value": 6
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 8,
+      "field_value": 7
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 9,
+      "field_value": 8
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 10,
+      "field_value": 9
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 11,
+      "field_value": 10
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 12,
+      "field_value": 11
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 13,
+      "field_value": 12
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 14,
+      "field_value": 13
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 15,
+      "field_value": 14
+    },
+    {
+      "peripheral": "SPI1",
+      "bits": 16,
+      "field_value": 15
+    }
+  ],
+  "spi_mode_flags": [
+    {
+      "peripheral": "SPI0",
+      "supports_crc": false,
+      "supports_ti_frame": true,
+      "supports_motorola_frame": true,
+      "supports_i2s_submode": false,
+      "supports_bidirectional_3wire": false,
+      "supports_lsb_first": false,
+      "supports_nss_hw_management": true
+    },
+    {
+      "peripheral": "SPI1",
+      "supports_crc": false,
+      "supports_ti_frame": true,
+      "supports_motorola_frame": true,
+      "supports_i2s_submode": false,
+      "supports_bidirectional_3wire": false,
+      "supports_lsb_first": false,
+      "supports_nss_hw_management": true
     }
   ]
 }

@@ -1847,9 +1847,7 @@ def test_same70_usbhs_traits_emit_high_speed_dma_facts(
         microchip_execution_context,
     )
     arts = {a.path: a for a in result.payload.artifacts}
-    usb_path = (
-        "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/usb.hpp"
-    )
+    usb_path = "microchip/same70/generated/runtime/devices/atsame70q21b/driver_semantics/usb.hpp"
     assert usb_path in arts
     content = arts[usb_path].content
     assert "struct UsbSemanticTraits<PeripheralId::USBHS>" in content
@@ -1941,3 +1939,49 @@ def test_esp32c3_spi_has_no_iomux_fast_path(
     content = arts[p].content
     assert "struct SpiSemanticTraits<PeripheralId::SPI2>" in content
     assert "static constexpr bool kHasIomuxFastPath = false;" in content
+
+
+def test_stm32g071rb_uart_traits_emit_tier234_facts(
+    execution_context: ExecutionContext,
+) -> None:
+    """Phase 4 of add-uart-spi-tier-2-3-4-data: STM32G0 USART1 trait
+    specialization carries the populated Tier 2/3/4 silicon facts
+    (LIN/IrDA/smartcard support, 8x+16x oversampling, 7/8/9-bit data,
+    4 MHz max baud, FIFO trigger levels)."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/uart.hpp"
+    content = arts[p].content
+    assert "struct UartSemanticTraits<PeripheralId::USART1>" in content
+    assert "static constexpr bool kSupportsLin = true;" in content
+    assert "static constexpr bool kSupportsIrda = true;" in content
+    assert "static constexpr bool kSupportsSmartcard = true;" in content
+    assert "static constexpr std::uint32_t kMaxBaudHz = 4000000u;" in content
+    assert "kSupportedDataBits = {{7u, 8u, 9u}};" in content
+    assert "kBaudOversamplingOptions = {{16u, 8u}};" in content
+
+
+def test_stm32g071rb_spi_traits_emit_tier234_facts(
+    execution_context: ExecutionContext,
+) -> None:
+    """Phase 4 of add-uart-spi-tier-2-3-4-data: STM32G0 SPI1 trait
+    specialization carries 4..16 bit frame sizes, CRC + TI + Motorola
+    + LSB-first + NSS-HW-management + 3-wire bidirectional flags,
+    and 8 baud prescaler divisors (/2 .. /256)."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/spi.hpp"
+    content = arts[p].content
+    assert "struct SpiSemanticTraits<PeripheralId::SPI1>" in content
+    assert "static constexpr bool kSupportsCrc = true;" in content
+    assert "static constexpr bool kSupportsTiFrame = true;" in content
+    assert "static constexpr bool kSupportsMotorolaFrame = true;" in content
+    assert "static constexpr bool kSupportsLsbFirst = true;" in content
+    assert "static constexpr bool kSupportsNssHwManagement = true;" in content
+    assert "static constexpr bool kSupportsBidirectional3Wire = true;" in content
+    assert "kBaudPrescalerDivisors = {{2u, 4u, 8u, 16u, 32u, 64u, 128u, 256u}};" in content
+    # Frame sizes 4..16 inclusive (13 entries).
+    assert (
+        "kSupportedFrameSizes = {{4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u}};"
+        in content
+    )

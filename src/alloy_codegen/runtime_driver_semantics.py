@@ -196,6 +196,20 @@ class UartSemanticRow:
     us_txchr_field: RuntimeFieldRef
     us_rxchr_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Empty tuples /
+    # invalid mode-flags block / 0 max baud for families that don't carry
+    # the data; the rendered C++ defaults to empty std::array<X, 0>{} so
+    # existing goldens stay byte-stable until the specific family's
+    # builder populates these fields.
+    baud_clock_sources: tuple[UartBaudClockSource, ...] = ()
+    baud_oversampling_options: tuple[UartBaudOversamplingOption, ...] = ()
+    fifo_trigger_options: tuple[UartFifoTriggerOption, ...] = ()
+    data_bits_options: tuple[UartDataBitsOption, ...] = ()
+    parity_options: tuple[UartParityOption, ...] = ()
+    stop_bits_options: tuple[UartStopBitsOption, ...] = ()
+    mode_flags: UartModeFlags | None = None
+    max_baud_hz: int = 0
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -324,6 +338,13 @@ class SpiSemanticRow:
     tdr_pcs_field: RuntimeFieldRef
     rd_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Default-empty
+    # tuples / invalid mode-flags block; populated by per-family builders.
+    baud_prescaler_options: tuple[SpiBaudPrescalerOption, ...] = ()
+    frame_size_options: tuple[SpiFrameSizeOption, ...] = ()
+    fifo_threshold_options: tuple[SpiFifoThresholdOption, ...] = ()
+    mode_flags: SpiModeFlags | None = None
+    spi_dma_bindings: tuple[SpiDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -443,11 +464,153 @@ class AdcDmaBindingRow:
 
 
 @dataclass(frozen=True, slots=True)
+class UartDmaBindingRow:
+    """One DMA route for UART data.  Derived from ``device.dma_requests``.
+
+    Added by ``add-uart-spi-tier-2-3-4-data``.  ``signal`` is "TX" or "RX".
+    ``transfer_width_bits`` is always 8 on every admitted family — even
+    9-bit data on STM32 uses an 8-bit DMA stride from the data register's
+    low byte; 16-bit register access is a CPU concern, not DMA.
+    """
+
+    controller_peripheral: str
+    controller_id: str
+    binding_id: str
+    request_value: int
+    signal: str  # "TX" | "RX"
+    transfer_width_bits: int = 8
+
+
+@dataclass(frozen=True, slots=True)
+class SpiDmaBindingRow:
+    """One DMA route for SPI data.  Derived from ``device.dma_requests``.
+
+    Added by ``add-uart-spi-tier-2-3-4-data``.  ``signal`` is "TX" or "RX".
+    ``transfer_width_bits`` follows the largest admitted ``frame_size``:
+    ≤8 bits → 8, 9..16 → 16, 17..32 → 32 (iMXRT LPSPI, ESP32 SPI).
+    """
+
+    controller_peripheral: str
+    controller_id: str
+    binding_id: str
+    request_value: int
+    signal: str  # "TX" | "RX"
+    transfer_width_bits: int = 8
+
+
+@dataclass(frozen=True, slots=True)
 class AdcDmaModeOption:
     """One DMA mode (one_shot|circular) + the field value that selects it."""
 
     mode: str  # "one_shot" | "circular"
     field_value: int
+
+
+# ---------------------------------------------------------------------------
+# UART + SPI Tier 2/3/4 value dataclasses (added by add-uart-spi-tier-2-3-4-data)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class UartBaudClockSource:
+    """One baud-rate clock source + the field value that selects it."""
+
+    source: str  # "pclk" | "sysclk" | "hsi16" | "lse" | "apb" | "ref_tick" | ...
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartBaudOversamplingOption:
+    """8x or 16x oversampling option + the field value that selects it."""
+
+    ratio: int  # 8 or 16
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartFifoTriggerOption:
+    """One FIFO trigger level (Q8.8 fraction) + the field value that selects it."""
+
+    fraction_q8: int  # Q8(1/4)=64, Q8(1/2)=128, Q8(3/4)=192, Q8(1)=256
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartDataBitsOption:
+    """One supported data-bits option + the M0/M1 field combination."""
+
+    bits: int
+    m0_value: int = 0
+    m1_value: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class UartParityOption:
+    """One parity option + the PCE/PS field combination."""
+
+    parity: str  # "none" | "even" | "odd" | "mark" | "space"
+    pce_value: int
+    ps_value: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class UartStopBitsOption:
+    """One stop-bits option (Q8.8 fixed-point) + the field value."""
+
+    stop_bits_q8: int  # Q8(0.5)=128, Q8(1)=256, Q8(1.5)=384, Q8(2)=512
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartModeFlags:
+    """Per-UART mode capability flags (one block per peripheral)."""
+
+    supports_lin: bool = False
+    supports_irda: bool = False
+    supports_smartcard: bool = False
+    supports_half_duplex: bool = False
+    supports_synchronous: bool = False
+    supports_auto_baud: bool = False
+    supports_wake_from_stop: bool = False
+    valid: bool = False  # True when the patch overlay actually populated this
+
+
+@dataclass(frozen=True, slots=True)
+class SpiBaudPrescalerOption:
+    """One SPI baud prescaler divisor + the BR field value that selects it."""
+
+    divisor: int  # 2, 4, 8, 16, 32, 64, 128, 256
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiFrameSizeOption:
+    """One supported SPI frame size in bits + the DS / DFF field value."""
+
+    bits: int
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiFifoThresholdOption:
+    """One SPI FIFO threshold (8-bit / 16-bit on STM32 FRXTH)."""
+
+    threshold_bits: int  # 8 or 16
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiModeFlags:
+    """Per-SPI mode capability flags (one block per peripheral)."""
+
+    supports_crc: bool = False
+    supports_ti_frame: bool = False
+    supports_motorola_frame: bool = True
+    supports_i2s_submode: bool = False
+    supports_bidirectional_3wire: bool = False
+    supports_lsb_first: bool = False
+    supports_nss_hw_management: bool = False
+    valid: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -1968,6 +2131,7 @@ def _microchip_uart_row(
         us_txempty_field=field("US_CSR_LIN_MODE", "TXEMPTY", 0x14, 9) if is_usart else empty_field,
         us_txchr_field=field("US_THR", "TXCHR", 0x1C, 0, 9) if is_usart else empty_field,
         us_rxchr_field=field("US_RHR", "RXCHR", 0x18, 0, 9) if is_usart else empty_field,
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -2077,6 +2241,7 @@ def _st_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -2183,7 +2348,135 @@ def _nxp_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
+
+
+def _uart_extension_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, object]:
+    """Build the Tier 2/3/4 kwargs for ``UartSemanticRow``.
+
+    Reads the device IR's UART patch tuples (forwarded by
+    ``stages/normalize.run``) and returns a dict suitable for ``**``
+    unpacking into the row constructor.  DMA bindings are derived
+    automatically from ``device.dma_requests``.  Mirrors the ADC
+    Tier 2/3/4 extension helper added by ``add-adc-tier-2-3-4-data``.
+    """
+    device = context.device
+    baud_clock_sources = tuple(
+        UartBaudClockSource(source=p.source, field_value=p.field_value)
+        for p in device.uart_baud_clock_sources
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    baud_oversampling_options = tuple(
+        UartBaudOversamplingOption(ratio=p.ratio, field_value=p.field_value)
+        for p in device.uart_baud_oversampling_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    fifo_trigger_options = tuple(
+        UartFifoTriggerOption(fraction_q8=p.fraction_q8, field_value=p.field_value)
+        for p in device.uart_fifo_trigger_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    data_bits_options = tuple(
+        UartDataBitsOption(bits=p.bits, m0_value=p.m0_value, m1_value=p.m1_value)
+        for p in device.uart_data_bits_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    parity_options = tuple(
+        UartParityOption(parity=p.parity, pce_value=p.pce_value, ps_value=p.ps_value)
+        for p in device.uart_parity_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    stop_bits_options = tuple(
+        UartStopBitsOption(stop_bits_q8=p.stop_bits_q8, field_value=p.field_value)
+        for p in device.uart_stop_bits_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    flags_patch = next(
+        (p for p in device.uart_mode_flags if getattr(p, "peripheral", None) == peripheral_name),
+        None,
+    )
+    if flags_patch is not None:
+        mode_flags = UartModeFlags(
+            supports_lin=flags_patch.supports_lin,
+            supports_irda=flags_patch.supports_irda,
+            supports_smartcard=flags_patch.supports_smartcard,
+            supports_half_duplex=flags_patch.supports_half_duplex,
+            supports_synchronous=flags_patch.supports_synchronous,
+            supports_auto_baud=flags_patch.supports_auto_baud,
+            supports_wake_from_stop=flags_patch.supports_wake_from_stop,
+            valid=True,
+        )
+    else:
+        mode_flags = None
+    dma_bindings = _uart_dma_bindings_for_peripheral(context, peripheral_name=peripheral_name)
+    return {
+        "baud_clock_sources": baud_clock_sources,
+        "baud_oversampling_options": baud_oversampling_options,
+        "fifo_trigger_options": fifo_trigger_options,
+        "data_bits_options": data_bits_options,
+        "parity_options": parity_options,
+        "stop_bits_options": stop_bits_options,
+        "mode_flags": mode_flags,
+        "max_baud_hz": device.uart_max_baud_hz,
+        "dma_bindings": dma_bindings,
+    }
+
+
+def _spi_extension_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, object]:
+    """Build the Tier 2/3/4 kwargs for ``SpiSemanticRow``."""
+    device = context.device
+    baud_prescaler_options = tuple(
+        SpiBaudPrescalerOption(divisor=p.divisor, field_value=p.field_value)
+        for p in device.spi_baud_prescaler_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    frame_size_options = tuple(
+        SpiFrameSizeOption(bits=p.bits, field_value=p.field_value)
+        for p in device.spi_frame_size_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    fifo_threshold_options = tuple(
+        SpiFifoThresholdOption(threshold_bits=p.threshold_bits, field_value=p.field_value)
+        for p in device.spi_fifo_threshold_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    flags_patch = next(
+        (p for p in device.spi_mode_flags if getattr(p, "peripheral", None) == peripheral_name),
+        None,
+    )
+    if flags_patch is not None:
+        mode_flags = SpiModeFlags(
+            supports_crc=flags_patch.supports_crc,
+            supports_ti_frame=flags_patch.supports_ti_frame,
+            supports_motorola_frame=flags_patch.supports_motorola_frame,
+            supports_i2s_submode=flags_patch.supports_i2s_submode,
+            supports_bidirectional_3wire=flags_patch.supports_bidirectional_3wire,
+            supports_lsb_first=flags_patch.supports_lsb_first,
+            supports_nss_hw_management=flags_patch.supports_nss_hw_management,
+            valid=True,
+        )
+    else:
+        mode_flags = None
+    max_frame_bits = max((p.bits for p in frame_size_options), default=8)
+    spi_dma_bindings = _spi_dma_bindings_for_peripheral(
+        context, peripheral_name=peripheral_name, max_frame_bits=max_frame_bits
+    )
+    return {
+        "baud_prescaler_options": baud_prescaler_options,
+        "frame_size_options": frame_size_options,
+        "fifo_threshold_options": fifo_threshold_options,
+        "mode_flags": mode_flags,
+        "spi_dma_bindings": spi_dma_bindings,
+    }
 
 
 def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
@@ -2327,6 +2620,7 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
                     us_txchr_field=invalid_field,
                     us_rxchr_field=invalid_field,
                     is_stub=peripheral.name not in uart_hw_ids,
+                    **_uart_extension_for_peripheral(context, peripheral_name=peripheral.name),
                 )
             )
     return tuple(rows)
@@ -2914,6 +3208,7 @@ def _st_spi_row(
         td_field=_invalid_field_ref(base),
         tdr_pcs_field=_invalid_field_ref(base),
         rd_field=_invalid_field_ref(base),
+        **_spi_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -2986,6 +3281,7 @@ def _microchip_spi_row(
         td_field=field("TDR", "TD", 0x0C, 0, 16),
         tdr_pcs_field=field("TDR", "PCS", 0x0C, 16, 4),
         rd_field=field("RDR", "RD", 0x08, 0, 16),
+        **_spi_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3062,6 +3358,7 @@ def _nxp_spi_row(
         td_field=field("TDR", ("TXDATA",), 0x64, 0, 32),
         tdr_pcs_field=_invalid_field_ref(base),
         rd_field=field("RDR", ("RXDATA",), 0x74, 0, 32),
+        **_spi_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3145,6 +3442,7 @@ def _build_spi_rows(context: _SemanticContext) -> tuple[SpiSemanticRow, ...]:
                     tdr_pcs_field=invalid_field,
                     rd_field=invalid_field,
                     is_stub=peripheral.name not in spi_hw_ids,
+                    **_spi_extension_for_peripheral(context, peripheral_name=peripheral.name),
                 )
             )
     return tuple(rows)
@@ -3245,6 +3543,92 @@ def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str)
         binding.peripheral == peripheral_name
         for binding in _runtime_lite_dma_bindings(context.device)
     )
+
+
+def _uart_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[UartDmaBindingRow, ...]:
+    """Derive UartDmaBinding rows from `device.dma_requests` filtered by
+    UART peripheral.  Added by ``add-uart-spi-tier-2-3-4-data``.
+
+    UART always transfers single bytes — even when 9-bit data uses a 16-bit
+    register, DMA stride stays 8-bit on every admitted family — so the
+    transfer width is hardcoded to 8 here.
+    """
+    bindings: list[UartDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        signal = (getattr(binding, "signal", None) or "").upper()
+        if signal not in {"TX", "RX"}:
+            continue
+        controller_peri = getattr(binding, "controller", None) or getattr(
+            binding, "controller_peripheral", None
+        )
+        controller_id = getattr(binding, "controller_id", None)
+        binding_id = getattr(binding, "binding_id", None)
+        request_value = getattr(binding, "request_value", None) or 0
+        if controller_peri is None or controller_id is None or binding_id is None:
+            continue
+        bindings.append(
+            UartDmaBindingRow(
+                controller_peripheral=str(controller_peri),
+                controller_id=str(controller_id),
+                binding_id=str(binding_id),
+                request_value=int(request_value),
+                signal=signal,
+                transfer_width_bits=8,
+            )
+        )
+    return tuple(bindings)
+
+
+def _spi_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    max_frame_bits: int = 8,
+) -> tuple[SpiDmaBindingRow, ...]:
+    """Derive SpiDmaBinding rows from `device.dma_requests` filtered by
+    SPI peripheral.  Added by ``add-uart-spi-tier-2-3-4-data``.
+
+    ``transfer_width_bits`` defaults from the largest admitted frame size:
+    ≤8 → 8, 9..16 → 16, 17..32 → 32 (iMXRT LPSPI / ESP32 SPI).
+    """
+    if max_frame_bits <= 8:
+        width = 8
+    elif max_frame_bits <= 16:
+        width = 16
+    else:
+        width = 32
+    bindings: list[SpiDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        signal = (getattr(binding, "signal", None) or "").upper()
+        if signal not in {"TX", "RX"}:
+            continue
+        controller_peri = getattr(binding, "controller", None) or getattr(
+            binding, "controller_peripheral", None
+        )
+        controller_id = getattr(binding, "controller_id", None)
+        binding_id = getattr(binding, "binding_id", None)
+        request_value = getattr(binding, "request_value", None) or 0
+        if controller_peri is None or controller_id is None or binding_id is None:
+            continue
+        bindings.append(
+            SpiDmaBindingRow(
+                controller_peripheral=str(controller_peri),
+                controller_id=str(controller_id),
+                binding_id=str(binding_id),
+                request_value=int(request_value),
+                signal=signal,
+                transfer_width_bits=width,
+            )
+        )
+    return tuple(bindings)
 
 
 def _adc_dma_bindings_for_peripheral(
@@ -7114,9 +7498,7 @@ def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
     # builder below can enrich each register-level row with the static
     # silicon facts (base address, endpoint count, packet memory, fixed
     # pin assignment) that drive the alloy ``UsbDeviceController<T>`` HAL.
-    usb_hw_by_id = {
-        usb.controller_id: usb for usb in context.device.usb_controllers
-    }
+    usb_hw_by_id = {usb.controller_id: usb for usb in context.device.usb_controllers}
 
     import dataclasses as _dc
 
@@ -7176,8 +7558,7 @@ def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
     invalid_reg = _invalid_register_ref()
     invalid_field = _invalid_field_ref()
     runtime_peripheral_names = {
-        peripheral.name
-        for peripheral in context.runtime_peripherals_by_class.get("usb", ())
+        peripheral.name for peripheral in context.runtime_peripherals_by_class.get("usb", ())
     }
     for hw in context.device.usb_controllers:
         if hw.controller_id in covered:
@@ -10211,6 +10592,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         "};",
         "",
     ]
+
     def _af_lines(pin: GpioPinDescriptor | None) -> list[str]:
         if pin is None:
             return [
@@ -10487,6 +10869,49 @@ def _uart_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsDma = {'true' if hw.supports_dma else 'false'};",
         ]
 
+    def _u8_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint8_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _u16_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint16_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _tier234_lines(row: UartSemanticRow) -> list[str]:
+        # Tier 2/3/4 constexprs (added by ``add-uart-spi-tier-2-3-4-data``).
+        # Empty arrays / falsy flags by default until per-family device
+        # patches populate the row's tier-2/3/4 tuples.  See the Tier 2/3/4
+        # data dataclasses (UartBaudClockSource, UartParityOption, …) for
+        # field semantics.
+        data_bits = tuple(o.bits for o in row.data_bits_options)
+        # Parity raw: 0=N, 1=E, 2=O, 3=M, 4=S
+        parity_map = {"none": 0, "even": 1, "odd": 2, "mark": 3, "space": 4}
+        parity_raw = tuple(parity_map.get(o.parity, 0) for o in row.parity_options)
+        stop_bits_q8 = tuple(o.stop_bits_q8 for o in row.stop_bits_options)
+        oversampling = tuple(o.ratio for o in row.baud_oversampling_options)
+        baud_clock_raw = tuple(o.field_value for o in row.baud_clock_sources)
+        fifo_trig_q8 = tuple(o.fraction_q8 for o in row.fifo_trigger_options)
+        flags = row.mode_flags
+        return [
+            _u8_arr("kSupportedDataBits", data_bits),
+            _u8_arr("kSupportedParityRaw", parity_raw),
+            _u16_arr("kSupportedStopBitsQ8", stop_bits_q8),
+            _u8_arr("kBaudOversamplingOptions", oversampling),
+            _u8_arr("kBaudClockSourceRaw", baud_clock_raw),
+            _u16_arr("kFifoTriggerFractionsQ8", fifo_trig_q8),
+            f"  static constexpr std::uint32_t kMaxBaudHz = {row.max_baud_hz}u;",
+            f"  static constexpr bool kSupportsLin = {'true' if flags and flags.supports_lin else 'false'};",
+            f"  static constexpr bool kSupportsIrda = {'true' if flags and flags.supports_irda else 'false'};",
+            f"  static constexpr bool kSupportsSmartcard = {'true' if flags and flags.supports_smartcard else 'false'};",
+            f"  static constexpr bool kSupportsHalfDuplex = {'true' if flags and flags.supports_half_duplex else 'false'};",
+            f"  static constexpr bool kSupportsSynchronous = {'true' if flags and flags.supports_synchronous else 'false'};",
+            f"  static constexpr bool kSupportsAutoBaud = {'true' if flags and flags.supports_auto_baud else 'false'};",
+            f"  static constexpr bool kSupportsWakeFromStop = {'true' if flags and flags.supports_wake_from_stop else 'false'};",
+            f"  static constexpr std::uint8_t kDmaBindingCount = {len(row.dma_bindings)}u;",
+        ]
+
     def _build(row: UartSemanticRow) -> list[str]:
         if row.is_stub:
             # Peripheral is present on hardware but schema not yet implemented.
@@ -10500,6 +10925,7 @@ def _uart_specialization_builder(context: _SemanticContext):
                 f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
                 *_hw_lines(row),
+                *_tier234_lines(row),
                 "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -10570,6 +10996,7 @@ def _uart_specialization_builder(context: _SemanticContext):
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
             *_hw_lines(row),
+            *_tier234_lines(row),
             f"  static constexpr RuntimeRegisterRef kCr1Register = {_register_ref_expr(row.cr1_reg)};",
             f"  static constexpr RuntimeRegisterRef kCr2Register = {_register_ref_expr(row.cr2_reg)};",
             f"  static constexpr RuntimeRegisterRef kBrrRegister = {_register_ref_expr(row.brr_reg)};",
@@ -10844,6 +11271,36 @@ def _spi_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsDma = {'true' if hw.supports_dma else 'false'};",
         ]
 
+    def _spi_u8_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint8_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _spi_u16_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint16_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _spi_tier234_lines(row: SpiSemanticRow) -> list[str]:
+        # Tier 2/3/4 SPI constexprs (added by ``add-uart-spi-tier-2-3-4-data``).
+        prescaler_divs = tuple(o.divisor for o in row.baud_prescaler_options)
+        frame_sizes = tuple(o.bits for o in row.frame_size_options)
+        fifo_thresholds = tuple(o.threshold_bits for o in row.fifo_threshold_options)
+        flags = row.mode_flags
+        return [
+            _spi_u16_arr("kBaudPrescalerDivisors", prescaler_divs),
+            _spi_u8_arr("kSupportedFrameSizes", frame_sizes),
+            _spi_u8_arr("kFifoThresholdBits", fifo_thresholds),
+            f"  static constexpr bool kSupportsCrc = {'true' if flags and flags.supports_crc else 'false'};",
+            f"  static constexpr bool kSupportsTiFrame = {'true' if flags and flags.supports_ti_frame else 'false'};",
+            f"  static constexpr bool kSupportsMotorolaFrame = {'true' if flags and flags.supports_motorola_frame else 'false'};",
+            f"  static constexpr bool kSupportsI2sSubmode = {'true' if flags and flags.supports_i2s_submode else 'false'};",
+            f"  static constexpr bool kSupportsBidirectional3Wire = {'true' if flags and flags.supports_bidirectional_3wire else 'false'};",
+            f"  static constexpr bool kSupportsLsbFirst = {'true' if flags and flags.supports_lsb_first else 'false'};",
+            f"  static constexpr bool kSupportsNssHwManagement = {'true' if flags and flags.supports_nss_hw_management else 'false'};",
+            f"  static constexpr std::uint8_t kSpiDmaBindingCount = {len(row.spi_dma_bindings)}u;",
+        ]
+
     def _build(row: SpiSemanticRow) -> list[str]:
         if row.is_stub:
             # Peripheral is present on hardware but schema not yet implemented.
@@ -10855,6 +11312,7 @@ def _spi_specialization_builder(context: _SemanticContext):
                 f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
                 *_spi_hw_lines(row),
+                *_spi_tier234_lines(row),
                 "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
@@ -10950,6 +11408,7 @@ def _spi_specialization_builder(context: _SemanticContext):
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
             *_spi_hw_lines(row),
+            *_spi_tier234_lines(row),
         ]
         lines.extend(
             f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
@@ -11527,12 +11986,8 @@ def _usb_specialization_builder(context: _SemanticContext):
             + ("true" if row.hardware_present else "false")
             + ";"
         )
-        lines.append(
-            f"  static constexpr std::uintptr_t kBaseAddress = 0x{row.base_address:08X}u;"
-        )
-        lines.append(
-            f"  static constexpr std::uint16_t kEndpointCount = {row.endpoint_count}u;"
-        )
+        lines.append(f"  static constexpr std::uintptr_t kBaseAddress = 0x{row.base_address:08X}u;")
+        lines.append(f"  static constexpr std::uint16_t kEndpointCount = {row.endpoint_count}u;")
         lines.append(
             "  static constexpr bool kSupportsHighSpeed = "
             + ("true" if row.supports_high_speed else "false")
@@ -11552,12 +12007,8 @@ def _usb_specialization_builder(context: _SemanticContext):
             f"0x{row.dpram_base_address:08X}u" if row.dpram_base_address is not None else "0u"
         )
         dpram_size = row.dpram_size_bytes if row.dpram_size_bytes is not None else 0
-        lines.append(
-            f"  static constexpr std::uintptr_t kDpramBaseAddress = {dpram_base};"
-        )
-        lines.append(
-            f"  static constexpr std::uint32_t kDpramSizeBytes = {dpram_size}u;"
-        )
+        lines.append(f"  static constexpr std::uintptr_t kDpramBaseAddress = {dpram_base};")
+        lines.append(f"  static constexpr std::uint32_t kDpramSizeBytes = {dpram_size}u;")
         lines.append(
             f"  static constexpr std::uint8_t kDmaChannelCount = {row.dma_channel_count}u;"
         )
@@ -12213,10 +12664,12 @@ def _uart_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
         ]
     )
     for ctrl in device.rp2040_uart_peripherals:
+
         def _arr(pads: tuple[int, ...]) -> str:
             if not pads:
                 return "  static constexpr std::array<std::uint8_t, 0> kPads = {};"
             return ", ".join(f"{p}u" for p in pads)
+
         lines.extend(
             [
                 "template<>",
@@ -12789,10 +13242,7 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
         # double-brace form trips on enum types under C++23 in some
         # toolchains because the inner aggregate has no default ctor for
         # the enum).
-        return (
-            f"  static constexpr std::array<PinId, {len(pads)}> "
-            f"{name} = {{{items}}};"
-        )
+        return f"  static constexpr std::array<PinId, {len(pads)}> {name} = {{{items}}};"
 
     def _opt_signal(value: int | None) -> str:
         return "0xFFFFu" if value is None else f"{value}u"
@@ -12915,10 +13365,12 @@ def _spi_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
             "",
         ]
     )
+
     def _arr(pads: tuple[int, ...]) -> str:
         return ", ".join(f"{p}u" for p in pads)
 
     for ctrl in device.rp2040_spi_peripherals:
+
         def _pad_line(name: str, pads: tuple[int, ...]) -> str:
             if not pads:
                 return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
@@ -12964,6 +13416,22 @@ def emit_runtime_driver_uart_semantics_header(
         "  static constexpr std::int16_t kTxSignalIdx = -1;",
         "  static constexpr std::int16_t kRxSignalIdx = -1;",
         "  static constexpr bool kSupportsDma = false;",
+        # Tier 2/3/4 defaults (added by ``add-uart-spi-tier-2-3-4-data``).
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedDataBits = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedParityRaw = {};",
+        "  static constexpr std::array<std::uint16_t, 0> kSupportedStopBitsQ8 = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kBaudOversamplingOptions = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kBaudClockSourceRaw = {};",
+        "  static constexpr std::array<std::uint16_t, 0> kFifoTriggerFractionsQ8 = {};",
+        "  static constexpr std::uint32_t kMaxBaudHz = 0u;",
+        "  static constexpr bool kSupportsLin = false;",
+        "  static constexpr bool kSupportsIrda = false;",
+        "  static constexpr bool kSupportsSmartcard = false;",
+        "  static constexpr bool kSupportsHalfDuplex = false;",
+        "  static constexpr bool kSupportsSynchronous = false;",
+        "  static constexpr bool kSupportsAutoBaud = false;",
+        "  static constexpr bool kSupportsWakeFromStop = false;",
+        "  static constexpr std::uint8_t kDmaBindingCount = 0u;",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -13158,6 +13626,18 @@ def emit_runtime_driver_spi_semantics_header(
         "  static constexpr std::int16_t kIomuxClkPin = -1;",
         "  static constexpr std::int16_t kIomuxCsPin = -1;",
         "  static constexpr bool kSupportsDma = false;",
+        # Tier 2/3/4 defaults (added by ``add-uart-spi-tier-2-3-4-data``).
+        "  static constexpr std::array<std::uint16_t, 0> kBaudPrescalerDivisors = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedFrameSizes = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kFifoThresholdBits = {};",
+        "  static constexpr bool kSupportsCrc = false;",
+        "  static constexpr bool kSupportsTiFrame = false;",
+        "  static constexpr bool kSupportsMotorolaFrame = false;",
+        "  static constexpr bool kSupportsI2sSubmode = false;",
+        "  static constexpr bool kSupportsBidirectional3Wire = false;",
+        "  static constexpr bool kSupportsLsbFirst = false;",
+        "  static constexpr bool kSupportsNssHwManagement = false;",
+        "  static constexpr std::uint8_t kSpiDmaBindingCount = 0u;",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",

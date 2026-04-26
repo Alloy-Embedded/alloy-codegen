@@ -185,10 +185,7 @@ def _resolve_register_id(
     peripheral_target = peripheral_part.strip()
     register_target = register_part.strip()
     for register in registers:
-        if (
-            register.peripheral == peripheral_target
-            and register.name == register_target
-        ):
+        if register.peripheral == peripheral_target and register.name == register_target:
             return register.register_id
     return None
 
@@ -3321,6 +3318,19 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 adc_oversampling_options=patch.adc_oversampling_options,
                 adc_external_triggers=patch.adc_external_triggers,
                 adc_max_clock_hz=patch.adc_max_clock_hz,
+                # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).
+                uart_baud_clock_sources=patch.uart_baud_clock_sources,
+                uart_baud_oversampling_options=patch.uart_baud_oversampling_options,
+                uart_fifo_trigger_options=patch.uart_fifo_trigger_options,
+                uart_data_bits_options=patch.uart_data_bits_options,
+                uart_parity_options=patch.uart_parity_options,
+                uart_stop_bits_options=patch.uart_stop_bits_options,
+                uart_mode_flags=patch.uart_mode_flags,
+                uart_max_baud_hz=patch.uart_max_baud_hz,
+                spi_baud_prescaler_options=patch.spi_baud_prescaler_options,
+                spi_frame_size_options=patch.spi_frame_size_options,
+                spi_fifo_threshold_options=patch.spi_fifo_threshold_options,
+                spi_mode_flags=patch.spi_mode_flags,
                 multicore_topology=topology_value,
                 app_cpu_control_plane=app_cpu_plane,
                 usb_controllers=usb_controllers,
