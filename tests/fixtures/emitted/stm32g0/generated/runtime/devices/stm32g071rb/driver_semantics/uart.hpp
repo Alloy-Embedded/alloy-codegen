@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstdint>
-#include <string_view>
 #include "common.hpp"
 #include "../pins.hpp"
 

@@ -5094,6 +5094,68 @@
       }
     }
   ],
+  "i2c_peripherals": [
+    {
+      "base_address": 1074020352,
+      "clock_source": null,
+      "dma_req_rx": 33,
+      "dma_req_tx": 32,
+      "gpio_matrix_in_scl_signal": null,
+      "gpio_matrix_in_sda_signal": null,
+      "gpio_matrix_out_scl_signal": null,
+      "gpio_matrix_out_sda_signal": null,
+      "peripheral_id": "I2C0",
+      "portmux_alt": null,
+      "supports_fast_mode_plus": false,
+      "valid_scl_pins": [
+        "GP1",
+        "GP5",
+        "GP9",
+        "GP13",
+        "GP17",
+        "GP21",
+        "GP25"
+      ],
+      "valid_sda_pins": [
+        "GP0",
+        "GP4",
+        "GP8",
+        "GP12",
+        "GP16",
+        "GP20",
+        "GP28"
+      ]
+    },
+    {
+      "base_address": 1074036736,
+      "clock_source": null,
+      "dma_req_rx": 35,
+      "dma_req_tx": 34,
+      "gpio_matrix_in_scl_signal": null,
+      "gpio_matrix_in_sda_signal": null,
+      "gpio_matrix_out_scl_signal": null,
+      "gpio_matrix_out_sda_signal": null,
+      "peripheral_id": "I2C1",
+      "portmux_alt": null,
+      "supports_fast_mode_plus": false,
+      "valid_scl_pins": [
+        "GP3",
+        "GP7",
+        "GP11",
+        "GP15",
+        "GP19",
+        "GP27"
+      ],
+      "valid_sda_pins": [
+        "GP2",
+        "GP6",
+        "GP10",
+        "GP14",
+        "GP18",
+        "GP26"
+      ]
+    }
+  ],
   "identity": {
     "core": "cortex-m0plus-dual",
     "device": "pico",

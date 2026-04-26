@@ -1057,6 +1057,27 @@
       }
     }
   ],
+  "i2c_peripherals": [
+    {
+      "base_address": 2208,
+      "clock_source": null,
+      "dma_req_rx": null,
+      "dma_req_tx": null,
+      "gpio_matrix_in_scl_signal": null,
+      "gpio_matrix_in_sda_signal": null,
+      "gpio_matrix_out_scl_signal": null,
+      "gpio_matrix_out_sda_signal": null,
+      "peripheral_id": "TWI0",
+      "portmux_alt": false,
+      "supports_fast_mode_plus": false,
+      "valid_scl_pins": [
+        "PA3"
+      ],
+      "valid_sda_pins": [
+        "PA2"
+      ]
+    }
+  ],
   "identity": {
     "core": "avr8",
     "device": "avr128da32",

@@ -1423,6 +1423,154 @@ def _build_avr_da_gpio_pins(
     return tuple(descriptors)
 
 
+def _build_avr_da_i2c_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[I2cPeripheralDescriptor, ...]:
+    """AVR-DA I2C is exposed as ``TWI0`` (and ``TWI1`` on larger
+    packages).  Default pin placement: TWI0 SDA=PA2, SCL=PA3; TWI1
+    SDA=PF2, SCL=PF3.  PORTMUX alt-pin support is deferred — we
+    record the default placement and ``portmux_alt = false``.
+    """
+    twi_peripherals = [p for p in peripherals if p.name.startswith("TWI")]
+    if not twi_peripherals:
+        return ()
+    default_pins = {
+        "TWI0": (("PA2",), ("PA3",)),
+        "TWI1": (("PF2",), ("PF3",)),
+    }
+    descriptors: list[I2cPeripheralDescriptor] = []
+    for peripheral in sorted(twi_peripherals, key=lambda p: p.name):
+        sda, scl = default_pins.get(peripheral.name, ((), ()))
+        descriptors.append(
+            I2cPeripheralDescriptor(
+                peripheral_id=peripheral.name,
+                base_address=peripheral.base_address,
+                valid_sda_pins=sda,
+                valid_scl_pins=scl,
+                supports_fast_mode_plus=False,
+                portmux_alt=False,
+            )
+        )
+    return tuple(descriptors)
+
+
+def _build_rp2040_i2c_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+    pins: tuple[PinDefinition, ...] = (),
+) -> tuple[I2cPeripheralDescriptor, ...]:
+    """RP2040 has two I2C controllers with datasheet-fixed pad allowlists
+    (Table 2-5) and DREQ values (Table 2-7).  Pad lists are kept as
+    canonical pin names (``"GP0"``, ``"GP4"``, …) so the field is
+    consistent across families.
+
+    Pads not bonded on the device's package (e.g. GP23, GP24, GP29 on
+    the ``pico`` package) are filtered out via the ``pins`` argument —
+    only pads that appear in ``device.pins`` survive the allowlist.
+    """
+    base_by_name = {p.name: p.base_address for p in peripherals if p.name in ("I2C0", "I2C1")}
+    if not base_by_name:
+        return ()
+
+    bonded = {pin.name for pin in pins}
+
+    def _filter(pads: tuple[int, ...]) -> tuple[str, ...]:
+        names = tuple(f"GP{n}" for n in pads)
+        if not bonded:
+            return names
+        return tuple(name for name in names if name in bonded)
+
+    i2c0_sda = _filter((0, 4, 8, 12, 16, 20, 24, 28))
+    i2c0_scl = _filter((1, 5, 9, 13, 17, 21, 25, 29))
+    i2c1_sda = _filter((2, 6, 10, 14, 18, 26))
+    i2c1_scl = _filter((3, 7, 11, 15, 19, 27))
+
+    descriptors: list[I2cPeripheralDescriptor] = []
+    if "I2C0" in base_by_name:
+        descriptors.append(
+            I2cPeripheralDescriptor(
+                peripheral_id="I2C0",
+                base_address=base_by_name["I2C0"],
+                dma_req_tx=32,
+                dma_req_rx=33,
+                valid_sda_pins=i2c0_sda,
+                valid_scl_pins=i2c0_scl,
+                supports_fast_mode_plus=False,
+            )
+        )
+    if "I2C1" in base_by_name:
+        descriptors.append(
+            I2cPeripheralDescriptor(
+                peripheral_id="I2C1",
+                base_address=base_by_name["I2C1"],
+                dma_req_tx=34,
+                dma_req_rx=35,
+                valid_sda_pins=i2c1_sda,
+                valid_scl_pins=i2c1_scl,
+                supports_fast_mode_plus=False,
+            )
+        )
+    return tuple(descriptors)
+
+
+def _build_espressif_i2c_peripherals(
+    *,
+    pins: tuple[PinDefinition, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+    family: str,
+) -> tuple[I2cPeripheralDescriptor, ...]:
+    """Derive I2C descriptors for the Espressif family.
+
+    Espressif I2C controllers route through the GPIO matrix — any pad
+    can carry SDA / SCL — so ``valid_sda_pins`` / ``valid_scl_pins``
+    are left empty (the AllGpios sentinel).  The IO-matrix *input*
+    signal index lives on each pin signal's ``af_number`` already; we
+    pick the first occurrence of an ``SDA`` / ``SCL`` signal per
+    controller.  The matching *output* signal index typically matches
+    the input on Espressif silicon for I2C (``I2CEXTn_SDA_IN_IDX ==
+    I2CEXTn_SDA_OUT_IDX`` on C3) — we record it identically and
+    leave the runtime free to refine when a future ESP-IDF release
+    diverges them.
+
+    ``supports_fast_mode_plus`` is ``True`` only on ESP32-S3 silicon
+    (datasheet §28).
+    """
+    i2c_peripherals = [p for p in peripherals if p.name.startswith("I2C")]
+    if not i2c_peripherals:
+        return ()
+
+    sda_in_by_ctrl: dict[str, int] = {}
+    scl_in_by_ctrl: dict[str, int] = {}
+    for pin in pins:
+        for signal in pin.signals:
+            if signal.peripheral is None or signal.af_number is None:
+                continue
+            if not signal.peripheral.startswith("I2C"):
+                continue
+            if signal.signal == "SDA":
+                sda_in_by_ctrl.setdefault(signal.peripheral, signal.af_number)
+            elif signal.signal == "SCL":
+                scl_in_by_ctrl.setdefault(signal.peripheral, signal.af_number)
+
+    descriptors: list[I2cPeripheralDescriptor] = []
+    for peripheral in sorted(i2c_peripherals, key=lambda p: p.name):
+        sda_signal = sda_in_by_ctrl.get(peripheral.name)
+        scl_signal = scl_in_by_ctrl.get(peripheral.name)
+        descriptors.append(
+            I2cPeripheralDescriptor(
+                peripheral_id=peripheral.name,
+                base_address=peripheral.base_address,
+                gpio_matrix_in_sda_signal=sda_signal,
+                gpio_matrix_in_scl_signal=scl_signal,
+                gpio_matrix_out_sda_signal=sda_signal,
+                gpio_matrix_out_scl_signal=scl_signal,
+                supports_fast_mode_plus=family == "esp32s3",
+            )
+        )
+    return tuple(descriptors)
+
+
 def _build_espressif_gpio_pins(
     *,
     pins: tuple[PinDefinition, ...],
@@ -2305,6 +2453,10 @@ def _build_rp2040_device_ir(
         rp2040_dma_controller_hw=_build_rp2040_dma_controller_hw(peripherals=ir.peripherals),
         rp2040_timer_controller_hw=_build_rp2040_timer_controller_hw(peripherals=ir.peripherals),
         rp2040_pwm_slice_hw=_build_rp2040_pwm_slice_hw(peripherals=ir.peripherals),
+        i2c_peripherals=_build_rp2040_i2c_peripherals(
+            peripherals=ir.peripherals,
+            pins=ir.pins,
+        ),
     )
     return ir
 
@@ -2446,6 +2598,14 @@ def _build_esp32_device_ir(
     )
     if espressif_gpio_pins:
         ir = dataclasses.replace(ir, gpio_pins=espressif_gpio_pins)
+
+    espressif_i2c = _build_espressif_i2c_peripherals(
+        pins=ir.pins,
+        peripherals=ir.peripherals,
+        family=family,
+    )
+    if espressif_i2c:
+        ir = dataclasses.replace(ir, i2c_peripherals=espressif_i2c)
 
     return ir
 
@@ -2643,6 +2803,7 @@ def _build_avr_da_device_ir(
             peripherals=avr_peripherals,
             provenance=atdf_provenance,
         ),
+        i2c_peripherals=_build_avr_da_i2c_peripherals(peripherals=avr_peripherals),
     )
 
 

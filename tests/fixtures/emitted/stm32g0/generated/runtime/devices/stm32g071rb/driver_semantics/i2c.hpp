@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstdint>
-#include <string_view>
 #include "common.hpp"
 #include "../pins.hpp"
 
@@ -89,6 +88,13 @@ struct I2cSemanticTraits {
 inline constexpr std::array<PeripheralId, 0> kI2cSemanticPeripherals = {};
 
 // fill-i2c-semantic-gaps: per-controller I2C / TWI HW facts.
+enum class RuntimeI2cClockSource : std::uint8_t {
+  None = 0,
+  Pclk = 1,
+  Hsi16 = 2,
+  Sysclk = 3,
+};
+
 enum class RuntimeI2cCtrlId : std::uint8_t {
   None = 0,
 };
@@ -97,11 +103,11 @@ template<RuntimeI2cCtrlId Id>
 struct I2cPeripheralTraits {
   static constexpr bool kPresent = false;
   static constexpr std::uint32_t kBaseAddress = 0u;
-  static constexpr std::string_view kClockSource = std::string_view{};
+  static constexpr RuntimeI2cClockSource kClockSource = RuntimeI2cClockSource::None;
   static constexpr std::uint8_t kDmaReqTx = 0u;
   static constexpr std::uint8_t kDmaReqRx = 0u;
-  static constexpr std::array<std::string_view, 0> kValidSdaPins = {};
-  static constexpr std::array<std::string_view, 0> kValidSclPins = {};
+  static constexpr std::array<PinId, 0> kValidSdaPins = {};
+  static constexpr std::array<PinId, 0> kValidSclPins = {};
   static constexpr std::uint16_t kInSdaSignal = 0xFFFFu;
   static constexpr std::uint16_t kInSclSignal = 0xFFFFu;
   static constexpr std::uint16_t kOutSdaSignal = 0xFFFFu;

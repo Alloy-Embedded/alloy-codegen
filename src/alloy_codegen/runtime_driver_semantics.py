@@ -10428,12 +10428,6 @@ def _emit_peripheral_semantics_header(
             "",
             "#include <array>",
             "#include <cstdint>",
-            # ``<string_view>`` is required by the per-controller I2C trait
-            # block contributed by ``fill-i2c-semantic-gaps`` (string-keyed
-            # ``kValidSdaPins`` / ``kValidSclPins`` arrays).  Including it
-            # uniformly across every driver-semantics header keeps the
-            # include set small and stable.
-            "#include <string_view>",
             '#include "common.hpp"',
             # ``../pins.hpp`` provides the typed ``PinId`` enum referenced by
             # USB ``kDmPin`` / ``kDpPin`` traits (added by
@@ -12400,8 +12394,18 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     we serialize them as `std::array<std::string_view, N>` so consumer
     concept checks can string-compare without runtime parsing.
     """
+    # Encode the I2C clock source as a typed enum so consumer concept
+    # checks can branch on it without string parsing — string literals
+    # are not allowed in runtime C++ output (boundary test gate).
     lines = [
         "// fill-i2c-semantic-gaps: per-controller I2C / TWI HW facts.",
+        "enum class RuntimeI2cClockSource : std::uint8_t {",
+        "  None = 0,",
+        "  Pclk = 1,",
+        "  Hsi16 = 2,",
+        "  Sysclk = 3,",
+        "};",
+        "",
         "enum class RuntimeI2cCtrlId : std::uint8_t {",
         "  None = 0,",
     ]
@@ -12415,11 +12419,14 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
             "struct I2cPeripheralTraits {",
             "  static constexpr bool kPresent = false;",
             "  static constexpr std::uint32_t kBaseAddress = 0u;",
-            "  static constexpr std::string_view kClockSource = std::string_view{};",
+            "  static constexpr RuntimeI2cClockSource kClockSource = RuntimeI2cClockSource::None;",
             "  static constexpr std::uint8_t kDmaReqTx = 0u;",
             "  static constexpr std::uint8_t kDmaReqRx = 0u;",
-            "  static constexpr std::array<std::string_view, 0> kValidSdaPins = {};",
-            "  static constexpr std::array<std::string_view, 0> kValidSclPins = {};",
+            # Pad arrays use the typed ``PinId`` enum already declared in
+            # ``../pins.hpp``; the empty array is the AllGpios sentinel
+            # (any pad is acceptable — Espressif IO matrix path).
+            "  static constexpr std::array<PinId, 0> kValidSdaPins = {};",
+            "  static constexpr std::array<PinId, 0> kValidSclPins = {};",
             "  static constexpr std::uint16_t kInSdaSignal = 0xFFFFu;",
             "  static constexpr std::uint16_t kInSclSignal = 0xFFFFu;",
             "  static constexpr std::uint16_t kOutSdaSignal = 0xFFFFu;",
@@ -12433,28 +12440,37 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
 
     def _pad_array(name: str, pads: tuple[str, ...]) -> str:
         if not pads:
-            return f"  static constexpr std::array<std::string_view, 0> {name} = {{}};"
-        items = ", ".join(f'std::string_view{{"{p}"}}' for p in pads)
+            return f"  static constexpr std::array<PinId, 0> {name} = {{}};"
+        items = ", ".join(f"PinId::{_enum_identifier(p)}" for p in pads)
+        # Use single-brace init so clang accepts std::array<PinId, N> (the
+        # double-brace form trips on enum types under C++23 in some
+        # toolchains because the inner aggregate has no default ctor for
+        # the enum).
         return (
-            f"  static constexpr std::array<std::string_view, {len(pads)}> "
-            f"{name} = {{{{{items}}}}};"
+            f"  static constexpr std::array<PinId, {len(pads)}> "
+            f"{name} = {{{items}}};"
         )
 
     def _opt_signal(value: int | None) -> str:
         return "0xFFFFu" if value is None else f"{value}u"
 
+    _clock_source_token = {
+        None: "RuntimeI2cClockSource::None",
+        "": "RuntimeI2cClockSource::None",
+        "pclk": "RuntimeI2cClockSource::Pclk",
+        "hsi16": "RuntimeI2cClockSource::Hsi16",
+        "sysclk": "RuntimeI2cClockSource::Sysclk",
+    }
+
     for ctrl in device.i2c_peripherals:
-        clock_token = ctrl.clock_source or ""
+        clock_enum = _clock_source_token.get(ctrl.clock_source, "RuntimeI2cClockSource::None")
         lines.extend(
             [
                 "template<>",
                 f"struct I2cPeripheralTraits<RuntimeI2cCtrlId::{ctrl.peripheral_id}> {{",
                 "  static constexpr bool kPresent = true;",
                 f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
-                (
-                    f'  static constexpr std::string_view kClockSource = '
-                    f'std::string_view{{"{clock_token}"}};'
-                ),
+                f"  static constexpr RuntimeI2cClockSource kClockSource = {clock_enum};",
                 f"  static constexpr std::uint8_t kDmaReqTx = {ctrl.dma_req_tx or 0}u;",
                 f"  static constexpr std::uint8_t kDmaReqRx = {ctrl.dma_req_rx or 0}u;",
                 _pad_array("kValidSdaPins", ctrl.valid_sda_pins),
