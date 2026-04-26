@@ -1259,6 +1259,19 @@ class CanonicalDeviceIR:
     spi_mode_flags: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
+    # Timer Tier 2/3/4 (add-timer-tier-2-3-4-data).
+    timer_prescaler_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_trigger_sources: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_master_outputs: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Multi-core topology + APP_CPU control plane (added by
     # expose-xtensa-dual-core-facts).  ``multicore_topology`` defaults to
     # ``"single_core"`` so existing single-core fixtures keep validating
