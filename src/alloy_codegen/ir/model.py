@@ -613,6 +613,45 @@ class DmaConflictGroup:
 
 
 @dataclass(frozen=True, slots=True)
+class AltFunctionDescriptor:
+    """One alternate-function entry on a GPIO pin.
+
+    Captures `(af_number, signal_name, peripheral)` so the GPIO-semantics
+    emitter can produce ``kValidAltFunctions`` arrays without re-resolving
+    signal names against the peripheral list at emit time.
+    """
+
+    af_number: int
+    signal_name: str
+    peripheral: str
+
+
+@dataclass(frozen=True, slots=True)
+class GpioPinDescriptor:
+    """Compile-time GPIO topology for one pin.
+
+    Surfaces the facts needed by ``runtime_driver_semantics.gpio.hpp`` to
+    populate the alternate-function fields of ``GpioSemanticTraits<PinId>``
+    (``kPortOffset``, ``kPinIndex``, ``kMaxAltFunction``,
+    ``kValidAltFunctions``). ``port`` is the GPIO peripheral / port name
+    (``"GPIOA"``, ``"GPIO1"``, ``"PORTA"`` …); ``port_offset`` is the
+    address offset from the family's first GPIO port, allowing alloy
+    consumers to reach the port's register block via pointer arithmetic.
+
+    ``alt_functions`` is sorted by ``(af_number, signal_name)`` so the
+    emitted ``kValidAltFunctions`` array is also sorted ascending.
+    """
+
+    pin_id: str
+    port: str
+    pin_index: int
+    port_offset: int
+    alt_functions: tuple[AltFunctionDescriptor, ...]
+    is_input_only: bool
+    provenance: Provenance
+
+
+@dataclass(frozen=True, slots=True)
 class PioDescriptor:
     """Compile-time topology of one Programmable I/O block.
 
@@ -801,6 +840,13 @@ class CanonicalDeviceIR:
     # hardware (STM32G0, STM32F4, RP2040, SAME70, ESP32-S3); empty tuple
     # everywhere else so existing fixtures stay byte-stable.
     usb_controllers: tuple[UsbControllerDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    # GPIO pin alternate-function topology (added by fill-gpio-semantic-gaps).
+    # Empty for devices whose normalizers have not yet been wired to populate
+    # GPIO topology; populated per family as the change rolls out.
+    gpio_pins: tuple[GpioPinDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

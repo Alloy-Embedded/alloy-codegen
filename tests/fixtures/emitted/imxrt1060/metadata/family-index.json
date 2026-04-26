@@ -1,6 +1,13 @@
 {
-  "device_count": 1,
+  "device_count": 2,
   "devices": [
+    {
+      "core": "cortex-m7f",
+      "device": "mimxrt1062",
+      "metadata_path": "nxp/imxrt1060/metadata/devices/mimxrt1062.json",
+      "package": "bga196",
+      "summary": "NXP MIMXRT1062DVL6B i.MX RT1060 Crossover MCU with 1 MB OCRAM."
+    },
     {
       "core": "cortex-m7f",
       "device": "mimxrt1064",

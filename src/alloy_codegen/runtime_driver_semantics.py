@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
     ConnectionCandidate,
+    GpioPinDescriptor,
     PeripheralInstance,
     PinDefinition,
     RegisterDescriptor,
@@ -10147,6 +10148,11 @@ def _emit_driver_semantics_common_header(
 def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
     context = _context(device)
     rows = _build_gpio_rows(context)
+    # Map from PinId enum identifier → AF descriptor list, for the pin-AF
+    # specializations contributed by ``fill-gpio-semantic-gaps``.
+    af_pins_by_id: dict[str, GpioPinDescriptor] = {
+        _enum_identifier(pin.pin_id): pin for pin in device.gpio_pins
+    }
     trait_lines = [
         "template<PinId Id>",
         "struct GpioSemanticTraits {",
@@ -10174,12 +10180,39 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         "  static constexpr RuntimeFieldRef kPioPullUpDisableField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kPioPullDownEnableField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kPioPullDownDisableField = kInvalidFieldRef;",
+        # Alternate-function topology (added by fill-gpio-semantic-gaps).
+        "  static constexpr std::uint32_t kPortOffset = 0u;",
+        "  static constexpr std::uint32_t kPinIndex = 0u;",
+        "  static constexpr std::uint8_t kMaxAltFunction = 0u;",
+        "  static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};",
         "};",
         "",
     ]
+    def _af_lines(pin: GpioPinDescriptor | None) -> list[str]:
+        if pin is None or not pin.alt_functions:
+            return [
+                "  static constexpr std::uint32_t kPortOffset = 0u;",
+                "  static constexpr std::uint32_t kPinIndex = 0u;",
+                "  static constexpr std::uint8_t kMaxAltFunction = 0u;",
+                "  static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};",
+            ]
+        af_numbers = sorted({af.af_number for af in pin.alt_functions})
+        af_array = ", ".join(f"{n}u" for n in af_numbers)
+        return [
+            f"  static constexpr std::uint32_t kPortOffset = {pin.port_offset:#010x}u;",
+            f"  static constexpr std::uint32_t kPinIndex = {pin.pin_index}u;",
+            f"  static constexpr std::uint8_t kMaxAltFunction = {max(af_numbers)}u;",
+            (
+                f"  static constexpr std::array<std::uint8_t, {len(af_numbers)}> "
+                f"kValidAltFunctions = {{{{{af_array}}}}};"
+            ),
+        ]
+
     pin_rows: list[str] = []
+    consumed_pin_ids: set[str] = set()
     for row in rows:
         pin_id = _enum_identifier(row.pin_name)
+        consumed_pin_ids.add(pin_id)
         trait_lines.extend(
             [
                 "template<>",
@@ -10208,6 +10241,52 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
                 f"  static constexpr RuntimeFieldRef kPioPullUpDisableField = {_field_ref_expr(row.pio_pull_up_disable_field)};",
                 f"  static constexpr RuntimeFieldRef kPioPullDownEnableField = {_field_ref_expr(row.pio_pull_down_enable_field)};",
                 f"  static constexpr RuntimeFieldRef kPioPullDownDisableField = {_field_ref_expr(row.pio_pull_down_disable_field)};",
+                *_af_lines(af_pins_by_id.get(pin_id)),
+                "};",
+                "",
+            ]
+        )
+        pin_rows.append(f"  PinId::{pin_id},")
+
+    # AF-only specializations: pins that have alt-function topology but no
+    # register-level GPIO row (typical for STM32G0 / STM32F4 today, where the
+    # register-level GPIO emitter has not yet been wired up for the family).
+    # These specializations expose ``kPresent = true`` and the four AF fields,
+    # but leave register/field references invalid — alloy concept checks for
+    # AF assignment use only the AF fields, so this is sufficient for the
+    # ``add-gpio-hal`` compile-time pin-routing validation.
+    for pin_id, pin in sorted(af_pins_by_id.items()):
+        if pin_id in consumed_pin_ids:
+            continue
+        trait_lines.extend(
+            [
+                "template<>",
+                f"struct GpioSemanticTraits<PinId::{pin_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                "  static constexpr PeripheralId kPeripheralId = PeripheralId::none;",
+                "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+                "  static constexpr std::uint32_t kLineIndex = 0u;",
+                "  static constexpr RuntimeFieldRef kModeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kInputField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kOutputValueField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kOutputResetField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioOutputEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioOutputDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioSetField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioClearField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioInputStateField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioDriveEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioDriveDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioPullUpEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioPullUpDisableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioPullDownEnableField = kInvalidFieldRef;",
+                "  static constexpr RuntimeFieldRef kPioPullDownDisableField = kInvalidFieldRef;",
+                *_af_lines(pin),
                 "};",
                 "",
             ]

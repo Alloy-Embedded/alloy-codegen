@@ -636,6 +636,41 @@
       },
       "additionalProperties": false
     },
+    "alt_function_descriptor": {
+      "type": "object",
+      "required": ["af_number", "signal_name", "peripheral"],
+      "properties": {
+        "af_number": { "type": "integer", "minimum": 0 },
+        "signal_name": { "type": "string" },
+        "peripheral": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "gpio_pin_descriptor": {
+      "type": "object",
+      "required": [
+        "pin_id",
+        "port",
+        "pin_index",
+        "port_offset",
+        "alt_functions",
+        "is_input_only",
+        "provenance"
+      ],
+      "properties": {
+        "pin_id": { "type": "string" },
+        "port": { "type": "string" },
+        "pin_index": { "type": "integer", "minimum": 0 },
+        "port_offset": { "type": "integer", "minimum": 0 },
+        "alt_functions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/alt_function_descriptor" }
+        },
+        "is_input_only": { "type": "boolean" },
+        "provenance": { "$ref": "#/$defs/provenance" }
+      },
+      "additionalProperties": false
+    },
     "pio_descriptor": {
       "type": "object",
       "required": [
@@ -851,6 +886,10 @@
     "pio_blocks": {
       "type": "array",
       "items": { "$ref": "#/$defs/pio_descriptor" }
+    },
+    "gpio_pins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gpio_pin_descriptor" }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"

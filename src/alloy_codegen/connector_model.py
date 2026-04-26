@@ -1644,6 +1644,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         # USB controller descriptors (added by ``add-usb-semantic-traits``).
         usb_controllers=device.usb_controllers,
         pio_blocks=device.pio_blocks,
+        gpio_pins=device.gpio_pins,
     )
 
 

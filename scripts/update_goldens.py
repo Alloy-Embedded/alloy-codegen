@@ -69,7 +69,7 @@ FAMILIES = [
 
 
 def _is_text(path: str) -> bool:
-    return path.endswith((".hpp", ".cpp", ".ld", ".cmake"))
+    return path.endswith((".hpp", ".cpp", ".ld", ".cmake", ".json", ".md"))
 
 
 def _update_one(

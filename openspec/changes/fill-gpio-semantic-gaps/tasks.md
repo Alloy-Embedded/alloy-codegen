@@ -1,86 +1,100 @@
 # Tasks: Fill GPIO Semantic Gaps
 
-Tasks are ordered by family. CI gate in phase 5 blocks all subsequent family
-admissions.
+Tasks are ordered by family. The CI gate in phase 6 becomes mandatory once
+the final phase lands; earlier phases extend coverage incrementally without
+breaking already-passing families.
 
-## 1. GPIO semantic emitter infrastructure
+> **Implementation note (2026-04-26):** the proposal's row "NXP LPC55S69 |
+> Not yet admitted" is stale — the admitted NXP family is `imxrt1060`, which
+> already emits 124 register-level GPIO trait specializations. Rather than
+> reimplementing that schema, this change *extends* the existing
+> `GpioSemanticTraits` struct with four new alternate-function fields
+> (`kPortOffset`, `kPinIndex`, `kMaxAltFunction`, `kValidAltFunctions`) and
+> populates them per family. Existing iMXRT specializations carry zero /
+> empty defaults for the new fields until a follow-up wires NXP IOMUX data.
+> Per-family AVR-DA support is scoped to the admitted device `avr128da32`
+> (the proposal mentioned `avr128da48`, which is not in the registry).
 
-- [ ] 1.1 Add `GpioSemanticEmitter` base class in
-      `src/alloy_codegen/emitters/gpio_semantics.py`. Defines the `emit(device)`
-      interface that each family adapter implements.
-- [ ] 1.2 Extend `CanonicalDeviceIR` with a `gpio_pins: list[GpioPinDescriptor]`
-      field. `GpioPinDescriptor` carries `pin_id`, `port`, `pin_index`, `is_input_only`,
-      `alt_functions: list[AltFunctionDescriptor]`.
-- [ ] 1.3 Add JSON schema for `GpioPinDescriptor` and update `ir/schema.json`.
-      Validate round-trip: existing fixtures (all with empty `gpio_pins`) still pass.
-- [ ] 1.4 Update `artifact-contract` spec scenario: `gpio.hpp` MUST contain at
-      least one specialization with `kPresent = true` for every admitted family
-      after this change lands.
+## 1. GPIO semantic emitter infrastructure (Phase A)
 
-## 2. STM32G0 GPIO traits
+- [x] 1.1 New IR types `AltFunctionDescriptor` and `GpioPinDescriptor` in
+      `src/alloy_codegen/ir/model.py` capture the per-pin AF table; the
+      `Device.gpio_pins` field carries them as an omit-if-empty tuple.
+- [x] 1.2 JSON schema (`schemas/canonical-device-ir-v1.schema.json`)
+      extended with `$defs/alt_function_descriptor`,
+      `$defs/gpio_pin_descriptor`, and `gpio_pins`. Existing fixtures pass.
+- [x] 1.3 `connector_model.py` carries `gpio_pins` through
+      `ensure_connector_descriptors` so it survives the rebuild.
+- [x] 1.4 The primary `GpioSemanticTraits<PinId>` template body in
+      `runtime_driver_semantics.py` declares the four new fields with
+      zero / empty defaults; existing iMXRT specializations now also emit
+      zero defaults for the new fields. The `artifact-contract` /
+      coverage-gate scenario lives in `validation-and-gates` (Phase E).
 
-- [ ] 2.1 Create `patches/st/stm32g0/pin_data.json`: machine-readable pin
-      alternate-function table for the STM32G071RB (LQFP64 package). Source from
-      ST's Open Pin Data spreadsheet. Fields: `pin_name`, `port`, `pin_num`,
-      `alt_functions: [{af_num, signal_name}]`.
-- [ ] 2.2 Implement `STM32GpioNormalizer` in
-      `src/alloy_codegen/sources/stm32_open_pin_data.py`: reads `pin_data.json`,
-      resolves each signal name against the SVD peripheral list, populates
-      `GpioPinDescriptor` in the IR.
-- [ ] 2.3 Implement `STM32GpioSemanticEmitter.emit(device)`: writes
-      `gpio.hpp` specializations for STM32G0. Template uses `kPortOffset =
-      (GPIOX_BASE - GPIOA_BASE)`, `kPinIndex`, `kMaxAltFunction`,
-      `kValidAltFunctions`.
-- [ ] 2.4 Golden: regenerate `tests/fixtures/emitted/stm32g071rb/driver_semantics/gpio.hpp`.
-      Assert: GPIOA_PIN5 (LED pin on Nucleo-G071RB) has `kPresent=true`,
-      `kPortOffset=0`, `kPinIndex=5`.
-- [ ] 2.5 Compile test: `tests/compile_tests/test_stm32g0_gpio_traits.cpp` —
-      instantiate `gpio::pin<GpioPinId::GPIOA_5>()` and verify concept satisfied.
+## 2. STM32G0 (Phase A — done in this commit)
 
-## 3. STM32F4 GPIO traits
+- [x] 2.1 The proposal's `pin_data.json` overlay is **not** introduced —
+      the data already exists in the upstream ST Open Pin Data XMLs that
+      the `stm32_open_pin_data.py` source loader parses. Phase A derives
+      `gpio_pins` directly from `device.pins[i].signals[j]` instead.
+- [x] 2.2 `_build_st_gpio_pins` in `stages/normalize.py` produces a
+      `GpioPinDescriptor` per pin with a non-empty AF list; signals
+      without an `af_number` (analog inputs, debug-only signals) are
+      skipped. Wired into the ST builder.
+- [x] 2.3 The GPIO emitter emits an AF-only specialization per
+      `GpioPinDescriptor` whose `PinId` is not already covered by a
+      register-level row. Specializations carry `kPortOffset`,
+      `kPinIndex`, `kMaxAltFunction`, and a sorted-deduplicated
+      `kValidAltFunctions` array.
+- [x] 2.4 Goldens regenerated:
+      `tests/fixtures/emitted/stm32g0/.../driver_semantics/gpio.hpp` plus
+      affected metadata / manifest JSONs (canonical-IR sha changed).
+- [x] 2.5 Python invariant tests in
+      `tests/test_gpio_semantic_traits.py` assert: primary template carries
+      zero defaults; `PA0` records `kPortOffset = 0`; `PB6` records
+      `kPortOffset = 0x400` and a non-empty `kValidAltFunctions`; the
+      regenerated golden contains ≥1 `kPresent = true`.
+      (C++ `static_assert` smoke deferred to Phase E with a single
+      `tests/compile_tests/` infrastructure pass.)
 
-- [ ] 3.1 Create `patches/st/stm32f401re/pin_data.json` (LQFP64) from ST Open
-      Pin Data. Same schema as STM32G0.
-- [ ] 3.2 Extend `STM32GpioNormalizer` to accept F4 family (same logic, different
-      AF count — F4 supports AF0–AF15 vs G0's AF0–AF7 on most pins).
-- [ ] 3.3 Emit and golden for `stm32f401re`. Assert GPIOA_PIN5 (LED on F4 Nucleo)
-      has `kMaxAltFunction=15`.
-- [ ] 3.4 Compile test for F4 GPIO traits.
+## 3. STM32F4 (Phase B — pending)
 
-## 4. Espressif GPIO traits
+- [ ] 3.1 Verify `stm32f401re` / `stm32f405rg` flow through
+      `_build_st_gpio_pins` unchanged (same OPD source structure).
+- [ ] 3.2 Regenerate or add stm32f4 emit goldens once the family is
+      covered by the fixture sources.
+- [ ] 3.3 Extend `tests/test_gpio_semantic_traits.py` with an STM32F4
+      pin assertion (e.g. PA5 LED on Nucleo-F401RE).
 
-- [ ] 4.1 Add `GpioMatrixSignalDescriptor` to the IR: `signal_name`, `in_sel_idx`,
-      `out_sel_idx`, `out_en_sel_idx`. Populate from `gpio_sig_map.h` parsing
-      already in `esp_idf.py`.
-- [ ] 4.2 Implement `EspressifGpioSemanticEmitter` for ESP32 classic:
-      - 40 pads (0–39): `kGpioNum`, `kIsInputOnly` (GPIO34–39 = true),
-        `kHasIoMuxFastPath` (pads with IO_MUX direct = true).
-      - `GpioMatrixSemanticTraits<SignalId>`: `kInSelIdx`, `kOutSelIdx`.
-      Emits both into `gpio.hpp`.
-- [ ] 4.3 ESP32-C3 variant (21 pads, all bidirectional, single GPIO matrix —
-      no separate IO_MUX path for most pads). Emit `kIsInputOnly=false` for all.
-- [ ] 4.4 ESP32-S3 variant (48 pads). IO_MUX fast-path pads from S3 TRM table.
-- [ ] 4.5 Goldens for esp32, esp32c3, esp32s3. Assert GPIO2 on ESP32 classic has
-      `kHasIoMuxFastPath=true` and `kIsInputOnly=false`.
-- [ ] 4.6 Compile tests for all three Espressif variants.
+## 4. Espressif (Phase C — pending)
 
-## 5. AVR-DA GPIO traits
+- [ ] 4.1 Add `GpioMatrixSignalDescriptor` to the IR (signal_name,
+      `in_sel_idx`, `out_sel_idx`, `out_en_sel_idx`).
+- [ ] 4.2 Wire `_build_espressif_gpio_pins` for ESP32 classic / C3 / S3:
+      populate `is_input_only` for GPIO34–39 on classic; `port` is the
+      single GPIO peripheral on ESP32 (no STM32-style ports).
+- [ ] 4.3 Emit `GpioMatrixSemanticTraits<SignalId>` alongside
+      `GpioSemanticTraits` for the IO-matrix path.
+- [ ] 4.4 Goldens + invariant tests for the three ESP32 variants.
 
-- [ ] 5.1 Implement `AvrDaGpioNormalizer` in
-      `src/alloy_codegen/sources/atdf_avr.py`: parse `<module name="PORT">` and
-      `<module name="PORTMUX">` from the AVR128DA48 ATDF. Populate
-      `GpioPinDescriptor` with `kPortIndex`, `kPinBit`, `kPmuxChannel`.
-- [ ] 5.2 Implement `AvrDaGpioSemanticEmitter`. PORTMUX channel index = -1 if
-      pin has no mux assignment.
-- [ ] 5.3 Golden for `avr128da48`. Assert PORTA_PIN7 present with correct
-      `kPortIndex=0`, `kPinBit=7`.
-- [ ] 5.4 Compile test for AVR-DA GPIO traits.
+## 5. AVR-DA (Phase D — pending)
 
-## 6. CI gate
+- [ ] 5.1 Add `_build_avr_da_gpio_pins` reading `<module name="PORT">` and
+      `<module name="PORTMUX">` from the AVR128DA32 ATDF; populate
+      `port` (PORTA/B/...), `pin_index`, and AF data from PORTMUX.
+- [ ] 5.2 Goldens + invariant tests for `avr128da32`.
 
-- [ ] 6.1 Add `gpio-semantic-coverage` CI job: runs `pytest tests/test_gpio_semantics.py`.
-      Fails if any admitted family has zero `kPresent=true` entries in `gpio.hpp`.
-      Blocks PRs that admit a new family without GPIO traits.
-- [ ] 6.2 Update `docs/COVERAGE_MATRIX.md`: add `gpio_traits` column. Mark
-      SAME70=✓, STM32G0=✓, STM32F4=✓, ESP32=✓, ESP32-C3=✓, ESP32-S3=✓,
-      AVR-DA=✓, RP2040=see `complete-rp2040-semantics`.
+## 6. CI gate + documentation (Phase E — pending)
+
+- [ ] 6.1 Add a `tests/test_gpio_semantic_coverage.py` that fails CI when
+      any admitted family emits zero `kPresent = true` GPIO specializations
+      (initially gated to families covered by Phases A–D; ungated once all
+      phases land).
+- [ ] 6.2 Set up `tests/compile_tests/` infrastructure (single CMake +
+      pytest entry point) and add:
+      - `test_stm32g0_gpio_traits.cpp` (PA0 / PB6 `static_assert`s)
+      - `test_rp2040_pio_traits.cpp` — completes the deferred 5.2 task on
+        `define-pio-semantic-struct`.
+- [ ] 6.3 Update `docs/COVERAGE_MATRIX.md` (or, if the file still does
+      not exist, add a `gpio_traits` column to the auto-generated
+      family README) once CI gate is enabled.

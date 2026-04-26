@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from alloy_codegen.ir.model import (
+    AltFunctionDescriptor,
     CanonicalDeviceIR,
     CapabilityDescriptor,
     ClockGateDescriptor,
@@ -15,6 +16,7 @@ from alloy_codegen.ir.model import (
     DmaControllerDescriptor,
     DmaRequestDefinition,
     DmaRouteDescriptor,
+    GpioPinDescriptor,
     InterruptBindingDescriptor,
     InterruptDefinition,
     IpBlockDefinition,
@@ -142,6 +144,50 @@ def test_canonical_device_ir_omits_empty_transitional_domains() -> None:
     assert "dma_bindings" not in payload
     assert "dma_routes" not in payload
     assert "pio_blocks" not in payload
+    assert "gpio_pins" not in payload
+
+
+def test_canonical_device_ir_serializes_gpio_pins_when_populated() -> None:
+    base = _base_device()
+    provenance = base.provenance
+    enriched = replace(
+        base,
+        gpio_pins=(
+            GpioPinDescriptor(
+                pin_id="PA5",
+                port="GPIOA",
+                pin_index=5,
+                port_offset=0,
+                alt_functions=(
+                    AltFunctionDescriptor(af_number=0, signal_name="SCK", peripheral="SPI1"),
+                    AltFunctionDescriptor(af_number=2, signal_name="CH1", peripheral="TIM2"),
+                ),
+                is_input_only=False,
+                provenance=provenance,
+            ),
+        ),
+    )
+
+    payload = enriched.to_dict()
+
+    assert payload["gpio_pins"] == [
+        {
+            "pin_id": "PA5",
+            "port": "GPIOA",
+            "pin_index": 5,
+            "port_offset": 0,
+            "alt_functions": [
+                {"af_number": 0, "signal_name": "SCK", "peripheral": "SPI1"},
+                {"af_number": 2, "signal_name": "CH1", "peripheral": "TIM2"},
+            ],
+            "is_input_only": False,
+            "provenance": {
+                "source_id": provenance.source_id,
+                "source_path": provenance.source_path,
+                "patch_ids": list(provenance.patch_ids),
+            },
+        },
+    ]
 
 
 def test_canonical_device_ir_serializes_pio_blocks_when_populated() -> None:

@@ -11,6 +11,7 @@ from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
+    AltFunctionDescriptor,
     AppCpuControlPlane,
     CanonicalDeviceIR,
     ClockGateDescriptor,
@@ -20,6 +21,7 @@ from alloy_codegen.ir.model import (
     DeviceIdentity,
     DmaControllerDescriptor,
     DmaRequestDefinition,
+    GpioPinDescriptor,
     InterruptDefinition,
     MemoryRegion,
     PackageDefinition,
@@ -1008,6 +1010,77 @@ def _register_fields_from_raw_peripherals(
     return tuple(fields)
 
 
+def _build_st_gpio_pins(
+    *,
+    pins: tuple[PinDefinition, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+    provenance: Provenance,
+) -> tuple[GpioPinDescriptor, ...]:
+    """Derive `GpioPinDescriptor` entries for the STM32 family.
+
+    For STM32, the GPIO ports are independent peripherals (``GPIOA``, ``GPIOB``
+    etc.) at evenly-spaced base addresses.  Each pin's ``port`` is the GPIO
+    peripheral name and ``port_offset`` is the port's base address minus
+    the family's first GPIO port base (typically ``GPIOA``).  Alternate
+    functions come straight from the parsed pin signals (``af_number``).
+
+    Pins without a port (e.g. analog-only debug pads on some packages) are
+    skipped.  Signals without an ``af_number`` (analog inputs, debug-only
+    signals) are also skipped — they don't participate in the alloy AF
+    table.
+    """
+    gpio_base_by_port: dict[str, int] = {
+        peripheral.name: peripheral.base_address
+        for peripheral in peripherals
+        if peripheral.name.startswith("GPIO")
+    }
+    if not gpio_base_by_port:
+        return ()
+    first_gpio_base = min(gpio_base_by_port.values())
+
+    descriptors: list[GpioPinDescriptor] = []
+    for pin in pins:
+        if pin.port is None:
+            continue
+        # STM32 ``PinDefinition.port`` is a single letter ("A".."F"); the
+        # peripheral key is ``GPIOA``..``GPIOF``.  Other vendors may already
+        # use the full port name — accept both forms.
+        port_name = pin.port if pin.port in gpio_base_by_port else f"GPIO{pin.port}"
+        if port_name not in gpio_base_by_port:
+            continue
+        seen_af: dict[tuple[int, str], AltFunctionDescriptor] = {}
+        for signal in pin.signals:
+            if signal.af_number is None or signal.peripheral is None:
+                continue
+            signal_name = signal.signal or signal.function
+            if signal_name is None:
+                continue
+            key = (signal.af_number, signal_name)
+            seen_af.setdefault(
+                key,
+                AltFunctionDescriptor(
+                    af_number=signal.af_number,
+                    signal_name=signal_name,
+                    peripheral=signal.peripheral,
+                ),
+            )
+        alt_functions = tuple(
+            sorted(seen_af.values(), key=lambda af: (af.af_number, af.signal_name))
+        )
+        descriptors.append(
+            GpioPinDescriptor(
+                pin_id=pin.name,
+                port=port_name,
+                pin_index=pin.number,
+                port_offset=gpio_base_by_port[port_name] - first_gpio_base,
+                alt_functions=alt_functions,
+                is_input_only=False,
+                provenance=provenance,
+            )
+        )
+    return tuple(descriptors)
+
+
 def build_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -1160,6 +1233,24 @@ def build_canonical_ir(
         peripheral_clock_bindings=tuple(
             _peripheral_clock_binding_to_ir(binding, patch_provenance)
             for binding in peripheral_clock_bindings
+        ),
+        gpio_pins=_build_st_gpio_pins(
+            pins=pins,
+            peripherals=tuple(
+                _peripheral_to_ir(
+                    peripheral_name=_canonical_peripheral_name(peripheral.name),
+                    base_address=peripheral.base_address,
+                    patch_metadata=peripheral_patches.get(
+                        _canonical_peripheral_name(peripheral.name)
+                    ),
+                    ip_version=None
+                    if ip_version_table is None
+                    else ip_version_table.get(_canonical_peripheral_name(peripheral.name)),
+                    provenance=svd_provenance,
+                )
+                for peripheral in raw_peripherals
+            ),
+            provenance=pin_provenance,
         ),
     )
 
