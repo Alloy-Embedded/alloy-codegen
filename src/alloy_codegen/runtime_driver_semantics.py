@@ -3203,6 +3203,134 @@ def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str)
     )
 
 
+def _adc_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    data_register: RuntimeRegisterRef,
+    transfer_width_bits: int = 16,
+) -> tuple[AdcDmaBindingRow, ...]:
+    """Derive AdcDmaBinding rows from `device.dma_requests` filtered by ADC peripheral.
+
+    The resulting rows reference the existing DMA tables via
+    ``DmaControllerId`` and ``DmaBindingId`` enums so the consumer can
+    cross-reference the full DMA route descriptor in ``DmaSemanticTraits``.
+    Width defaults to 16 bits which matches all admitted ADC data registers
+    (12-bit results in a 16-bit register).
+    """
+    bindings: list[AdcDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        controller_peri = getattr(binding, "controller", None) or getattr(
+            binding, "controller_peripheral", None
+        )
+        controller_id = getattr(binding, "controller_id", None)
+        binding_id = getattr(binding, "binding_id", None)
+        request_value = getattr(binding, "request_value", None) or 0
+        if controller_peri is None or controller_id is None or binding_id is None:
+            continue
+        bindings.append(
+            AdcDmaBindingRow(
+                controller_peripheral=str(controller_peri),
+                controller_id=str(controller_id),
+                binding_id=str(binding_id),
+                request_value=int(request_value),
+                data_register=data_register,
+                transfer_width_bits=transfer_width_bits,
+            )
+        )
+    return tuple(bindings)
+
+
+def _adc_extension_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    data_register: RuntimeRegisterRef,
+    transfer_width_bits: int = 16,
+) -> dict[str, object]:
+    """Build the Tier 2/3/4 keyword arguments for ``AdcSemanticRow``.
+
+    Reads the device IR's ADC patch tuples (forwarded by `stages/normalize.run`)
+    and returns a dict suitable for ``**`` unpacking into the row constructor.
+    DMA bindings are derived from the device's ``dma_requests`` filtered by
+    the ADC peripheral; everything else comes straight from the device patch.
+    """
+    device = context.device
+    internal_channels = tuple(
+        AdcInternalChannel(kind=p.kind, channel_index=p.channel_index)
+        for p in getattr(device, "adc_internal_channels", ())
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    calibration_data_points = tuple(
+        AdcCalibrationDataPoint(
+            kind=p.kind,
+            location=RuntimeRegisterRef(
+                register_id=None,
+                base_address=p.address,
+                offset_bytes=0,
+                valid=True,
+            ),
+            semantic_constant=p.semantic_constant,
+        )
+        for p in getattr(device, "adc_calibration_data_points", ())
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    cal_ctx_patch = getattr(device, "adc_calibration_context", None)
+    if cal_ctx_patch is not None and getattr(cal_ctx_patch, "peripheral", None) == peripheral_name:
+        calibration_context = AdcCalibrationContext(
+            cal_temp_low_celsius=cal_ctx_patch.cal_temp_low_celsius,
+            cal_temp_high_celsius=cal_ctx_patch.cal_temp_high_celsius,
+            cal_voltage_mv=cal_ctx_patch.cal_voltage_mv,
+            vrefint_nominal_mv=cal_ctx_patch.vrefint_nominal_mv,
+            valid=True,
+        )
+    else:
+        calibration_context = AdcCalibrationContext()
+    resolution_options = tuple(
+        AdcResolutionOption(bits=p.bits, field_value=p.field_value)
+        for p in getattr(device, "adc_resolution_options", ())
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    sample_time_options = tuple(
+        AdcSampleTimeOption(cycles_q8=p.cycles_q8, field_value=p.field_value)
+        for p in getattr(device, "adc_sample_time_options", ())
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    oversampling_options = tuple(
+        AdcOversamplingOption(ratio=p.ratio, field_value=p.field_value)
+        for p in getattr(device, "adc_oversampling_options", ())
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    external_triggers = tuple(
+        AdcExternalTrigger(
+            source=p.source,
+            extsel_value=p.extsel_value,
+            default_polarity=p.default_polarity,
+        )
+        for p in getattr(device, "adc_external_triggers", ())
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    dma_bindings = _adc_dma_bindings_for_peripheral(
+        context,
+        peripheral_name=peripheral_name,
+        data_register=data_register,
+        transfer_width_bits=transfer_width_bits,
+    )
+    return {
+        "internal_channels": internal_channels,
+        "calibration_data_points": calibration_data_points,
+        "calibration_context": calibration_context,
+        "resolution_options": resolution_options,
+        "sample_time_options": sample_time_options,
+        "oversampling_options": oversampling_options,
+        "adc_max_clock_hz": int(getattr(device, "adc_max_clock_hz", 0) or 0),
+        "dma_bindings": dma_bindings,
+        "external_triggers": external_triggers,
+    }
+
+
 def _st_adc_row(
     context: _SemanticContext,
     *,
@@ -4487,7 +4615,29 @@ def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
                     is_stub=True,
                 )
             )
-    return tuple(rows)
+    # Forward Tier 2/3/4 fields from the device patch onto each populated row.
+    # Stubs keep their empty defaults — the patch fields are vendor-specific
+    # and only meaningful when there's a real builder for the schema.
+    enriched: list[AdcSemanticRow] = []
+    for row in rows:
+        if row.is_stub:
+            enriched.append(row)
+            continue
+        # Width inference: 12-bit / 16-bit results land in 16-bit registers;
+        # higher resolutions (rare; STM32H7 oversampling can yield 18-bit) bump
+        # to 32-bit.  result_bits drives the choice; default 16 if zero.
+        transfer_width = 32 if row.result_bits > 16 else 16
+        extension = _adc_extension_for_peripheral(
+            context,
+            peripheral_name=row.peripheral_name,
+            data_register=row.data_reg,
+            transfer_width_bits=transfer_width,
+        )
+        # `dataclasses.replace` requires named arguments; unpack the extension.
+        import dataclasses as _dc
+
+        enriched.append(_dc.replace(row, **extension))
+    return tuple(enriched)
 
 
 def _st_dac_row(

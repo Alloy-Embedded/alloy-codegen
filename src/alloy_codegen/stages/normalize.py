@@ -2073,6 +2073,36 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             )
             continue
         raise StageExecutionError(f"Unsupported normalize path for {vendor}/{family}.")
+    # Forward ADC Tier 2/3/4 patch fields onto the canonical IR.  Each device
+    # builder above already loaded the device patch — we re-load to access the
+    # ADC tuples without rewriting every builder.  Cost is negligible (the
+    # patch JSON is already in the OS cache) and the alternative threads the
+    # eight ADC tuples through every constructor (six builders × eight fields).
+    enriched_devices: list[CanonicalDeviceIR] = []
+    for device in devices:
+        try:
+            patch = load_device_patch(
+                execution_context,
+                device.identity.device,
+                vendor=device.identity.vendor,
+                family=device.identity.family,
+            )
+        except StageExecutionError:
+            enriched_devices.append(device)
+            continue
+        enriched_devices.append(
+            dataclasses.replace(
+                device,
+                adc_internal_channels=patch.adc_internal_channels,
+                adc_calibration_data_points=patch.adc_calibration_data_points,
+                adc_calibration_context=patch.adc_calibration_context,
+                adc_resolution_options=patch.adc_resolution_options,
+                adc_sample_time_options=patch.adc_sample_time_options,
+                adc_oversampling_options=patch.adc_oversampling_options,
+                adc_external_triggers=patch.adc_external_triggers,
+                adc_max_clock_hz=patch.adc_max_clock_hz,
+            )
+        )
     return StageResult(
         stage="normalize",
         scope=patch_result.scope,
@@ -2080,6 +2110,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         payload=NormalizationBundle(
             source_manifest=patch_result.payload.source_manifest,
             patch_manifest=patch_result.payload.patch_manifest,
-            devices=tuple(ensure_connector_descriptors(device) for device in devices),
+            devices=tuple(ensure_connector_descriptors(device) for device in enriched_devices),
         ),
     )

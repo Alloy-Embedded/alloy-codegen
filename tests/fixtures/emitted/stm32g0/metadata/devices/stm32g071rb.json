@@ -1,4 +1,202 @@
 {
+  "adc_calibration_context": {
+    "cal_temp_high_celsius": 130,
+    "cal_temp_low_celsius": 30,
+    "cal_voltage_mv": 3000,
+    "peripheral": "ADC1",
+    "vrefint_nominal_mv": 1212
+  },
+  "adc_calibration_data_points": [
+    {
+      "address": 536835498,
+      "kind": "vrefint_cal",
+      "peripheral": "ADC1",
+      "semantic_constant": 3000,
+      "size_bits": 16
+    },
+    {
+      "address": 536835496,
+      "kind": "ts_cal_low",
+      "peripheral": "ADC1",
+      "semantic_constant": 30,
+      "size_bits": 16
+    },
+    {
+      "address": 536835530,
+      "kind": "ts_cal_high",
+      "peripheral": "ADC1",
+      "semantic_constant": 130,
+      "size_bits": 16
+    }
+  ],
+  "adc_external_triggers": [
+    {
+      "default_polarity": 1,
+      "extsel_value": 0,
+      "peripheral": "ADC1",
+      "source": "tim1_trgo"
+    },
+    {
+      "default_polarity": 1,
+      "extsel_value": 1,
+      "peripheral": "ADC1",
+      "source": "tim1_cc4"
+    },
+    {
+      "default_polarity": 1,
+      "extsel_value": 2,
+      "peripheral": "ADC1",
+      "source": "tim2_trgo"
+    },
+    {
+      "default_polarity": 1,
+      "extsel_value": 3,
+      "peripheral": "ADC1",
+      "source": "tim3_trgo"
+    },
+    {
+      "default_polarity": 1,
+      "extsel_value": 5,
+      "peripheral": "ADC1",
+      "source": "tim6_trgo"
+    },
+    {
+      "default_polarity": 1,
+      "extsel_value": 6,
+      "peripheral": "ADC1",
+      "source": "tim15_trgo"
+    },
+    {
+      "default_polarity": 1,
+      "extsel_value": 7,
+      "peripheral": "ADC1",
+      "source": "exti11"
+    }
+  ],
+  "adc_internal_channels": [
+    {
+      "channel_index": 12,
+      "kind": "temperature_sensor",
+      "peripheral": "ADC1"
+    },
+    {
+      "channel_index": 13,
+      "kind": "vrefint",
+      "peripheral": "ADC1"
+    },
+    {
+      "channel_index": 14,
+      "kind": "vbat",
+      "peripheral": "ADC1"
+    }
+  ],
+  "adc_max_clock_hz": 35000000,
+  "adc_oversampling_options": [
+    {
+      "field_value": 0,
+      "peripheral": "ADC1",
+      "ratio": 2
+    },
+    {
+      "field_value": 1,
+      "peripheral": "ADC1",
+      "ratio": 4
+    },
+    {
+      "field_value": 2,
+      "peripheral": "ADC1",
+      "ratio": 8
+    },
+    {
+      "field_value": 3,
+      "peripheral": "ADC1",
+      "ratio": 16
+    },
+    {
+      "field_value": 4,
+      "peripheral": "ADC1",
+      "ratio": 32
+    },
+    {
+      "field_value": 5,
+      "peripheral": "ADC1",
+      "ratio": 64
+    },
+    {
+      "field_value": 6,
+      "peripheral": "ADC1",
+      "ratio": 128
+    },
+    {
+      "field_value": 7,
+      "peripheral": "ADC1",
+      "ratio": 256
+    }
+  ],
+  "adc_resolution_options": [
+    {
+      "bits": 12,
+      "field_value": 0,
+      "peripheral": "ADC1"
+    },
+    {
+      "bits": 10,
+      "field_value": 1,
+      "peripheral": "ADC1"
+    },
+    {
+      "bits": 8,
+      "field_value": 2,
+      "peripheral": "ADC1"
+    },
+    {
+      "bits": 6,
+      "field_value": 3,
+      "peripheral": "ADC1"
+    }
+  ],
+  "adc_sample_time_options": [
+    {
+      "cycles_q8": 384,
+      "field_value": 0,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 896,
+      "field_value": 1,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 1920,
+      "field_value": 2,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 3200,
+      "field_value": 3,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 4992,
+      "field_value": 4,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 10112,
+      "field_value": 5,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 20352,
+      "field_value": 6,
+      "peripheral": "ADC1"
+    },
+    {
+      "cycles_q8": 41088,
+      "field_value": 7,
+      "peripheral": "ADC1"
+    }
+  ],
   "capabilities": [
     {
       "capability_id": "capability-instance:spi1:lqfp64:sck",

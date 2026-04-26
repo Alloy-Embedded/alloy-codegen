@@ -76,44 +76,62 @@ struct AdcSemanticTraits<PeripheralId::ADC0> {
   static constexpr bool kHasDma = false;
   static constexpr bool kHasHardwareTrigger = false;
   static constexpr bool kHasChannelBitmaskSelect = false;
-  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::register_adc0_ctrla, 0x00000600u, 0u, true};
-  static constexpr RuntimeRegisterRef kStatusRegister = RuntimeRegisterRef{RegisterId::register_adc0_intflags, 0x00000600u, 13u, true};
-  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::register_adc0_ctrlb, 0x00000600u, 1u, true};
-  static constexpr RuntimeRegisterRef kSampleTimeRegister = RuntimeRegisterRef{RegisterId::register_adc0_sampctrl, 0x00000600u, 5u, true};
+  static constexpr RuntimeRegisterRef kControlRegister = RuntimeRegisterRef{RegisterId::none, 0x00000000u, 0u, true};
+  static constexpr RuntimeRegisterRef kStatusRegister = RuntimeRegisterRef{RegisterId::none, 0x00000000u, 14u, true};
+  static constexpr RuntimeRegisterRef kConfigRegister = RuntimeRegisterRef{RegisterId::none, 0x00000000u, 1u, true};
+  static constexpr RuntimeRegisterRef kSampleTimeRegister = RuntimeRegisterRef{RegisterId::none, 0x00000000u, 5u, true};
   static constexpr RuntimeRegisterRef kSequenceRegister = kInvalidRegisterRef;
-  static constexpr RuntimeRegisterRef kDataRegister = RuntimeRegisterRef{RegisterId::register_adc0_res, 0x00000600u, 16u, true};
-  static constexpr RuntimeFieldRef kEnableField = RuntimeFieldRef{FieldId::field_adc0_ctrla_enable, RuntimeRegisterRef{RegisterId::register_adc0_ctrla, 0x00000600u, 0u, true}, 0u, 1u, true};
+  static constexpr RuntimeRegisterRef kDataRegister = RuntimeRegisterRef{RegisterId::none, 0x00000000u, 16u, true};
+  static constexpr RuntimeFieldRef kEnableField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 0u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kDisableField = kInvalidFieldRef;
-  static constexpr RuntimeFieldRef kReadyField = RuntimeFieldRef{FieldId::field_adc0_intflags_resrdy, RuntimeRegisterRef{RegisterId::register_adc0_intflags, 0x00000600u, 13u, true}, 0u, 1u, true};
-  static constexpr RuntimeFieldRef kStartField = RuntimeFieldRef{FieldId::field_adc0_command_stconv, RuntimeRegisterRef{RegisterId::register_adc0_command, 0x00000600u, 10u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kReadyField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 14u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kStartField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 8u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kStopField = kInvalidFieldRef;
-  static constexpr RuntimeFieldRef kContinuousField = RuntimeFieldRef{FieldId::field_adc0_ctrla_freerun, RuntimeRegisterRef{RegisterId::register_adc0_ctrla, 0x00000600u, 0u, true}, 1u, 1u, true};
-  static constexpr RuntimeFieldRef kResolutionField = RuntimeFieldRef{FieldId::field_adc0_ctrla_ressel, RuntimeRegisterRef{RegisterId::register_adc0_ctrla, 0x00000600u, 0u, true}, 2u, 2u, true};
+  static constexpr RuntimeFieldRef kContinuousField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 0u, true}, 1u, 1u, true};
+  static constexpr RuntimeFieldRef kResolutionField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 0u, true}, 2u, 1u, true};
   static constexpr RuntimeFieldRef kAlignField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kDmaModeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kExternalTriggerEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kExternalTriggerSelectField = kInvalidFieldRef;
-  static constexpr RuntimeFieldRef kEndOfConversionField = RuntimeFieldRef{FieldId::field_adc0_intflags_resrdy, RuntimeRegisterRef{RegisterId::register_adc0_intflags, 0x00000600u, 13u, true}, 0u, 1u, true};
+  static constexpr RuntimeFieldRef kEndOfConversionField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 14u, true}, 0u, 1u, true};
   static constexpr RuntimeFieldRef kEndOfSequenceField = kInvalidFieldRef;
-  static constexpr RuntimeFieldRef kOverrunField = RuntimeFieldRef{FieldId::field_adc0_intflags_wcmp, RuntimeRegisterRef{RegisterId::register_adc0_intflags, 0x00000600u, 13u, true}, 1u, 1u, true};
+  static constexpr RuntimeFieldRef kOverrunField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 14u, true}, 1u, 1u, true};
   static constexpr RuntimeFieldRef kDataField = kInvalidFieldRef;
-  static constexpr RuntimeFieldRef kChannelSelectField = RuntimeFieldRef{FieldId::field_adc0_muxpos_muxpos, RuntimeRegisterRef{RegisterId::register_adc0_muxpos, 0x00000600u, 8u, true}, 0u, 7u, true};
+  static constexpr RuntimeFieldRef kChannelSelectField = RuntimeFieldRef{FieldId::none, RuntimeRegisterRef{RegisterId::none, 0x00000000u, 6u, true}, 0u, 7u, true};
   static constexpr RuntimeIndexedFieldRef kChannelBitPattern = kInvalidIndexedFieldRef;
   static constexpr RuntimeIndexedFieldRef kChannelEnablePattern = kInvalidIndexedFieldRef;
   static constexpr RuntimeIndexedFieldRef kChannelDisablePattern = kInvalidIndexedFieldRef;
   static constexpr RuntimeIndexedFieldRef kChannelStatusPattern = kInvalidIndexedFieldRef;
-  static constexpr std::uint32_t kInternalChannelCount = 0u;
-  static constexpr std::array<InternalAdcChannel, 0> kInternalChannels = {};
-  static constexpr std::uint32_t kCalibrationDataPointCount = 0u;
-  static constexpr std::array<CalibrationDataPoint, 0> kCalibrationDataPoints = {};
-  static constexpr CalibrationContext kCalibrationContext = CalibrationContext{};
-  static constexpr std::uint32_t kSupportedResolutionCount = 0u;
-  static constexpr std::array<AdcResolutionOption, 0> kSupportedResolutions = {};
+  static constexpr std::uint32_t kInternalChannelCount = 2u;
+  static constexpr std::array<InternalAdcChannel, 2> kInternalChannels = {{
+    InternalAdcChannel{InternalAdcChannelKind::temperature_sensor, 66u, true},
+    InternalAdcChannel{InternalAdcChannelKind::vrefint, 64u, true},
+  }};
+  static constexpr std::uint32_t kCalibrationDataPointCount = 3u;
+  static constexpr std::array<CalibrationDataPoint, 3> kCalibrationDataPoints = {{
+    CalibrationDataPoint{AdcCalibrationKind::sigrow_sref, RuntimeRegisterRef{RegisterId::none, 0x0000112Eu, 0u, true}, 1024, true},
+    CalibrationDataPoint{AdcCalibrationKind::sigrow_tempsense_low, RuntimeRegisterRef{RegisterId::none, 0x00001118u, 0u, true}, 0, true},
+    CalibrationDataPoint{AdcCalibrationKind::sigrow_tempsense_high, RuntimeRegisterRef{RegisterId::none, 0x0000111Au, 0u, true}, 0, true},
+  }};
+  static constexpr CalibrationContext kCalibrationContext = CalibrationContext{0, 0, 1024u, 1024u, true};
+  static constexpr std::uint32_t kSupportedResolutionCount = 2u;
+  static constexpr std::array<AdcResolutionOption, 2> kSupportedResolutions = {{
+    AdcResolutionOption{12u, 0u, true},
+    AdcResolutionOption{10u, 1u, true},
+  }};
   static constexpr std::uint32_t kSupportedSampleTimeCount = 0u;
   static constexpr std::array<AdcSampleTimeOption, 0> kSupportedSampleTimes = {};
-  static constexpr std::uint32_t kSupportedOversamplingCount = 0u;
-  static constexpr std::array<AdcOversamplingOption, 0> kSupportedOversamplings = {};
+  static constexpr std::uint32_t kSupportedOversamplingCount = 7u;
+  static constexpr std::array<AdcOversamplingOption, 7> kSupportedOversamplings = {{
+    AdcOversamplingOption{2u, 1u, true},
+    AdcOversamplingOption{4u, 2u, true},
+    AdcOversamplingOption{8u, 3u, true},
+    AdcOversamplingOption{16u, 4u, true},
+    AdcOversamplingOption{32u, 5u, true},
+    AdcOversamplingOption{64u, 6u, true},
+    AdcOversamplingOption{128u, 7u, true},
+  }};
   static constexpr std::uint32_t kAdcMaxClockHz = 0u;
   static constexpr std::uint32_t kDmaBindingCount = 0u;
   static constexpr std::array<AdcDmaBinding, 0> kDmaBindings = {};

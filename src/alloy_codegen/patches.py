@@ -247,6 +247,79 @@ class DmaRequestCatalogEntry:
     request: DmaRequestPatch
 
 
+# ---------------------------------------------------------------------------
+# ADC Tier 2/3/4 patch types (added by add-adc-tier-2-3-4-data)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class AdcInternalChannelPatch:
+    """One internal ADC channel (TempSensor / VrefInt / VBat / opamp / dac)."""
+
+    peripheral: str
+    kind: str  # internal channel kind (matches InternalAdcChannelKind enum)
+    channel_index: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcCalibrationDataPointPatch:
+    """One factory-calibration data point (e.g. STM32 VREFINT_CAL)."""
+
+    peripheral: str
+    kind: str  # AdcCalibrationKind enum entry name
+    address: int
+    size_bits: int
+    semantic_constant: int  # °C for ts_cal_*, mV for vrefint_cal, etc.
+
+
+@dataclass(frozen=True, slots=True)
+class AdcCalibrationContextPatch:
+    """Global calibration context (cal temperatures, ref voltages)."""
+
+    peripheral: str
+    cal_temp_low_celsius: int
+    cal_temp_high_celsius: int
+    cal_voltage_mv: int
+    vrefint_nominal_mv: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcResolutionOptionPatch:
+    """One supported resolution + the field value that selects it."""
+
+    peripheral: str
+    bits: int
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcSampleTimeOptionPatch:
+    """One sample-time option (cycles in Q8.8 fixed-point) + field value."""
+
+    peripheral: str
+    cycles_q8: int
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcOversamplingOptionPatch:
+    """One oversampling ratio + the field value that selects it."""
+
+    peripheral: str
+    ratio: int
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcExternalTriggerPatch:
+    """One external trigger source (timer/EXTI) + EXTSEL field value."""
+
+    peripheral: str
+    source: str  # AdcExternalTriggerSource enum entry name
+    extsel_value: int
+    default_polarity: int = 1  # 0=disabled, 1=rising (default), 2=falling, 3=both
+
+
 @dataclass(frozen=True, slots=True)
 class DevicePatch:
     """Patch document for one bootstrap device."""
@@ -274,6 +347,17 @@ class DevicePatch:
     system_clock_profiles: tuple[SystemClockProfilePatch, ...]
     dma_controllers: tuple[DmaControllerPatch, ...]
     dma_requests: tuple[DmaRequestPatch, ...]
+    # ADC Tier 2/3/4 (added by add-adc-tier-2-3-4-data).  All optional —
+    # families that don't curate ADC config carry empty tuples and the
+    # AdcSemanticTraits fields default to empty arrays.
+    adc_internal_channels: tuple[AdcInternalChannelPatch, ...] = ()
+    adc_calibration_data_points: tuple[AdcCalibrationDataPointPatch, ...] = ()
+    adc_calibration_context: AdcCalibrationContextPatch | None = None
+    adc_resolution_options: tuple[AdcResolutionOptionPatch, ...] = ()
+    adc_sample_time_options: tuple[AdcSampleTimeOptionPatch, ...] = ()
+    adc_oversampling_options: tuple[AdcOversamplingOptionPatch, ...] = ()
+    adc_external_triggers: tuple[AdcExternalTriggerPatch, ...] = ()
+    adc_max_clock_hz: int = 0
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -1361,4 +1445,106 @@ def load_device_patch(
             )
             for item in payload.get("dma_requests", payload.get("dma_request_refs", ()))
         ),
+        adc_internal_channels=tuple(
+            _parse_adc_internal_channel_patch(item)
+            for item in payload.get("adc_internal_channels", ())
+        ),
+        adc_calibration_data_points=tuple(
+            _parse_adc_calibration_data_point_patch(item)
+            for item in payload.get("adc_calibration_data_points", ())
+        ),
+        adc_calibration_context=(
+            _parse_adc_calibration_context_patch(payload["adc_calibration_context"])
+            if payload.get("adc_calibration_context") is not None
+            else None
+        ),
+        adc_resolution_options=tuple(
+            _parse_adc_resolution_option_patch(item)
+            for item in payload.get("adc_resolution_options", ())
+        ),
+        adc_sample_time_options=tuple(
+            _parse_adc_sample_time_option_patch(item)
+            for item in payload.get("adc_sample_time_options", ())
+        ),
+        adc_oversampling_options=tuple(
+            _parse_adc_oversampling_option_patch(item)
+            for item in payload.get("adc_oversampling_options", ())
+        ),
+        adc_external_triggers=tuple(
+            _parse_adc_external_trigger_patch(item)
+            for item in payload.get("adc_external_triggers", ())
+        ),
+        adc_max_clock_hz=int(payload.get("adc_max_clock_hz", 0) or 0),
+    )
+
+
+def _parse_adc_internal_channel_patch(payload: dict[str, object]) -> AdcInternalChannelPatch:
+    return AdcInternalChannelPatch(
+        peripheral=str(payload["peripheral"]),
+        kind=str(payload["kind"]),
+        channel_index=int(payload["channel_index"]),
+    )
+
+
+def _parse_adc_calibration_data_point_patch(
+    payload: dict[str, object],
+) -> AdcCalibrationDataPointPatch:
+    address = payload["address"]
+    if isinstance(address, str):
+        address_int = int(address, 0)
+    else:
+        address_int = int(address)
+    return AdcCalibrationDataPointPatch(
+        peripheral=str(payload["peripheral"]),
+        kind=str(payload["kind"]),
+        address=address_int,
+        size_bits=int(payload["size_bits"]),
+        semantic_constant=int(payload["semantic_constant"]),
+    )
+
+
+def _parse_adc_calibration_context_patch(
+    payload: dict[str, object],
+) -> AdcCalibrationContextPatch:
+    return AdcCalibrationContextPatch(
+        peripheral=str(payload["peripheral"]),
+        cal_temp_low_celsius=int(payload["cal_temp_low_celsius"]),
+        cal_temp_high_celsius=int(payload["cal_temp_high_celsius"]),
+        cal_voltage_mv=int(payload["cal_voltage_mv"]),
+        vrefint_nominal_mv=int(payload["vrefint_nominal_mv"]),
+    )
+
+
+def _parse_adc_resolution_option_patch(payload: dict[str, object]) -> AdcResolutionOptionPatch:
+    return AdcResolutionOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        bits=int(payload["bits"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_adc_sample_time_option_patch(payload: dict[str, object]) -> AdcSampleTimeOptionPatch:
+    return AdcSampleTimeOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        cycles_q8=int(payload["cycles_q8"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_adc_oversampling_option_patch(
+    payload: dict[str, object],
+) -> AdcOversamplingOptionPatch:
+    return AdcOversamplingOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        ratio=int(payload["ratio"]),
+        field_value=int(payload["field_value"]),
+    )
+
+
+def _parse_adc_external_trigger_patch(payload: dict[str, object]) -> AdcExternalTriggerPatch:
+    return AdcExternalTriggerPatch(
+        peripheral=str(payload["peripheral"]),
+        source=str(payload["source"]),
+        extsel_value=int(payload["extsel_value"]),
+        default_polarity=int(payload.get("default_polarity", 1) or 1),
     )

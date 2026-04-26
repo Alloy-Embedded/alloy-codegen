@@ -84,5 +84,39 @@
     }
   ],
   "peripherals": ["GPIOA", "GPIOB", "USART1", "USART2", "DMA1", "DMA2", "OTG_FS", "Ethernet_MAC", "ADC1", "DAC", "SPI1", "TIM1", "RTC", "IWDG", "CAN1"],
-  "dma_request_refs": ["dma2-usart1-rx", "dma2-usart1-tx"]
+  "dma_request_refs": ["dma2-usart1-rx", "dma2-usart1-tx"],
+  "adc_internal_channels": [
+    { "peripheral": "ADC1", "kind": "temperature_sensor", "channel_index": 16 },
+    { "peripheral": "ADC1", "kind": "vrefint",            "channel_index": 17 },
+    { "peripheral": "ADC1", "kind": "vbat",               "channel_index": 18 }
+  ],
+  "adc_calibration_data_points": [
+    { "peripheral": "ADC1", "kind": "ts_cal_low",  "address": "0x1FFF7A2C", "size_bits": 16, "semantic_constant": 30 },
+    { "peripheral": "ADC1", "kind": "ts_cal_high", "address": "0x1FFF7A2E", "size_bits": 16, "semantic_constant": 110 },
+    { "peripheral": "ADC1", "kind": "vrefint_cal", "address": "0x1FFF7A2A", "size_bits": 16, "semantic_constant": 3300 }
+  ],
+  "adc_calibration_context": {
+    "peripheral": "ADC1",
+    "cal_temp_low_celsius": 30,
+    "cal_temp_high_celsius": 110,
+    "cal_voltage_mv": 3300,
+    "vrefint_nominal_mv": 1210
+  },
+  "adc_resolution_options": [
+    { "peripheral": "ADC1", "bits": 12, "field_value": 0 },
+    { "peripheral": "ADC1", "bits": 10, "field_value": 1 },
+    { "peripheral": "ADC1", "bits": 8,  "field_value": 2 },
+    { "peripheral": "ADC1", "bits": 6,  "field_value": 3 }
+  ],
+  "adc_sample_time_options": [
+    { "peripheral": "ADC1", "cycles_q8": 768,    "field_value": 0 },
+    { "peripheral": "ADC1", "cycles_q8": 3840,   "field_value": 1 },
+    { "peripheral": "ADC1", "cycles_q8": 7168,   "field_value": 2 },
+    { "peripheral": "ADC1", "cycles_q8": 14080,  "field_value": 3 },
+    { "peripheral": "ADC1", "cycles_q8": 21504,  "field_value": 4 },
+    { "peripheral": "ADC1", "cycles_q8": 35840,  "field_value": 5 },
+    { "peripheral": "ADC1", "cycles_q8": 70656,  "field_value": 6 },
+    { "peripheral": "ADC1", "cycles_q8": 122880, "field_value": 7 }
+  ],
+  "adc_max_clock_hz": 36000000
 }

@@ -28,6 +28,13 @@
     "dma-spi1-rx",  "dma-spi1-tx",
     "dma-adc"
   ],
+  "adc_internal_channels": [
+    { "peripheral": "ADC", "kind": "temperature_sensor", "channel_index": 4 }
+  ],
+  "adc_resolution_options": [
+    { "peripheral": "ADC", "bits": 12, "field_value": 0 }
+  ],
+  "adc_max_clock_hz": 48000000,
   "system_clock_profiles": [
     {
       "profile_id": "safe-rosc-6mhz",

@@ -1,4 +1,95 @@
 {
+  "adc_calibration_context": {
+    "cal_temp_high_celsius": 0,
+    "cal_temp_low_celsius": 0,
+    "cal_voltage_mv": 1024,
+    "peripheral": "ADC0",
+    "vrefint_nominal_mv": 1024
+  },
+  "adc_calibration_data_points": [
+    {
+      "address": 4398,
+      "kind": "sigrow_sref",
+      "peripheral": "ADC0",
+      "semantic_constant": 1024,
+      "size_bits": 16
+    },
+    {
+      "address": 4376,
+      "kind": "sigrow_tempsense_low",
+      "peripheral": "ADC0",
+      "semantic_constant": 0,
+      "size_bits": 16
+    },
+    {
+      "address": 4378,
+      "kind": "sigrow_tempsense_high",
+      "peripheral": "ADC0",
+      "semantic_constant": 0,
+      "size_bits": 16
+    }
+  ],
+  "adc_internal_channels": [
+    {
+      "channel_index": 66,
+      "kind": "temperature_sensor",
+      "peripheral": "ADC0"
+    },
+    {
+      "channel_index": 64,
+      "kind": "vrefint",
+      "peripheral": "ADC0"
+    }
+  ],
+  "adc_oversampling_options": [
+    {
+      "field_value": 1,
+      "peripheral": "ADC0",
+      "ratio": 2
+    },
+    {
+      "field_value": 2,
+      "peripheral": "ADC0",
+      "ratio": 4
+    },
+    {
+      "field_value": 3,
+      "peripheral": "ADC0",
+      "ratio": 8
+    },
+    {
+      "field_value": 4,
+      "peripheral": "ADC0",
+      "ratio": 16
+    },
+    {
+      "field_value": 5,
+      "peripheral": "ADC0",
+      "ratio": 32
+    },
+    {
+      "field_value": 6,
+      "peripheral": "ADC0",
+      "ratio": 64
+    },
+    {
+      "field_value": 7,
+      "peripheral": "ADC0",
+      "ratio": 128
+    }
+  ],
+  "adc_resolution_options": [
+    {
+      "bits": 12,
+      "field_value": 0,
+      "peripheral": "ADC0"
+    },
+    {
+      "bits": 10,
+      "field_value": 1,
+      "peripheral": "ADC0"
+    }
+  ],
   "capabilities": [
     {
       "capability_id": "capability-instance:spi0:tqfp32:cs",

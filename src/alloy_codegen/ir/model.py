@@ -631,6 +631,39 @@ class CanonicalDeviceIR:
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
+    # ADC Tier 2/3/4 (added by add-adc-tier-2-3-4-data).  Stored as tuples of
+    # patch dataclasses (the IR layer is a thin pass-through; the typed C++
+    # rendering happens in `runtime_driver_semantics`).  ``omit_if_empty`` so
+    # devices without ADC config don't bloat the canonical IR JSON.
+    adc_internal_channels: tuple[object, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_calibration_data_points: tuple[object, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_calibration_context: object | None = field(
+        default=None,
+        metadata={"omit_if_empty": True},
+    )
+    adc_resolution_options: tuple[object, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_sample_time_options: tuple[object, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_oversampling_options: tuple[object, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_external_triggers: tuple[object, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_max_clock_hz: int = field(default=0, metadata={"omit_if_default": True})
 
     def to_dict(self) -> dict[str, object]:
         return to_primitive(self)

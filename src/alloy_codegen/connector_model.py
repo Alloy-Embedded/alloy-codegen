@@ -1626,6 +1626,17 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         dma_bindings=dma_bindings,
         dma_routes=tuple(dma_route_map[route_id] for route_id in sorted(dma_route_map)),
         dma_conflict_groups=dma_conflict_groups,
+        # Carry forward ADC Tier 2/3/4 fields from the upstream device IR so
+        # the post-normalize enrichment step's data is not lost when this
+        # function reconstructs the IR.
+        adc_internal_channels=device.adc_internal_channels,
+        adc_calibration_data_points=device.adc_calibration_data_points,
+        adc_calibration_context=device.adc_calibration_context,
+        adc_resolution_options=device.adc_resolution_options,
+        adc_sample_time_options=device.adc_sample_time_options,
+        adc_oversampling_options=device.adc_oversampling_options,
+        adc_external_triggers=device.adc_external_triggers,
+        adc_max_clock_hz=device.adc_max_clock_hz,
     )
 
 
