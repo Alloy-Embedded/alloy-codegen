@@ -186,6 +186,61 @@ struct PwmSliceHwTraits {
   static constexpr std::uint16_t kClockDivMaxQ4 = 0u;
 };
 
+
+// extend-pwm-coverage-all-mcus Phase A: STM32 TIM PWM facts.
+enum class RuntimeStmTimerKind : std::uint8_t {
+  None = 0,
+  Advanced = 1,
+  General = 2,
+};
+
+enum class RuntimeStmTimerPwmId : std::uint8_t {
+  None = 0,
+  TIM1 = 1,
+};
+
+template<RuntimeStmTimerPwmId Id>
+struct StmTimerPwmTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr RuntimeStmTimerKind kKind = RuntimeStmTimerKind::None;
+  static constexpr std::uint8_t kChannelCount = 0u;
+  static constexpr std::uint8_t kCounterBits = 0u;
+  static constexpr std::array<PinId, 0> kValidCh1Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh2Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh3Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh4Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh1NPins = {};
+  static constexpr std::array<PinId, 0> kValidCh2NPins = {};
+  static constexpr std::array<PinId, 0> kValidCh3NPins = {};
+  static constexpr bool kSupportsComplementary = false;
+  static constexpr bool kSupportsDeadtime = false;
+  static constexpr bool kSupportsBrake = false;
+  static constexpr bool kSupportsCenterAligned = false;
+  static constexpr std::uint32_t kMaxClockHz = 0u;
+};
+
+template<>
+struct StmTimerPwmTraits<RuntimeStmTimerPwmId::TIM1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x40012c00u;
+  static constexpr RuntimeStmTimerKind kKind = RuntimeStmTimerKind::Advanced;
+  static constexpr std::uint8_t kChannelCount = 4u;
+  static constexpr std::uint8_t kCounterBits = 16u;
+  static constexpr std::array<PinId, 0> kValidCh1Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh2Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh3Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh4Pins = {};
+  static constexpr std::array<PinId, 0> kValidCh1NPins = {};
+  static constexpr std::array<PinId, 0> kValidCh2NPins = {};
+  static constexpr std::array<PinId, 0> kValidCh3NPins = {};
+  static constexpr bool kSupportsComplementary = false;
+  static constexpr bool kSupportsDeadtime = false;
+  static constexpr bool kSupportsBrake = false;
+  static constexpr bool kSupportsCenterAligned = true;
+  static constexpr std::uint32_t kMaxClockHz = 0u;
+};
+
 }
 }
 }

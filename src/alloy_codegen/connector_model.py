@@ -1662,6 +1662,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         rp2040_timer_controller_hw=device.rp2040_timer_controller_hw,
         rp2040_pwm_slice_hw=device.rp2040_pwm_slice_hw,
         i2c_peripherals=device.i2c_peripherals,
+        stm_timer_pwm_peripherals=device.stm_timer_pwm_peripherals,
     )
 
 

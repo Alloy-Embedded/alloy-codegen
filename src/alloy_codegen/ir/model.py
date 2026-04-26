@@ -880,6 +880,38 @@ class I2cPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class StmTimerPwmDescriptor:
+    """STM32 TIMx peripheral acting as a PWM generator (added by
+    ``extend-pwm-coverage-all-mcus`` Phase A).
+
+    ``kind`` distinguishes advanced timers (TIM1, TIM8, TIM15, TIM16,
+    TIM17 — complementary outputs + brake + deadtime) from general-
+    purpose timers (TIM2..TIM5).  Basic timers (TIM6, TIM7) have no
+    PWM output capability and are excluded from
+    ``device.stm_timer_pwm_peripherals``.
+
+    Per-channel pin tuples are sourced from ST Open Pin Data (signal
+    names ``CH1`` .. ``CH4`` and the complementary ``CH1N`` ..
+    ``CH3N``).  ``valid_ch_pins_per_channel`` is indexed by channel
+    number (slot 0 = CH1).
+    """
+
+    controller_id: str
+    base_address: int
+    kind: str  # "advanced" | "general"
+    channel_count: int
+    counter_bits: int
+    valid_ch_pins_per_channel: tuple[tuple[str, ...], ...]
+    valid_chn_pins_per_channel: tuple[tuple[str, ...], ...]
+    supports_complementary: bool
+    supports_deadtime: bool
+    supports_brake: bool
+    supports_center_aligned: bool
+    max_clock_hz: int = 0
+    dma_req_lines: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class PioDescriptor:
     """Compile-time topology of one Programmable I/O block.
 
@@ -1132,6 +1164,16 @@ class CanonicalDeviceIR:
     # ``fill-i2c-semantic-gaps``).  Empty for devices without I2C / TWI
     # controllers; populated per family as the change rolls out.
     i2c_peripherals: tuple[I2cPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    # Family-shaped PWM hardware-feature descriptors (added by
+    # ``extend-pwm-coverage-all-mcus``).  Empty for families that don't
+    # ship that flavour of PWM; populated per phase as the change rolls
+    # out.  Each tuple covers one silicon archetype:
+    #
+    #   stm_timer_pwm_peripherals — STM32 TIMx in PWM mode (Phase A)
+    stm_timer_pwm_peripherals: tuple[StmTimerPwmDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

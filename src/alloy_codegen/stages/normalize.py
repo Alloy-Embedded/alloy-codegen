@@ -24,6 +24,7 @@ from alloy_codegen.ir.model import (
     DmaRequestDefinition,
     GpioPinDescriptor,
     I2cPeripheralDescriptor,
+    StmTimerPwmDescriptor,
     InterruptDefinition,
     LedcDescriptor,
     MemoryRegion,
@@ -1048,6 +1049,106 @@ def _st_canonical_peripherals_for_helpers(
     )
 
 
+# STM32 timer classification — advanced timers carry complementary
+# outputs (CHnN), brake inputs and dead-time generation.  Basic timers
+# (TIM6/TIM7) have no PWM output capability and are excluded from
+# `device.stm_timer_pwm_peripherals`.
+_ST_ADVANCED_TIMERS: frozenset[str] = frozenset(
+    ("TIM1", "TIM8", "TIM15", "TIM16", "TIM17")
+)
+_ST_BASIC_TIMERS: frozenset[str] = frozenset(("TIM6", "TIM7"))
+_ST_32BIT_TIMERS: frozenset[str] = frozenset(("TIM2", "TIM5"))
+
+
+def _build_st_timer_pwm_peripherals(
+    *,
+    pins: tuple[PinDefinition, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[StmTimerPwmDescriptor, ...]:
+    """Derive `StmTimerPwmDescriptor` entries for the STM32 family.
+
+    Filters TIMx peripherals (excluding basic TIM6/TIM7) and pulls
+    per-channel pad sets from `device.pins[*].signals` (signal names
+    `CH1..CH4` and complementary `CH1N..CH3N`).  ``kind`` is
+    ``"advanced"`` for TIM1/TIM8/TIM15/TIM16/TIM17, ``"general"``
+    elsewhere.  ``counter_bits`` is `32` for TIM2/TIM5 and `16`
+    elsewhere.
+
+    Phase A scope: max_clock_hz and dma_req_lines stay zero / empty
+    (no DMAMUX hardcoding here — follow-up).
+    """
+    tim_peripherals = [
+        peripheral
+        for peripheral in peripherals
+        if peripheral.name.startswith("TIM") and peripheral.name not in _ST_BASIC_TIMERS
+    ]
+    if not tim_peripherals:
+        return ()
+
+    descriptors: list[StmTimerPwmDescriptor] = []
+    for peripheral in sorted(tim_peripherals, key=lambda p: p.name):
+        ch_pins: dict[int, set[str]] = {1: set(), 2: set(), 3: set(), 4: set()}
+        chn_pins: dict[int, set[str]] = {1: set(), 2: set(), 3: set()}
+        has_brake = False
+        for pin in pins:
+            for signal in pin.signals:
+                if signal.peripheral != peripheral.name or signal.signal is None:
+                    continue
+                if signal.signal in ("BK", "BK2"):
+                    has_brake = True
+                    continue
+                if len(signal.signal) >= 3 and signal.signal.startswith("CH"):
+                    if signal.signal[-1] == "N":
+                        try:
+                            ch_idx = int(signal.signal[2:-1])
+                        except ValueError:
+                            continue
+                        if 1 <= ch_idx <= 3:
+                            chn_pins[ch_idx].add(pin.name)
+                    else:
+                        try:
+                            ch_idx = int(signal.signal[2:])
+                        except ValueError:
+                            continue
+                        if 1 <= ch_idx <= 4:
+                            ch_pins[ch_idx].add(pin.name)
+
+        # Channel count: highest channel index with at least one pad,
+        # or hardware-known default for advanced single-channel timers.
+        observed_max = max((ch for ch in ch_pins if ch_pins[ch]), default=0)
+        if observed_max == 0:
+            # Timer has no observed CHn pad in the OPD slice — emit
+            # default-shape entry with 4 channels for advanced /
+            # general (consumer code can still match by `kPresent`).
+            channel_count = 4 if peripheral.name not in ("TIM14",) else 1
+        else:
+            channel_count = observed_max
+
+        kind = "advanced" if peripheral.name in _ST_ADVANCED_TIMERS else "general"
+        supports_complementary = any(chn_pins[ch] for ch in chn_pins)
+        descriptors.append(
+            StmTimerPwmDescriptor(
+                controller_id=peripheral.name,
+                base_address=peripheral.base_address,
+                kind=kind,
+                channel_count=channel_count,
+                counter_bits=32 if peripheral.name in _ST_32BIT_TIMERS else 16,
+                valid_ch_pins_per_channel=tuple(
+                    tuple(sorted(ch_pins[ch])) for ch in range(1, channel_count + 1)
+                ),
+                valid_chn_pins_per_channel=tuple(
+                    tuple(sorted(chn_pins[ch])) for ch in (1, 2, 3)
+                ),
+                supports_complementary=supports_complementary,
+                # STM32 ties dead-time generation to complementary outputs.
+                supports_deadtime=supports_complementary,
+                supports_brake=has_brake,
+                supports_center_aligned=True,
+            )
+        )
+    return tuple(descriptors)
+
+
 def _build_st_i2c_peripherals(
     *,
     pins: tuple[PinDefinition, ...],
@@ -1793,6 +1894,15 @@ def build_canonical_ir(
             provenance=pin_provenance,
         ),
         i2c_peripherals=_build_st_i2c_peripherals(
+            pins=pins,
+            peripherals=_st_canonical_peripherals_for_helpers(
+                raw_peripherals=raw_peripherals,
+                peripheral_patches=peripheral_patches,
+                ip_version_table=ip_version_table,
+                provenance=svd_provenance,
+            ),
+        ),
+        stm_timer_pwm_peripherals=_build_st_timer_pwm_peripherals(
             pins=pins,
             peripherals=_st_canonical_peripherals_for_helpers(
                 raw_peripherals=raw_peripherals,

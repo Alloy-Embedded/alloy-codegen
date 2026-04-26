@@ -4380,6 +4380,32 @@
       "target_region": "sram"
     }
   ],
+  "stm_timer_pwm_peripherals": [
+    {
+      "base_address": 1073818624,
+      "channel_count": 4,
+      "controller_id": "TIM1",
+      "counter_bits": 16,
+      "dma_req_lines": [],
+      "kind": "advanced",
+      "max_clock_hz": 0,
+      "supports_brake": false,
+      "supports_center_aligned": true,
+      "supports_complementary": false,
+      "supports_deadtime": false,
+      "valid_ch_pins_per_channel": [
+        [],
+        [],
+        [],
+        []
+      ],
+      "valid_chn_pins_per_channel": [
+        [],
+        [],
+        []
+      ]
+    }
+  ],
   "system_clock_profiles": [
     {
       "flash_latency": 0,

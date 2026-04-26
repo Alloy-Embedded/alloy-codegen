@@ -12385,6 +12385,103 @@ def _pwm_slice_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
     return lines
 
 
+def _stm_timer_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """extend-pwm-coverage-all-mcus Phase A: STM32 TIMx PWM trait struct.
+
+    Emits a `RuntimeStmTimerPwmId` enum + `StmTimerPwmTraits` template
+    populated from `device.stm_timer_pwm_peripherals`.  Per-channel
+    pad arrays use `std::array<PinId, N>` keyed off the typed PinId
+    enum from `../pins.hpp`.  ``kind`` is encoded as a typed
+    `RuntimeStmTimerKind` enum so no string literals leak into the
+    runtime C++ output.
+    """
+    lines = [
+        "// extend-pwm-coverage-all-mcus Phase A: STM32 TIM PWM facts.",
+        "enum class RuntimeStmTimerKind : std::uint8_t {",
+        "  None = 0,",
+        "  Advanced = 1,",
+        "  General = 2,",
+        "};",
+        "",
+        "enum class RuntimeStmTimerPwmId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.stm_timer_pwm_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeStmTimerPwmId Id>",
+            "struct StmTimerPwmTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr RuntimeStmTimerKind kKind = RuntimeStmTimerKind::None;",
+            "  static constexpr std::uint8_t kChannelCount = 0u;",
+            "  static constexpr std::uint8_t kCounterBits = 0u;",
+            "  static constexpr std::array<PinId, 0> kValidCh1Pins = {};",
+            "  static constexpr std::array<PinId, 0> kValidCh2Pins = {};",
+            "  static constexpr std::array<PinId, 0> kValidCh3Pins = {};",
+            "  static constexpr std::array<PinId, 0> kValidCh4Pins = {};",
+            "  static constexpr std::array<PinId, 0> kValidCh1NPins = {};",
+            "  static constexpr std::array<PinId, 0> kValidCh2NPins = {};",
+            "  static constexpr std::array<PinId, 0> kValidCh3NPins = {};",
+            "  static constexpr bool kSupportsComplementary = false;",
+            "  static constexpr bool kSupportsDeadtime = false;",
+            "  static constexpr bool kSupportsBrake = false;",
+            "  static constexpr bool kSupportsCenterAligned = false;",
+            "  static constexpr std::uint32_t kMaxClockHz = 0u;",
+            "};",
+            "",
+        ]
+    )
+
+    def _pad_array(name: str, pads: tuple[str, ...]) -> str:
+        if not pads:
+            return f"  static constexpr std::array<PinId, 0> {name} = {{}};"
+        items = ", ".join(f"PinId::{_enum_identifier(p)}" for p in pads)
+        return (
+            f"  static constexpr std::array<PinId, {len(pads)}> "
+            f"{name} = {{{items}}};"
+        )
+
+    _kind_token = {
+        "advanced": "RuntimeStmTimerKind::Advanced",
+        "general": "RuntimeStmTimerKind::General",
+    }
+
+    for ctrl in device.stm_timer_pwm_peripherals:
+        kind_enum = _kind_token.get(ctrl.kind, "RuntimeStmTimerKind::None")
+        ch_pads = list(ctrl.valid_ch_pins_per_channel) + [()] * 4
+        chn_pads = list(ctrl.valid_chn_pins_per_channel) + [()] * 3
+        lines.extend(
+            [
+                "template<>",
+                f"struct StmTimerPwmTraits<RuntimeStmTimerPwmId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr RuntimeStmTimerKind kKind = {kind_enum};",
+                f"  static constexpr std::uint8_t kChannelCount = {ctrl.channel_count}u;",
+                f"  static constexpr std::uint8_t kCounterBits = {ctrl.counter_bits}u;",
+                _pad_array("kValidCh1Pins", ch_pads[0]),
+                _pad_array("kValidCh2Pins", ch_pads[1]),
+                _pad_array("kValidCh3Pins", ch_pads[2]),
+                _pad_array("kValidCh4Pins", ch_pads[3]),
+                _pad_array("kValidCh1NPins", chn_pads[0]),
+                _pad_array("kValidCh2NPins", chn_pads[1]),
+                _pad_array("kValidCh3NPins", chn_pads[2]),
+                f"  static constexpr bool kSupportsComplementary = {'true' if ctrl.supports_complementary else 'false'};",
+                f"  static constexpr bool kSupportsDeadtime = {'true' if ctrl.supports_deadtime else 'false'};",
+                f"  static constexpr bool kSupportsBrake = {'true' if ctrl.supports_brake else 'false'};",
+                f"  static constexpr bool kSupportsCenterAligned = {'true' if ctrl.supports_center_aligned else 'false'};",
+                f"  static constexpr std::uint32_t kMaxClockHz = {ctrl.max_clock_hz}u;",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
 def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     """fill-i2c-semantic-gaps: per-controller I2C / TWI trait struct.
 
@@ -13775,6 +13872,8 @@ def emit_runtime_driver_pwm_semantics_header(
             ),
             "",
             *_pwm_slice_hw_traits_block(device),
+            "",
+            *_stm_timer_pwm_traits_block(device),
         ]
     )
     namespace_block = _cpp_namespace_block(

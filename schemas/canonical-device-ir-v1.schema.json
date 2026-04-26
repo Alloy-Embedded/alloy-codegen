@@ -735,6 +735,37 @@
       },
       "additionalProperties": false
     },
+    "stm_timer_pwm_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "kind", "channel_count",
+        "counter_bits", "valid_ch_pins_per_channel",
+        "valid_chn_pins_per_channel", "supports_complementary",
+        "supports_deadtime", "supports_brake", "supports_center_aligned"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address":  { "type": "integer", "minimum": 0 },
+        "kind":          { "type": "string", "enum": ["advanced", "general"] },
+        "channel_count": { "type": "integer", "minimum": 0 },
+        "counter_bits":  { "type": "integer", "minimum": 0 },
+        "valid_ch_pins_per_channel":  {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "valid_chn_pins_per_channel": {
+          "type": "array",
+          "items": { "type": "array", "items": { "type": "string" } }
+        },
+        "supports_complementary":   { "type": "boolean" },
+        "supports_deadtime":        { "type": "boolean" },
+        "supports_brake":           { "type": "boolean" },
+        "supports_center_aligned":  { "type": "boolean" },
+        "max_clock_hz":             { "type": "integer", "minimum": 0 },
+        "dma_req_lines":            { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
     "i2c_peripheral_descriptor": {
       "type": "object",
       "required": ["peripheral_id", "base_address"],
@@ -1018,6 +1049,10 @@
     "i2c_peripherals": {
       "type": "array",
       "items": { "$ref": "#/$defs/i2c_peripheral_descriptor" }
+    },
+    "stm_timer_pwm_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/stm_timer_pwm_descriptor" }
     },
     "uart_peripherals": {
       "type": "array",
