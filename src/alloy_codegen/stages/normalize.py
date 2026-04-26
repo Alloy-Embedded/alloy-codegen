@@ -14,7 +14,10 @@ from alloy_codegen.ir.model import (
     AdcPeripheralDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
+    DmaControllerHwDescriptor,
+    PwmSliceHwDescriptor,
     SpiPeripheralDescriptor,
+    TimerControllerHwDescriptor,
     UartPeripheralDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
@@ -1172,6 +1175,68 @@ def _build_rp2040_spi_peripherals(
     return tuple(out)
 
 
+def _build_rp2040_dma_controller_hw(
+    *, peripherals: tuple[PeripheralInstance, ...]
+) -> tuple[DmaControllerHwDescriptor, ...]:
+    """RP2040 DMA: 12 channels, 32-bit transfer count register, supports
+    chaining + byte-swap (datasheet §2.5)."""
+    base = next((p.base_address for p in peripherals if p.name == "DMA"), None)
+    if base is None:
+        return ()
+    return (
+        DmaControllerHwDescriptor(
+            controller_id="DMA",
+            base_address=base,
+            channel_count=12,
+            max_transfer_count=0xFFFFFFFF,
+            supports_chaining=True,
+            supports_byte_swap=True,
+        ),
+    )
+
+
+def _build_rp2040_timer_controller_hw(
+    *, peripherals: tuple[PeripheralInstance, ...]
+) -> tuple[TimerControllerHwDescriptor, ...]:
+    """RP2040 single TIMER block: 64-bit counter, 4 alarms, DREQs 39..42
+    (datasheet Table 2-7)."""
+    base = next((p.base_address for p in peripherals if p.name == "TIMER"), None)
+    if base is None:
+        return ()
+    return (
+        TimerControllerHwDescriptor(
+            controller_id="TIMER",
+            base_address=base,
+            counter_bits=64,
+            alarm_count=4,
+            dreq_alarm_base=39,
+        ),
+    )
+
+
+def _build_rp2040_pwm_slice_hw(
+    *, peripherals: tuple[PeripheralInstance, ...]
+) -> tuple[PwmSliceHwDescriptor, ...]:
+    """RP2040 PWM has 8 slices (0..7); each slice's channel A maps to
+    GP(2*slice) and channel B to GP(2*slice + 1) on the primary range."""
+    if not any(p.name == "PWM" for p in peripherals):
+        return ()
+    # Fractional clock divider on RP2040 is 8-bit integer + 4-bit fraction
+    # (datasheet §4.5.2.4); we record min=0x010 (1.0) and max=0xFF0 (~256.0)
+    # in Q4.4 form so consumer code can reconstruct the divider precisely.
+    return tuple(
+        PwmSliceHwDescriptor(
+            slice_index=index,
+            channel_a_pin=index * 2,
+            channel_b_pin=index * 2 + 1,
+            counter_bits=16,
+            clock_div_min_q4=0x010,
+            clock_div_max_q4=0xFF0,
+        )
+        for index in range(8)
+    )
+
+
 def _build_rp2040_adc_peripherals(
     *,
     peripherals: tuple[PeripheralInstance, ...],
@@ -2143,6 +2208,9 @@ def _build_rp2040_device_ir(
             peripherals=ir.peripherals,
         ),
         adc_peripherals=_build_rp2040_adc_peripherals(peripherals=ir.peripherals),
+        dma_controller_hw=_build_rp2040_dma_controller_hw(peripherals=ir.peripherals),
+        timer_controller_hw=_build_rp2040_timer_controller_hw(peripherals=ir.peripherals),
+        pwm_slice_hw=_build_rp2040_pwm_slice_hw(peripherals=ir.peripherals),
     )
     return ir
 

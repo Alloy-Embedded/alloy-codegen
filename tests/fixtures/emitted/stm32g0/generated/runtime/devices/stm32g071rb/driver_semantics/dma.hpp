@@ -70,6 +70,22 @@ inline constexpr std::array<PeripheralId, 2> kDmaSemanticPeripherals = {{
   PeripheralId::USART1,
   PeripheralId::USART1,
 }};
+
+// complete-rp2040-semantics Phase D: per-controller DMA HW facts.
+enum class RuntimeDmaCtrlId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeDmaCtrlId Id>
+struct DmaControllerHwTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kChannelCount = 0u;
+  static constexpr std::uint32_t kMaxTransferCount = 0u;
+  static constexpr bool kSupportsChaining = false;
+  static constexpr bool kSupportsByteSwap = false;
+};
+
 }
 }
 }

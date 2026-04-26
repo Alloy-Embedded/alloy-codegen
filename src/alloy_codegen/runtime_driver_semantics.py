@@ -12144,6 +12144,134 @@ def _uart_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     return lines
 
 
+def _dma_controller_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    lines = [
+        "// complete-rp2040-semantics Phase D: per-controller DMA HW facts.",
+        "enum class RuntimeDmaCtrlId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.dma_controller_hw, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeDmaCtrlId Id>",
+            "struct DmaControllerHwTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint8_t kChannelCount = 0u;",
+            "  static constexpr std::uint32_t kMaxTransferCount = 0u;",
+            "  static constexpr bool kSupportsChaining = false;",
+            "  static constexpr bool kSupportsByteSwap = false;",
+            "};",
+            "",
+        ]
+    )
+    for ctrl in device.dma_controller_hw:
+        lines.extend(
+            [
+                "template<>",
+                f"struct DmaControllerHwTraits<RuntimeDmaCtrlId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint8_t kChannelCount = {ctrl.channel_count}u;",
+                f"  static constexpr std::uint32_t kMaxTransferCount = {ctrl.max_transfer_count:#010x}u;",
+                f"  static constexpr bool kSupportsChaining = {'true' if ctrl.supports_chaining else 'false'};",
+                f"  static constexpr bool kSupportsByteSwap = {'true' if ctrl.supports_byte_swap else 'false'};",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _timer_controller_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    lines = [
+        "// complete-rp2040-semantics Phase D: per-controller timer HW facts.",
+        "enum class RuntimeTimerCtrlId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.timer_controller_hw, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeTimerCtrlId Id>",
+            "struct TimerControllerHwTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint8_t kCounterBits = 0u;",
+            "  static constexpr std::uint8_t kAlarmCount = 0u;",
+            "  static constexpr std::uint8_t kDreqAlarmBase = 0u;",
+            "};",
+            "",
+        ]
+    )
+    for ctrl in device.timer_controller_hw:
+        lines.extend(
+            [
+                "template<>",
+                f"struct TimerControllerHwTraits<RuntimeTimerCtrlId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint8_t kCounterBits = {ctrl.counter_bits}u;",
+                f"  static constexpr std::uint8_t kAlarmCount = {ctrl.alarm_count}u;",
+                f"  static constexpr std::uint8_t kDreqAlarmBase = {ctrl.dreq_alarm_base}u;",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _pwm_slice_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    if not device.pwm_slice_hw:
+        return [
+            "// complete-rp2040-semantics Phase D: per-slice PWM HW facts.",
+            "template<std::uint8_t SliceIndex>",
+            "struct PwmSliceHwTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint8_t kChannelAPin = 0u;",
+            "  static constexpr std::uint8_t kChannelBPin = 0u;",
+            "  static constexpr std::uint8_t kCounterBits = 0u;",
+            "  static constexpr std::uint16_t kClockDivMinQ4 = 0u;",
+            "  static constexpr std::uint16_t kClockDivMaxQ4 = 0u;",
+            "};",
+            "",
+        ]
+    lines = [
+        "// complete-rp2040-semantics Phase D: per-slice PWM HW facts.",
+        "template<std::uint8_t SliceIndex>",
+        "struct PwmSliceHwTraits {",
+        "  static constexpr bool kPresent = false;",
+        "  static constexpr std::uint8_t kChannelAPin = 0u;",
+        "  static constexpr std::uint8_t kChannelBPin = 0u;",
+        "  static constexpr std::uint8_t kCounterBits = 0u;",
+        "  static constexpr std::uint16_t kClockDivMinQ4 = 0u;",
+        "  static constexpr std::uint16_t kClockDivMaxQ4 = 0u;",
+        "};",
+        "",
+    ]
+    for ctrl in device.pwm_slice_hw:
+        lines.extend(
+            [
+                "template<>",
+                f"struct PwmSliceHwTraits<{ctrl.slice_index}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint8_t kChannelAPin = {ctrl.channel_a_pin}u;",
+                f"  static constexpr std::uint8_t kChannelBPin = {ctrl.channel_b_pin}u;",
+                f"  static constexpr std::uint8_t kCounterBits = {ctrl.counter_bits}u;",
+                f"  static constexpr std::uint16_t kClockDivMinQ4 = {ctrl.clock_div_min_q4}u;",
+                f"  static constexpr std::uint16_t kClockDivMaxQ4 = {ctrl.clock_div_max_q4}u;",
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
 def _adc_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     """complete-rp2040-semantics Phase C: per-controller ADC trait struct.
 
@@ -12592,6 +12720,8 @@ def emit_runtime_driver_dma_semantics_header(
                     variable_name="kDmaSemanticPeripherals",
                     row_lines=row_lines,
                 ),
+                "",
+                *_dma_controller_hw_traits_block(device),
             ]
         ),
     )
@@ -13319,6 +13449,8 @@ def emit_runtime_driver_timer_semantics_header(
                 variable_name="kTimerSemanticPeripherals",
                 row_lines=timer_peripheral_rows,
             ),
+            "",
+            *_timer_controller_hw_traits_block(device),
         ]
     )
     namespace_block = _cpp_namespace_block(
@@ -13403,6 +13535,8 @@ def emit_runtime_driver_pwm_semantics_header(
                 variable_name="kPwmSemanticPeripherals",
                 row_lines=pwm_peripheral_rows,
             ),
+            "",
+            *_pwm_slice_hw_traits_block(device),
         ]
     )
     namespace_block = _cpp_namespace_block(

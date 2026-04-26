@@ -118,3 +118,60 @@ def test_rp2040_adc_records_all_silicon_facts(
     assert "static constexpr std::uint8_t kFifoDepth = 4u;" in adc
     assert "static constexpr bool kSupportsFifo = true;" in adc
     assert "kChannelPins = {{26u, 27u, 28u, 29u, 255u}};" in adc
+
+
+# --- Phase D: DMA + Timer + PWM completion ---------------------------------
+
+
+def test_rp2040_dma_controller_hw_records_silicon_facts(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    content = _emit(rp2040_execution_context, "rp2040", "dma.hpp")
+
+    primary = _struct_block(content, "DmaControllerHwTraits")
+    assert "static constexpr std::uint32_t kBaseAddress = 0u;" in primary
+
+    dma = _struct_block(content, "DmaControllerHwTraits<RuntimeDmaCtrlId::DMA>")
+    assert "static constexpr bool kPresent = true;" in dma
+    assert "static constexpr std::uint32_t kBaseAddress = 0x50000000u;" in dma
+    assert "static constexpr std::uint8_t kChannelCount = 12u;" in dma
+    assert "static constexpr std::uint32_t kMaxTransferCount = 0xffffffffu;" in dma
+    assert "static constexpr bool kSupportsChaining = true;" in dma
+    assert "static constexpr bool kSupportsByteSwap = true;" in dma
+
+
+def test_rp2040_timer_controller_hw_records_64bit_counter_and_alarms(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    content = _emit(rp2040_execution_context, "rp2040", "timer.hpp")
+
+    timer = _struct_block(content, "TimerControllerHwTraits<RuntimeTimerCtrlId::TIMER>")
+    assert "static constexpr std::uint32_t kBaseAddress = 0x40054000u;" in timer
+    assert "static constexpr std::uint8_t kCounterBits = 64u;" in timer
+    assert "static constexpr std::uint8_t kAlarmCount = 4u;" in timer
+    # DREQ for ALARM0=39, ALARM1=40, ALARM2=41, ALARM3=42 (datasheet
+    # Table 2-7).  We only emit the base and let consumers add the
+    # alarm index.
+    assert "static constexpr std::uint8_t kDreqAlarmBase = 39u;" in timer
+
+
+def test_rp2040_pwm_slice_hw_emits_8_specializations_with_slice_pin_mapping(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    content = _emit(rp2040_execution_context, "rp2040", "pwm.hpp")
+
+    # Slice 0 → A=GP0, B=GP1
+    s0 = _struct_block(content, "PwmSliceHwTraits<0>")
+    assert "static constexpr std::uint8_t kChannelAPin = 0u;" in s0
+    assert "static constexpr std::uint8_t kChannelBPin = 1u;" in s0
+    assert "static constexpr std::uint8_t kCounterBits = 16u;" in s0
+
+    # Slice 7 → A=GP14, B=GP15 (datasheet Table 2-5; matches the proposal
+    # task 4.6 invariant).
+    s7 = _struct_block(content, "PwmSliceHwTraits<7>")
+    assert "static constexpr std::uint8_t kChannelAPin = 14u;" in s7
+    assert "static constexpr std::uint8_t kChannelBPin = 15u;" in s7
+
+    # All 8 slices emit a populated specialization.
+    for index in range(8):
+        assert f"PwmSliceHwTraits<{index}>" in content

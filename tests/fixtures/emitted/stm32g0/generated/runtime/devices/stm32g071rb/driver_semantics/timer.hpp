@@ -233,6 +233,21 @@ struct TimerChannelSemanticTraits<PeripheralId::TIM1, 3u> {
 inline constexpr std::array<PeripheralId, 1> kTimerSemanticPeripherals = {{
   PeripheralId::TIM1,
 }};
+
+// complete-rp2040-semantics Phase D: per-controller timer HW facts.
+enum class RuntimeTimerCtrlId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeTimerCtrlId Id>
+struct TimerControllerHwTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kCounterBits = 0u;
+  static constexpr std::uint8_t kAlarmCount = 0u;
+  static constexpr std::uint8_t kDreqAlarmBase = 0u;
+};
+
 }
 }
 }

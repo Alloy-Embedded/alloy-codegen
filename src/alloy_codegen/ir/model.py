@@ -692,6 +692,47 @@ class SpiPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class DmaControllerHwDescriptor:
+    """Per-controller DMA hardware facts (added by complete-rp2040-semantics
+    Phase D).  Captures silicon-fixed parameters that the existing
+    ``DmaControllerDescriptor`` does not surface (channel count, max
+    transfer count, chaining / byte-swap support)."""
+
+    controller_id: str
+    base_address: int
+    channel_count: int
+    max_transfer_count: int
+    supports_chaining: bool
+    supports_byte_swap: bool
+
+
+@dataclass(frozen=True, slots=True)
+class TimerControllerHwDescriptor:
+    """Per-controller timer hardware facts.  RP2040's single TIMER block
+    has 64-bit counter + 4 hardware alarms with consecutive DMA DREQs."""
+
+    controller_id: str
+    base_address: int
+    counter_bits: int
+    alarm_count: int
+    dreq_alarm_base: int  # ALARM0 DREQ; ALARMn DREQ = base + n
+
+
+@dataclass(frozen=True, slots=True)
+class PwmSliceHwDescriptor:
+    """One PWM slice (RP2040 has 8 slices, each with A/B channels).
+    ``channel_a_pin`` / ``channel_b_pin`` carry the primary GPIO mapping
+    (slice 0 → A=GP0, B=GP1; slice 7 → A=GP14, B=GP15)."""
+
+    slice_index: int
+    channel_a_pin: int
+    channel_b_pin: int
+    counter_bits: int
+    clock_div_min_q4: int  # 1/16 of a count (fractional divider min)
+    clock_div_max_q4: int  # 256 << 4 (fractional divider max)
+
+
+@dataclass(frozen=True, slots=True)
 class AdcPeripheralDescriptor:
     """Per-controller ADC hardware facts (added by complete-rp2040-semantics
     Phase C).
@@ -924,6 +965,18 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     adc_peripherals: tuple[AdcPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    dma_controller_hw: tuple[DmaControllerHwDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    timer_controller_hw: tuple[TimerControllerHwDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    pwm_slice_hw: tuple[PwmSliceHwDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

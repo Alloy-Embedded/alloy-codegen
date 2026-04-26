@@ -1648,6 +1648,9 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         uart_peripherals=device.uart_peripherals,
         spi_peripherals=device.spi_peripherals,
         adc_peripherals=device.adc_peripherals,
+        dma_controller_hw=device.dma_controller_hw,
+        timer_controller_hw=device.timer_controller_hw,
+        pwm_slice_hw=device.pwm_slice_hw,
     )
 
 

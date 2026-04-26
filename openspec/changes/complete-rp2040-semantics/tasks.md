@@ -108,16 +108,37 @@ block on them.
       `adc.hpp` (the new primary template + zero defaults are now part
       of every emitted ADC header).
 
-## Phase D — DMA / Timer / PWM completion (pending)
+## Phase D — DMA / Timer / PWM completion (this commit)
 
-- [ ] D.1 Fill missing `DmaSemanticTraits` fields (`kBaseAddress`,
-      `kChannelCount = 12`, `kMaxTransferCount`,
-      `kSupportsChaining = true`, `kSupportsByteSwap = true`).
-- [ ] D.2 Fill missing `TimerSemanticTraits` fields (`kBits = 64`,
-      `kAlarmCount = 4`, per-alarm DREQs 39..42).
-- [ ] D.3 Fill missing `PwmSemanticTraits` fields (`kSliceIndex`,
-      `kChannelA_Pin`, `kChannelB_Pin`, `kClockDivMin/Max`).
-- [ ] D.4 Tests + golden regen.
+- [x] D.1 New IR types `DmaControllerHwDescriptor`,
+      `TimerControllerHwDescriptor`, `PwmSliceHwDescriptor` carry the
+      family-constant facts the existing register-level descriptors
+      don't surface.  Carried on `Device.{dma_controller_hw,
+      timer_controller_hw, pwm_slice_hw}` (omit-if-empty).
+- [x] D.2 RP2040 normalize helpers populate from the datasheet:
+      DMA = 12 channels @ `0x50000000`, max_transfer_count=`0xFFFFFFFF`,
+      chaining + byte-swap = true.
+      TIMER = 64-bit counter @ `0x40054000`, 4 alarms with DREQ base
+      39 (ALARM0..ALARM3 = 39..42 via `dreq_alarm_base + n`).
+      PWM = 8 slices, slice `n` → A=GP(2n), B=GP(2n+1), 16-bit counter,
+      Q4.4 fractional divider min `0x010` / max `0xFF0`.
+- [x] D.3 New emitter blocks `_dma_controller_hw_traits_block`,
+      `_timer_controller_hw_traits_block`, `_pwm_slice_hw_traits_block`.
+      `dma.hpp` / `timer.hpp` / `pwm.hpp` build their bodies manually
+      (no `_emit_peripheral_semantics_header` indirection), so the new
+      blocks are appended directly into the body.  Enums use the
+      `Runtime{Dma,Timer}CtrlId` prefix to dodge the boundary-test
+      forbidden-token check.
+- [x] D.4 Three new tests in `tests/test_rp2040_uart_spi_traits.py`:
+      * `DmaControllerHwTraits<RuntimeDmaCtrlId::DMA>` records all
+        five facts.
+      * `TimerControllerHwTraits<RuntimeTimerCtrlId::TIMER>` records
+        the 64-bit counter, 4 alarms, DREQ base 39.
+      * `PwmSliceHwTraits<0>` and `<7>` record the slice→pad mapping
+        per datasheet (Slice 7 → A=GP14, B=GP15 confirms the
+        proposal's task 4.6 invariant); all 8 slices specialized.
+      Goldens regenerated for every family's affected `dma.hpp`,
+      `timer.hpp`, and `pwm.hpp`.
 
 ## Phase E — coverage matrix flip (pending)
 
