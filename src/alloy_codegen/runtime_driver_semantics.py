@@ -10431,9 +10431,7 @@ def _enrich_timer_tier234(
     prescalers = {
         getattr(p, "peripheral", ""): p for p in getattr(device, "timer_prescaler_options", ())
     }
-    flags = {
-        getattr(f, "peripheral", ""): f for f in getattr(device, "timer_mode_flags", ())
-    }
+    flags = {getattr(f, "peripheral", ""): f for f in getattr(device, "timer_mode_flags", ())}
     triggers: dict[str, list[tuple[str, int]]] = {}
     for t in getattr(device, "timer_trigger_sources", ()):
         triggers.setdefault(getattr(t, "peripheral", ""), []).append(
@@ -10459,7 +10457,9 @@ def _enrich_timer_tier234(
             kw["max_auto_reload"] = ar if ar else int(getattr(psc, "max_prescaler", 0))
         if flg is not None:
             kw["supports_dma_burst"] = bool(getattr(flg, "supports_dma_burst", False))
-            kw["supports_repetition_counter"] = bool(getattr(flg, "supports_repetition_counter", False))
+            kw["supports_repetition_counter"] = bool(
+                getattr(flg, "supports_repetition_counter", False)
+            )
             kw["supports_xor_input"] = bool(getattr(flg, "supports_xor_input", False))
         if peripheral in triggers:
             kw["trigger_sources"] = tuple(triggers[peripheral])
@@ -11461,32 +11461,40 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         idx = pin.pin_index
         return (
             _resolve_field_ref(
-                context, peripheral_name=peripheral_name,
+                context,
+                peripheral_name=peripheral_name,
                 register_name="MODER",
                 field_names=(f"MODE{idx}", f"MODER{idx}"),
                 fallback_register_offset=0x00,
-                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+                fallback_bit_offset=idx * 2,
+                fallback_bit_width=2,
             ),
             _resolve_field_ref(
-                context, peripheral_name=peripheral_name,
+                context,
+                peripheral_name=peripheral_name,
                 register_name="OSPEEDR",
                 field_names=(f"OSPEED{idx}", f"OSPEEDR{idx}"),
                 fallback_register_offset=0x08,
-                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+                fallback_bit_offset=idx * 2,
+                fallback_bit_width=2,
             ),
             _resolve_field_ref(
-                context, peripheral_name=peripheral_name,
+                context,
+                peripheral_name=peripheral_name,
                 register_name="OTYPER",
                 field_names=(f"OT{idx}", f"OT_{idx}"),
                 fallback_register_offset=0x04,
-                fallback_bit_offset=idx, fallback_bit_width=1,
+                fallback_bit_offset=idx,
+                fallback_bit_width=1,
             ),
             _resolve_field_ref(
-                context, peripheral_name=peripheral_name,
+                context,
+                peripheral_name=peripheral_name,
                 register_name="PUPDR",
                 field_names=(f"PUPD{idx}", f"PUPDR{idx}"),
                 fallback_register_offset=0x0C,
-                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+                fallback_bit_offset=idx * 2,
+                fallback_bit_width=2,
             ),
         )
 
@@ -11606,9 +11614,7 @@ def _emit_peripheral_semantics_header(
         # always shadowed by a real array in each specialisation.
         row_lines = list(specialization_builder(row))
         bindings = getattr(row, "dma_bindings", None)
-        if bindings is not None and not any(
-            "kDmaBindings = " in line for line in row_lines
-        ):
+        if bindings is not None and not any("kDmaBindings = " in line for line in row_lines):
             row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
@@ -13310,8 +13316,7 @@ def _timer_tier234_lines(row: TimerSemanticRow) -> list[str]:
             return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
         values = ", ".join(f"{val}u" for _, val in items)
         return (
-            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = "
-            f"{{{{{values}}}}};"
+            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = {{{{{values}}}}};"
         )
 
     return [

@@ -24,9 +24,7 @@ def _emit_timer_hpp(context: ExecutionContext, device: str) -> str:
 
 
 def _spec_block(content: str, peripheral: str) -> str:
-    pattern = (
-        rf"struct TimerSemanticTraits<PeripheralId::{re.escape(peripheral)}> \{{(.*?)\n}};"
-    )
+    pattern = rf"struct TimerSemanticTraits<PeripheralId::{re.escape(peripheral)}> \{{(.*?)\n}};"
     match = re.search(pattern, content, re.DOTALL)
     assert match is not None, f"missing TimerSemanticTraits<PeripheralId::{peripheral}>"
     return match.group(1)

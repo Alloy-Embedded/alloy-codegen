@@ -31,6 +31,7 @@ from alloy_codegen.stages.emit import run as run_emit
 
 # ---------- emit-based tests --------------------------------------------------
 
+
 def _emit_adc_hpp(context: ExecutionContext, scope: PipelineScope, device: str) -> str:
     result = run_emit(scope, context)
     suffix = f"/{device}/driver_semantics/adc.hpp"
@@ -60,6 +61,7 @@ def _enumerators(block: str) -> dict[str, int]:
 
 
 # ---------- ST STM32G0 (ADC1: 19 channels + TempSensor + Vrefint + VBat) -----
+
 
 def test_stm32g071rb_adc_channel_enum_carries_ordinals_and_named_aliases(
     execution_context: ExecutionContext,
@@ -107,14 +109,18 @@ def test_stm32g071rb_has_empty_primary_template(
     # Empty-fallback primary template is always emitted so consumers
     # behind ``if constexpr (kPresent)`` gates compile cleanly on
     # backends without an ADC.
-    assert re.search(
-        r"template<PeripheralId Id>\s*\nstruct AdcChannelOf \{\s*"
-        r"enum class type : std::uint8_t \{\};\s*\};",
-        content,
-    ) is not None, "empty-fallback AdcChannelOf primary template missing"
+    assert (
+        re.search(
+            r"template<PeripheralId Id>\s*\nstruct AdcChannelOf \{\s*"
+            r"enum class type : std::uint8_t \{\};\s*\};",
+            content,
+        )
+        is not None
+    ), "empty-fallback AdcChannelOf primary template missing"
 
 
 # ---------- Microchip AVR-DA (ADC0: 22 channels + TempSensor) -----------------
+
 
 def test_avr128da32_adc_channel_enum_emits_temp_sensor_alias(
     microchip_avr_da_execution_context: ExecutionContext,
@@ -135,6 +141,7 @@ def test_avr128da32_adc_channel_enum_emits_temp_sensor_alias(
 
 # ---------- NXP iMXRT (ADC1+ADC2 distinct types) ------------------------------
 
+
 def test_mimxrt1062_adc_emits_distinct_channel_enums_per_peripheral(
     nxp_execution_context: ExecutionContext,
 ) -> None:
@@ -150,6 +157,7 @@ def test_mimxrt1062_adc_emits_distinct_channel_enums_per_peripheral(
 
 # ---------- Empty-fallback posture for kPresent=false devices ----------------
 
+
 def test_esp32_emits_primary_template_and_sens_specialization(
     espressif_execution_context: ExecutionContext,
 ) -> None:
@@ -161,11 +169,14 @@ def test_esp32_emits_primary_template_and_sens_specialization(
     # The empty primary template MUST always be emitted so consumers
     # behind ``if constexpr (kPresent)`` gates compile cleanly when
     # they target a peripheral that has no specialization.
-    assert re.search(
-        r"template<PeripheralId Id>\s*\nstruct AdcChannelOf \{\s*"
-        r"enum class type : std::uint8_t \{\};\s*\};",
-        content,
-    ) is not None
+    assert (
+        re.search(
+            r"template<PeripheralId Id>\s*\nstruct AdcChannelOf \{\s*"
+            r"enum class type : std::uint8_t \{\};\s*\};",
+            content,
+        )
+        is not None
+    )
     # ESP32's ADC peripheral is exposed as `SENS` — confirm the
     # specialization with ordinal members lands when the schema is
     # published (the descriptor publishes kPresent=true today).
@@ -182,17 +193,21 @@ def test_rp2040_emits_primary_template_and_adc_specialization(
         "rp2040",
     )
     # Empty primary template still required.
-    assert re.search(
-        r"template<PeripheralId Id>\s*\nstruct AdcChannelOf \{\s*"
-        r"enum class type : std::uint8_t \{\};\s*\};",
-        content,
-    ) is not None
+    assert (
+        re.search(
+            r"template<PeripheralId Id>\s*\nstruct AdcChannelOf \{\s*"
+            r"enum class type : std::uint8_t \{\};\s*\};",
+            content,
+        )
+        is not None
+    )
     # RP2040 publishes its ADC peripheral as `PeripheralId::ADC`.
     assert "struct AdcChannelOf<PeripheralId::ADC>" in content
     assert "using AdcChannel = typename AdcChannelOf<Id>::type;" in content
 
 
 # ---------- Closed name-table contract --------------------------------------
+
 
 def test_internal_kind_enumerator_name_table_is_closed_set() -> None:
     """The closed kind set MUST match the set declared in
@@ -217,6 +232,7 @@ def test_internal_kind_enumerator_name_table_is_closed_set() -> None:
 
 
 # ---------- Manifest helper unit tests --------------------------------------
+
 
 def _row(channel_count: int, internal: tuple[AdcInternalChannel, ...] = ()) -> AdcSemanticRow:
     """Construct a minimal AdcSemanticRow for manifest unit testing."""
@@ -278,9 +294,7 @@ def test_manifest_lists_ordinal_then_named_aliases() -> None:
 def test_manifest_skips_unknown_kind() -> None:
     row = _row(
         channel_count=2,
-        internal=(
-            AdcInternalChannel(kind="some_future_kind", channel_index=1),
-        ),
+        internal=(AdcInternalChannel(kind="some_future_kind", channel_index=1),),
     )
     manifest = _adc_channel_manifest(row)
     names = [name for (name, _) in manifest]

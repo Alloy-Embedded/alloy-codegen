@@ -25,9 +25,7 @@ def _emit_gpio_hpp(context: ExecutionContext, device: str) -> str:
 
 
 def _spec_block(content: str, pin_id: str) -> str:
-    pattern = (
-        rf"struct GpioSemanticTraits<PinId::{re.escape(pin_id)}> \{{(.*?)\n}};"
-    )
+    pattern = rf"struct GpioSemanticTraits<PinId::{re.escape(pin_id)}> \{{(.*?)\n}};"
     match = re.search(pattern, content, re.DOTALL)
     assert match is not None, f"missing specialisation for PinId::{pin_id}"
     return match.group(1)
