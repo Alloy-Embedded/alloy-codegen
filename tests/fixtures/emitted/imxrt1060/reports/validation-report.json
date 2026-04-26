@@ -18,12 +18,9 @@
     {
       "blocking": false,
       "gate_id": "gate-b",
-      "message": "gate-b passed with 6 rule(s).",
+      "message": "gate-b passed with 3 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-schema-version-present",
-        "mimxrt1062-identity-fields-present",
-        "mimxrt1062-required-sections-present",
         "mimxrt1064-schema-version-present",
         "mimxrt1064-identity-fields-present",
         "mimxrt1064-required-sections-present"
@@ -32,96 +29,9 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 176 rule(s).",
+      "message": "gate-c passed with 87 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-package-pin-count-covers-known-pins",
-        "mimxrt1062-pin-port-has-gpio-peripheral",
-        "mimxrt1062-pin-signals-present",
-        "mimxrt1062-pin-signals-reference-known-peripherals",
-        "mimxrt1062-alternate-functions-explicit",
-        "mimxrt1062-memory-sizes-positive",
-        "mimxrt1062-peripheral-bases-unique",
-        "mimxrt1062-adc-semantics-populated",
-        "mimxrt1062-interrupts-present",
-        "mimxrt1062-interrupts-reference-known-peripherals",
-        "mimxrt1062-referenced-peripherals-have-rcc-enable",
-        "mimxrt1062-dma-controllers-known",
-        "mimxrt1062-dma-request-peripherals-known",
-        "mimxrt1062-dma-routes-unique",
-        "mimxrt1062-package-pads-present",
-        "mimxrt1062-package-pad-ids-unique",
-        "mimxrt1062-package-pads-reference-known-packages",
-        "mimxrt1062-package-variants-have-pad-coverage",
-        "mimxrt1062-package-pad-positions-unique",
-        "mimxrt1062-package-pad-bonding-state-consistent",
-        "mimxrt1062-package-pads-reference-known-pins",
-        "mimxrt1062-bonded-pins-have-package-pad",
-        "mimxrt1062-signal-endpoints-present",
-        "mimxrt1062-connection-candidates-present",
-        "mimxrt1062-connection-candidates-reference-known-pins",
-        "mimxrt1062-connection-candidates-reference-known-peripherals",
-        "mimxrt1062-connection-candidates-reference-known-groups",
-        "mimxrt1062-connection-candidates-reference-known-requirements",
-        "mimxrt1062-connection-candidates-carry-package-requirement",
-        "mimxrt1062-connection-candidates-carry-source-requirement",
-        "mimxrt1062-connection-candidates-reference-known-operations",
-        "mimxrt1062-connection-candidates-reference-known-capabilities",
-        "mimxrt1062-capability-descriptors-carry-context",
-        "mimxrt1062-candidate-capabilities-resolve-from-descriptors",
-        "mimxrt1062-connection-groups-reference-known-candidates",
-        "mimxrt1062-connection-groups-match-selected-package",
-        "mimxrt1062-connection-groups-have-satisfiable-signals",
-        "mimxrt1062-connection-groups-reference-known-packages",
-        "mimxrt1062-multi-signal-connection-groups-present",
-        "mimxrt1062-ip-blocks-cover-versioned-instances",
-        "mimxrt1062-peripherals-carry-backend-schema",
-        "mimxrt1062-ip-blocks-carry-backend-schema",
-        "mimxrt1062-runtime-peripherals-have-register-descriptors",
-        "mimxrt1062-runtime-peripherals-have-register-field-descriptors",
-        "mimxrt1062-route-requirements-typed",
-        "mimxrt1062-route-operations-typed",
-        "mimxrt1062-register-target-operations-resolved",
-        "mimxrt1062-interrupts-carry-aliases",
-        "mimxrt1062-interrupt-aliases-unique",
-        "mimxrt1062-interrupt-shared-groups-consistent",
-        "mimxrt1062-interrupt-bindings-reference-known-peripherals",
-        "mimxrt1062-interrupt-bindings-reference-known-interrupts",
-        "mimxrt1062-interrupt-bindings-reference-known-vector-slots",
-        "mimxrt1062-runtime-interrupt-bindings-present",
-        "mimxrt1062-vector-slots-reference-known-interrupts",
-        "mimxrt1062-vector-slots-unique",
-        "mimxrt1062-interrupts-have-vector-slot",
-        "mimxrt1062-vector-slots-include-system-baseline",
-        "mimxrt1062-memory-regions-carry-startup-roles",
-        "mimxrt1062-startup-descriptors-present",
-        "mimxrt1062-startup-descriptors-reference-known-memories",
-        "mimxrt1062-startup-descriptors-cover-memory-roles",
-        "mimxrt1062-startup-descriptors-include-runtime-baseline",
-        "mimxrt1062-startup-descriptors-emit-without-handwritten-tables",
-        "mimxrt1062-clock-bindings-reference-known-descriptors",
-        "mimxrt1062-clock-reset-bindings-not-diagnostic-only",
-        "mimxrt1062-clock-node-parents-known",
-        "mimxrt1062-clock-graph-reaches-root",
-        "mimxrt1062-clock-selectors-structured",
-        "mimxrt1062-clock-gates-structured",
-        "mimxrt1062-resets-structured",
-        "mimxrt1062-clock-gates-reference-known-nodes",
-        "mimxrt1062-clock-bound-peripherals-covered",
-        "mimxrt1062-dma-controller-descriptors-complete",
-        "mimxrt1062-dma-controller-request-counts-match",
-        "mimxrt1062-dma-routes-cover-requests",
-        "mimxrt1062-dma-routes-reference-known-controllers",
-        "mimxrt1062-dma-routes-reference-known-peripherals",
-        "mimxrt1062-dma-routes-reference-known-conflicts",
-        "mimxrt1062-dma-bindings-reference-known-peripherals",
-        "mimxrt1062-dma-bindings-reference-known-controllers",
-        "mimxrt1062-dma-bindings-reference-known-routes",
-        "mimxrt1062-dma-bindings-reference-known-conflicts",
-        "mimxrt1062-dma-bindings-cover-routes",
-        "mimxrt1062-dma-conflict-groups-reference-known-routes",
-        "mimxrt1062-dma-conflict-groups-nontrivial",
-        "mimxrt1062-dma-route-conflict-annotations-consistent",
         "mimxrt1064-package-pin-count-covers-known-pins",
         "mimxrt1064-pin-port-has-gpio-peripheral",
         "mimxrt1064-pin-signals-present",
@@ -208,9 +118,7 @@
         "mimxrt1064-dma-bindings-cover-routes",
         "mimxrt1064-dma-conflict-groups-reference-known-routes",
         "mimxrt1064-dma-conflict-groups-nontrivial",
-        "mimxrt1064-dma-route-conflict-annotations-consistent",
-        "nxp-imxrt1060-family-devices-expose-multi-signal-groups",
-        "nxp-imxrt1060-family-reuses-ip-version-descriptors"
+        "mimxrt1064-dma-route-conflict-annotations-consistent"
       ]
     }
   ],
@@ -247,7 +155,7 @@
     },
     {
       "category": "schema",
-      "message": "Found 2 patch record(s) for 2 target(s).",
+      "message": "Found 1 patch record(s) for 1 target(s).",
       "passed": true,
       "rule_id": "patch-target-count-match",
       "severity": "error"
@@ -257,27 +165,6 @@
       "message": "Patch identifiers are unique within the requested scope.",
       "passed": true,
       "rule_id": "patch-ids-unique",
-      "severity": "error"
-    },
-    {
-      "category": "schema",
-      "message": "mimxrt1062 declares an IR schema version.",
-      "passed": true,
-      "rule_id": "mimxrt1062-schema-version-present",
-      "severity": "error"
-    },
-    {
-      "category": "schema",
-      "message": "mimxrt1062 exposes the required canonical identity fields.",
-      "passed": true,
-      "rule_id": "mimxrt1062-identity-fields-present",
-      "severity": "error"
-    },
-    {
-      "category": "schema",
-      "message": "mimxrt1062 contains non-empty required canonical sections.",
-      "passed": true,
-      "rule_id": "mimxrt1062-required-sections-present",
       "severity": "error"
     },
     {
@@ -299,615 +186,6 @@
       "message": "mimxrt1064 contains non-empty required canonical sections.",
       "passed": true,
       "rule_id": "mimxrt1064-required-sections-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 package pin count 196 covers 4 known pin definition(s).",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pin-count-covers-known-pins",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 pin ports map to discovered GPIO peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-pin-port-has-gpio-peripheral",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 curated pins expose explicit signal metadata.",
-      "passed": true,
-      "rule_id": "mimxrt1062-pin-signals-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 pin signals only reference discovered peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-pin-signals-reference-known-peripherals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 non-GPIO alternate functions carry explicit AF numbers.",
-      "passed": true,
-      "rule_id": "mimxrt1062-alternate-functions-explicit",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 memory regions use positive non-placeholder sizes.",
-      "passed": true,
-      "rule_id": "mimxrt1062-memory-sizes-positive",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 peripheral base addresses are unique.",
-      "passed": true,
-      "rule_id": "mimxrt1062-peripheral-bases-unique",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 ADC peripherals admit a populated AdcSemanticTraits specialisation (no stub fallback).",
-      "passed": true,
-      "rule_id": "mimxrt1062-adc-semantics-populated",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes interrupt metadata from the raw source.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupts-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupt entries only reference discovered peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupts-reference-known-peripherals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 referenced peripherals expose RCC enable ownership.",
-      "passed": true,
-      "rule_id": "mimxrt1062-referenced-peripherals-have-rcc-enable",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA requests reference known controller peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-controllers-known",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA requests reference known target peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-request-peripherals-known",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA controller/request-line pairs are unique.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-routes-unique",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes package pad descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pads-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 package pad identifiers are unique.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pad-ids-unique",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 package pads reference declared packages.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pads-reference-known-packages",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 every declared package exposes package pads.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-variants-have-pad-coverage",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 package pad positions are unique per package.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pad-positions-unique",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 package pad bonding state matches bonded-pin coverage.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pad-bonding-state-consistent",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 package pads reference declared bonded pins.",
-      "passed": true,
-      "rule_id": "mimxrt1062-package-pads-reference-known-pins",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 every declared GPIO pin is covered by a package pad.",
-      "passed": true,
-      "rule_id": "mimxrt1062-bonded-pins-have-package-pad",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes canonical signal endpoints.",
-      "passed": true,
-      "rule_id": "mimxrt1062-signal-endpoints-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes route-driven connection candidates.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 connection candidates reference known pins.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-reference-known-pins",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 connection candidates reference known peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-reference-known-peripherals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 connection candidates reference known route groups.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-reference-known-groups",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route candidates only reference declared requirements.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-reference-known-requirements",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route candidates carry an explicit package requirement.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-carry-package-requirement",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route candidates with selectors carry an explicit source-selection requirement.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-carry-source-requirement",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route candidates only reference declared operations.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-reference-known-operations",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route candidates only reference declared capabilities.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-candidates-reference-known-capabilities",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 capability descriptors carry explicit ip-block or instance-overlay context.",
-      "passed": true,
-      "rule_id": "mimxrt1062-capability-descriptors-carry-context",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 candidate capabilities resolve through ip-block and instance-overlay descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-candidate-capabilities-resolve-from-descriptors",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route groups only reference declared candidates.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-groups-reference-known-candidates",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route groups only admit candidates valid for the selected package and bonded pinout.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-groups-match-selected-package",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route groups declare satisfiable signal bundles.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-groups-have-satisfiable-signals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route groups only reference declared packages.",
-      "passed": true,
-      "rule_id": "mimxrt1062-connection-groups-reference-known-packages",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes at least one multi-signal connection group.",
-      "passed": true,
-      "rule_id": "mimxrt1062-multi-signal-connection-groups-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 IP block descriptors cover versioned instances.",
-      "passed": true,
-      "rule_id": "mimxrt1062-ip-blocks-cover-versioned-instances",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 runtime-owned peripheral instances carry a backend schema identifier.",
-      "passed": true,
-      "rule_id": "mimxrt1062-peripherals-carry-backend-schema",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 runtime-owned IP blocks carry a backend schema identifier.",
-      "passed": true,
-      "rule_id": "mimxrt1062-ip-blocks-carry-backend-schema",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 runtime-owned peripheral instances expose normalized register descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-runtime-peripherals-have-register-descriptors",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 runtime-owned peripheral instances expose normalized register field descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-runtime-peripherals-have-register-field-descriptors",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route requirements expose typed runtime fields.",
-      "passed": true,
-      "rule_id": "mimxrt1062-route-requirements-typed",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route operations expose typed runtime fields.",
-      "passed": true,
-      "rule_id": "mimxrt1062-route-operations-typed",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 route operations with register-like targets resolve a normalized register offset.",
-      "passed": true,
-      "rule_id": "mimxrt1062-register-target-operations-resolved",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupts carry explicit alias descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupts-carry-aliases",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupt aliases are unique per interrupt.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupt-aliases-unique",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupt shared groups describe a real multi-interrupt owner.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupt-shared-groups-consistent",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupt bindings reference known peripheral instances.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupt-bindings-reference-known-peripherals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupt bindings reference declared interrupts.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupt-bindings-reference-known-interrupts",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 interrupt bindings reference matching vector slots.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupt-bindings-reference-known-vector-slots",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 runtime-owned peripherals with interrupts expose typed interrupt bindings.",
-      "passed": true,
-      "rule_id": "mimxrt1062-runtime-interrupt-bindings-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 vector slots only reference declared interrupts.",
-      "passed": true,
-      "rule_id": "mimxrt1062-vector-slots-reference-known-interrupts",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 vector slot numbers are unique.",
-      "passed": true,
-      "rule_id": "mimxrt1062-vector-slots-unique",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 every interrupt owns an external vector slot.",
-      "passed": true,
-      "rule_id": "mimxrt1062-interrupts-have-vector-slot",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 vector slots include the system baseline slots.",
-      "passed": true,
-      "rule_id": "mimxrt1062-vector-slots-include-system-baseline",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes startup-relevant memory classifications for at least one memory region.",
-      "passed": true,
-      "rule_id": "mimxrt1062-memory-regions-carry-startup-roles",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 exposes startup descriptors separately from logic.",
-      "passed": true,
-      "rule_id": "mimxrt1062-startup-descriptors-present",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 startup descriptors only reference declared memories.",
-      "passed": true,
-      "rule_id": "mimxrt1062-startup-descriptors-reference-known-memories",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 startup descriptors cover every startup-classified memory region.",
-      "passed": true,
-      "rule_id": "mimxrt1062-startup-descriptors-cover-memory-roles",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 startup descriptors include vector-table and initial-stack-pointer facts.",
-      "passed": true,
-      "rule_id": "mimxrt1062-startup-descriptors-include-runtime-baseline",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 startup vectors and startup descriptors are sufficient to emit startup artifacts without handwritten device tables.",
-      "passed": true,
-      "rule_id": "mimxrt1062-startup-descriptors-emit-without-handwritten-tables",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock bindings reference known gate/reset/selector descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-bindings-reference-known-descriptors",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock/reset bindings expose typed gate/reset ids whenever diagnostic rcc_enable_signal / rcc_reset_signal strings are set.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-reset-bindings-not-diagnostic-only",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock nodes only reference known parents.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-node-parents-known",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock graph remains root-reachable and acyclic.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-graph-reaches-root",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock selectors expose at least one parent option when present.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-selectors-structured",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock gates expose typed register references.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-gates-structured",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 resets expose typed register references.",
-      "passed": true,
-      "rule_id": "mimxrt1062-resets-structured",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 clock gates reference known clock nodes.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-gates-reference-known-nodes",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 peripherals with enable/reset ownership have clock bindings.",
-      "passed": true,
-      "rule_id": "mimxrt1062-clock-bound-peripherals-covered",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA controllers expose non-empty channel and request counts.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-controller-descriptors-complete",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA controller request counts match the normalized DMA route set.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-controller-request-counts-match",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA routes cover the normalized DMA request set.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-routes-cover-requests",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA routes reference known controller descriptors.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-routes-reference-known-controllers",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA routes reference known target peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-routes-reference-known-peripherals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA routes reference declared conflict groups.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-routes-reference-known-conflicts",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA bindings reference known peripherals.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-bindings-reference-known-peripherals",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA bindings reference known controllers.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-bindings-reference-known-controllers",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA bindings reference known DMA routes.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-bindings-reference-known-routes",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA bindings reference declared conflict groups.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-bindings-reference-known-conflicts",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA bindings cover the typed DMA route set.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-bindings-cover-routes",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA conflict groups reference known DMA routes.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-conflict-groups-reference-known-routes",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA conflict groups only exist for true multi-route conflicts.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-conflict-groups-nontrivial",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "mimxrt1062 DMA route conflict annotations match the declared conflict groups.",
-      "passed": true,
-      "rule_id": "mimxrt1062-dma-route-conflict-annotations-consistent",
       "severity": "error"
     },
     {
@@ -1518,24 +796,10 @@
       "passed": true,
       "rule_id": "mimxrt1064-dma-route-conflict-annotations-consistent",
       "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "nxp-imxrt1060 family scope exposes at least one multi-signal connection group for every normalized device.",
-      "passed": true,
-      "rule_id": "nxp-imxrt1060-family-devices-expose-multi-signal-groups",
-      "severity": "error"
-    },
-    {
-      "category": "semantic",
-      "message": "nxp-imxrt1060 family scope reuses at least one ip-version descriptor across multiple devices when versioned IP data exist.",
-      "passed": true,
-      "rule_id": "nxp-imxrt1060-family-reuses-ip-version-descriptors",
-      "severity": "error"
     }
   ],
   "scope": {
-    "device": null,
+    "device": "mimxrt1064",
     "family": "imxrt1060",
     "vendor": "nxp"
   },
@@ -1543,19 +807,9 @@
     {
       "domain_id": "interrupt",
       "draft": false,
-      "message": "interrupt domain is publishable with 20 rule(s).",
+      "message": "interrupt domain is publishable with 10 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-interrupts-reference-known-peripherals",
-        "mimxrt1062-interrupt-aliases-unique",
-        "mimxrt1062-interrupt-shared-groups-consistent",
-        "mimxrt1062-interrupt-bindings-reference-known-peripherals",
-        "mimxrt1062-interrupt-bindings-reference-known-interrupts",
-        "mimxrt1062-interrupt-bindings-reference-known-vector-slots",
-        "mimxrt1062-runtime-interrupt-bindings-present",
-        "mimxrt1062-vector-slots-reference-known-interrupts",
-        "mimxrt1062-vector-slots-unique",
-        "mimxrt1062-interrupts-have-vector-slot",
         "mimxrt1064-interrupts-reference-known-peripherals",
         "mimxrt1064-interrupt-aliases-unique",
         "mimxrt1064-interrupt-shared-groups-consistent",
@@ -1571,11 +825,9 @@
     {
       "domain_id": "memory",
       "draft": false,
-      "message": "memory domain is publishable with 4 rule(s).",
+      "message": "memory domain is publishable with 2 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-memory-sizes-positive",
-        "mimxrt1062-memory-regions-carry-startup-roles",
         "mimxrt1064-memory-sizes-positive",
         "mimxrt1064-memory-regions-carry-startup-roles"
       ]
@@ -1583,15 +835,9 @@
     {
       "domain_id": "startup",
       "draft": false,
-      "message": "startup domain is publishable with 12 rule(s).",
+      "message": "startup domain is publishable with 6 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-vector-slots-include-system-baseline",
-        "mimxrt1062-startup-descriptors-present",
-        "mimxrt1062-startup-descriptors-reference-known-memories",
-        "mimxrt1062-startup-descriptors-cover-memory-roles",
-        "mimxrt1062-startup-descriptors-include-runtime-baseline",
-        "mimxrt1062-startup-descriptors-emit-without-handwritten-tables",
         "mimxrt1064-vector-slots-include-system-baseline",
         "mimxrt1064-startup-descriptors-present",
         "mimxrt1064-startup-descriptors-reference-known-memories",
@@ -1603,16 +849,9 @@
     {
       "domain_id": "clock-reset",
       "draft": false,
-      "message": "clock-reset domain is publishable with 14 rule(s).",
+      "message": "clock-reset domain is publishable with 7 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-referenced-peripherals-have-rcc-enable",
-        "mimxrt1062-clock-bindings-reference-known-descriptors",
-        "mimxrt1062-clock-node-parents-known",
-        "mimxrt1062-clock-graph-reaches-root",
-        "mimxrt1062-clock-selectors-structured",
-        "mimxrt1062-clock-gates-reference-known-nodes",
-        "mimxrt1062-clock-bound-peripherals-covered",
         "mimxrt1064-referenced-peripherals-have-rcc-enable",
         "mimxrt1064-clock-bindings-reference-known-descriptors",
         "mimxrt1064-clock-node-parents-known",
@@ -1625,25 +864,9 @@
     {
       "domain_id": "dma",
       "draft": false,
-      "message": "dma domain is publishable with 32 rule(s).",
+      "message": "dma domain is publishable with 16 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-dma-controllers-known",
-        "mimxrt1062-dma-request-peripherals-known",
-        "mimxrt1062-dma-routes-unique",
-        "mimxrt1062-dma-controller-descriptors-complete",
-        "mimxrt1062-dma-routes-cover-requests",
-        "mimxrt1062-dma-routes-reference-known-controllers",
-        "mimxrt1062-dma-routes-reference-known-peripherals",
-        "mimxrt1062-dma-routes-reference-known-conflicts",
-        "mimxrt1062-dma-bindings-reference-known-peripherals",
-        "mimxrt1062-dma-bindings-reference-known-controllers",
-        "mimxrt1062-dma-bindings-reference-known-routes",
-        "mimxrt1062-dma-bindings-reference-known-conflicts",
-        "mimxrt1062-dma-bindings-cover-routes",
-        "mimxrt1062-dma-conflict-groups-reference-known-routes",
-        "mimxrt1062-dma-conflict-groups-nontrivial",
-        "mimxrt1062-dma-route-conflict-annotations-consistent",
         "mimxrt1064-dma-controllers-known",
         "mimxrt1064-dma-request-peripherals-known",
         "mimxrt1064-dma-routes-unique",
@@ -1665,16 +888,9 @@
     {
       "domain_id": "package",
       "draft": false,
-      "message": "package domain is publishable with 14 rule(s).",
+      "message": "package domain is publishable with 7 rule(s).",
       "passed": true,
       "rule_ids": [
-        "mimxrt1062-package-pads-present",
-        "mimxrt1062-package-pad-ids-unique",
-        "mimxrt1062-package-pads-reference-known-packages",
-        "mimxrt1062-package-variants-have-pad-coverage",
-        "mimxrt1062-package-pad-positions-unique",
-        "mimxrt1062-package-pads-reference-known-pins",
-        "mimxrt1062-bonded-pins-have-package-pad",
         "mimxrt1064-package-pads-present",
         "mimxrt1064-package-pad-ids-unique",
         "mimxrt1064-package-pads-reference-known-packages",

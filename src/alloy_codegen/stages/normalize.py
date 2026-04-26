@@ -11,10 +11,16 @@ from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
+    AdcUnitDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
     CanonicalDeviceIR,
     ClockGateDescriptor,
+    DmaChannelDescriptor,
+    LedcDescriptor,
+    SpiPeripheralDescriptor,
+    TimerUnitDescriptor,
+    UartPeripheralDescriptor,
     UsbControllerDescriptor,
     ClockNodeLite,
     ClockSelectorLite,
@@ -2512,6 +2518,88 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                     else reg
                     for reg in registers
                 )
+        # Espressif hardware-feature blocks (added by
+        # ``fill-espressif-semantic-gaps``) — pass-through from family overlay.
+        uart_peripherals: tuple[UartPeripheralDescriptor, ...] = device.uart_peripherals
+        spi_peripherals: tuple[SpiPeripheralDescriptor, ...] = device.spi_peripherals
+        adc_units: tuple[AdcUnitDescriptor, ...] = device.adc_units
+        timer_units: tuple[TimerUnitDescriptor, ...] = device.timer_units
+        ledc_descriptor: LedcDescriptor | None = device.ledc
+        dma_channels: tuple[DmaChannelDescriptor, ...] = device.dma_channels
+        if family_catalog is not None:
+            if family_catalog.uart_peripherals:
+                uart_peripherals = tuple(
+                    UartPeripheralDescriptor(
+                        peripheral_id=u.peripheral_id,
+                        base_address=u.base_address,
+                        fifo_depth=u.fifo_depth,
+                        tx_signal_idx=u.tx_signal_idx,
+                        rx_signal_idx=u.rx_signal_idx,
+                        supports_dma=u.supports_dma,
+                    )
+                    for u in family_catalog.uart_peripherals
+                )
+            if family_catalog.spi_peripherals:
+                spi_peripherals = tuple(
+                    SpiPeripheralDescriptor(
+                        peripheral_id=s.peripheral_id,
+                        base_address=s.base_address,
+                        max_clock_hz=s.max_clock_hz,
+                        mosi_out_signal=s.mosi_out_signal,
+                        miso_in_signal=s.miso_in_signal,
+                        clk_out_signal=s.clk_out_signal,
+                        cs_out_signal=s.cs_out_signal,
+                        has_iomux_fast_path=s.has_iomux_fast_path,
+                        iomux_mosi_pin=s.iomux_mosi_pin,
+                        iomux_miso_pin=s.iomux_miso_pin,
+                        iomux_clk_pin=s.iomux_clk_pin,
+                        iomux_cs_pin=s.iomux_cs_pin,
+                        supports_dma=s.supports_dma,
+                    )
+                    for s in family_catalog.spi_peripherals
+                )
+            if family_catalog.adc_units:
+                adc_units = tuple(
+                    AdcUnitDescriptor(
+                        unit_id=a.unit_id,
+                        channel_count=a.channel_count,
+                        resolution_bits=a.resolution_bits,
+                        conflicts_with_wifi=a.conflicts_with_wifi,
+                        channel_pins=a.channel_pins,
+                    )
+                    for a in family_catalog.adc_units
+                )
+            if family_catalog.timer_units:
+                timer_units = tuple(
+                    TimerUnitDescriptor(
+                        timer_id=t.timer_id,
+                        group_idx=t.group_idx,
+                        timer_idx=t.timer_idx,
+                        base_address=t.base_address,
+                        bits=t.bits,
+                        clock_sources=t.clock_sources,
+                    )
+                    for t in family_catalog.timer_units
+                )
+            if family_catalog.ledc is not None:
+                ledc_descriptor = LedcDescriptor(
+                    base_address=family_catalog.ledc.base_address,
+                    channel_count=family_catalog.ledc.channel_count,
+                    resolution_bits=family_catalog.ledc.resolution_bits,
+                    clock_sources=family_catalog.ledc.clock_sources,
+                    output_signals=family_catalog.ledc.output_signals,
+                )
+            if family_catalog.dma_channels:
+                dma_channels = tuple(
+                    DmaChannelDescriptor(
+                        channel_id=d.channel_id,
+                        channel_index=d.channel_index,
+                        is_gdma=d.is_gdma,
+                        max_transfer_bytes=d.max_transfer_bytes,
+                        peripheral_requests=d.peripheral_requests,
+                    )
+                    for d in family_catalog.dma_channels
+                )
         enriched_devices.append(
             dataclasses.replace(
                 device,
@@ -2527,6 +2615,12 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 multicore_topology=topology_value,
                 app_cpu_control_plane=app_cpu_plane,
                 usb_controllers=usb_controllers,
+                uart_peripherals=uart_peripherals,
+                spi_peripherals=spi_peripherals,
+                adc_units=adc_units,
+                timer_units=timer_units,
+                ledc=ledc_descriptor,
+                dma_channels=dma_channels,
             )
         )
     return StageResult(

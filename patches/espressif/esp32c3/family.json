@@ -130,5 +130,37 @@
       "signal": "DATA",
       "request_value": 13
     }
+  ],
+  "uart_peripherals": [
+    { "peripheral_id": "UART0", "base_address": 1610612736, "fifo_depth": 256, "supports_dma": true },
+    { "peripheral_id": "UART1", "base_address": 1610678272, "fifo_depth": 256, "supports_dma": true }
+  ],
+  "spi_peripherals": [
+    {
+      "peripheral_id": "SPI2",
+      "base_address": 1610760192,
+      "max_clock_hz": 80000000,
+      "has_iomux_fast_path": false,
+      "supports_dma": true
+    }
+  ],
+  "adc_units": [
+    { "unit_id": "ADC1", "channel_count": 6, "resolution_bits": 12, "conflicts_with_wifi": false, "channel_pins": [0, 1, 2, 3, 4, 5] }
+  ],
+  "timer_units": [
+    { "timer_id": "TIMG0_T0", "group_idx": 0, "timer_idx": 0, "base_address": 1610739712, "bits": 54, "clock_sources": ["APB", "XTAL"] },
+    { "timer_id": "TIMG1_T0", "group_idx": 1, "timer_idx": 0, "base_address": 1610743808, "bits": 54, "clock_sources": ["APB", "XTAL"] }
+  ],
+  "ledc": {
+    "base_address": 1610715136,
+    "channel_count": 8,
+    "resolution_bits": 14,
+    "clock_sources": ["APB", "XTAL", "RC_FAST"],
+    "output_signals": []
+  },
+  "dma_channels": [
+    { "channel_id": "GDMA_CH0", "channel_index": 0, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {"SPI2": 0, "UHCI0": 2, "I2S0": 3, "AES": 6, "SHA": 7, "ADC": 8} },
+    { "channel_id": "GDMA_CH1", "channel_index": 1, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} },
+    { "channel_id": "GDMA_CH2", "channel_index": 2, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} }
   ]
 }

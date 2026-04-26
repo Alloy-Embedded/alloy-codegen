@@ -1643,6 +1643,14 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         app_cpu_control_plane=device.app_cpu_control_plane,
         # USB controller descriptors (added by ``add-usb-semantic-traits``).
         usb_controllers=device.usb_controllers,
+        # Espressif hardware-feature descriptors (added by
+        # ``fill-espressif-semantic-gaps``).
+        uart_peripherals=device.uart_peripherals,
+        spi_peripherals=device.spi_peripherals,
+        adc_units=device.adc_units,
+        timer_units=device.timer_units,
+        ledc=device.ledc,
+        dma_channels=device.dma_channels,
         pio_blocks=device.pio_blocks,
         gpio_pins=device.gpio_pins,
     )

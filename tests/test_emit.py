@@ -1859,3 +1859,85 @@ def test_same70_usbhs_traits_emit_high_speed_dma_facts(
     assert "static constexpr bool kSupportsHighSpeed = true;" in content
     assert "static constexpr bool kSupportsDma = true;" in content
     assert "static constexpr std::uint8_t kDmaChannelCount = 7u;" in content
+
+
+# ---------------------------------------------------------------------------
+# fill-espressif-semantic-gaps: hardware-feature traits surface on Espressif
+# ---------------------------------------------------------------------------
+
+
+def test_esp32_uart_traits_emit_hardware_feature_constexprs(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4 of fill-espressif-semantic-gaps: ESP32 UART trait
+    specializations carry kHardwarePresent=true plus base address, FIFO
+    depth and DMA support flag from the family overlay."""
+    result = run(
+        PipelineScope(vendor="espressif", family="esp32", device="esp32"),
+        espressif_execution_context,
+    )
+    arts = {a.path: a for a in result.payload.artifacts}
+    usb_path = "espressif/esp32/generated/runtime/devices/esp32/driver_semantics/uart.hpp"
+    assert usb_path in arts
+    content = arts[usb_path].content
+    assert "struct UartSemanticTraits<PeripheralId::UART0>" in content
+    assert "static constexpr bool kHardwarePresent = true;" in content
+    # Base address is sourced from the SVD-driven peripheral IR (0x3FF40000
+    # on ESP32 classic) so any patch overlay typo cannot drift from silicon.
+    assert "static constexpr std::uintptr_t kBaseAddress = 0x3FF40000u;" in content
+    assert "static constexpr std::uint16_t kFifoDepth = 128u;" in content
+    assert "static constexpr bool kSupportsDma = true;" in content
+
+
+def test_esp32c3_uart_traits_emit_256_byte_fifo(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4 of fill-espressif-semantic-gaps: ESP32-C3 UART FIFO depth
+    is 256 bytes (vs 128 on classic/S3)."""
+    result = run(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    )
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "espressif/esp32c3/generated/runtime/devices/esp32c3/driver_semantics/uart.hpp"
+    content = arts[p].content
+    assert "struct UartSemanticTraits<PeripheralId::UART0>" in content
+    assert "static constexpr std::uint16_t kFifoDepth = 256u;" in content
+
+
+def test_esp32_spi_traits_emit_iomux_fast_path_pins(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4 of fill-espressif-semantic-gaps: ESP32 SPI2 advertises
+    its IO_MUX fast-path pins (MOSI=13, MISO=12, CLK=14, CS=15)."""
+    result = run(
+        PipelineScope(vendor="espressif", family="esp32", device="esp32"),
+        espressif_execution_context,
+    )
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "espressif/esp32/generated/runtime/devices/esp32/driver_semantics/spi.hpp"
+    content = arts[p].content
+    assert "struct SpiSemanticTraits<PeripheralId::SPI2>" in content
+    assert "static constexpr bool kHardwarePresent = true;" in content
+    assert "static constexpr bool kHasIomuxFastPath = true;" in content
+    assert "static constexpr std::int16_t kIomuxMosiPin = 13;" in content
+    assert "static constexpr std::int16_t kIomuxMisoPin = 12;" in content
+    assert "static constexpr std::int16_t kIomuxClkPin = 14;" in content
+    assert "static constexpr std::int16_t kIomuxCsPin = 15;" in content
+    assert "static constexpr std::uint32_t kMaxClockHz = 80000000u;" in content
+
+
+def test_esp32c3_spi_has_no_iomux_fast_path(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """Phase 4 of fill-espressif-semantic-gaps: ESP32-C3 SPI2 has no
+    dedicated IO_MUX fast-path pins."""
+    result = run(
+        PipelineScope(vendor="espressif", family="esp32c3", device="esp32c3"),
+        espressif_execution_context,
+    )
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "espressif/esp32c3/generated/runtime/devices/esp32c3/driver_semantics/spi.hpp"
+    content = arts[p].content
+    assert "struct SpiSemanticTraits<PeripheralId::SPI2>" in content
+    assert "static constexpr bool kHasIomuxFastPath = false;" in content

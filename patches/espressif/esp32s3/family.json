@@ -110,5 +110,52 @@
       "dp_pin": "GPIO20",
       "clock_source": "internal-phy-48mhz"
     }
+  ],
+  "uart_peripherals": [
+    { "peripheral_id": "UART0", "base_address": 1610612736, "fifo_depth": 128, "supports_dma": true },
+    { "peripheral_id": "UART1", "base_address": 1610678272, "fifo_depth": 128, "supports_dma": true },
+    { "peripheral_id": "UART2", "base_address": 1610932224, "fifo_depth": 128, "supports_dma": true }
+  ],
+  "spi_peripherals": [
+    {
+      "peripheral_id": "SPI2",
+      "base_address": 1610760192,
+      "max_clock_hz": 80000000,
+      "has_iomux_fast_path": true,
+      "iomux_mosi_pin": 11,
+      "iomux_miso_pin": 13,
+      "iomux_clk_pin": 12,
+      "iomux_cs_pin": 10,
+      "supports_dma": true
+    },
+    {
+      "peripheral_id": "SPI3",
+      "base_address": 1610764288,
+      "max_clock_hz": 80000000,
+      "has_iomux_fast_path": false,
+      "supports_dma": true
+    }
+  ],
+  "adc_units": [
+    { "unit_id": "ADC1", "channel_count": 10, "resolution_bits": 12, "conflicts_with_wifi": false, "channel_pins": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] },
+    { "unit_id": "ADC2", "channel_count": 10, "resolution_bits": 12, "conflicts_with_wifi": true, "channel_pins": [11, 12, 13, 14, 15, 16, 17, 18, 19, 20] }
+  ],
+  "timer_units": [
+    { "timer_id": "TIMG0_T0", "group_idx": 0, "timer_idx": 0, "base_address": 1610739712, "bits": 54, "clock_sources": ["APB", "XTAL"] },
+    { "timer_id": "TIMG1_T0", "group_idx": 1, "timer_idx": 0, "base_address": 1610743808, "bits": 54, "clock_sources": ["APB", "XTAL"] }
+  ],
+  "ledc": {
+    "base_address": 1610715136,
+    "channel_count": 8,
+    "resolution_bits": 14,
+    "clock_sources": ["APB", "XTAL", "RC_FAST"],
+    "output_signals": []
+  },
+  "dma_channels": [
+    { "channel_id": "GDMA_CH0", "channel_index": 0, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} },
+    { "channel_id": "GDMA_CH1", "channel_index": 1, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} },
+    { "channel_id": "GDMA_CH2", "channel_index": 2, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} },
+    { "channel_id": "GDMA_CH3", "channel_index": 3, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} },
+    { "channel_id": "GDMA_CH4", "channel_index": 4, "is_gdma": true, "max_transfer_bytes": 4095, "peripheral_requests": {} }
   ]
 }

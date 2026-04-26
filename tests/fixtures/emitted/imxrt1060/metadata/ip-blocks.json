@@ -1,185 +1,6 @@
 {
   "device_usage": [
     {
-      "device": "mimxrt1062",
-      "peripherals": [
-        {
-          "base_address": 1074544640,
-          "ip_name": "adc",
-          "ip_version": null,
-          "name": "ADC1"
-        },
-        {
-          "base_address": 1074561024,
-          "ip_name": "adc",
-          "ip_version": null,
-          "name": "ADC2"
-        },
-        {
-          "base_address": 1075642368,
-          "ip_name": "can",
-          "ip_version": null,
-          "name": "CAN1"
-        },
-        {
-          "base_address": 1075658752,
-          "ip_name": "can",
-          "ip_version": null,
-          "name": "CAN2"
-        },
-        {
-          "base_address": 1075675136,
-          "ip_name": "can",
-          "ip_version": null,
-          "name": "CAN3"
-        },
-        {
-          "base_address": 1074774016,
-          "ip_name": "ccm",
-          "ip_version": null,
-          "name": "CCM"
-        },
-        {
-          "base_address": 1074626560,
-          "ip_name": "ccm_analog",
-          "ip_version": null,
-          "name": "CCM_ANALOG"
-        },
-        {
-          "base_address": 1074266112,
-          "ip_name": "dcdc",
-          "ip_version": null,
-          "name": "DCDC"
-        },
-        {
-          "base_address": 1074692096,
-          "ip_name": "dma",
-          "ip_version": null,
-          "name": "DMA0"
-        },
-        {
-          "base_address": 1074708480,
-          "ip_name": "dmamux",
-          "ip_version": null,
-          "name": "DMAMUX1"
-        },
-        {
-          "base_address": 1076723712,
-          "ip_name": "enet",
-          "ip_version": null,
-          "name": "ENET"
-        },
-        {
-          "base_address": 1075544064,
-          "ip_name": "gpio",
-          "ip_version": "imxrt-gpio-v1",
-          "name": "GPIO1"
-        },
-        {
-          "base_address": 1075593216,
-          "ip_name": "gpio",
-          "ip_version": "imxrt-gpio-v1",
-          "name": "GPIO4"
-        },
-        {
-          "base_address": 1075757056,
-          "ip_name": "gpt",
-          "ip_version": null,
-          "name": "GPT1"
-        },
-        {
-          "base_address": 1075773440,
-          "ip_name": "gpt",
-          "ip_version": null,
-          "name": "GPT2"
-        },
-        {
-          "base_address": 1075806208,
-          "ip_name": "iomuxc",
-          "ip_version": null,
-          "name": "IOMUXC"
-        },
-        {
-          "base_address": 1077870592,
-          "ip_name": "lpi2c1",
-          "ip_version": "lpi2c-v1",
-          "name": "LPI2C1"
-        },
-        {
-          "base_address": 1077493760,
-          "ip_name": "lpspi",
-          "ip_version": "lpspi-v1",
-          "name": "LPSPI1"
-        },
-        {
-          "base_address": 1075331072,
-          "ip_name": "lpuart",
-          "ip_version": "lpuart-v1",
-          "name": "LPUART1"
-        },
-        {
-          "base_address": 1075363840,
-          "ip_name": "lpuart",
-          "ip_version": "lpuart-v1",
-          "name": "LPUART3"
-        },
-        {
-          "base_address": 1074282496,
-          "ip_name": "pit",
-          "ip_version": null,
-          "name": "PIT"
-        },
-        {
-          "base_address": 1077788672,
-          "ip_name": "pwm",
-          "ip_version": null,
-          "name": "PWM1"
-        },
-        {
-          "base_address": 1077805056,
-          "ip_name": "pwm",
-          "ip_version": null,
-          "name": "PWM2"
-        },
-        {
-          "base_address": 1077821440,
-          "ip_name": "pwm",
-          "ip_version": null,
-          "name": "PWM3"
-        },
-        {
-          "base_address": 1077837824,
-          "ip_name": "pwm",
-          "ip_version": null,
-          "name": "PWM4"
-        },
-        {
-          "base_address": 1074511872,
-          "ip_name": "rtwdog",
-          "ip_version": null,
-          "name": "RTWDOG"
-        },
-        {
-          "base_address": 1076756480,
-          "ip_name": "usb",
-          "ip_version": null,
-          "name": "USB1"
-        },
-        {
-          "base_address": 1074495488,
-          "ip_name": "wdog",
-          "ip_version": null,
-          "name": "WDOG1"
-        },
-        {
-          "base_address": 1074593792,
-          "ip_name": "wdog",
-          "ip_version": null,
-          "name": "WDOG2"
-        }
-      ]
-    },
-    {
       "device": "mimxrt1064",
       "peripherals": [
         {
@@ -367,10 +188,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1062-bootstrap"
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
       },
       "register_profile": "gpio:imxrt-gpio-v1",
       "signal_roles": [
@@ -390,10 +211,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1062-bootstrap"
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
       },
       "register_profile": "lpi2c1:lpi2c-v1",
       "signal_roles": [
@@ -413,10 +234,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1062-bootstrap"
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
       },
       "register_profile": "lpspi:lpspi-v1",
       "signal_roles": [
@@ -436,10 +257,10 @@
       "provenance": {
         "patch_ids": [
           "nxp-imxrt1060-family-bootstrap-v1",
-          "nxp-imxrt1060-mimxrt1062-bootstrap"
+          "nxp-imxrt1060-mimxrt1064-bootstrap"
         ],
         "source_id": "nxp-mcux-soc-svd",
-        "source_path": "MIMXRT1062/MIMXRT1062.xml"
+        "source_path": "MIMXRT1064/MIMXRT1064.xml"
       },
       "register_profile": "lpuart:lpuart-v1",
       "signal_roles": [

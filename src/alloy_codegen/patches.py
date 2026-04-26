@@ -237,6 +237,79 @@ class FamilyPatchCatalog:
     # The normalizer mirrors each entry into a ``UsbControllerDescriptor``
     # on the device IR.
     usb_controllers: tuple["UsbControllerPatch", ...] = ()
+    # Hardware-feature blocks added by ``fill-espressif-semantic-gaps``.
+    # Empty for families without explicit overlay; populated for ESP32 /
+    # ESP32-C3 / ESP32-S3.
+    uart_peripherals: tuple["UartPeripheralPatch", ...] = ()
+    spi_peripherals: tuple["SpiPeripheralPatch", ...] = ()
+    adc_units: tuple["AdcUnitPatch", ...] = ()
+    timer_units: tuple["TimerUnitPatch", ...] = ()
+    ledc: "LedcPatch | None" = None
+    dma_channels: tuple["DmaChannelPatch", ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class UartPeripheralPatch:
+    peripheral_id: str
+    base_address: int
+    fifo_depth: int
+    tx_signal_idx: int | None = None
+    rx_signal_idx: int | None = None
+    supports_dma: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class SpiPeripheralPatch:
+    peripheral_id: str
+    base_address: int
+    max_clock_hz: int
+    mosi_out_signal: int | None = None
+    miso_in_signal: int | None = None
+    clk_out_signal: int | None = None
+    cs_out_signal: int | None = None
+    has_iomux_fast_path: bool = False
+    iomux_mosi_pin: int | None = None
+    iomux_miso_pin: int | None = None
+    iomux_clk_pin: int | None = None
+    iomux_cs_pin: int | None = None
+    supports_dma: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class AdcUnitPatch:
+    unit_id: str
+    channel_count: int
+    resolution_bits: int
+    conflicts_with_wifi: bool = False
+    channel_pins: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class TimerUnitPatch:
+    timer_id: str
+    group_idx: int
+    timer_idx: int
+    base_address: int
+    bits: int
+    clock_sources: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class LedcPatch:
+    base_address: int
+    channel_count: int
+    resolution_bits: int
+    clock_sources: tuple[str, ...] = ()
+    output_signals: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class DmaChannelPatch:
+    channel_id: str
+    channel_index: int
+    is_gdma: bool
+    max_transfer_bytes: int = 0
+    peripheral_requests: tuple[tuple[str, int], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -890,6 +963,200 @@ def load_family_patch_catalog(
             )
             if entry is not None
         ),
+        # Espressif hardware-feature blocks (added by
+        # ``fill-espressif-semantic-gaps``).
+        uart_peripherals=tuple(
+            entry
+            for entry in (
+                _parse_uart_peripheral_patch(item)
+                for item in payload.get("uart_peripherals", ())
+            )
+            if entry is not None
+        ),
+        spi_peripherals=tuple(
+            entry
+            for entry in (
+                _parse_spi_peripheral_patch(item)
+                for item in payload.get("spi_peripherals", ())
+            )
+            if entry is not None
+        ),
+        adc_units=tuple(
+            entry
+            for entry in (
+                _parse_adc_unit_patch(item)
+                for item in payload.get("adc_units", ())
+            )
+            if entry is not None
+        ),
+        timer_units=tuple(
+            entry
+            for entry in (
+                _parse_timer_unit_patch(item)
+                for item in payload.get("timer_units", ())
+            )
+            if entry is not None
+        ),
+        ledc=_parse_ledc_patch(payload.get("ledc")),
+        dma_channels=tuple(
+            entry
+            for entry in (
+                _parse_dma_channel_patch(item)
+                for item in payload.get("dma_channels", ())
+            )
+            if entry is not None
+        ),
+    )
+
+
+def _opt_int(payload: dict, key: str) -> int | None:
+    value = payload.get(key)
+    return value if isinstance(value, int) else None
+
+
+def _flag(payload: dict, key: str) -> bool:
+    return bool(payload.get(key, False))
+
+
+def _parse_uart_peripheral_patch(payload: object) -> "UartPeripheralPatch | None":
+    if not isinstance(payload, dict):
+        return None
+    pid = payload.get("peripheral_id")
+    base = payload.get("base_address")
+    fifo = payload.get("fifo_depth")
+    if not isinstance(pid, str) or not isinstance(base, int) or not isinstance(fifo, int):
+        return None
+    return UartPeripheralPatch(
+        peripheral_id=pid,
+        base_address=base,
+        fifo_depth=fifo,
+        tx_signal_idx=_opt_int(payload, "tx_signal_idx"),
+        rx_signal_idx=_opt_int(payload, "rx_signal_idx"),
+        supports_dma=_flag(payload, "supports_dma"),
+    )
+
+
+def _parse_spi_peripheral_patch(payload: object) -> "SpiPeripheralPatch | None":
+    if not isinstance(payload, dict):
+        return None
+    pid = payload.get("peripheral_id")
+    base = payload.get("base_address")
+    max_clock = payload.get("max_clock_hz")
+    if (
+        not isinstance(pid, str)
+        or not isinstance(base, int)
+        or not isinstance(max_clock, int)
+    ):
+        return None
+    return SpiPeripheralPatch(
+        peripheral_id=pid,
+        base_address=base,
+        max_clock_hz=max_clock,
+        mosi_out_signal=_opt_int(payload, "mosi_out_signal"),
+        miso_in_signal=_opt_int(payload, "miso_in_signal"),
+        clk_out_signal=_opt_int(payload, "clk_out_signal"),
+        cs_out_signal=_opt_int(payload, "cs_out_signal"),
+        has_iomux_fast_path=_flag(payload, "has_iomux_fast_path"),
+        iomux_mosi_pin=_opt_int(payload, "iomux_mosi_pin"),
+        iomux_miso_pin=_opt_int(payload, "iomux_miso_pin"),
+        iomux_clk_pin=_opt_int(payload, "iomux_clk_pin"),
+        iomux_cs_pin=_opt_int(payload, "iomux_cs_pin"),
+        supports_dma=_flag(payload, "supports_dma"),
+    )
+
+
+def _parse_adc_unit_patch(payload: object) -> "AdcUnitPatch | None":
+    if not isinstance(payload, dict):
+        return None
+    uid = payload.get("unit_id")
+    cc = payload.get("channel_count")
+    rb = payload.get("resolution_bits")
+    if not isinstance(uid, str) or not isinstance(cc, int) or not isinstance(rb, int):
+        return None
+    pins = payload.get("channel_pins") or ()
+    pins_tuple = tuple(p for p in pins if isinstance(p, int)) if isinstance(pins, list) else ()
+    return AdcUnitPatch(
+        unit_id=uid,
+        channel_count=cc,
+        resolution_bits=rb,
+        conflicts_with_wifi=_flag(payload, "conflicts_with_wifi"),
+        channel_pins=pins_tuple,
+    )
+
+
+def _parse_timer_unit_patch(payload: object) -> "TimerUnitPatch | None":
+    if not isinstance(payload, dict):
+        return None
+    tid = payload.get("timer_id")
+    gi = payload.get("group_idx")
+    ti = payload.get("timer_idx")
+    base = payload.get("base_address")
+    bits = payload.get("bits")
+    if not all(
+        isinstance(v, (str, int)) for v in (tid, gi, ti, base, bits)
+    ):
+        return None
+    if not isinstance(tid, str):
+        return None
+    sources = payload.get("clock_sources") or ()
+    sources_tuple = tuple(s for s in sources if isinstance(s, str)) if isinstance(sources, list) else ()
+    return TimerUnitPatch(
+        timer_id=tid,
+        group_idx=int(gi),  # type: ignore[arg-type]
+        timer_idx=int(ti),  # type: ignore[arg-type]
+        base_address=int(base),  # type: ignore[arg-type]
+        bits=int(bits),  # type: ignore[arg-type]
+        clock_sources=sources_tuple,
+    )
+
+
+def _parse_ledc_patch(payload: object) -> "LedcPatch | None":
+    if not isinstance(payload, dict):
+        return None
+    base = payload.get("base_address")
+    cc = payload.get("channel_count")
+    rb = payload.get("resolution_bits")
+    if not isinstance(base, int) or not isinstance(cc, int) or not isinstance(rb, int):
+        return None
+    sources = payload.get("clock_sources") or ()
+    out_signals = payload.get("output_signals") or ()
+    return LedcPatch(
+        base_address=base,
+        channel_count=cc,
+        resolution_bits=rb,
+        clock_sources=tuple(s for s in sources if isinstance(s, str))
+        if isinstance(sources, list) else (),
+        output_signals=tuple(s for s in out_signals if isinstance(s, int))
+        if isinstance(out_signals, list) else (),
+    )
+
+
+def _parse_dma_channel_patch(payload: object) -> "DmaChannelPatch | None":
+    if not isinstance(payload, dict):
+        return None
+    cid = payload.get("channel_id")
+    ci = payload.get("channel_index")
+    is_gdma = payload.get("is_gdma")
+    if (
+        not isinstance(cid, str)
+        or not isinstance(ci, int)
+        or not isinstance(is_gdma, bool)
+    ):
+        return None
+    requests = payload.get("peripheral_requests") or {}
+    requests_tuple: tuple[tuple[str, int], ...] = ()
+    if isinstance(requests, dict):
+        requests_tuple = tuple(
+            (k, v) for k, v in requests.items() if isinstance(k, str) and isinstance(v, int)
+        )
+    return DmaChannelPatch(
+        channel_id=cid,
+        channel_index=ci,
+        is_gdma=is_gdma,
+        max_transfer_bytes=payload.get("max_transfer_bytes", 0)
+        if isinstance(payload.get("max_transfer_bytes", 0), int)
+        else 0,
+        peripheral_requests=requests_tuple,
     )
 
 

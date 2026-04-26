@@ -69,6 +69,96 @@ class AppCpuControlPlane:
 RegisterRole = Literal["general", "secondary_core_release"]
 
 
+# Hardware-feature descriptors added by ``fill-espressif-semantic-gaps``.
+# Each captures the static silicon facts for one peripheral instance — base
+# address, register-window size hints, fixed pin assignments, GPIO-matrix
+# signal indices — that drive alloy ``*SemanticTraits`` ``kPresent`` /
+# ``kBaseAddress`` / feature-flag constexprs for families whose register-
+# level schema is not yet admitted (Espressif today).  These descriptors
+# stay thin: register-by-register traits live on the existing
+# ``UartSemanticRow`` / ``SpiSemanticRow`` / etc. rows.
+@dataclass(frozen=True, slots=True)
+class UartPeripheralDescriptor:
+    """UART hardware-feature facts (base address, FIFO depth, GPIO matrix
+    signal indices, DMA support)."""
+
+    peripheral_id: str
+    base_address: int
+    fifo_depth: int
+    tx_signal_idx: int | None = None
+    rx_signal_idx: int | None = None
+    supports_dma: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class SpiPeripheralDescriptor:
+    """SPI hardware-feature facts (base, max clock, GPIO matrix signals,
+    optional IO-MUX fast-path pins, DMA support)."""
+
+    peripheral_id: str
+    base_address: int
+    max_clock_hz: int
+    mosi_out_signal: int | None = None
+    miso_in_signal: int | None = None
+    clk_out_signal: int | None = None
+    cs_out_signal: int | None = None
+    has_iomux_fast_path: bool = False
+    iomux_mosi_pin: int | None = None
+    iomux_miso_pin: int | None = None
+    iomux_clk_pin: int | None = None
+    iomux_cs_pin: int | None = None
+    supports_dma: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class AdcUnitDescriptor:
+    """ADC hardware-feature facts (channel count, resolution, Wi-Fi
+    conflict flag, channel→pin mapping)."""
+
+    unit_id: str
+    channel_count: int
+    resolution_bits: int
+    conflicts_with_wifi: bool = False
+    channel_pins: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class TimerUnitDescriptor:
+    """Timer/Counter hardware-feature facts (group/timer indices, base,
+    counter width, clock sources)."""
+
+    timer_id: str
+    group_idx: int
+    timer_idx: int
+    base_address: int
+    bits: int
+    clock_sources: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class LedcDescriptor:
+    """LEDC PWM hardware-feature facts (base, channel count, max
+    resolution, clock sources, GPIO-matrix output signals per channel)."""
+
+    base_address: int
+    channel_count: int
+    resolution_bits: int
+    clock_sources: tuple[str, ...] = ()
+    output_signals: tuple[int, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class DmaChannelDescriptor:
+    """DMA channel hardware-feature facts (index, GDMA flag, max transfer
+    bytes, peripheral→request-line map)."""
+
+    channel_id: str
+    channel_index: int
+    is_gdma: bool
+    max_transfer_bytes: int = 0
+    peripheral_requests: tuple[tuple[str, int], ...] = ()
+
+
 @dataclass(frozen=True, slots=True)
 class UsbControllerDescriptor:
     """Hardware-feature facts for one USB controller (added by
@@ -842,6 +932,27 @@ class CanonicalDeviceIR:
     usb_controllers: tuple[UsbControllerDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
+    )
+    # Hardware-feature descriptors added by ``fill-espressif-semantic-gaps``.
+    # Empty tuples on devices whose family overlay doesn't ship the block
+    # so existing fixtures stay byte-stable.
+    uart_peripherals: tuple[UartPeripheralDescriptor, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    spi_peripherals: tuple[SpiPeripheralDescriptor, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    adc_units: tuple[AdcUnitDescriptor, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    timer_units: tuple[TimerUnitDescriptor, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    ledc: LedcDescriptor | None = field(
+        default=None, metadata={"omit_if_empty": True}
+    )
+    dma_channels: tuple[DmaChannelDescriptor, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # GPIO pin alternate-function topology (added by fill-gpio-semantic-gaps).
     # Empty for devices whose normalizers have not yet been wired to populate

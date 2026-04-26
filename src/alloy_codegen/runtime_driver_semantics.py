@@ -2187,6 +2187,12 @@ def _nxp_uart_row(
 
 
 def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
+    # Hardware-feature lookup added by ``fill-espressif-semantic-gaps``: a
+    # stub row whose peripheral has a ``UartPeripheralDescriptor`` is
+    # promoted out of stub status so it lands in ``kUartSemanticPeripherals``
+    # (consumers iterating the array see hardware-feature-only entries).
+    uart_hw_ids = {u.peripheral_id for u in context.device.uart_peripherals}
+
     def _has_register(peripheral_name: str, register_name: str) -> bool:
         return (peripheral_name, register_name.upper()) in context.register_by_key
 
@@ -2209,7 +2215,12 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
         return False
 
     rows: list[UartSemanticRow] = []
-    for peripheral in context.candidate_peripherals_by_class.get("uart", ()):
+    candidate_peripherals = list(context.candidate_peripherals_by_class.get("uart", ()))
+    candidate_names = {p.name for p in candidate_peripherals}
+    for peripheral in sorted(context.device.peripherals, key=lambda item: item.name):
+        if peripheral.name in uart_hw_ids and peripheral.name not in candidate_names:
+            candidate_peripherals.append(peripheral)
+    for peripheral in candidate_peripherals:
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
@@ -2315,7 +2326,7 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
                     us_txempty_field=invalid_field,
                     us_txchr_field=invalid_field,
                     us_rxchr_field=invalid_field,
-                    is_stub=True,
+                    is_stub=peripheral.name not in uart_hw_ids,
                 )
             )
     return tuple(rows)
@@ -3055,8 +3066,19 @@ def _nxp_spi_row(
 
 
 def _build_spi_rows(context: _SemanticContext) -> tuple[SpiSemanticRow, ...]:
+    spi_hw_ids = {s.peripheral_id for s in context.device.spi_peripherals}
     rows: list[SpiSemanticRow] = []
-    for peripheral in context.candidate_peripherals_by_class.get("spi", ()):
+    # Hardware-feature-only peripherals — admitted by ``device.spi_peripherals``
+    # (added by ``fill-espressif-semantic-gaps``) but missing connection
+    # candidates because the family overlay doesn't yet ship SPI pin
+    # signal mappings.  Synthesize stub rows so the trait specialization
+    # surfaces ``kPresent = true`` plus the hardware-feature constexprs.
+    candidate_peripherals = list(context.candidate_peripherals_by_class.get("spi", ()))
+    candidate_names = {p.name for p in candidate_peripherals}
+    for peripheral in sorted(context.device.peripherals, key=lambda item: item.name):
+        if peripheral.name in spi_hw_ids and peripheral.name not in candidate_names:
+            candidate_peripherals.append(peripheral)
+    for peripheral in candidate_peripherals:
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
@@ -3122,7 +3144,7 @@ def _build_spi_rows(context: _SemanticContext) -> tuple[SpiSemanticRow, ...]:
                     td_field=invalid_field,
                     tdr_pcs_field=invalid_field,
                     rd_field=invalid_field,
-                    is_stub=True,
+                    is_stub=peripheral.name not in spi_hw_ids,
                 )
             )
     return tuple(rows)
@@ -10422,13 +10444,59 @@ def _emit_peripheral_semantics_header(
 
 
 def _uart_specialization_builder(context: _SemanticContext):
+    # Hardware-feature lookup added by ``fill-espressif-semantic-gaps``: when
+    # the device IR carries a ``UartPeripheralDescriptor`` for a peripheral
+    # whose register-level schema isn't admitted yet, the stub
+    # specialization promotes ``kPresent`` to ``true`` and emits the
+    # silicon facts (base address, FIFO depth, GPIO-matrix signal indices,
+    # DMA support).  This keeps the alloy HAL's ``UartController<T>`` concept
+    # workable on Espressif targets even before full register schemas land.
+    uart_hw_by_id = {u.peripheral_id: u for u in context.device.uart_peripherals}
+
+    def _hw_lines(row: UartSemanticRow) -> list[str]:
+        hw = uart_hw_by_id.get(row.peripheral_name)
+        if hw is None:
+            base_address = 0
+            peripheral = context.peripheral_by_name.get(row.peripheral_name)
+            if peripheral is not None:
+                base_address = peripheral.base_address
+            return [
+                "  static constexpr bool kHardwarePresent = false;",
+                f"  static constexpr std::uintptr_t kBaseAddress = 0x{base_address:08X}u;",
+                "  static constexpr std::uint16_t kFifoDepth = 0u;",
+                "  static constexpr std::int16_t kTxSignalIdx = -1;",
+                "  static constexpr std::int16_t kRxSignalIdx = -1;",
+                "  static constexpr bool kSupportsDma = false;",
+            ]
+        # ``kBaseAddress`` is sourced from the peripheral IR (which mirrors
+        # the SVD/ATDF) rather than the patch overlay so hand-typed patch
+        # base addresses can never disagree with the silicon spec.  The
+        # patch only carries hardware-feature facts the SVD doesn't
+        # encode (FIFO depth, GPIO-matrix signal indices, DMA support).
+        peripheral = context.peripheral_by_name.get(row.peripheral_name)
+        base_address = peripheral.base_address if peripheral is not None else hw.base_address
+        return [
+            "  static constexpr bool kHardwarePresent = true;",
+            f"  static constexpr std::uintptr_t kBaseAddress = 0x{base_address:08X}u;",
+            f"  static constexpr std::uint16_t kFifoDepth = {hw.fifo_depth}u;",
+            f"  static constexpr std::int16_t kTxSignalIdx = {hw.tx_signal_idx if hw.tx_signal_idx is not None else -1};",
+            f"  static constexpr std::int16_t kRxSignalIdx = {hw.rx_signal_idx if hw.rx_signal_idx is not None else -1};",
+            f"  static constexpr bool kSupportsDma = {'true' if hw.supports_dma else 'false'};",
+        ]
+
     def _build(row: UartSemanticRow) -> list[str]:
         if row.is_stub:
-            # Peripheral is present on hardware but schema not yet implemented —
-            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            # Peripheral is present on hardware but schema not yet implemented.
+            # ``kPresent`` flips to ``true`` when the device carries a
+            # ``UartPeripheralDescriptor`` (added by
+            # ``fill-espressif-semantic-gaps``) so the alloy HAL can drive
+            # the controller via the hardware-feature constexprs even
+            # without the register-level schema.
+            kpresent = "true" if row.peripheral_name in uart_hw_by_id else "false"
             return [
-                "  static constexpr bool kPresent = false;",
+                f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                *_hw_lines(row),
                 "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -10498,6 +10566,7 @@ def _uart_specialization_builder(context: _SemanticContext):
         return [
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            *_hw_lines(row),
             f"  static constexpr RuntimeRegisterRef kCr1Register = {_register_ref_expr(row.cr1_reg)};",
             f"  static constexpr RuntimeRegisterRef kCr2Register = {_register_ref_expr(row.cr2_reg)};",
             f"  static constexpr RuntimeRegisterRef kBrrRegister = {_register_ref_expr(row.brr_reg)};",
@@ -10733,13 +10802,56 @@ def _i2c_specialization_builder(context: _SemanticContext):
 
 
 def _spi_specialization_builder(context: _SemanticContext):
+    # Hardware-feature lookup added by ``fill-espressif-semantic-gaps``.
+    spi_hw_by_id = {s.peripheral_id: s for s in context.device.spi_peripherals}
+
+    def _spi_hw_lines(row: SpiSemanticRow) -> list[str]:
+        hw = spi_hw_by_id.get(row.peripheral_name)
+        peripheral = context.peripheral_by_name.get(row.peripheral_name)
+        base_address = peripheral.base_address if peripheral is not None else 0
+        if hw is None:
+            return [
+                "  static constexpr bool kHardwarePresent = false;",
+                f"  static constexpr std::uintptr_t kBaseAddress = 0x{base_address:08X}u;",
+                "  static constexpr std::uint32_t kMaxClockHz = 0u;",
+                "  static constexpr std::int16_t kMosiOutSignal = -1;",
+                "  static constexpr std::int16_t kMisoInSignal = -1;",
+                "  static constexpr std::int16_t kClkOutSignal = -1;",
+                "  static constexpr std::int16_t kCsOutSignal = -1;",
+                "  static constexpr bool kHasIomuxFastPath = false;",
+                "  static constexpr std::int16_t kIomuxMosiPin = -1;",
+                "  static constexpr std::int16_t kIomuxMisoPin = -1;",
+                "  static constexpr std::int16_t kIomuxClkPin = -1;",
+                "  static constexpr std::int16_t kIomuxCsPin = -1;",
+                "  static constexpr bool kSupportsDma = false;",
+            ]
+        return [
+            "  static constexpr bool kHardwarePresent = true;",
+            f"  static constexpr std::uintptr_t kBaseAddress = 0x{base_address:08X}u;",
+            f"  static constexpr std::uint32_t kMaxClockHz = {hw.max_clock_hz}u;",
+            f"  static constexpr std::int16_t kMosiOutSignal = {hw.mosi_out_signal if hw.mosi_out_signal is not None else -1};",
+            f"  static constexpr std::int16_t kMisoInSignal = {hw.miso_in_signal if hw.miso_in_signal is not None else -1};",
+            f"  static constexpr std::int16_t kClkOutSignal = {hw.clk_out_signal if hw.clk_out_signal is not None else -1};",
+            f"  static constexpr std::int16_t kCsOutSignal = {hw.cs_out_signal if hw.cs_out_signal is not None else -1};",
+            f"  static constexpr bool kHasIomuxFastPath = {'true' if hw.has_iomux_fast_path else 'false'};",
+            f"  static constexpr std::int16_t kIomuxMosiPin = {hw.iomux_mosi_pin if hw.iomux_mosi_pin is not None else -1};",
+            f"  static constexpr std::int16_t kIomuxMisoPin = {hw.iomux_miso_pin if hw.iomux_miso_pin is not None else -1};",
+            f"  static constexpr std::int16_t kIomuxClkPin = {hw.iomux_clk_pin if hw.iomux_clk_pin is not None else -1};",
+            f"  static constexpr std::int16_t kIomuxCsPin = {hw.iomux_cs_pin if hw.iomux_cs_pin is not None else -1};",
+            f"  static constexpr bool kSupportsDma = {'true' if hw.supports_dma else 'false'};",
+        ]
+
     def _build(row: SpiSemanticRow) -> list[str]:
         if row.is_stub:
-            # Peripheral is present on hardware but schema not yet implemented —
-            # emit a kPresent=false specialization so the alloy HAL can detect it.
+            # Peripheral is present on hardware but schema not yet implemented.
+            # ``kPresent`` flips to ``true`` when the device IR carries an
+            # ``SpiPeripheralDescriptor`` (added by
+            # ``fill-espressif-semantic-gaps``).
+            kpresent = "true" if row.peripheral_name in spi_hw_by_id else "false"
             return [
-                "  static constexpr bool kPresent = false;",
+                f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+                *_spi_hw_lines(row),
                 "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
@@ -10834,6 +10946,7 @@ def _spi_specialization_builder(context: _SemanticContext):
         lines = [
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
+            *_spi_hw_lines(row),
         ]
         lines.extend(
             f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
@@ -12074,6 +12187,13 @@ def emit_runtime_driver_uart_semantics_header(
     default_lines = [
         "  static constexpr bool kPresent = false;",
         "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        # Hardware-feature defaults (added by ``fill-espressif-semantic-gaps``).
+        "  static constexpr bool kHardwarePresent = false;",
+        "  static constexpr std::uintptr_t kBaseAddress = 0u;",
+        "  static constexpr std::uint16_t kFifoDepth = 0u;",
+        "  static constexpr std::int16_t kTxSignalIdx = -1;",
+        "  static constexpr std::int16_t kRxSignalIdx = -1;",
+        "  static constexpr bool kSupportsDma = false;",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -12252,6 +12372,20 @@ def emit_runtime_driver_spi_semantics_header(
     default_lines = [
         "  static constexpr bool kPresent = false;",
         "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
+        # Hardware-feature defaults (added by ``fill-espressif-semantic-gaps``).
+        "  static constexpr bool kHardwarePresent = false;",
+        "  static constexpr std::uintptr_t kBaseAddress = 0u;",
+        "  static constexpr std::uint32_t kMaxClockHz = 0u;",
+        "  static constexpr std::int16_t kMosiOutSignal = -1;",
+        "  static constexpr std::int16_t kMisoInSignal = -1;",
+        "  static constexpr std::int16_t kClkOutSignal = -1;",
+        "  static constexpr std::int16_t kCsOutSignal = -1;",
+        "  static constexpr bool kHasIomuxFastPath = false;",
+        "  static constexpr std::int16_t kIomuxMosiPin = -1;",
+        "  static constexpr std::int16_t kIomuxMisoPin = -1;",
+        "  static constexpr std::int16_t kIomuxClkPin = -1;",
+        "  static constexpr std::int16_t kIomuxCsPin = -1;",
+        "  static constexpr bool kSupportsDma = false;",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
