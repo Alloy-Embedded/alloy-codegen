@@ -246,6 +246,8 @@ class FamilyPatchCatalog:
     timer_units: tuple[TimerUnitPatch, ...] = ()
     ledc: LedcPatch | None = None
     dma_channels: tuple[DmaChannelPatch, ...] = ()
+    # RP2040 PWM slices (added by ``complete-rp2040-semantics``).
+    pwm_slices: tuple[PwmSlicePatch, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -256,6 +258,12 @@ class UartPeripheralPatch:
     tx_signal_idx: int | None = None
     rx_signal_idx: int | None = None
     supports_dma: bool = False
+    valid_tx_pins: tuple[int, ...] = ()
+    valid_rx_pins: tuple[int, ...] = ()
+    valid_cts_pins: tuple[int, ...] = ()
+    valid_rts_pins: tuple[int, ...] = ()
+    dreq_tx: int | None = None
+    dreq_rx: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,6 +281,12 @@ class SpiPeripheralPatch:
     iomux_clk_pin: int | None = None
     iomux_cs_pin: int | None = None
     supports_dma: bool = False
+    valid_mosi_pins: tuple[int, ...] = ()
+    valid_miso_pins: tuple[int, ...] = ()
+    valid_clk_pins: tuple[int, ...] = ()
+    valid_cs_pins: tuple[int, ...] = ()
+    dreq_tx: int | None = None
+    dreq_rx: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -282,6 +296,10 @@ class AdcUnitPatch:
     resolution_bits: int
     conflicts_with_wifi: bool = False
     channel_pins: tuple[int, ...] = ()
+    base_address: int = 0
+    supports_fifo: bool = False
+    fifo_depth: int = 0
+    dreq: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -292,6 +310,8 @@ class TimerUnitPatch:
     base_address: int
     bits: int
     clock_sources: tuple[str, ...] = ()
+    alarm_count: int = 0
+    alarm_dreqs: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -310,6 +330,20 @@ class DmaChannelPatch:
     is_gdma: bool
     max_transfer_bytes: int = 0
     peripheral_requests: tuple[tuple[str, int], ...] = ()
+    base_address: int = 0
+    max_transfer_count: int = 0
+    supports_chaining: bool = False
+    supports_byte_swap: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class PwmSlicePatch:
+    slice_index: int
+    channel_a_pin: int
+    channel_b_pin: int
+    counter_bits: int = 16
+    clock_div_min_q4: int = 16
+    clock_div_max_q4: int = 4096
 
 
 @dataclass(frozen=True, slots=True)
