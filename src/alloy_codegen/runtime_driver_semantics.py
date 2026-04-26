@@ -10185,16 +10185,27 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         "  static constexpr std::uint32_t kPinIndex = 0u;",
         "  static constexpr std::uint8_t kMaxAltFunction = 0u;",
         "  static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};",
+        "  static constexpr bool kIsInputOnly = false;",
         "};",
         "",
     ]
     def _af_lines(pin: GpioPinDescriptor | None) -> list[str]:
-        if pin is None or not pin.alt_functions:
+        if pin is None:
             return [
                 "  static constexpr std::uint32_t kPortOffset = 0u;",
                 "  static constexpr std::uint32_t kPinIndex = 0u;",
                 "  static constexpr std::uint8_t kMaxAltFunction = 0u;",
                 "  static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};",
+                "  static constexpr bool kIsInputOnly = false;",
+            ]
+        is_input_only = "true" if pin.is_input_only else "false"
+        if not pin.alt_functions:
+            return [
+                f"  static constexpr std::uint32_t kPortOffset = {pin.port_offset:#010x}u;",
+                f"  static constexpr std::uint32_t kPinIndex = {pin.pin_index}u;",
+                "  static constexpr std::uint8_t kMaxAltFunction = 0u;",
+                "  static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};",
+                f"  static constexpr bool kIsInputOnly = {is_input_only};",
             ]
         af_numbers = sorted({af.af_number for af in pin.alt_functions})
         af_array = ", ".join(f"{n}u" for n in af_numbers)
@@ -10206,6 +10217,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
                 f"  static constexpr std::array<std::uint8_t, {len(af_numbers)}> "
                 f"kValidAltFunctions = {{{{{af_array}}}}};"
             ),
+            f"  static constexpr bool kIsInputOnly = {is_input_only};",
         ]
 
     pin_rows: list[str] = []

@@ -1177,6 +1177,228 @@
       "signal": "TX"
     }
   ],
+  "gpio_pins": [
+    {
+      "alt_functions": [
+        {
+          "af_number": 63,
+          "peripheral": "SPI2",
+          "signal_name": "MISO"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO2",
+      "pin_index": 2,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 9,
+          "peripheral": "UART1",
+          "signal_name": "TX"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO4",
+      "pin_index": 4,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 9,
+          "peripheral": "UART1",
+          "signal_name": "RX"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO5",
+      "pin_index": 5,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 63,
+          "peripheral": "SPI2",
+          "signal_name": "SCK"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO6",
+      "pin_index": 6,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 64,
+          "peripheral": "SPI2",
+          "signal_name": "MOSI"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO7",
+      "pin_index": 7,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 15,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO8",
+      "pin_index": 8,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 14,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO9",
+      "pin_index": 9,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 68,
+          "peripheral": "SPI2",
+          "signal_name": "CS"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO10",
+      "pin_index": 10,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 6,
+          "peripheral": "UART0",
+          "signal_name": "RX"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO20",
+      "pin_index": 20,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 6,
+          "peripheral": "UART0",
+          "signal_name": "TX"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GPIO21",
+      "pin_index": 21,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "espressif-esp32c3-family-bootstrap-v1",
+          "espressif-esp32c3-bootstrap"
+        ],
+        "source_id": "espressif-svd",
+        "source_path": "esp32c3.svd"
+      }
+    }
+  ],
   "identity": {
     "core": "rv32imc",
     "device": "esp32c3",

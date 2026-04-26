@@ -73,16 +73,32 @@ breaking already-passing families.
       `kPinIndex = 9u`, and a non-empty `kValidAltFunctions`; `PA3` on
       F405RG records the same zero port offset.
 
-## 4. Espressif (Phase C — pending)
+## 4. Espressif (Phase C — done in this commit)
 
-- [ ] 4.1 Add `GpioMatrixSignalDescriptor` to the IR (signal_name,
-      `in_sel_idx`, `out_sel_idx`, `out_en_sel_idx`).
-- [ ] 4.2 Wire `_build_espressif_gpio_pins` for ESP32 classic / C3 / S3:
-      populate `is_input_only` for GPIO34–39 on classic; `port` is the
-      single GPIO peripheral on ESP32 (no STM32-style ports).
-- [ ] 4.3 Emit `GpioMatrixSemanticTraits<SignalId>` alongside
-      `GpioSemanticTraits` for the IO-matrix path.
-- [ ] 4.4 Goldens + invariant tests for the three ESP32 variants.
+- [ ] 4.1 `GpioMatrixSignalDescriptor` (separate `GpioMatrixSemanticTraits<SignalId>`
+      with explicit `in_sel_idx` / `out_sel_idx` / `out_en_sel_idx`) is
+      **deferred**.  Phase C reuses `GpioPinDescriptor` and surfaces the
+      IO-matrix signal index through ``alt_functions[*].af_number`` (the
+      `gpio_sig_map.h` parser already records that index in
+      `RawPinSignal.af_number`).  Splitting the matrix table into its own
+      trait struct adds compile-time ergonomics for consumer code that
+      configures `GPIO.func_in_sel_cfg` / `func_out_sel_cfg` from the
+      *signal* side; that ergonomic gain is its own follow-up proposal.
+- [x] 4.2 `_build_espressif_gpio_pins` wired into `_build_esp32_device_ir`
+      (single ``port = "GPIO"``, ``port_offset = 0``,
+      ``is_input_only = True`` for GPIO34..39 on the classic ESP32 only).
+- [x] 4.3 `GpioSemanticTraits` primary template gains a `kIsInputOnly`
+      bool; AF-only specializations now emit it set from
+      `GpioPinDescriptor.is_input_only`.  Existing iMXRT register-level
+      specializations carry the same zero default.  See note 4.1 above
+      regarding `GpioMatrixSemanticTraits<SignalId>`.
+- [x] 4.4 Canonical-IR fixtures regenerated for `esp32`, `esp32c3`,
+      `esp32s3`, plus all other admitted families (stm32g0, stm32f4,
+      same70, avr-da, rp2040, imxrt1060) since the new `kIsInputOnly`
+      field is part of the canonical IR.  Tests in
+      `tests/test_gpio_semantic_traits.py` add ESP32-C3 GPIO2 (signal 63
+      via IO matrix) and a guard that input-only pads on classic ESP32
+      carry `kIsInputOnly = true` when present.
 
 ## 5. AVR-DA (Phase D — pending)
 

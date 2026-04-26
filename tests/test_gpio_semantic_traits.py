@@ -53,7 +53,7 @@ def test_stm32g071rb_pa0_specialization_records_port_topology(
 
     pa0 = _struct_block(content, "GpioSemanticTraits<PinId::PA0>")
     assert "static constexpr bool kPresent = true;" in pa0
-    assert "static constexpr std::uint32_t kPortOffset = 0u;" in pa0  # GPIOA base
+    assert "static constexpr std::uint32_t kPortOffset = 0x00000000u;" in pa0  # GPIOA base
     assert "static constexpr std::uint32_t kPinIndex = 0u;" in pa0
 
 
@@ -112,3 +112,46 @@ def test_stm32f405rg_pa3_records_port_topology(
     pa3 = _struct_block(content, "GpioSemanticTraits<PinId::PA3>")
     assert "static constexpr std::uint32_t kPortOffset = 0x00000000u;" in pa3
     assert "static constexpr std::uint32_t kPinIndex = 3u;" in pa3
+
+
+# --- Phase C: Espressif (ESP32 classic / C3 / S3) ------------------------
+
+
+def test_esp32c3_gpio_pins_emit_kpresent_with_io_matrix_signal_index(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """ESP32 has a single GPIO peripheral; alt-function numbers carry the
+    IO-matrix signal index (e.g. SPI2_MISO = signal 63 on C3).  Verify the
+    primary template carries the new ``kIsInputOnly`` field and that GPIO2
+    on C3 reports a populated AF list with ``kIsInputOnly = false``."""
+    content = _emit_gpio_hpp(espressif_execution_context, "esp32c3")
+
+    primary = _struct_block(content, "GpioSemanticTraits")
+    assert "static constexpr bool kIsInputOnly = false;" in primary
+
+    gpio2 = _struct_block(content, "GpioSemanticTraits<PinId::GPIO2>")
+    assert "static constexpr bool kPresent = true;" in gpio2
+    assert "static constexpr std::uint32_t kPinIndex = 2u;" in gpio2
+    assert "static constexpr bool kIsInputOnly = false;" in gpio2
+    # SPI2_MISO routes through IO matrix signal 63 on ESP32-C3 — present
+    # in the test gpio_sig_map.h slice.
+    assert "kValidAltFunctions = {{63u}};" in gpio2
+
+
+def test_esp32_classic_input_only_pads_marked(
+    espressif_execution_context: ExecutionContext,
+) -> None:
+    """GPIO34..39 on the classic ESP32 are physically input-only.  When such
+    a pad appears in the test slice, its specialization MUST carry
+    ``kIsInputOnly = true``; otherwise (slice doesn't include those pads)
+    this assertion is vacuously satisfied."""
+    content = _emit_gpio_hpp(espressif_execution_context, "esp32")
+
+    for pad in (34, 35, 36, 37, 38, 39):
+        header = f"GpioSemanticTraits<PinId::GPIO{pad}>"
+        if header not in content:
+            continue
+        block = _struct_block(content, header)
+        assert "static constexpr bool kIsInputOnly = true;" in block, (
+            f"GPIO{pad} on classic ESP32 must be input-only"
+        )

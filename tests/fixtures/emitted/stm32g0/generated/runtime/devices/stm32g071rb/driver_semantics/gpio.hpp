@@ -42,6 +42,7 @@ struct GpioSemanticTraits {
   static constexpr std::uint32_t kPinIndex = 0u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};
+  static constexpr bool kIsInputOnly = false;
 };
 
 template<>
@@ -70,10 +71,11 @@ struct GpioSemanticTraits<PinId::PA0> {
   static constexpr RuntimeFieldRef kPioPullUpDisableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPioPullDownEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPioPullDownDisableField = kInvalidFieldRef;
-  static constexpr std::uint32_t kPortOffset = 0u;
+  static constexpr std::uint32_t kPortOffset = 0x00000000u;
   static constexpr std::uint32_t kPinIndex = 0u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};
+  static constexpr bool kIsInputOnly = false;
 };
 
 template<>
@@ -106,6 +108,7 @@ struct GpioSemanticTraits<PinId::PA1> {
   static constexpr std::uint32_t kPinIndex = 1u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 1> kValidAltFunctions = {{0u}};
+  static constexpr bool kIsInputOnly = false;
 };
 
 template<>
@@ -134,10 +137,11 @@ struct GpioSemanticTraits<PinId::PA2> {
   static constexpr RuntimeFieldRef kPioPullUpDisableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPioPullDownEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPioPullDownDisableField = kInvalidFieldRef;
-  static constexpr std::uint32_t kPortOffset = 0u;
-  static constexpr std::uint32_t kPinIndex = 0u;
+  static constexpr std::uint32_t kPortOffset = 0x00000000u;
+  static constexpr std::uint32_t kPinIndex = 2u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};
+  static constexpr bool kIsInputOnly = false;
 };
 
 template<>
@@ -166,10 +170,11 @@ struct GpioSemanticTraits<PinId::PA3> {
   static constexpr RuntimeFieldRef kPioPullUpDisableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPioPullDownEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kPioPullDownDisableField = kInvalidFieldRef;
-  static constexpr std::uint32_t kPortOffset = 0u;
-  static constexpr std::uint32_t kPinIndex = 0u;
+  static constexpr std::uint32_t kPortOffset = 0x00000000u;
+  static constexpr std::uint32_t kPinIndex = 3u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 0> kValidAltFunctions = {};
+  static constexpr bool kIsInputOnly = false;
 };
 
 template<>
@@ -202,6 +207,7 @@ struct GpioSemanticTraits<PinId::PB6> {
   static constexpr std::uint32_t kPinIndex = 6u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 1> kValidAltFunctions = {{0u}};
+  static constexpr bool kIsInputOnly = false;
 };
 
 template<>
@@ -234,6 +240,7 @@ struct GpioSemanticTraits<PinId::PB7> {
   static constexpr std::uint32_t kPinIndex = 7u;
   static constexpr std::uint8_t kMaxAltFunction = 0u;
   static constexpr std::array<std::uint8_t, 1> kValidAltFunctions = {{0u}};
+  static constexpr bool kIsInputOnly = false;
 };
 
 inline constexpr std::array<PinId, 6> kGpioSemanticPins = {{

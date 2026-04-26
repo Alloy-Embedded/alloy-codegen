@@ -1081,6 +1081,64 @@ def _build_st_gpio_pins(
     return tuple(descriptors)
 
 
+def _build_espressif_gpio_pins(
+    *,
+    pins: tuple[PinDefinition, ...],
+    family: str,
+    provenance: Provenance,
+) -> tuple[GpioPinDescriptor, ...]:
+    """Derive `GpioPinDescriptor` entries for the Espressif ESP32 family.
+
+    ESP32 has a single GPIO peripheral; pin alternate-functions are routed
+    through the IO Matrix (`af_number` carries the IO matrix signal index,
+    not an STM32-style alt-function number).  The single ``port`` is
+    always ``"GPIO"`` and ``port_offset`` is therefore zero.
+
+    Input-only pads: GPIO34–39 on the ESP32 *classic* (LX6) silicon are
+    physically input-only.  Other Espressif variants (C3, S3) have no
+    input-only pads.
+    """
+    if not pins:
+        return ()
+    classic_input_only = {34, 35, 36, 37, 38, 39}
+    descriptors: list[GpioPinDescriptor] = []
+    for pin in pins:
+        if not pin.signals:
+            continue
+        seen_af: dict[tuple[int, str], AltFunctionDescriptor] = {}
+        for signal in pin.signals:
+            if signal.af_number is None or signal.peripheral is None:
+                continue
+            signal_name = signal.signal or signal.function
+            if signal_name is None:
+                continue
+            key = (signal.af_number, signal_name)
+            seen_af.setdefault(
+                key,
+                AltFunctionDescriptor(
+                    af_number=signal.af_number,
+                    signal_name=signal_name,
+                    peripheral=signal.peripheral,
+                ),
+            )
+        alt_functions = tuple(
+            sorted(seen_af.values(), key=lambda af: (af.af_number, af.signal_name))
+        )
+        is_input_only = family == "esp32" and pin.number in classic_input_only
+        descriptors.append(
+            GpioPinDescriptor(
+                pin_id=pin.name,
+                port="GPIO",
+                pin_index=pin.number,
+                port_offset=0,
+                alt_functions=alt_functions,
+                is_input_only=is_input_only,
+                provenance=provenance,
+            )
+        )
+    return tuple(descriptors)
+
+
 def build_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -2008,6 +2066,14 @@ def _build_esp32_device_ir(
             if not pin_entry.packages or patch.package in pin_entry.packages
         )
         ir = dataclasses.replace(ir, pins=phase0_pins, package_pads=phase0_pads)
+
+    espressif_gpio_pins = _build_espressif_gpio_pins(
+        pins=ir.pins,
+        family=family,
+        provenance=ir.provenance,
+    )
+    if espressif_gpio_pins:
+        ir = dataclasses.replace(ir, gpio_pins=espressif_gpio_pins)
 
     return ir
 
