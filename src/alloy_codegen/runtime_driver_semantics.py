@@ -293,6 +293,8 @@ class I2cSemanticRow:
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -710,6 +712,8 @@ class DacSemanticRow:
     data_pattern: RuntimeIndexedFieldRef
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -922,6 +926,8 @@ class EthSemanticRow:
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1037,6 +1043,8 @@ class QspiSemanticRow:
     scrambling_enable_field: RuntimeFieldRef
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1097,6 +1105,8 @@ class SdmmcSemanticRow:
     dma_enable_field: RuntimeFieldRef
     # NVIC vector lines (added by ``add-irq-vector-traits``).
     irq_numbers: tuple[int, ...] = ()
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1152,6 +1162,8 @@ class TimerSemanticRow:
     capture_irq_number: int | None = None
     break_irq_number: int | None = None
     trigger_irq_number: int | None = None
+    # DMA cross-references (add-peripheral-dma-cross-references).
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -3288,7 +3300,7 @@ def _build_i2c_rows(context: _SemanticContext) -> tuple[I2cSemanticRow, ...]:
                     is_stub=True,
                 )
             )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=8)  # type: ignore[return-value]
 
 
 def _st_spi_row(
@@ -3699,6 +3711,67 @@ def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str)
         binding.peripheral == peripheral_name
         for binding in _runtime_lite_dma_bindings(context.device)
     )
+
+
+def _enrich_with_dma_bindings(
+    context: _SemanticContext,
+    rows: tuple[object, ...],
+    *,
+    transfer_width_bits: int = 8,
+) -> tuple[object, ...]:
+    """Thread `dma_bindings` onto each row that exposes a
+    `peripheral_name` and `dma_bindings` attribute.  Used by the
+    I2C/TIMER/DAC/SDMMC/QSPI/ETH builders so consumer headers see
+    the populated `kDmaBindings` array on every specialisation."""
+    import dataclasses as _dc
+
+    enriched: list[object] = []
+    for row in rows:
+        if not hasattr(row, "peripheral_name") or not hasattr(row, "dma_bindings"):
+            enriched.append(row)
+            continue
+        bindings = _generic_dma_bindings_for_peripheral(
+            context,
+            peripheral_name=row.peripheral_name,
+            transfer_width_bits=transfer_width_bits,
+        )
+        if not bindings:
+            enriched.append(row)
+            continue
+        enriched.append(_dc.replace(row, dma_bindings=bindings))
+    return tuple(enriched)
+
+
+def _generic_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    transfer_width_bits: int = 8,
+) -> tuple[UartDmaBindingRow, ...]:
+    """Generic DMA-binding helper used by I2C/TIMER/DAC/SDMMC/QSPI/ETH.
+
+    Mirrors the UART/SPI helper shape but does not filter by signal —
+    every binding admitted for the peripheral is surfaced.  ``signal``
+    falls back to an empty string when the IR carries ``None`` so the
+    typed ``DmaBindingDirection`` enum maps to ``::none`` (the
+    direction is meaningful for UART/SPI; for the other peripherals it
+    is informational).
+    """
+    bindings: list[UartDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        bindings.append(
+            UartDmaBindingRow(
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
+                signal=(binding.signal or "").upper(),
+                transfer_width_bits=transfer_width_bits,
+            )
+        )
+    return tuple(bindings)
 
 
 def _uart_dma_bindings_for_peripheral(
@@ -5694,7 +5767,8 @@ def _build_dac_rows(
             channel_rows.extend(
                 _microchip_dac_channel_rows(context, peripheral_name=peripheral.name)
             )
-    return tuple(rows), tuple(channel_rows)
+    enriched = _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=16)
+    return tuple(enriched), tuple(channel_rows)  # type: ignore[return-value]
 
 
 def _st_rtc_row(
@@ -7376,7 +7450,7 @@ def _build_eth_rows(context: _SemanticContext) -> tuple[EthSemanticRow, ...]:
                 is_stub=True,
             )
         )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=32)  # type: ignore[return-value]
 
 
 def _st_usb_row(
@@ -8179,7 +8253,7 @@ def _build_qspi_rows(context: _SemanticContext) -> tuple[QspiSemanticRow, ...]:
                     schema_id=schema_id,
                 )
             )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=32)  # type: ignore[return-value]
 
 
 def _microchip_hsmci_sdmmc_row(
@@ -8582,7 +8656,7 @@ def _build_sdmmc_rows(context: _SemanticContext) -> tuple[SdmmcSemanticRow, ...]
                     schema_id=schema_id,
                 )
             )
-    return tuple(rows)
+    return _enrich_with_dma_bindings(context, tuple(rows), transfer_width_bits=32)  # type: ignore[return-value]
 
 
 def _microchip_watchdog_row(
@@ -9959,7 +10033,10 @@ def _build_timer_rows(
                     capture_select_field=invalid_field,
                 )
             )
-    return tuple(timer_rows), tuple(channel_rows)
+    enriched_timer_rows = _enrich_with_dma_bindings(
+        context, tuple(timer_rows), transfer_width_bits=16
+    )
+    return tuple(enriched_timer_rows), tuple(channel_rows)  # type: ignore[return-value]
 
 
 def _st_pwm_row(
@@ -11001,11 +11078,23 @@ def _emit_peripheral_semantics_header(
     peripheral_rows: list[str] = []
     for row in rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
+        # add-peripheral-dma-cross-references: append kDmaBindings to every
+        # specialisation that exposes a `dma_bindings` tuple.  UART/SPI/ADC
+        # already emit this inline via their tier 2/3/4 helpers; the other
+        # peripherals (I2C/TIMER/DAC/SDMMC/QSPI/ETH) get it appended here
+        # so the unspecialised primary template's `kDmaBindings` field is
+        # always shadowed by a real array in each specialisation.
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any(
+            "kDmaBindings = " in line for line in row_lines
+        ):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
                 "template<>",
                 f"struct {trait_name}<PeripheralId::{peripheral_id}> {{",
-                *specialization_builder(row),
+                *row_lines,
                 "};",
                 "",
             ]
@@ -13831,6 +13920,8 @@ def emit_runtime_driver_i2c_semantics_header(
         "  static constexpr RuntimeFieldRef kArblstField = kInvalidFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14167,6 +14258,8 @@ def emit_runtime_driver_dac_semantics_header(
         "  static constexpr RuntimeIndexedFieldRef kDataPattern = kInvalidIndexedFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "};",
         "",
     ]
@@ -14174,11 +14267,15 @@ def emit_runtime_driver_dac_semantics_header(
     specialization_builder = _dac_specialization_builder(context)
     for row in dac_rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any("kDmaBindings = " in line for line in row_lines):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
                 "template<>",
                 f"struct DacSemanticTraits<PeripheralId::{peripheral_id}> {{",
-                *specialization_builder(row),
+                *row_lines,
                 "};",
                 "",
             ]
@@ -14489,6 +14586,8 @@ def emit_runtime_driver_eth_semantics_header(
         "  static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14558,6 +14657,8 @@ def emit_runtime_driver_qspi_semantics_header(
         "  static constexpr RuntimeFieldRef kScramblingEnableField = kInvalidFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14633,6 +14734,8 @@ def emit_runtime_driver_sdmmc_semantics_header(
         "  static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;",
         # NVIC vector lines (added by ``add-irq-vector-traits``).
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14755,6 +14858,8 @@ def emit_runtime_driver_timer_semantics_header(
         "  static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;",
         "  static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;",
         "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        # DMA cross-references (add-peripheral-dma-cross-references).
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "};",
         "",
     ]
@@ -14762,11 +14867,15 @@ def emit_runtime_driver_timer_semantics_header(
     specialization_builder = _timer_specialization_builder(context)
     for row in timer_rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any("kDmaBindings = " in line for line in row_lines):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
         trait_lines.extend(
             [
                 "template<>",
                 f"struct TimerSemanticTraits<PeripheralId::{peripheral_id}> {{",
-                *specialization_builder(row),
+                *row_lines,
                 "};",
                 "",
             ]

@@ -67,6 +67,7 @@ struct SdmmcSemanticTraits {
   static constexpr RuntimeFieldRef kNotBusyField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
 inline constexpr std::array<PeripheralId, 0> kSdmmcSemanticPeripherals = {};

@@ -36,6 +36,7 @@ struct DacSemanticTraits {
   static constexpr RuntimeIndexedFieldRef kTriggerSelectPattern = kInvalidIndexedFieldRef;
   static constexpr RuntimeIndexedFieldRef kDataPattern = kInvalidIndexedFieldRef;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
 template<>
@@ -62,6 +63,7 @@ struct DacSemanticTraits<PeripheralId::DAC> {
   static constexpr RuntimeIndexedFieldRef kTriggerSelectPattern = RuntimeIndexedFieldRef{0x40007400u, 0u, 0u, 3u, 3u, 16u, true};
   static constexpr RuntimeIndexedFieldRef kDataPattern = RuntimeIndexedFieldRef{0x40007400u, 8u, 0u, 0u, 12u, 0u, true};
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
 template<PeripheralId Id, std::size_t ChannelIndex>

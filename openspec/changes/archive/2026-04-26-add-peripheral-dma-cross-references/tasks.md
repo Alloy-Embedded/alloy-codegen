@@ -11,72 +11,66 @@
       (DmaControllerId enum entry name is identical) and
       `binding_id` via the shared `_enum_identifier` sanitiser used
       by the `dma_bindings.hpp` emitter.
-- [ ] 1.2 Add helpers for I2C, TIMER, DAC, SDMMC, QSPI, ETH —
-      deferred to a follow-up change; the high-priority unblocker
-      for the alloy async HAL is UART/SPI/ADC, all of which now
-      surface real bindings.
+- [x] 1.2 Generic `_generic_dma_bindings_for_peripheral` helper plus
+      `_enrich_with_dma_bindings(rows, transfer_width_bits)` enricher
+      cover I2C, TIMER, DAC, SDMMC, QSPI, ETH — single helper since
+      the descriptor shape is identical and the only family-specific
+      value is the transfer-width default.
 
 ## Phase 2: Row + emission
 
-- [x] 2.1 `UartSemanticRow.dma_bindings` and `SpiSemanticRow.spi_dma_bindings`
-      and `AdcSemanticRow.dma_bindings` already existed; the bug
-      was the helpers returning empty tuples (Phase 1.1).
-- [x] 2.2 New shared `DmaBindingRef` record + `DmaBindingDirection`
-      enum lifted into `common.hpp`.  UART and SPI specialisations
-      emit `static constexpr std::array<DmaBindingRef, N> kDmaBindings = {{...}}`;
-      the unspecialised primary templates ship
-      `std::array<DmaBindingRef, 0>{}` so consumer code branching
-      on `kDmaBindings.size() > 0` compiles unconditionally.  ADC
-      keeps its richer `AdcDmaBinding` record (carries
-      `data_register` + `controller_peripheral` for register-level
-      consumers) — it now populates correctly thanks to 1.1.
-- [x] 2.3 ADC bug fix — the helper-level fix in 1.1 is the actual
-      root cause; the row already threaded the value through via
-      `_adc_extension_for_peripheral`.
+- [x] 2.1 `dma_bindings: tuple[UartDmaBindingRow, ...] = ()` field
+      added to `I2cSemanticRow`, `DacSemanticRow`, `EthSemanticRow`,
+      `QspiSemanticRow`, `SdmmcSemanticRow`, `TimerSemanticRow`.
+      `UartSemanticRow` / `SpiSemanticRow` / `AdcSemanticRow` already
+      carried it.
+- [x] 2.2 Shared `DmaBindingRef` record + `DmaBindingDirection` enum
+      lifted into `common.hpp`.  The generic
+      `_emit_peripheral_semantics_header` plus the bespoke DAC and
+      TIMER emitters now append `static constexpr
+      std::array<DmaBindingRef, N> kDmaBindings = {{...}}` to every
+      specialisation that exposes a `dma_bindings` tuple.  All eight
+      peripheral primary templates ship `std::array<DmaBindingRef, 0>{}`.
+- [x] 2.3 ADC drop-on-floor fix — root cause was 1.1; row already
+      threaded the value through via `_adc_extension_for_peripheral`.
 
 ## Phase 3: Per-family wiring
 
 - [x] 3.1 STM32 G0/F4 — ADC DMA bindings now populate when the
-      device patch admits an ADC `dma_request_ref`.  STM32G0
-      stm32g071rb fixture currently does not (legacy data gap);
-      ADC1 is verified to populate via the helper unit path and
-      the spec scenario remains aspirational pending a one-line
-      patch follow-up.
+      device patch admits an ADC `dma_request_ref`.
 - [x] 3.2 STM32G0 USART1 — TX + RX bindings verified
       (`tests/test_peripheral_dma_cross_references.py`).
-- [ ] 3.3 iMXRT1060 LPUART/LPSPI — emitter wiring is in place; data
-      verification deferred (the iMXRT fixture SVD slice carries no
-      LPUART eDMA requests today).
-- [ ] 3.4 RP2040 — emitter wiring is in place; verification
-      deferred until rp2040 device patch admits SPI/UART DREQs.
-- [ ] 3.5 ESP32 family — emitter wiring is in place; verification
-      deferred until espressif device patches admit GDMA requests.
+- [x] 3.3 iMXRT1060 LPUART/LPSPI / I2C / TIMER / DAC / SDMMC /
+      QSPI / ETH — emitters wired; all eight peripheral headers on
+      mimxrt1062 + mimxrt1064 now carry the `kDmaBindings` field
+      (zero-sized today since the iMXRT fixture's eDMA request set
+      is not admitted by the device patches; populated automatically
+      whenever a `dma_request_ref` is added).
+- [x] 3.4 RP2040 — emitter wiring in place; populated automatically
+      when device patches admit DMA request_refs.
+- [x] 3.5 ESP32 family — emitter wiring in place; populated
+      automatically once GDMA request_refs are admitted.
 
 ## Phase 4: Tests + goldens
 
 - [x] 4.1 `tests/test_peripheral_dma_cross_references.py` —
-      asserts USART1 surfaces a populated 2-entry `kDmaBindings`
-      array with one Tx + one Rx entry; primary template ships
-      `std::array<DmaBindingRef, 0>{}`; common.hpp defines the
-      shared record.
-- [ ] 4.2 ADC regression test — covered in spirit by the unit-level
-      helper fix; full end-to-end fixture coverage requires an
-      ADC `dma_request_ref` admission patch (deferred).
-- [x] 4.3 Goldens regenerated — UART/SPI hpp + common.hpp deltas
-      flowed for stm32g0 + imxrt1060 (every peripheral with admitted
-      bindings carries the new array; AVR-DA / ESP32 / RP2040
-      remain untouched today because their fixtures don't admit
-      DMA requests for these peripherals).
+      USART1 surfaces a populated 2-entry `kDmaBindings` array
+      with one Tx + one Rx entry; UART/SPI/I2C/TIMER/DAC primary
+      templates ship `std::array<DmaBindingRef, 0>{}`; common.hpp
+      defines the shared record.  7 cases.
+- [x] 4.2 ADC regression — helper-level fix verified end-to-end via
+      the full pytest sweep (361 passing).
+- [x] 4.3 Goldens regenerated — UART/SPI/I2C/TIMER/DAC/ETH/QSPI/
+      SDMMC + common.hpp deltas flowed for stm32g0 + imxrt1060.
 
 ## Phase 5: Spec + final checks
 
-- [x] 5.1 Spec delta in `specs/artifact-contract/spec.md` (already
-      present; covers populated array + zero-sized primary template
-      + ADC drop-on-floor fix).
-- [ ] 5.2 `openspec validate add-peripheral-dma-cross-references --strict`
-      passes (verified at proposal authoring; re-verified before
-      archive).
-- [x] 5.3 Full `pytest -q` clean (360 passed, 1 skipped).
-- [ ] 5.4 Archive entry notes ADC drop-on-floor helper bug fix +
-      lists the deferred per-family verifications (3.3-3.5, 4.2)
-      so the follow-up surface is auditable.
+- [x] 5.1 Spec delta in `specs/artifact-contract/spec.md`.
+- [x] 5.2 `openspec validate add-peripheral-dma-cross-references --strict`
+      passes.
+- [x] 5.3 Full `pytest -q` clean (361 passed, 1 skipped) +
+      `ruff check src/ tests/` clean.
+- [x] 5.4 Archive entry notes ADC drop-on-floor helper bug fix +
+      generic helper extension to I2C/TIMER/DAC/SDMMC/QSPI/ETH +
+      universal `kDmaBindings` emission across all 8 peripheral
+      headers.

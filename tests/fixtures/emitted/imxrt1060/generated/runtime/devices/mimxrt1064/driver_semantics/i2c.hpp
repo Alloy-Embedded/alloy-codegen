@@ -84,6 +84,7 @@ struct I2cSemanticTraits {
   static constexpr RuntimeFieldRef kNackField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kArblstField = kInvalidFieldRef;
   static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};
 };
 
 inline constexpr std::array<PeripheralId, 0> kI2cSemanticPeripherals = {};

@@ -64,6 +64,30 @@ def test_spi_primary_template_emits_zero_dma_bindings(
     assert "static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};" in primary
 
 
+def test_i2c_primary_template_emits_zero_dma_bindings(
+    execution_context: ExecutionContext,
+) -> None:
+    content = _emit_header(execution_context, "stm32g071rb", "i2c.hpp")
+    primary = _struct_block(content, "I2cSemanticTraits")
+    assert "static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};" in primary
+
+
+def test_timer_primary_template_emits_zero_dma_bindings(
+    execution_context: ExecutionContext,
+) -> None:
+    content = _emit_header(execution_context, "stm32g071rb", "timer.hpp")
+    primary = _struct_block(content, "TimerSemanticTraits")
+    assert "static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};" in primary
+
+
+def test_dac_primary_template_emits_zero_dma_bindings(
+    execution_context: ExecutionContext,
+) -> None:
+    content = _emit_header(execution_context, "stm32g071rb", "dac.hpp")
+    primary = _struct_block(content, "DacSemanticTraits")
+    assert "static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};" in primary
+
+
 def test_common_hpp_defines_dma_binding_ref_struct(
     execution_context: ExecutionContext,
 ) -> None:
