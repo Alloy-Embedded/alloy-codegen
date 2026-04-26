@@ -16,7 +16,7 @@ introduce each column.
 | espressif   | esp32     | esp32, esp32-wroom32                  | ✓ IO matrix | N/A        |
 | espressif   | esp32c3   | esp32c3                               | ✓ IO matrix | N/A        |
 | espressif   | esp32s3   | esp32s3                               | ✓ IO matrix | N/A        |
-| raspberrypi | rp2040    | rp2040, pico                          | ⏳ pending (`complete-rp2040-semantics`) | ✓ |
+| raspberrypi | rp2040    | rp2040, pico                          | ✓ FUNCSEL   | ✓          |
 
 ## Column meaning
 
@@ -42,9 +42,10 @@ introduce each column.
 
 ## Outstanding follow-ups
 
-- **RP2040 GPIO traits** — tracked by `complete-rp2040-semantics`; the
-  GPIO coverage gate's RP2040 case is `xfail`-marked until that change
-  populates `device.gpio_pins` for RP2040.
+- **RP2040 GPIO traits** — landed via `complete-rp2040-semantics`
+  Phase A; the GPIO coverage gate's RP2040 case is now mandatory.
+  Subsequent phases of the same proposal extend RP2040 coverage to
+  UART / SPI / ADC / DMA / Timer / PWM.
 - **`GpioMatrixSemanticTraits<SignalId>`** — signal-side trait split for
   Espressif's IO matrix.  Pin-side coverage is complete; the signal-side
   ergonomic gain is its own follow-up proposal.

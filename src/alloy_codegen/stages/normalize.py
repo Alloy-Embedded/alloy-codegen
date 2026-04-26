@@ -1993,7 +1993,7 @@ def _build_rp2040_device_ir(
         family=family,
         family_patch_ids=family_patch_ids,
     )
-    return build_rp2040_canonical_ir(
+    ir = build_rp2040_canonical_ir(
         raw,
         patch,
         family_catalog,
@@ -2001,6 +2001,18 @@ def _build_rp2040_device_ir(
         family=family,
         pio_blocks=pio_blocks,
     )
+    # complete-rp2040-semantics Phase A: derive `gpio_pins` from the
+    # already-flattened pin signals.  RP2040 has a single GPIO peripheral
+    # (`pin.port == None`); the Espressif helper covers that case exactly
+    # (`port = "GPIO"`, `port_offset = 0`, `is_input_only = False`).
+    rp2040_gpio_pins = _build_espressif_gpio_pins(
+        pins=ir.pins,
+        family=family,
+        provenance=ir.provenance,
+    )
+    if rp2040_gpio_pins:
+        ir = dataclasses.replace(ir, gpio_pins=rp2040_gpio_pins)
+    return ir
 
 
 def _dedup_esp32_peripherals(
