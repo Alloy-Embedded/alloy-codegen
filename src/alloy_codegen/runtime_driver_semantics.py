@@ -2131,6 +2131,7 @@ def _microchip_uart_row(
         us_txempty_field=field("US_CSR_LIN_MODE", "TXEMPTY", 0x14, 9) if is_usart else empty_field,
         us_txchr_field=field("US_THR", "TXCHR", 0x1C, 0, 9) if is_usart else empty_field,
         us_rxchr_field=field("US_RHR", "RXCHR", 0x18, 0, 9) if is_usart else empty_field,
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -2240,6 +2241,7 @@ def _st_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -2346,7 +2348,135 @@ def _nxp_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
+
+
+def _uart_extension_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, object]:
+    """Build the Tier 2/3/4 kwargs for ``UartSemanticRow``.
+
+    Reads the device IR's UART patch tuples (forwarded by
+    ``stages/normalize.run``) and returns a dict suitable for ``**``
+    unpacking into the row constructor.  DMA bindings are derived
+    automatically from ``device.dma_requests``.  Mirrors the ADC
+    Tier 2/3/4 extension helper added by ``add-adc-tier-2-3-4-data``.
+    """
+    device = context.device
+    baud_clock_sources = tuple(
+        UartBaudClockSource(source=p.source, field_value=p.field_value)
+        for p in device.uart_baud_clock_sources
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    baud_oversampling_options = tuple(
+        UartBaudOversamplingOption(ratio=p.ratio, field_value=p.field_value)
+        for p in device.uart_baud_oversampling_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    fifo_trigger_options = tuple(
+        UartFifoTriggerOption(fraction_q8=p.fraction_q8, field_value=p.field_value)
+        for p in device.uart_fifo_trigger_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    data_bits_options = tuple(
+        UartDataBitsOption(bits=p.bits, m0_value=p.m0_value, m1_value=p.m1_value)
+        for p in device.uart_data_bits_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    parity_options = tuple(
+        UartParityOption(parity=p.parity, pce_value=p.pce_value, ps_value=p.ps_value)
+        for p in device.uart_parity_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    stop_bits_options = tuple(
+        UartStopBitsOption(stop_bits_q8=p.stop_bits_q8, field_value=p.field_value)
+        for p in device.uart_stop_bits_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    flags_patch = next(
+        (p for p in device.uart_mode_flags if getattr(p, "peripheral", None) == peripheral_name),
+        None,
+    )
+    if flags_patch is not None:
+        mode_flags = UartModeFlags(
+            supports_lin=flags_patch.supports_lin,
+            supports_irda=flags_patch.supports_irda,
+            supports_smartcard=flags_patch.supports_smartcard,
+            supports_half_duplex=flags_patch.supports_half_duplex,
+            supports_synchronous=flags_patch.supports_synchronous,
+            supports_auto_baud=flags_patch.supports_auto_baud,
+            supports_wake_from_stop=flags_patch.supports_wake_from_stop,
+            valid=True,
+        )
+    else:
+        mode_flags = None
+    dma_bindings = _uart_dma_bindings_for_peripheral(context, peripheral_name=peripheral_name)
+    return {
+        "baud_clock_sources": baud_clock_sources,
+        "baud_oversampling_options": baud_oversampling_options,
+        "fifo_trigger_options": fifo_trigger_options,
+        "data_bits_options": data_bits_options,
+        "parity_options": parity_options,
+        "stop_bits_options": stop_bits_options,
+        "mode_flags": mode_flags,
+        "max_baud_hz": device.uart_max_baud_hz,
+        "dma_bindings": dma_bindings,
+    }
+
+
+def _spi_extension_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, object]:
+    """Build the Tier 2/3/4 kwargs for ``SpiSemanticRow``."""
+    device = context.device
+    baud_prescaler_options = tuple(
+        SpiBaudPrescalerOption(divisor=p.divisor, field_value=p.field_value)
+        for p in device.spi_baud_prescaler_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    frame_size_options = tuple(
+        SpiFrameSizeOption(bits=p.bits, field_value=p.field_value)
+        for p in device.spi_frame_size_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    fifo_threshold_options = tuple(
+        SpiFifoThresholdOption(threshold_bits=p.threshold_bits, field_value=p.field_value)
+        for p in device.spi_fifo_threshold_options
+        if getattr(p, "peripheral", None) == peripheral_name
+    )
+    flags_patch = next(
+        (p for p in device.spi_mode_flags if getattr(p, "peripheral", None) == peripheral_name),
+        None,
+    )
+    if flags_patch is not None:
+        mode_flags = SpiModeFlags(
+            supports_crc=flags_patch.supports_crc,
+            supports_ti_frame=flags_patch.supports_ti_frame,
+            supports_motorola_frame=flags_patch.supports_motorola_frame,
+            supports_i2s_submode=flags_patch.supports_i2s_submode,
+            supports_bidirectional_3wire=flags_patch.supports_bidirectional_3wire,
+            supports_lsb_first=flags_patch.supports_lsb_first,
+            supports_nss_hw_management=flags_patch.supports_nss_hw_management,
+            valid=True,
+        )
+    else:
+        mode_flags = None
+    max_frame_bits = max((p.bits for p in frame_size_options), default=8)
+    spi_dma_bindings = _spi_dma_bindings_for_peripheral(
+        context, peripheral_name=peripheral_name, max_frame_bits=max_frame_bits
+    )
+    return {
+        "baud_prescaler_options": baud_prescaler_options,
+        "frame_size_options": frame_size_options,
+        "fifo_threshold_options": fifo_threshold_options,
+        "mode_flags": mode_flags,
+        "spi_dma_bindings": spi_dma_bindings,
+    }
 
 
 def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
@@ -2490,6 +2620,7 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
                     us_txchr_field=invalid_field,
                     us_rxchr_field=invalid_field,
                     is_stub=peripheral.name not in uart_hw_ids,
+                    **_uart_extension_for_peripheral(context, peripheral_name=peripheral.name),
                 )
             )
     return tuple(rows)
@@ -3077,6 +3208,7 @@ def _st_spi_row(
         td_field=_invalid_field_ref(base),
         tdr_pcs_field=_invalid_field_ref(base),
         rd_field=_invalid_field_ref(base),
+        **_spi_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3149,6 +3281,7 @@ def _microchip_spi_row(
         td_field=field("TDR", "TD", 0x0C, 0, 16),
         tdr_pcs_field=field("TDR", "PCS", 0x0C, 16, 4),
         rd_field=field("RDR", "RD", 0x08, 0, 16),
+        **_spi_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3225,6 +3358,7 @@ def _nxp_spi_row(
         td_field=field("TDR", ("TXDATA",), 0x64, 0, 32),
         tdr_pcs_field=_invalid_field_ref(base),
         rd_field=field("RDR", ("RXDATA",), 0x74, 0, 32),
+        **_spi_extension_for_peripheral(context, peripheral_name=peripheral_name),
     )
 
 
@@ -3308,6 +3442,7 @@ def _build_spi_rows(context: _SemanticContext) -> tuple[SpiSemanticRow, ...]:
                     tdr_pcs_field=invalid_field,
                     rd_field=invalid_field,
                     is_stub=peripheral.name not in spi_hw_ids,
+                    **_spi_extension_for_peripheral(context, peripheral_name=peripheral.name),
                 )
             )
     return tuple(rows)

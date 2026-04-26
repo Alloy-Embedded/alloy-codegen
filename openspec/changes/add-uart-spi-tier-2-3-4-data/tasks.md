@@ -66,10 +66,10 @@
 
 ## Phase 4: STM32 G0/F4 population
 
-- [ ] 4.1 Update `_st_uart_row` to read IR fields and populate the row's
+- [x] 4.1 Update `_st_uart_row` to read IR fields and populate the row's
       Tier 2/3/4 tuples
-- [ ] 4.2 Update `_st_spi_row` analogously
-- [ ] 4.3 Add config blocks to `patches/st/stm32g0/devices/*.json`:
+- [x] 4.2 Update `_st_spi_row` analogously
+- [x] 4.3 Add config blocks to `patches/st/stm32g0/devices/*.json`:
       - `uart_baud_clock_sources`: PCLK=0, SYSCLK=1, HSI16=2, LSE=3
       - `uart_baud_oversampling_options`: 8x (OVER8=1), 16x (OVER8=0)
       - `uart_fifo_trigger_options`: 1/8, 1/4, 1/2, 3/4, 7/8, full
