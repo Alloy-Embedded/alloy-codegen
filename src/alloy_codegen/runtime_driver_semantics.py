@@ -106,6 +106,7 @@ class GpioSemanticRow:
     direction_field: RuntimeFieldRef
     output_type_field: RuntimeFieldRef
     pull_field: RuntimeFieldRef
+    speed_field: RuntimeFieldRef
     input_field: RuntimeFieldRef
     output_value_field: RuntimeFieldRef
     output_set_field: RuntimeFieldRef
@@ -1985,6 +1986,15 @@ def _st_gpio_semantics(
             fallback_bit_offset=line_index * 2,
             fallback_bit_width=2,
         ),
+        speed_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="OSPEEDR",
+            field_names=(f"OSPEED{line_index}", f"OSPEEDR{line_index}"),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=line_index * 2,
+            fallback_bit_width=2,
+        ),
         input_field=_resolve_field_ref(
             context,
             peripheral_name=peripheral_name,
@@ -2066,6 +2076,7 @@ def _microchip_gpio_semantics(
         direction_field=_invalid_field_ref(),
         output_type_field=_invalid_field_ref(),
         pull_field=_invalid_field_ref(),
+        speed_field=_invalid_field_ref(),
         input_field=_invalid_field_ref(),
         output_value_field=_invalid_field_ref(),
         output_set_field=_invalid_field_ref(),
@@ -2111,6 +2122,7 @@ def _nxp_gpio_semantics(
         ),
         output_type_field=_invalid_field_ref(base),
         pull_field=_invalid_field_ref(base),
+        speed_field=_invalid_field_ref(base),
         input_field=_resolve_field_ref(
             context,
             peripheral_name=peripheral_name,
@@ -10868,6 +10880,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;",
+        "  static constexpr RuntimeFieldRef kSpeedField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kInputField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kOutputValueField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;",
@@ -10942,6 +10955,7 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
                 f"  static constexpr RuntimeFieldRef kDirectionField = {_field_ref_expr(row.direction_field)};",
                 f"  static constexpr RuntimeFieldRef kOutputTypeField = {_field_ref_expr(row.output_type_field)};",
                 f"  static constexpr RuntimeFieldRef kPullField = {_field_ref_expr(row.pull_field)};",
+                f"  static constexpr RuntimeFieldRef kSpeedField = {_field_ref_expr(row.speed_field)};",
                 f"  static constexpr RuntimeFieldRef kInputField = {_field_ref_expr(row.input_field)};",
                 f"  static constexpr RuntimeFieldRef kOutputValueField = {_field_ref_expr(row.output_value_field)};",
                 f"  static constexpr RuntimeFieldRef kOutputSetField = {_field_ref_expr(row.output_set_field)};",
@@ -10966,15 +10980,68 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
         pin_rows.append(f"  PinId::{pin_id},")
 
     # AF-only specializations: pins that have alt-function topology but no
-    # register-level GPIO row (typical for STM32G0 / STM32F4 today, where the
-    # register-level GPIO emitter has not yet been wired up for the family).
-    # These specializations expose ``kPresent = true`` and the four AF fields,
-    # but leave register/field references invalid — alloy concept checks for
-    # AF assignment use only the AF fields, so this is sufficient for the
-    # ``add-gpio-hal`` compile-time pin-routing validation.
+    # register-level GPIO row.  On STM32 (where no GPIO connection_candidates
+    # are produced today) we still resolve the four Tier-1 register fields —
+    # ``MODER``/``OSPEEDR``/``OTYPER``/``PUPDR`` — by deriving the
+    # peripheral name from the pin's port letter and looking up the field via
+    # the standard fallbacks.  The ``fill-gpio-tier-1-fields`` change makes
+    # those compile-time references valid on STM32 instead of
+    # `kInvalidFieldRef`, so the alloy GPIO HAL can synthesise register
+    # writes without falling back to vendor headers.
+    def _stm32_tier1_fields(pin: GpioPinDescriptor) -> tuple[RuntimeFieldRef, ...]:
+        port_letter = pin.pin_id[1:2] if len(pin.pin_id) >= 2 else ""
+        peripheral_name = f"GPIO{port_letter}"
+        peripheral = context.peripheral_by_name.get(peripheral_name)
+        if peripheral is None or peripheral.backend_schema_id is None:
+            return (
+                _invalid_field_ref(),
+                _invalid_field_ref(),
+                _invalid_field_ref(),
+                _invalid_field_ref(),
+            )
+        if not peripheral.backend_schema_id.startswith("alloy.gpio.st-"):
+            return (
+                _invalid_field_ref(peripheral.base_address),
+                _invalid_field_ref(peripheral.base_address),
+                _invalid_field_ref(peripheral.base_address),
+                _invalid_field_ref(peripheral.base_address),
+            )
+        idx = pin.pin_index
+        return (
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="MODER",
+                field_names=(f"MODE{idx}", f"MODER{idx}"),
+                fallback_register_offset=0x00,
+                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+            ),
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="OSPEEDR",
+                field_names=(f"OSPEED{idx}", f"OSPEEDR{idx}"),
+                fallback_register_offset=0x08,
+                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+            ),
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="OTYPER",
+                field_names=(f"OT{idx}", f"OT_{idx}"),
+                fallback_register_offset=0x04,
+                fallback_bit_offset=idx, fallback_bit_width=1,
+            ),
+            _resolve_field_ref(
+                context, peripheral_name=peripheral_name,
+                register_name="PUPDR",
+                field_names=(f"PUPD{idx}", f"PUPDR{idx}"),
+                fallback_register_offset=0x0C,
+                fallback_bit_offset=idx * 2, fallback_bit_width=2,
+            ),
+        )
+
     for pin_id, pin in sorted(af_pins_by_id.items()):
         if pin_id in consumed_pin_ids:
             continue
+        mode_f, speed_f, otype_f, pull_f = _stm32_tier1_fields(pin)
         trait_lines.extend(
             [
                 "template<>",
@@ -10983,10 +11050,11 @@ def _emit_gpio_semantics_header(*, family_dir: str, device: CanonicalDeviceIR) -
                 "  static constexpr PeripheralId kPeripheralId = PeripheralId::none;",
                 "  static constexpr BackendSchemaId kSchemaId = BackendSchemaId::none;",
                 "  static constexpr std::uint32_t kLineIndex = 0u;",
-                "  static constexpr RuntimeFieldRef kModeField = kInvalidFieldRef;",
+                f"  static constexpr RuntimeFieldRef kModeField = {_field_ref_expr(mode_f)};",
                 "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
-                "  static constexpr RuntimeFieldRef kOutputTypeField = kInvalidFieldRef;",
-                "  static constexpr RuntimeFieldRef kPullField = kInvalidFieldRef;",
+                f"  static constexpr RuntimeFieldRef kOutputTypeField = {_field_ref_expr(otype_f)};",
+                f"  static constexpr RuntimeFieldRef kPullField = {_field_ref_expr(pull_f)};",
+                f"  static constexpr RuntimeFieldRef kSpeedField = {_field_ref_expr(speed_f)};",
                 "  static constexpr RuntimeFieldRef kInputField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kOutputValueField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kOutputSetField = kInvalidFieldRef;",
