@@ -18,6 +18,21 @@ introduce each column.
 | espressif   | esp32s3   | esp32s3                               | ✓ IO matrix | N/A        |
 | raspberrypi | rp2040    | rp2040, pico                          | ✓ FUNCSEL   | ✓          |
 
+### RP2040 peripheral coverage (added by `complete-rp2040-semantics`)
+
+| Peripheral | Trait struct                                             | Status |
+|------------|----------------------------------------------------------|--------|
+| GPIO       | `GpioSemanticTraits<PinId::GP*>`                         | ✓ Phase A |
+| UART       | `UartPeripheralTraits<RuntimeUartId::UART*>`             | ✓ Phase B |
+| SPI        | `SpiPeripheralTraits<RuntimeSpiId::SPI*>`                | ✓ Phase B |
+| ADC        | `AdcPeripheralTraits<RuntimeAdcId::ADC>`                 | ✓ Phase C |
+| DMA HW     | `DmaControllerHwTraits<RuntimeDmaCtrlId::DMA>`           | ✓ Phase D |
+| Timer HW   | `TimerControllerHwTraits<RuntimeTimerCtrlId::TIMER>`     | ✓ Phase D |
+| PWM Slice  | `PwmSliceHwTraits<SliceIndex>`                           | ✓ Phase D |
+| I2C        | (separate proposal — `fill-i2c-semantic-gaps`)           | pending |
+| USB        | (separate proposal — `add-usb-semantic-traits`)          | pending |
+| PIO        | `PioSemanticTraits<PioId::Pio*>`                         | ✓ (`define-pio-semantic-struct`) |
+
 ## Column meaning
 
 - **gpio_traits** — populated `GpioSemanticTraits<PinId::*>` specializations

@@ -140,11 +140,19 @@ block on them.
       Goldens regenerated for every family's affected `dma.hpp`,
       `timer.hpp`, and `pwm.hpp`.
 
-## Phase E — coverage matrix flip (pending)
+## Phase E — coverage matrix flip + compile tests (this commit)
 
-- [ ] E.1 Update `docs/COVERAGE_MATRIX.md`: RP2040 row's `gpio_traits`
-      cell switches from "⏳ pending (`complete-rp2040-semantics`)" to
-      "✓ FUNCSEL".  Other RP2040 columns flip per phase.
-- [ ] E.2 Add per-peripheral compile tests under
-      `tests/compile_tests/test_rp2040_*.cpp` mirroring the GPIO and PIO
-      patterns.
+- [x] E.1 `docs/COVERAGE_MATRIX.md` already had its RP2040 `gpio_traits`
+      cell flipped in Phase A.  This commit extends the doc with a
+      per-peripheral RP2040 coverage sub-table mapping every populated
+      trait struct to the openspec phase that introduced it (incl. the
+      pending I2C / USB rows tracked in their own proposals).
+- [x] E.2 New compile-test source `tests/compile_tests/test_rp2040_peripheral_traits.cpp`
+      bundles `static_assert` checks for every trait family added in
+      Phases A–D into a single translation unit; the
+      `tests/test_compile_invariants.py` harness picks it up alongside
+      the existing PIO / STM32G0 compile gates and runs all three
+      whenever a host C++20 compiler is on `PATH`.
+      Full RP2040 driver_semantics + parent runtime headers are now
+      checked into `tests/fixtures/emitted/rp2040/...` so the compile
+      gate is reproducible without invoking emit.

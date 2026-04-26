@@ -131,6 +131,37 @@ struct AdcSemanticTraits<PeripheralId::ADC> {
 inline constexpr std::array<PeripheralId, 1> kAdcSemanticPeripherals = {{
   PeripheralId::ADC,
 }};
+
+// complete-rp2040-semantics Phase C: per-controller ADC facts.
+enum class RuntimeAdcId : std::uint8_t {
+  None = 0,
+  ADC = 1,
+};
+
+template<RuntimeAdcId Id>
+struct AdcPeripheralTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kChannelCount = 0u;
+  static constexpr std::uint8_t kResolutionBits = 0u;
+  static constexpr std::uint8_t kDreq = 0u;
+  static constexpr std::uint8_t kFifoDepth = 0u;
+  static constexpr bool kSupportsFifo = false;
+  static constexpr std::array<std::uint8_t, 0> kChannelPins = {};
+};
+
+template<>
+struct AdcPeripheralTraits<RuntimeAdcId::ADC> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x4004c000u;
+  static constexpr std::uint8_t kChannelCount = 5u;
+  static constexpr std::uint8_t kResolutionBits = 12u;
+  static constexpr std::uint8_t kDreq = 36u;
+  static constexpr std::uint8_t kFifoDepth = 4u;
+  static constexpr bool kSupportsFifo = true;
+  static constexpr std::array<std::uint8_t, 5> kChannelPins = {{26u, 27u, 28u, 29u, 255u}};
+};
+
 }
 }
 }
