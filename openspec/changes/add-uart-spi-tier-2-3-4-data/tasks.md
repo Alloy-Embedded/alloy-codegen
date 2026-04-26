@@ -40,7 +40,7 @@
       peripheral_name)`: same pattern; transfer-width from
       `spi_frame_size_options` (≤8 → 8-bit, 9..16 → 16-bit, 17..32 →
       32-bit on iMXRT/ESP32)
-- [ ] 2.3 Unit tests covering: peripheral with no DMA route → empty tuple;
+- [x] 2.3 Unit tests covering: peripheral with no DMA route → empty tuple;
       peripheral with one DMA route (half-duplex setup) → single
       binding; peripheral with two DMA routes (TX + RX, the common
       case) → two bindings; peripheral with multiple DMAMUX channels
@@ -53,12 +53,12 @@
       `kMaxBaudHz`, `kDmaBindings`)
 - [x] 3.2 Extend `SpiSemanticRow` with the new Tier 2/3/4 fields
       (~10 new fields)
-- [ ] 3.3 Extend `_uart_specialization_builder` + `_spi_specialization_builder`
+- [x] 3.3 Extend `_uart_specialization_builder` + `_spi_specialization_builder`
       stub + non-stub branches to emit the new constexprs.  Stub branch
       keeps `kPresent = false` but emits the safe-default values
       (empty arrays, `false` flags, `0` max baud) so downstream
       `static_assert` checks compile.
-- [ ] 3.4 Extend `emit_runtime_driver_uart_semantics_header` +
+- [x] 3.4 Extend `emit_runtime_driver_uart_semantics_header` +
       `emit_runtime_driver_spi_semantics_header` `default_lines`
       (unspecialized template) with the safe defaults.  Existing
       fixtures stay byte-stable for any device whose patches haven't

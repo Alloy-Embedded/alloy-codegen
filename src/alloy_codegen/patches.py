@@ -2031,16 +2031,14 @@ def load_device_patch(
             for item in payload.get("uart_data_bits_options", ())
         ),
         uart_parity_options=tuple(
-            _parse_uart_parity_option_patch(item)
-            for item in payload.get("uart_parity_options", ())
+            _parse_uart_parity_option_patch(item) for item in payload.get("uart_parity_options", ())
         ),
         uart_stop_bits_options=tuple(
             _parse_uart_stop_bits_option_patch(item)
             for item in payload.get("uart_stop_bits_options", ())
         ),
         uart_mode_flags=tuple(
-            _parse_uart_mode_flags_patch(item)
-            for item in payload.get("uart_mode_flags", ())
+            _parse_uart_mode_flags_patch(item) for item in payload.get("uart_mode_flags", ())
         ),
         uart_max_baud_hz=int(payload.get("uart_max_baud_hz", 0) or 0),
         spi_baud_prescaler_options=tuple(
@@ -2056,8 +2054,7 @@ def load_device_patch(
             for item in payload.get("spi_fifo_threshold_options", ())
         ),
         spi_mode_flags=tuple(
-            _parse_spi_mode_flags_patch(item)
-            for item in payload.get("spi_mode_flags", ())
+            _parse_spi_mode_flags_patch(item) for item in payload.get("spi_mode_flags", ())
         ),
     )
 

@@ -207,9 +207,9 @@ class UartSemanticRow:
     data_bits_options: tuple[UartDataBitsOption, ...] = ()
     parity_options: tuple[UartParityOption, ...] = ()
     stop_bits_options: tuple[UartStopBitsOption, ...] = ()
-    mode_flags: "UartModeFlags | None" = None
+    mode_flags: UartModeFlags | None = None
     max_baud_hz: int = 0
-    dma_bindings: tuple["UartDmaBindingRow", ...] = ()
+    dma_bindings: tuple[UartDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -340,11 +340,11 @@ class SpiSemanticRow:
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
     # Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Default-empty
     # tuples / invalid mode-flags block; populated by per-family builders.
-    baud_prescaler_options: tuple["SpiBaudPrescalerOption", ...] = ()
-    frame_size_options: tuple["SpiFrameSizeOption", ...] = ()
-    fifo_threshold_options: tuple["SpiFifoThresholdOption", ...] = ()
-    mode_flags: "SpiModeFlags | None" = None
-    spi_dma_bindings: tuple["SpiDmaBindingRow", ...] = ()
+    baud_prescaler_options: tuple[SpiBaudPrescalerOption, ...] = ()
+    frame_size_options: tuple[SpiFrameSizeOption, ...] = ()
+    fifo_threshold_options: tuple[SpiFifoThresholdOption, ...] = ()
+    mode_flags: SpiModeFlags | None = None
+    spi_dma_bindings: tuple[SpiDmaBindingRow, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -3414,7 +3414,7 @@ def _uart_dma_bindings_for_peripheral(
     context: _SemanticContext,
     *,
     peripheral_name: str,
-) -> tuple["UartDmaBindingRow", ...]:
+) -> tuple[UartDmaBindingRow, ...]:
     """Derive UartDmaBinding rows from `device.dma_requests` filtered by
     UART peripheral.  Added by ``add-uart-spi-tier-2-3-4-data``.
 
@@ -3455,7 +3455,7 @@ def _spi_dma_bindings_for_peripheral(
     *,
     peripheral_name: str,
     max_frame_bits: int = 8,
-) -> tuple["SpiDmaBindingRow", ...]:
+) -> tuple[SpiDmaBindingRow, ...]:
     """Derive SpiDmaBinding rows from `device.dma_requests` filtered by
     SPI peripheral.  Added by ``add-uart-spi-tier-2-3-4-data``.
 
@@ -10734,6 +10734,49 @@ def _uart_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsDma = {'true' if hw.supports_dma else 'false'};",
         ]
 
+    def _u8_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint8_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _u16_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint16_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _tier234_lines(row: UartSemanticRow) -> list[str]:
+        # Tier 2/3/4 constexprs (added by ``add-uart-spi-tier-2-3-4-data``).
+        # Empty arrays / falsy flags by default until per-family device
+        # patches populate the row's tier-2/3/4 tuples.  See the Tier 2/3/4
+        # data dataclasses (UartBaudClockSource, UartParityOption, …) for
+        # field semantics.
+        data_bits = tuple(o.bits for o in row.data_bits_options)
+        # Parity raw: 0=N, 1=E, 2=O, 3=M, 4=S
+        parity_map = {"none": 0, "even": 1, "odd": 2, "mark": 3, "space": 4}
+        parity_raw = tuple(parity_map.get(o.parity, 0) for o in row.parity_options)
+        stop_bits_q8 = tuple(o.stop_bits_q8 for o in row.stop_bits_options)
+        oversampling = tuple(o.ratio for o in row.baud_oversampling_options)
+        baud_clock_raw = tuple(o.field_value for o in row.baud_clock_sources)
+        fifo_trig_q8 = tuple(o.fraction_q8 for o in row.fifo_trigger_options)
+        flags = row.mode_flags
+        return [
+            _u8_arr("kSupportedDataBits", data_bits),
+            _u8_arr("kSupportedParityRaw", parity_raw),
+            _u16_arr("kSupportedStopBitsQ8", stop_bits_q8),
+            _u8_arr("kBaudOversamplingOptions", oversampling),
+            _u8_arr("kBaudClockSourceRaw", baud_clock_raw),
+            _u16_arr("kFifoTriggerFractionsQ8", fifo_trig_q8),
+            f"  static constexpr std::uint32_t kMaxBaudHz = {row.max_baud_hz}u;",
+            f"  static constexpr bool kSupportsLin = {'true' if flags and flags.supports_lin else 'false'};",
+            f"  static constexpr bool kSupportsIrda = {'true' if flags and flags.supports_irda else 'false'};",
+            f"  static constexpr bool kSupportsSmartcard = {'true' if flags and flags.supports_smartcard else 'false'};",
+            f"  static constexpr bool kSupportsHalfDuplex = {'true' if flags and flags.supports_half_duplex else 'false'};",
+            f"  static constexpr bool kSupportsSynchronous = {'true' if flags and flags.supports_synchronous else 'false'};",
+            f"  static constexpr bool kSupportsAutoBaud = {'true' if flags and flags.supports_auto_baud else 'false'};",
+            f"  static constexpr bool kSupportsWakeFromStop = {'true' if flags and flags.supports_wake_from_stop else 'false'};",
+            f"  static constexpr std::uint8_t kDmaBindingCount = {len(row.dma_bindings)}u;",
+        ]
+
     def _build(row: UartSemanticRow) -> list[str]:
         if row.is_stub:
             # Peripheral is present on hardware but schema not yet implemented.
@@ -10747,6 +10790,7 @@ def _uart_specialization_builder(context: _SemanticContext):
                 f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
                 *_hw_lines(row),
+                *_tier234_lines(row),
                 "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -10817,6 +10861,7 @@ def _uart_specialization_builder(context: _SemanticContext):
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
             *_hw_lines(row),
+            *_tier234_lines(row),
             f"  static constexpr RuntimeRegisterRef kCr1Register = {_register_ref_expr(row.cr1_reg)};",
             f"  static constexpr RuntimeRegisterRef kCr2Register = {_register_ref_expr(row.cr2_reg)};",
             f"  static constexpr RuntimeRegisterRef kBrrRegister = {_register_ref_expr(row.brr_reg)};",
@@ -11091,6 +11136,36 @@ def _spi_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsDma = {'true' if hw.supports_dma else 'false'};",
         ]
 
+    def _spi_u8_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint8_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _spi_u16_arr(name: str, values: tuple[int, ...]) -> str:
+        n = len(values)
+        joined = ", ".join(f"{v}u" for v in values)
+        return f"  static constexpr std::array<std::uint16_t, {n}> {name} = {{{{{joined}}}}};"
+
+    def _spi_tier234_lines(row: SpiSemanticRow) -> list[str]:
+        # Tier 2/3/4 SPI constexprs (added by ``add-uart-spi-tier-2-3-4-data``).
+        prescaler_divs = tuple(o.divisor for o in row.baud_prescaler_options)
+        frame_sizes = tuple(o.bits for o in row.frame_size_options)
+        fifo_thresholds = tuple(o.threshold_bits for o in row.fifo_threshold_options)
+        flags = row.mode_flags
+        return [
+            _spi_u16_arr("kBaudPrescalerDivisors", prescaler_divs),
+            _spi_u8_arr("kSupportedFrameSizes", frame_sizes),
+            _spi_u8_arr("kFifoThresholdBits", fifo_thresholds),
+            f"  static constexpr bool kSupportsCrc = {'true' if flags and flags.supports_crc else 'false'};",
+            f"  static constexpr bool kSupportsTiFrame = {'true' if flags and flags.supports_ti_frame else 'false'};",
+            f"  static constexpr bool kSupportsMotorolaFrame = {'true' if flags and flags.supports_motorola_frame else 'false'};",
+            f"  static constexpr bool kSupportsI2sSubmode = {'true' if flags and flags.supports_i2s_submode else 'false'};",
+            f"  static constexpr bool kSupportsBidirectional3Wire = {'true' if flags and flags.supports_bidirectional_3wire else 'false'};",
+            f"  static constexpr bool kSupportsLsbFirst = {'true' if flags and flags.supports_lsb_first else 'false'};",
+            f"  static constexpr bool kSupportsNssHwManagement = {'true' if flags and flags.supports_nss_hw_management else 'false'};",
+            f"  static constexpr std::uint8_t kSpiDmaBindingCount = {len(row.spi_dma_bindings)}u;",
+        ]
+
     def _build(row: SpiSemanticRow) -> list[str]:
         if row.is_stub:
             # Peripheral is present on hardware but schema not yet implemented.
@@ -11102,6 +11177,7 @@ def _spi_specialization_builder(context: _SemanticContext):
                 f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
                 *_spi_hw_lines(row),
+                *_spi_tier234_lines(row),
                 "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
                 "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",
@@ -11197,6 +11273,7 @@ def _spi_specialization_builder(context: _SemanticContext):
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
             *_spi_hw_lines(row),
+            *_spi_tier234_lines(row),
         ]
         lines.extend(
             f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
@@ -12687,10 +12764,7 @@ def _i2c_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
         # double-brace form trips on enum types under C++23 in some
         # toolchains because the inner aggregate has no default ctor for
         # the enum).
-        return (
-            f"  static constexpr std::array<PinId, {len(pads)}> "
-            f"{name} = {{{items}}};"
-        )
+        return f"  static constexpr std::array<PinId, {len(pads)}> {name} = {{{items}}};"
 
     def _opt_signal(value: int | None) -> str:
         return "0xFFFFu" if value is None else f"{value}u"
@@ -12864,6 +12938,22 @@ def emit_runtime_driver_uart_semantics_header(
         "  static constexpr std::int16_t kTxSignalIdx = -1;",
         "  static constexpr std::int16_t kRxSignalIdx = -1;",
         "  static constexpr bool kSupportsDma = false;",
+        # Tier 2/3/4 defaults (added by ``add-uart-spi-tier-2-3-4-data``).
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedDataBits = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedParityRaw = {};",
+        "  static constexpr std::array<std::uint16_t, 0> kSupportedStopBitsQ8 = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kBaudOversamplingOptions = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kBaudClockSourceRaw = {};",
+        "  static constexpr std::array<std::uint16_t, 0> kFifoTriggerFractionsQ8 = {};",
+        "  static constexpr std::uint32_t kMaxBaudHz = 0u;",
+        "  static constexpr bool kSupportsLin = false;",
+        "  static constexpr bool kSupportsIrda = false;",
+        "  static constexpr bool kSupportsSmartcard = false;",
+        "  static constexpr bool kSupportsHalfDuplex = false;",
+        "  static constexpr bool kSupportsSynchronous = false;",
+        "  static constexpr bool kSupportsAutoBaud = false;",
+        "  static constexpr bool kSupportsWakeFromStop = false;",
+        "  static constexpr std::uint8_t kDmaBindingCount = 0u;",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -13058,6 +13148,18 @@ def emit_runtime_driver_spi_semantics_header(
         "  static constexpr std::int16_t kIomuxClkPin = -1;",
         "  static constexpr std::int16_t kIomuxCsPin = -1;",
         "  static constexpr bool kSupportsDma = false;",
+        # Tier 2/3/4 defaults (added by ``add-uart-spi-tier-2-3-4-data``).
+        "  static constexpr std::array<std::uint16_t, 0> kBaudPrescalerDivisors = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedFrameSizes = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kFifoThresholdBits = {};",
+        "  static constexpr bool kSupportsCrc = false;",
+        "  static constexpr bool kSupportsTiFrame = false;",
+        "  static constexpr bool kSupportsMotorolaFrame = false;",
+        "  static constexpr bool kSupportsI2sSubmode = false;",
+        "  static constexpr bool kSupportsBidirectional3Wire = false;",
+        "  static constexpr bool kSupportsLsbFirst = false;",
+        "  static constexpr bool kSupportsNssHwManagement = false;",
+        "  static constexpr std::uint8_t kSpiDmaBindingCount = 0u;",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",

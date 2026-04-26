@@ -167,14 +167,7 @@ def test_rp2040_i2c_traits_compile_invariants() -> None:
     documented base addresses, DREQs, and PinId pad allowlists.
     """
     source = COMPILE_TESTS_DIR / "test_rp2040_i2c_traits.cpp"
-    rp2040_root = (
-        FIXTURES_EMITTED
-        / "rp2040"
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "rp2040"
-    )
+    rp2040_root = FIXTURES_EMITTED / "rp2040" / "generated" / "runtime" / "devices" / "rp2040"
     driver_root = rp2040_root / "driver_semantics"
     i2c_header = driver_root / "i2c.hpp"
     pins_header = rp2040_root / "pins.hpp"

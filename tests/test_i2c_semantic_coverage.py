@@ -21,7 +21,11 @@ from alloy_codegen.stages.emit import run as run_emit
 def _i2c_present_count(context: ExecutionContext, device: str) -> int:
     result = run_emit(PipelineScope(device=device), context)
     artifact = next(
-        (a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/i2c.hpp")),
+        (
+            a
+            for a in result.payload.artifacts
+            if a.path.endswith(f"/{device}/driver_semantics/i2c.hpp")
+        ),
         None,
     )
     assert artifact is not None, f"no i2c.hpp emitted for {device}"
@@ -36,8 +40,7 @@ def _check_devices(context: ExecutionContext, devices: Iterable[str]) -> None:
     for device in devices:
         count = _i2c_present_count(context, device)
         assert count >= 1, (
-            f"family I2C-coverage gate failed: no kPresent = true entries "
-            f"in i2c.hpp for '{device}'"
+            f"family I2C-coverage gate failed: no kPresent = true entries in i2c.hpp for '{device}'"
         )
 
 
