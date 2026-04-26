@@ -18,11 +18,17 @@
       plus a `_timer_irq_numbers_for_peripheral` classifier helper
       that splits `interrupt_bindings` by name suffix
       (UP / CC / COM / BRK / TRG).
-- [ ] 1.4 DMA channel `irq_number` — **deferred**.  The DMA HW row
-      type (`Rp2040DmaControllerHwDescriptor`) is RP2040-only at
-      this point in the IR; per-channel IRQ surfacing would need a
-      broader IR shape.  Tracked as a follow-up after
-      `fill-dma-controller-hw-traits`.
+- [x] 1.4 DMA controller `irq_numbers` — landed as a follow-up.
+      `Rp2040DmaControllerHwDescriptor.irq_numbers` now carries the
+      controller-level NVIC vectors (RP2040: `DMA_IRQ_0` = 11,
+      `DMA_IRQ_1` = 12, both shared by every channel via the
+      INTE0/INTE1 routing mux).  Emitted as
+      `kIrqNumbers = std::array<std::uint32_t, 2>` on
+      `DmaControllerHwTraits<RuntimeDmaCtrlId::DMA>` for RP2040.
+      Per-channel IRQ surfacing remains intentionally absent —
+      RP2040 DMA channels do not have a per-channel hardware IRQ
+      ID; consumers select the IRQ line by writing the channel
+      mask register (INTE0 / INTE1).
 
 ## Phase 2: Constexpr emission
 

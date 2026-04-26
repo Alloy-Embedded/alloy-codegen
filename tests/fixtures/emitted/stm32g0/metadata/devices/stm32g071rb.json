@@ -2187,6 +2187,85 @@
     "source_id": "stm32-open-pin-data",
     "source_path": "STM32G071R(6-8-B)Tx.xml"
   },
+  "pwm_alignment_options": [
+    {
+      "alignment": "edge",
+      "field_value": 0,
+      "peripheral": "TIM1"
+    },
+    {
+      "alignment": "center_down",
+      "field_value": 1,
+      "peripheral": "TIM1"
+    },
+    {
+      "alignment": "center_up",
+      "field_value": 2,
+      "peripheral": "TIM1"
+    },
+    {
+      "alignment": "center_up_down",
+      "field_value": 3,
+      "peripheral": "TIM1"
+    },
+    {
+      "alignment": "edge",
+      "field_value": 0,
+      "peripheral": "TIM14"
+    }
+  ],
+  "pwm_break_inputs": [
+    {
+      "enable_field_value": 1,
+      "input_id": "bkin",
+      "peripheral": "TIM1",
+      "polarity_field_value": 0
+    }
+  ],
+  "pwm_deadtime_options": [
+    {
+      "count_bits": 8,
+      "max_ns": 2550,
+      "peripheral": "TIM1",
+      "prescaler_field_value": 0
+    },
+    {
+      "count_bits": 8,
+      "max_ns": 5100,
+      "peripheral": "TIM1",
+      "prescaler_field_value": 1
+    },
+    {
+      "count_bits": 8,
+      "max_ns": 10200,
+      "peripheral": "TIM1",
+      "prescaler_field_value": 2
+    },
+    {
+      "count_bits": 8,
+      "max_ns": 20400,
+      "peripheral": "TIM1",
+      "prescaler_field_value": 3
+    }
+  ],
+  "pwm_mode_flags": [
+    {
+      "peripheral": "TIM1",
+      "supports_asymmetric_pwm": true,
+      "supports_break_input": true,
+      "supports_combined_pwm": true,
+      "supports_complementary_outputs": true,
+      "supports_deadtime": true
+    },
+    {
+      "peripheral": "TIM14",
+      "supports_asymmetric_pwm": false,
+      "supports_break_input": false,
+      "supports_combined_pwm": false,
+      "supports_complementary_outputs": false,
+      "supports_deadtime": false
+    }
+  ],
   "register_fields": [
     {
       "access": null,
@@ -4576,6 +4655,34 @@
       "value_int": 0,
       "value_ref_id": "selector:0",
       "value_ref_kind": "selector"
+    }
+  ],
+  "rp2040_dma_controller_hw": [
+    {
+      "base_address": 1073872896,
+      "channel_count": 7,
+      "controller_id": "DMA1",
+      "irq_numbers": [
+        9,
+        10
+      ],
+      "max_transfer_count": 65535,
+      "priority_level_count": 4,
+      "supported_burst_sizes": [
+        1
+      ],
+      "supported_data_widths": [
+        8,
+        16,
+        32
+      ],
+      "supports_byte_swap": false,
+      "supports_chaining": false,
+      "supports_circular": true,
+      "supports_descriptor_chaining": false,
+      "supports_double_buffer": false,
+      "supports_mem_to_mem": true,
+      "supports_scatter_gather": false
     }
   ],
   "schema_version": "1.2.0",

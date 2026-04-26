@@ -960,5 +960,39 @@
       "supports_7bit_addressing": true,
       "supports_10bit_addressing": true
     }
+  ],
+  "pwm_deadtime_options": [
+    { "peripheral": "TIM1", "prescaler_field_value": 0, "count_bits": 8, "max_ns": 2550 },
+    { "peripheral": "TIM1", "prescaler_field_value": 1, "count_bits": 8, "max_ns": 5100 },
+    { "peripheral": "TIM1", "prescaler_field_value": 2, "count_bits": 8, "max_ns": 10200 },
+    { "peripheral": "TIM1", "prescaler_field_value": 3, "count_bits": 8, "max_ns": 20400 }
+  ],
+  "pwm_alignment_options": [
+    { "peripheral": "TIM1",  "alignment": "edge",            "field_value": 0 },
+    { "peripheral": "TIM1",  "alignment": "center_down",     "field_value": 1 },
+    { "peripheral": "TIM1",  "alignment": "center_up",       "field_value": 2 },
+    { "peripheral": "TIM1",  "alignment": "center_up_down",  "field_value": 3 },
+    { "peripheral": "TIM14", "alignment": "edge",            "field_value": 0 }
+  ],
+  "pwm_break_inputs": [
+    { "peripheral": "TIM1", "input_id": "bkin", "polarity_field_value": 0, "enable_field_value": 1 }
+  ],
+  "pwm_mode_flags": [
+    {
+      "peripheral": "TIM1",
+      "supports_deadtime": true,
+      "supports_break_input": true,
+      "supports_complementary_outputs": true,
+      "supports_asymmetric_pwm": true,
+      "supports_combined_pwm": true
+    },
+    {
+      "peripheral": "TIM14",
+      "supports_deadtime": false,
+      "supports_break_input": false,
+      "supports_complementary_outputs": false,
+      "supports_asymmetric_pwm": false,
+      "supports_combined_pwm": false
+    }
   ]
 }

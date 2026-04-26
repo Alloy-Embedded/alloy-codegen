@@ -838,6 +838,26 @@ class Rp2040DmaControllerHwDescriptor:
     max_transfer_count: int
     supports_chaining: bool
     supports_byte_swap: bool
+    # NVIC vector lines exposed by the controller (added by
+    # ``add-irq-vector-traits`` Phase 1.4).  RP2040 ships
+    # ``DMA_IRQ_0`` (line 11) + ``DMA_IRQ_1`` (line 12), both
+    # shared by every channel via the INTE0/INTE1 routing mux —
+    # consumers select the IRQ by writing the channel mask, not by
+    # per-channel hardware IRQ ID.
+    irq_numbers: tuple[int, ...] = ()
+    # Tier 2/3/4 controller capabilities (added by
+    # ``fill-dma-controller-hw-traits``).  Despite the legacy
+    # ``Rp2040`` prefix, this descriptor is now produced for every
+    # admitted DMA controller (STM32G0 DMA1, STM32F4 DMA1/2,
+    # iMXRT eDMA, …) — see ``device.rp2040_dma_controller_hw``.
+    priority_level_count: int = 0
+    supported_burst_sizes: tuple[int, ...] = ()  # bytes (1, 4, 8, 16)
+    supported_data_widths: tuple[int, ...] = ()  # bits (8, 16, 32)
+    supports_circular: bool = False
+    supports_double_buffer: bool = False
+    supports_mem_to_mem: bool = False
+    supports_descriptor_chaining: bool = False
+    supports_scatter_gather: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -1270,6 +1290,19 @@ class CanonicalDeviceIR:
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     timer_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    # PWM Tier 2/3/4 (add-pwm-tier-2-3-4-data).
+    pwm_deadtime_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    pwm_alignment_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    pwm_break_inputs: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    pwm_mode_flags: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).

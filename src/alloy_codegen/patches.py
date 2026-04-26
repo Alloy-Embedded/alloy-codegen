@@ -699,6 +699,49 @@ class TimerModeFlagsPatch:
 
 
 @dataclass(frozen=True, slots=True)
+class PwmDeadtimeOptionPatch:
+    """One PWM deadtime DTPSC prescaler option (added by
+    ``add-pwm-tier-2-3-4-data``)."""
+
+    peripheral: str
+    prescaler_field_value: int
+    count_bits: int = 8
+    max_ns: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class PwmAlignmentOptionPatch:
+    """One supported PWM counter alignment (edge / center-up /
+    center-down / center-up-down)."""
+
+    peripheral: str
+    alignment: str  # "edge" | "center_up" | "center_down" | "center_up_down"
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class PwmBreakInputPatch:
+    """One PWM break-input descriptor (BKIN, BKIN2, FAULT0..3, ...)."""
+
+    peripheral: str
+    input_id: str  # "bkin" | "bkin2" | "fault0" | ...
+    polarity_field_value: int = 0
+    enable_field_value: int = 1
+
+
+@dataclass(frozen=True, slots=True)
+class PwmModeFlagsPatch:
+    """Per-PWM capability flags."""
+
+    peripheral: str
+    supports_deadtime: bool = False
+    supports_break_input: bool = False
+    supports_complementary_outputs: bool = False
+    supports_asymmetric_pwm: bool = False
+    supports_combined_pwm: bool = False
+
+
+@dataclass(frozen=True, slots=True)
 class DevicePatch:
     """Patch document for one bootstrap device."""
 
@@ -762,6 +805,11 @@ class DevicePatch:
     i2c_speed_options: tuple[I2cSpeedOptionPatch, ...] = ()
     i2c_timing_presets: tuple[I2cTimingPresetPatch, ...] = ()
     i2c_mode_flags: tuple[I2cModeFlagsPatch, ...] = ()
+    # add-pwm-tier-2-3-4-data
+    pwm_deadtime_options: tuple[PwmDeadtimeOptionPatch, ...] = ()
+    pwm_alignment_options: tuple[PwmAlignmentOptionPatch, ...] = ()
+    pwm_break_inputs: tuple[PwmBreakInputPatch, ...] = ()
+    pwm_mode_flags: tuple[PwmModeFlagsPatch, ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -2217,6 +2265,20 @@ def load_device_patch(
         i2c_mode_flags=tuple(
             _parse_i2c_mode_flags_patch(item) for item in payload.get("i2c_mode_flags", ())
         ),
+        pwm_deadtime_options=tuple(
+            _parse_pwm_deadtime_option_patch(item)
+            for item in payload.get("pwm_deadtime_options", ())
+        ),
+        pwm_alignment_options=tuple(
+            _parse_pwm_alignment_option_patch(item)
+            for item in payload.get("pwm_alignment_options", ())
+        ),
+        pwm_break_inputs=tuple(
+            _parse_pwm_break_input_patch(item) for item in payload.get("pwm_break_inputs", ())
+        ),
+        pwm_mode_flags=tuple(
+            _parse_pwm_mode_flags_patch(item) for item in payload.get("pwm_mode_flags", ())
+        ),
     )
 
 
@@ -2248,6 +2310,43 @@ def _parse_i2c_mode_flags_patch(payload: dict[str, object]) -> I2cModeFlagsPatch
         supports_general_call=bool(payload.get("supports_general_call", False)),
         supports_7bit_addressing=bool(payload.get("supports_7bit_addressing", True)),
         supports_10bit_addressing=bool(payload.get("supports_10bit_addressing", False)),
+    )
+
+
+def _parse_pwm_deadtime_option_patch(payload: dict[str, object]) -> PwmDeadtimeOptionPatch:
+    return PwmDeadtimeOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        prescaler_field_value=int(payload["prescaler_field_value"]),  # type: ignore[arg-type]
+        count_bits=int(payload.get("count_bits", 8)),  # type: ignore[arg-type]
+        max_ns=int(payload.get("max_ns", 0)),  # type: ignore[arg-type]
+    )
+
+
+def _parse_pwm_alignment_option_patch(payload: dict[str, object]) -> PwmAlignmentOptionPatch:
+    return PwmAlignmentOptionPatch(
+        peripheral=str(payload["peripheral"]),
+        alignment=str(payload["alignment"]),
+        field_value=int(payload["field_value"]),  # type: ignore[arg-type]
+    )
+
+
+def _parse_pwm_break_input_patch(payload: dict[str, object]) -> PwmBreakInputPatch:
+    return PwmBreakInputPatch(
+        peripheral=str(payload["peripheral"]),
+        input_id=str(payload["input_id"]),
+        polarity_field_value=int(payload.get("polarity_field_value", 0)),  # type: ignore[arg-type]
+        enable_field_value=int(payload.get("enable_field_value", 1)),  # type: ignore[arg-type]
+    )
+
+
+def _parse_pwm_mode_flags_patch(payload: dict[str, object]) -> PwmModeFlagsPatch:
+    return PwmModeFlagsPatch(
+        peripheral=str(payload["peripheral"]),
+        supports_deadtime=bool(payload.get("supports_deadtime", False)),
+        supports_break_input=bool(payload.get("supports_break_input", False)),
+        supports_complementary_outputs=bool(payload.get("supports_complementary_outputs", False)),
+        supports_asymmetric_pwm=bool(payload.get("supports_asymmetric_pwm", False)),
+        supports_combined_pwm=bool(payload.get("supports_combined_pwm", False)),
     )
 
 

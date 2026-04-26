@@ -74,6 +74,7 @@ inline constexpr std::array<PeripheralId, 2> kDmaSemanticPeripherals = {{
 // complete-rp2040-semantics Phase D: per-controller DMA HW facts.
 enum class RuntimeDmaCtrlId : std::uint8_t {
   None = 0,
+  DMA1 = 1,
 };
 
 template<RuntimeDmaCtrlId Id>
@@ -84,6 +85,34 @@ struct DmaControllerHwTraits {
   static constexpr std::uint32_t kMaxTransferCount = 0u;
   static constexpr bool kSupportsChaining = false;
   static constexpr bool kSupportsByteSwap = false;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
+  static constexpr std::uint8_t kPriorityLevelCount = 0u;
+  static constexpr std::array<std::uint8_t, 0> kSupportedBurstSizes = {};
+  static constexpr std::array<std::uint8_t, 0> kSupportedDataWidths = {};
+  static constexpr bool kSupportsCircular = false;
+  static constexpr bool kSupportsDoubleBuffer = false;
+  static constexpr bool kSupportsMemToMem = false;
+  static constexpr bool kSupportsDescriptorChaining = false;
+  static constexpr bool kSupportsScatterGather = false;
+};
+
+template<>
+struct DmaControllerHwTraits<RuntimeDmaCtrlId::DMA1> {
+  static constexpr bool kPresent = true;
+  static constexpr std::uint32_t kBaseAddress = 0x40020000u;
+  static constexpr std::uint8_t kChannelCount = 7u;
+  static constexpr std::uint32_t kMaxTransferCount = 0x0000ffffu;
+  static constexpr bool kSupportsChaining = false;
+  static constexpr bool kSupportsByteSwap = false;
+  static constexpr std::array<std::uint32_t, 2> kIrqNumbers = {{9u, 10u}};
+  static constexpr std::uint8_t kPriorityLevelCount = 4u;
+  static constexpr std::array<std::uint8_t, 1> kSupportedBurstSizes = {{1u}};
+  static constexpr std::array<std::uint8_t, 3> kSupportedDataWidths = {{8u, 16u, 32u}};
+  static constexpr bool kSupportsCircular = true;
+  static constexpr bool kSupportsDoubleBuffer = false;
+  static constexpr bool kSupportsMemToMem = true;
+  static constexpr bool kSupportsDescriptorChaining = false;
+  static constexpr bool kSupportsScatterGather = false;
 };
 
 }
