@@ -52,6 +52,10 @@ PERIPHERAL_CLASS_ALIASES = {
     "afec": "adc",
     "apb_saradc": "adc",
     "saradc": "adc",
+    # ESP32 classic SENS peripheral hosts ADC1 (SAR1) + ADC2 (SAR2) sub-blocks
+    # alongside touch sensors and the hall sensor.  Classifying as `adc` lets
+    # the ADC trait builder consume it; touch/hall stay outside the ADC contract.
+    "sens": "adc",
     "dac": "dac",
     "dacc": "dac",
     "rtc": "rtc",

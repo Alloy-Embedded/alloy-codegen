@@ -31,7 +31,7 @@
   ],
   "registers": [],
   "register_fields": [],
-  "peripherals": ["GPIO", "UART0", "SPI0", "I2C0", "TIMG0", "LEDC", "RMT", "DPORT"],
+  "peripherals": ["GPIO", "UART0", "SPI0", "I2C0", "TIMG0", "LEDC", "RMT", "DPORT", "SENS"],
   "dma_request_refs": [],
   "system_clock_profiles": [
     {

@@ -32,7 +32,7 @@
       "address_space": "eeprom"
     }
   ],
-  "peripherals": ["PORTA", "PORTC", "USART0", "USART1", "TWI0", "SPI0", "TCA0", "CLKCTRL", "PORTMUX"],
+  "peripherals": ["PORTA", "PORTC", "USART0", "USART1", "TWI0", "SPI0", "TCA0", "CLKCTRL", "PORTMUX", "ADC0"],
   "system_clock_profiles": [
     {
       "profile_id": "safe-osc20m-20mhz",

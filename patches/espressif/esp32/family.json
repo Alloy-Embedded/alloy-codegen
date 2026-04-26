@@ -55,7 +55,8 @@
     { "name": "TIMG0",  "rcc_enable_signal": "DPORT_PERIP_CLK_EN.TIMERGROUP_CLK_EN", "ip_version": "esp32-timg-v1" },
     { "name": "LEDC",   "rcc_enable_signal": "DPORT_PERIP_CLK_EN.LEDC_CLK_EN",  "ip_version": "esp32-ledc-v1" },
     { "name": "RMT",    "rcc_enable_signal": "DPORT_PERIP_CLK_EN.RMT_CLK_EN",   "ip_version": "esp32-rmt-v1" },
-    { "name": "DPORT",  "rcc_enable_signal": null,                         "ip_version": "esp32-dport-v1" }
+    { "name": "DPORT",  "rcc_enable_signal": null,                         "ip_version": "esp32-dport-v1" },
+    { "name": "SENS",   "rcc_enable_signal": null,                         "ip_version": "esp32-sens-v1" }
   ],
   "pin_signals": [
     { "signal_id": "gpio0-gpio",  "pin_name": "GPIO0",  "function": "gpio", "peripheral": "GPIO", "signal": "IN0",  "af_number": null },

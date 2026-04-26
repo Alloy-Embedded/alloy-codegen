@@ -103,6 +103,57 @@ SYSTEM_DESCRIPTOR_RULE_SUFFIXES: dict[str, tuple[str, ...]] = {
 }
 RUNTIME_OWNED_PERIPHERAL_CLASSES = {"gpio", "uart"}
 
+# Schema IDs for which `runtime_driver_semantics._build_adc_rows` has a real
+# builder.  Any ADC-classified peripheral whose `backend_schema_id` is NOT in
+# this set falls into the catch-all stub branch and gets `kPresent=false` —
+# the `<device>-adc-semantics-populated` validation rule fails for that device.
+_IMPLEMENTED_ADC_SCHEMA_IDS: frozenset[str] = frozenset(
+    {
+        "alloy.adc.microchip-afec-s",
+        "alloy.adc.nxp-adc",
+        "alloy.adc.espressif-esp32c3-saradc-v1",
+        "alloy.adc.espressif-esp32s3-saradc-v1",
+        "alloy.adc.espressif-esp32-sens-v1",
+        "alloy.adc.microchip-avr-da-adc-v1",
+        "alloy.adc.raspberrypi-rp2040-adc-v1",
+    }
+)
+_IMPLEMENTED_ADC_SCHEMA_PREFIXES: tuple[str, ...] = ("alloy.adc.st-",)
+
+
+def _adc_semantics_populated(device: object) -> bool:
+    """Return True iff every admitted ADC peripheral has a populated trait.
+
+    A peripheral is checked against the implemented ADC schema set only when
+    the family explicitly admits it via an ``ip_version`` in its family.json.
+    Peripherals classified as ADC by the keyword map but lacking an explicit
+    ``ip_version`` are treated as **incidental SVD-sourced extras** and are
+    exempt — they fall into the stub branch in ``_build_adc_rows`` and that
+    is intentional (e.g., ESP32-S3 SENS exposes touch/temp blocks but is not
+    the primary ADC; APB_SARADC on the same chip is the one that matters).
+
+    Devices without any explicitly-admitted ADC peripheral pass trivially.
+    """
+    peripherals = getattr(device, "peripherals", ())
+    for peripheral in peripherals:
+        ip_name = getattr(peripheral, "ip_name", None)
+        if canonical_peripheral_class(ip_name) != "adc":
+            continue
+        ip_version = getattr(peripheral, "ip_version", None)
+        if not ip_version:
+            # Family did not explicitly admit this peripheral as a typed ADC
+            # IP — leave it as a stub without failing the rule.
+            continue
+        schema_id = getattr(peripheral, "backend_schema_id", None)
+        if schema_id is None:
+            return False
+        if schema_id in _IMPLEMENTED_ADC_SCHEMA_IDS:
+            continue
+        if any(schema_id.startswith(prefix) for prefix in _IMPLEMENTED_ADC_SCHEMA_PREFIXES):
+            continue
+        return False
+    return True
+
 
 def _rule(
     *,
@@ -462,6 +513,16 @@ def _validate_device_semantics(device: CanonicalDeviceIR) -> tuple[ValidationRul
             severity="error",
             passed=not duplicate_peripheral_bases,
             message=f"{device.identity.device} peripheral base addresses are unique.",
+        ),
+        _rule(
+            rule_id=f"{device.identity.device}-adc-semantics-populated",
+            category="semantic",
+            severity="error",
+            passed=_adc_semantics_populated(device),
+            message=(
+                f"{device.identity.device} ADC peripherals admit a populated "
+                "AdcSemanticTraits specialisation (no stub fallback)."
+            ),
         ),
         _rule(
             rule_id=f"{device.identity.device}-interrupts-present",

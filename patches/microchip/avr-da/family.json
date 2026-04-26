@@ -33,7 +33,8 @@
     { "name": "SPI0",    "rcc_enable_signal": null, "ip_version": "avr-da-spi-v1" },
     { "name": "TCA0",    "rcc_enable_signal": null, "ip_version": "avr-da-tca-v1" },
     { "name": "CLKCTRL", "rcc_enable_signal": null, "ip_version": "avr-da-clkctrl-v1" },
-    { "name": "PORTMUX", "rcc_enable_signal": null, "ip_version": "avr-da-portmux-v1" }
+    { "name": "PORTMUX", "rcc_enable_signal": null, "ip_version": "avr-da-portmux-v1" },
+    { "name": "ADC0",    "rcc_enable_signal": null, "ip_version": "avr-da-adc-v1" }
   ],
   "pin_signals": [
     { "signal_id": "pa0-usart0-txd", "pin_name": "PA0", "function": "usart0_txd", "peripheral": "USART0", "signal": "TX",  "af_number": 0 },

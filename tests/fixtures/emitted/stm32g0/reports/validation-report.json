@@ -29,7 +29,7 @@
     {
       "blocking": true,
       "gate_id": "gate-c",
-      "message": "gate-c passed with 86 rule(s).",
+      "message": "gate-c passed with 87 rule(s).",
       "passed": true,
       "rule_ids": [
         "stm32g071rb-package-pin-count-covers-known-pins",
@@ -39,6 +39,7 @@
         "stm32g071rb-alternate-functions-explicit",
         "stm32g071rb-memory-sizes-positive",
         "stm32g071rb-peripheral-bases-unique",
+        "stm32g071rb-adc-semantics-populated",
         "stm32g071rb-interrupts-present",
         "stm32g071rb-interrupts-reference-known-peripherals",
         "stm32g071rb-referenced-peripherals-have-rcc-enable",
@@ -234,6 +235,13 @@
       "message": "stm32g071rb peripheral base addresses are unique.",
       "passed": true,
       "rule_id": "stm32g071rb-peripheral-bases-unique",
+      "severity": "error"
+    },
+    {
+      "category": "semantic",
+      "message": "stm32g071rb ADC peripherals admit a populated AdcSemanticTraits specialisation (no stub fallback).",
+      "passed": true,
+      "rule_id": "stm32g071rb-adc-semantics-populated",
       "severity": "error"
     },
     {

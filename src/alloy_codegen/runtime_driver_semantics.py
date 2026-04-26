@@ -346,6 +346,110 @@ class DmaSemanticRow:
 
 
 @dataclass(frozen=True, slots=True)
+class AdcInternalChannel:
+    """One internal ADC channel (temperature sensor, VrefInt, VBat, etc.).
+
+    Surfaced by the alloy-codegen ADC trait so the consumer can generate
+    high-level helpers like ``readTemperature() -> celsius`` without
+    hardcoding vendor-specific channel indices.
+    """
+
+    kind: str  # "temperature_sensor" | "vrefint" | "vbat" | "opamp_output" | "dac_output"
+    channel_index: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcCalibrationDataPoint:
+    """One factory-calibration data point (e.g. STM32 VREFINT_CAL, AVR-DA SIGROW.SREF).
+
+    ``semantic_constant`` is the temperature (°C) or voltage (mV) at which
+    the cal value was measured.  ``location`` is a runtime register ref
+    pointing at the flash address where the value lives.
+    """
+
+    kind: str  # "vrefint_cal" | "ts_cal_low" | "ts_cal_high" | "sigrow_sref" | ...
+    location: RuntimeRegisterRef
+    semantic_constant: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcCalibrationContext:
+    """Global calibration context describing what the cal data points mean.
+
+    ``valid=False`` when the family delegates calibration to its vendor
+    runtime (e.g., ESP32 uses esp-idf eFuse cal); the consumer SHOULD fall
+    back to vendor-specific cal in that case.
+    """
+
+    cal_temp_low_celsius: int = 0
+    cal_temp_high_celsius: int = 0
+    cal_voltage_mv: int = 0
+    vrefint_nominal_mv: int = 0
+    valid: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class AdcResolutionOption:
+    """One supported ADC resolution + the field value that selects it."""
+
+    bits: int
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcSampleTimeOption:
+    """One sample-time option (cycles) + the field value that selects it.
+
+    ``cycles_q8`` carries the cycle count in Q8.8 fixed-point so we can
+    represent fractional cycles (1.5, 7.5, 13.5, etc.) without floats in
+    the IR — the C++ side converts to ``float`` constants.
+    """
+
+    cycles_q8: int  # Q8.8 fixed-point: 1.5 cycles -> 384
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcOversamplingOption:
+    """One oversampling ratio + the field value that selects it."""
+
+    ratio: int  # 2, 4, 8, ..., 256
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcExternalTrigger:
+    """One external trigger source + its EXTSEL field value + default polarity."""
+
+    source: str  # "tim1_trgo" | "tim2_trgo" | "exti11" | ...
+    extsel_value: int
+    default_polarity: int  # 0=software/disabled, 1=rising, 2=falling, 3=both
+
+
+@dataclass(frozen=True, slots=True)
+class AdcDmaBindingRow:
+    """One DMA route capable of pumping ADC results into memory.
+
+    Derived from the device IR's ``dma_requests`` filtered by peripheral.
+    """
+
+    controller_peripheral: str  # DMA controller peripheral name (PeripheralId)
+    controller_id: str  # DmaControllerId enum entry name
+    binding_id: str  # DmaBindingId enum entry name
+    request_value: int
+    data_register: RuntimeRegisterRef
+    transfer_width_bits: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdcDmaModeOption:
+    """One DMA mode (one_shot|circular) + the field value that selects it."""
+
+    mode: str  # "one_shot" | "circular"
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
 class AdcSemanticRow:
     """ADC semantic trait payload keyed by peripheral."""
 
@@ -383,6 +487,24 @@ class AdcSemanticRow:
     channel_enable_pattern: RuntimeIndexedFieldRef
     channel_disable_pattern: RuntimeIndexedFieldRef
     channel_status_pattern: RuntimeIndexedFieldRef
+    # Tier 2: internal channels + factory calibration (added by
+    # add-full-adc-coverage).  Empty tuples / invalid context for families
+    # that don't carry the data; the rendered C++ defaults to empty
+    # std::array<X, 0>{} so existing goldens stay byte-stable until the
+    # specific family's builder populates these fields.
+    internal_channels: tuple[AdcInternalChannel, ...] = ()
+    calibration_data_points: tuple[AdcCalibrationDataPoint, ...] = ()
+    calibration_context: AdcCalibrationContext = AdcCalibrationContext()
+    # Tier 3: configuration value semantics (paired arrays of human-meaningful
+    # value + raw field value).
+    resolution_options: tuple[AdcResolutionOption, ...] = ()
+    sample_time_options: tuple[AdcSampleTimeOption, ...] = ()
+    oversampling_options: tuple[AdcOversamplingOption, ...] = ()
+    adc_max_clock_hz: int = 0
+    # Tier 4: DMA bindings + external triggers + DMA mode options.
+    dma_bindings: tuple[AdcDmaBindingRow, ...] = ()
+    external_triggers: tuple[AdcExternalTrigger, ...] = ()
+    dma_mode_options: tuple[AdcDmaModeOption, ...] = ()
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
 
 
@@ -1256,6 +1378,189 @@ def _register_ref_expr(register_ref: RuntimeRegisterRef) -> str:
         f"RuntimeRegisterRef{{{register_id}, "
         f"0x{register_ref.base_address:08X}u, {register_ref.offset_bytes}u, true}}"
     )
+
+
+# ---------------------------------------------------------------------------
+# ADC trait helpers (Tier 2/3/4 — added by add-full-adc-coverage)
+# ---------------------------------------------------------------------------
+
+
+def _adc_internal_channel_expr(channel: AdcInternalChannel) -> str:
+    return (
+        "InternalAdcChannel{"
+        f"InternalAdcChannelKind::{channel.kind}, "
+        f"{channel.channel_index}u, true}}"
+    )
+
+
+def _adc_calibration_data_point_expr(point: AdcCalibrationDataPoint) -> str:
+    return (
+        "CalibrationDataPoint{"
+        f"AdcCalibrationKind::{point.kind}, "
+        f"{_register_ref_expr(point.location)}, "
+        f"{point.semantic_constant}, true}}"
+    )
+
+
+def _adc_calibration_context_expr(ctx: AdcCalibrationContext) -> str:
+    if not ctx.valid:
+        return "CalibrationContext{}"
+    return (
+        "CalibrationContext{"
+        f"{ctx.cal_temp_low_celsius}, "
+        f"{ctx.cal_temp_high_celsius}, "
+        f"{ctx.cal_voltage_mv}u, "
+        f"{ctx.vrefint_nominal_mv}u, true}}"
+    )
+
+
+def _adc_resolution_option_expr(opt: AdcResolutionOption) -> str:
+    return f"AdcResolutionOption{{{opt.bits}u, {opt.field_value}u, true}}"
+
+
+def _adc_sample_time_option_expr(opt: AdcSampleTimeOption) -> str:
+    return f"AdcSampleTimeOption{{{opt.cycles_q8}u, {opt.field_value}u, true}}"
+
+
+def _adc_oversampling_option_expr(opt: AdcOversamplingOption) -> str:
+    return f"AdcOversamplingOption{{{opt.ratio}u, {opt.field_value}u, true}}"
+
+
+def _adc_external_trigger_expr(trig: AdcExternalTrigger) -> str:
+    return (
+        "AdcExternalTrigger{"
+        f"AdcExternalTriggerSource::{trig.source}, "
+        f"{trig.extsel_value}u, "
+        f"{trig.default_polarity}u, true}}"
+    )
+
+
+def _adc_dma_binding_expr(binding: AdcDmaBindingRow) -> str:
+    return (
+        "AdcDmaBinding{"
+        f"PeripheralId::{binding.controller_peripheral}, "
+        f"DmaControllerId::{binding.controller_id}, "
+        f"DmaBindingId::{binding.binding_id}, "
+        f"{binding.request_value}u, "
+        f"{_register_ref_expr(binding.data_register)}, "
+        f"{binding.transfer_width_bits}u, true}}"
+    )
+
+
+def _adc_dma_mode_option_expr(opt: AdcDmaModeOption) -> str:
+    return f"AdcDmaModeOption{{AdcDmaMode::{opt.mode}, {opt.field_value}u, true}}"
+
+
+def _render_array_lines(
+    *,
+    cpp_type: str,
+    array_name: str,
+    count_name: str,
+    items: tuple[object, ...],
+    expr_fn,  # type: ignore[no-untyped-def]
+) -> list[str]:
+    """Render a paired ``static constexpr std::uint32_t kCount`` +
+    ``static constexpr std::array<T, N> kArray = { ... };`` declaration."""
+    lines: list[str] = [
+        f"  static constexpr std::uint32_t {count_name} = {len(items)}u;",
+    ]
+    if not items:
+        lines.append(f"  static constexpr std::array<{cpp_type}, 0> {array_name} = {{}};")
+        return lines
+    item_lines = [f"    {expr_fn(item)}," for item in items]
+    lines.append(f"  static constexpr std::array<{cpp_type}, {len(items)}> {array_name} = {{{{")
+    lines.extend(item_lines)
+    lines.append("  }};")
+    return lines
+
+
+def _render_adc_tier_extension_lines(row: AdcSemanticRow) -> list[str]:
+    """Emit the Tier 2/3/4 lines for an ADC trait specialisation.
+
+    Called by the specialisation builder for both stub and populated rows so
+    every emitted ``AdcSemanticTraits<...>`` covers the full schema surface.
+    Stub rows pass an ``AdcSemanticRow`` with default empty tuples; populated
+    rows pass the real data.
+    """
+    lines: list[str] = []
+    lines.extend(
+        _render_array_lines(
+            cpp_type="InternalAdcChannel",
+            array_name="kInternalChannels",
+            count_name="kInternalChannelCount",
+            items=row.internal_channels,
+            expr_fn=_adc_internal_channel_expr,
+        )
+    )
+    lines.extend(
+        _render_array_lines(
+            cpp_type="CalibrationDataPoint",
+            array_name="kCalibrationDataPoints",
+            count_name="kCalibrationDataPointCount",
+            items=row.calibration_data_points,
+            expr_fn=_adc_calibration_data_point_expr,
+        )
+    )
+    lines.append(
+        f"  static constexpr CalibrationContext kCalibrationContext = "
+        f"{_adc_calibration_context_expr(row.calibration_context)};"
+    )
+    lines.extend(
+        _render_array_lines(
+            cpp_type="AdcResolutionOption",
+            array_name="kSupportedResolutions",
+            count_name="kSupportedResolutionCount",
+            items=row.resolution_options,
+            expr_fn=_adc_resolution_option_expr,
+        )
+    )
+    lines.extend(
+        _render_array_lines(
+            cpp_type="AdcSampleTimeOption",
+            array_name="kSupportedSampleTimes",
+            count_name="kSupportedSampleTimeCount",
+            items=row.sample_time_options,
+            expr_fn=_adc_sample_time_option_expr,
+        )
+    )
+    lines.extend(
+        _render_array_lines(
+            cpp_type="AdcOversamplingOption",
+            array_name="kSupportedOversamplings",
+            count_name="kSupportedOversamplingCount",
+            items=row.oversampling_options,
+            expr_fn=_adc_oversampling_option_expr,
+        )
+    )
+    lines.append(f"  static constexpr std::uint32_t kAdcMaxClockHz = {row.adc_max_clock_hz}u;")
+    lines.extend(
+        _render_array_lines(
+            cpp_type="AdcDmaBinding",
+            array_name="kDmaBindings",
+            count_name="kDmaBindingCount",
+            items=row.dma_bindings,
+            expr_fn=_adc_dma_binding_expr,
+        )
+    )
+    lines.extend(
+        _render_array_lines(
+            cpp_type="AdcExternalTrigger",
+            array_name="kExternalTriggers",
+            count_name="kExternalTriggerCount",
+            items=row.external_triggers,
+            expr_fn=_adc_external_trigger_expr,
+        )
+    )
+    lines.extend(
+        _render_array_lines(
+            cpp_type="AdcDmaModeOption",
+            array_name="kSupportedDmaModes",
+            count_name="kSupportedDmaModeCount",
+            items=row.dma_mode_options,
+            expr_fn=_adc_dma_mode_option_expr,
+        )
+    )
+    return lines
 
 
 def _schema_ref_expr(context: _SemanticContext, schema_id: str | None) -> str:
@@ -3539,6 +3844,539 @@ def _nxp_adc_row(
     )
 
 
+def _espressif_saradc_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+    channel_count: int,
+) -> AdcSemanticRow:
+    """ADC trait for ESP32-C3 / ESP32-S3 APB_SARADC peripheral.
+
+    ESP32-C3 (5 channels) and ESP32-S3 (10 channels per SAR ADC, 2 SARs) share
+    the same broad register layout — control / status / config — but differ in
+    channel count and a few field positions.  Both schemas dispatch here with
+    different ``channel_count`` arguments.
+
+    Calibration for both is delegated to esp-idf at runtime (eFuse cal +
+    characterisation curve fitting), so ``kCalibrationContext`` stays invalid
+    and ``kCalibrationDataPointCount`` stays 0.  Tier 2/3/4 fields default to
+    empty arrays — populating them is a follow-on once we model attenuation
+    and digital controller config.
+    """
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=channel_count,
+        result_bits=12,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        has_hardware_trigger=False,
+        has_channel_bitmask_select=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            fallback_offset=0x00,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INT_ST",
+            fallback_offset=0x40,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL2",
+            fallback_offset=0x04,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="FSM_WAIT",
+            fallback_offset=0x18,
+        ),
+        sequence_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_PATT_TAB1",
+            fallback_offset=0x18,
+        ),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR1_STATUS",
+            fallback_offset=0x14,
+        ),
+        enable_field=_invalid_field_ref(base_address),
+        disable_field=_invalid_field_ref(base_address),
+        ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INT_ST",
+            field_names=("ADC1_DONE_INT_ST", "APB_SARADC_DONE_INT_ST"),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=31,
+            fallback_bit_width=1,
+        ),
+        start_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            field_names=("START_FORCE", "START"),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=29,
+            fallback_bit_width=1,
+        ),
+        stop_field=_invalid_field_ref(base_address),
+        continuous_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRL",
+            field_names=("WORK_MODE",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=3,
+            fallback_bit_width=2,
+        ),
+        resolution_field=_invalid_field_ref(base_address),
+        align_field=_invalid_field_ref(base_address),
+        dma_enable_field=_invalid_field_ref(base_address),
+        dma_mode_field=_invalid_field_ref(base_address),
+        external_trigger_enable_field=_invalid_field_ref(base_address),
+        external_trigger_select_field=_invalid_field_ref(base_address),
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INT_ST",
+            field_names=("ADC1_DONE_INT_ST", "APB_SARADC_DONE_INT_ST"),
+            fallback_register_offset=0x40,
+            fallback_bit_offset=31,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_invalid_field_ref(base_address),
+        overrun_field=_invalid_field_ref(base_address),
+        data_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR1_STATUS",
+            field_names=("ADC1_DATA",),
+            fallback_register_offset=0x14,
+            fallback_bit_offset=0,
+            fallback_bit_width=12,
+        ),
+        channel_select_field=_invalid_field_ref(base_address),
+        channel_bit_pattern=_invalid_indexed_field_ref(base_address),
+        channel_enable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_disable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_status_pattern=_invalid_indexed_field_ref(base_address),
+    )
+
+
+def _espressif_esp32_sens_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> AdcSemanticRow:
+    """ADC trait for ESP32 classic SENS peripheral.
+
+    The ESP32 classic exposes ADC1 (8 channels GPIO32–39) and ADC2 (10 channels
+    GPIO0/2/4/12–15/25–27) as sub-blocks of the ``SENS`` peripheral.  The trait
+    summarises ADC1 (the unrestricted one — ADC2 conflicts with Wi-Fi).  Apps
+    that need ADC2 access via runtime configuration of SAR_MEAS2_CTRL2.
+    """
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=8,
+        result_bits=12,
+        has_dma=False,  # ESP32 classic ADC has no GDMA — sampling is CPU-driven
+        has_hardware_trigger=False,
+        has_channel_bitmask_select=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            fallback_offset=0x54,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            fallback_offset=0x54,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_READ_CTRL",
+            fallback_offset=0x00,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_READ_CTRL",
+            fallback_offset=0x00,
+        ),
+        sequence_reg=_invalid_register_ref(base_address),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            fallback_offset=0x54,
+        ),
+        enable_field=_invalid_field_ref(base_address),
+        disable_field=_invalid_field_ref(base_address),
+        ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            field_names=("MEAS1_DONE_SAR",),
+            fallback_register_offset=0x54,
+            fallback_bit_offset=29,
+            fallback_bit_width=1,
+        ),
+        start_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            field_names=("MEAS1_START_SAR",),
+            fallback_register_offset=0x54,
+            fallback_bit_offset=30,
+            fallback_bit_width=1,
+        ),
+        stop_field=_invalid_field_ref(base_address),
+        continuous_field=_invalid_field_ref(base_address),
+        resolution_field=_invalid_field_ref(base_address),
+        align_field=_invalid_field_ref(base_address),
+        dma_enable_field=_invalid_field_ref(base_address),
+        dma_mode_field=_invalid_field_ref(base_address),
+        external_trigger_enable_field=_invalid_field_ref(base_address),
+        external_trigger_select_field=_invalid_field_ref(base_address),
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            field_names=("MEAS1_DONE_SAR",),
+            fallback_register_offset=0x54,
+            fallback_bit_offset=29,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_invalid_field_ref(base_address),
+        overrun_field=_invalid_field_ref(base_address),
+        data_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            field_names=("MEAS1_DATA_SAR",),
+            fallback_register_offset=0x54,
+            fallback_bit_offset=0,
+            fallback_bit_width=16,
+        ),
+        channel_select_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAR_MEAS1_CTRL2",
+            field_names=("SAR1_EN_PAD",),
+            fallback_register_offset=0x54,
+            fallback_bit_offset=19,
+            fallback_bit_width=12,
+        ),
+        channel_bit_pattern=_invalid_indexed_field_ref(base_address),
+        channel_enable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_disable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_status_pattern=_invalid_indexed_field_ref(base_address),
+    )
+
+
+def _microchip_avr_adc_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> AdcSemanticRow:
+    """ADC trait for the Microchip AVR-Dx ADC0 peripheral.
+
+    AVR-DA has one 12-bit ADC with up to 28 channel inputs (PORTA + PORTD pins
+    plus internal mux positions).  The mux is set via ADC0.MUXPOS register;
+    conversions start by writing ADC0.COMMAND.STCONV.
+    """
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=28,
+        result_bits=12,
+        has_dma=False,
+        has_hardware_trigger=False,
+        has_channel_bitmask_select=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRLA",
+            fallback_offset=0x00,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INTFLAGS",
+            fallback_offset=0x0E,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRLB",
+            fallback_offset=0x01,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="SAMPCTRL",
+            fallback_offset=0x05,
+        ),
+        sequence_reg=_invalid_register_ref(base_address),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RES",
+            fallback_offset=0x10,
+        ),
+        enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRLA",
+            field_names=("ENABLE",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        disable_field=_invalid_field_ref(base_address),
+        ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INTFLAGS",
+            field_names=("RESRDY",),
+            fallback_register_offset=0x0E,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        start_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="COMMAND",
+            field_names=("STCONV",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        stop_field=_invalid_field_ref(base_address),
+        continuous_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRLA",
+            field_names=("FREERUN",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        resolution_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CTRLA",
+            field_names=("RESSEL",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        align_field=_invalid_field_ref(base_address),
+        dma_enable_field=_invalid_field_ref(base_address),
+        dma_mode_field=_invalid_field_ref(base_address),
+        external_trigger_enable_field=_invalid_field_ref(base_address),
+        external_trigger_select_field=_invalid_field_ref(base_address),
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INTFLAGS",
+            field_names=("RESRDY",),
+            fallback_register_offset=0x0E,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_invalid_field_ref(base_address),
+        overrun_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="INTFLAGS",
+            field_names=("WCMP",),
+            fallback_register_offset=0x0E,
+            fallback_bit_offset=1,
+            fallback_bit_width=1,
+        ),
+        data_field=_invalid_field_ref(base_address),
+        channel_select_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="MUXPOS",
+            field_names=("MUXPOS",),
+            fallback_register_offset=0x06,
+            fallback_bit_offset=0,
+            fallback_bit_width=7,
+        ),
+        channel_bit_pattern=_invalid_indexed_field_ref(base_address),
+        channel_enable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_disable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_status_pattern=_invalid_indexed_field_ref(base_address),
+    )
+
+
+def _raspberrypi_adc_row(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    schema_id: str,
+) -> AdcSemanticRow:
+    """ADC trait for the RP2040 ADC peripheral.
+
+    RP2040 has one 12-bit ADC with 5 channels: GP26 (CH0), GP27 (CH1),
+    GP28 (CH2), GP29 (CH3), and an internal temperature sensor (CH4).
+    """
+    base_address = context.peripheral_by_name[peripheral_name].base_address
+    return AdcSemanticRow(
+        peripheral_name=peripheral_name,
+        schema_id=schema_id,
+        channel_count=5,
+        result_bits=12,
+        has_dma=_peripheral_has_dma_binding(context, peripheral_name),
+        has_hardware_trigger=False,
+        has_channel_bitmask_select=False,
+        control_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            fallback_offset=0x00,
+        ),
+        status_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            fallback_offset=0x00,
+        ),
+        config_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DIV",
+            fallback_offset=0x10,
+        ),
+        sample_time_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="DIV",
+            fallback_offset=0x10,
+        ),
+        sequence_reg=_invalid_register_ref(base_address),
+        data_reg=_resolve_register_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RESULT",
+            fallback_offset=0x04,
+        ),
+        enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            field_names=("EN",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=0,
+            fallback_bit_width=1,
+        ),
+        disable_field=_invalid_field_ref(base_address),
+        ready_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            field_names=("READY",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=8,
+            fallback_bit_width=1,
+        ),
+        start_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            field_names=("START_ONCE",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=2,
+            fallback_bit_width=1,
+        ),
+        stop_field=_invalid_field_ref(base_address),
+        continuous_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            field_names=("START_MANY",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=3,
+            fallback_bit_width=1,
+        ),
+        resolution_field=_invalid_field_ref(base_address),
+        align_field=_invalid_field_ref(base_address),
+        dma_enable_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="FCS",
+            field_names=("DREQ_EN",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=3,
+            fallback_bit_width=1,
+        ),
+        dma_mode_field=_invalid_field_ref(base_address),
+        external_trigger_enable_field=_invalid_field_ref(base_address),
+        external_trigger_select_field=_invalid_field_ref(base_address),
+        end_of_conversion_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            field_names=("READY",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=8,
+            fallback_bit_width=1,
+        ),
+        end_of_sequence_field=_invalid_field_ref(base_address),
+        overrun_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="FCS",
+            field_names=("OVER",),
+            fallback_register_offset=0x08,
+            fallback_bit_offset=10,
+            fallback_bit_width=1,
+        ),
+        data_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="RESULT",
+            field_names=("RESULT",),
+            fallback_register_offset=0x04,
+            fallback_bit_offset=0,
+            fallback_bit_width=12,
+        ),
+        channel_select_field=_resolve_field_ref(
+            context,
+            peripheral_name=peripheral_name,
+            register_name="CS",
+            field_names=("AINSEL",),
+            fallback_register_offset=0x00,
+            fallback_bit_offset=12,
+            fallback_bit_width=3,
+        ),
+        channel_bit_pattern=_invalid_indexed_field_ref(base_address),
+        channel_enable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_disable_pattern=_invalid_indexed_field_ref(base_address),
+        channel_status_pattern=_invalid_indexed_field_ref(base_address),
+    )
+
+
 def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
     rows: list[AdcSemanticRow] = []
     for peripheral in context.runtime_peripherals_by_class.get("adc", ()):
@@ -3557,6 +4395,51 @@ def _build_adc_rows(context: _SemanticContext) -> tuple[AdcSemanticRow, ...]:
             )
         elif schema_id == "alloy.adc.nxp-adc":
             rows.append(_nxp_adc_row(context, peripheral_name=peripheral.name, schema_id=schema_id))
+        elif schema_id == "alloy.adc.espressif-esp32c3-saradc-v1":
+            rows.append(
+                _espressif_saradc_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    channel_count=5,
+                )
+            )
+        elif schema_id == "alloy.adc.espressif-esp32s3-saradc-v1":
+            # ESP32-S3 has 2 SAR ADCs each with 10 channels.  We model the
+            # first ADC instance here (10 channels); the second is admitted
+            # but currently uses the same schema and reports 10 channels too.
+            rows.append(
+                _espressif_saradc_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                    channel_count=10,
+                )
+            )
+        elif schema_id == "alloy.adc.espressif-esp32-sens-v1":
+            rows.append(
+                _espressif_esp32_sens_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+        elif schema_id == "alloy.adc.microchip-avr-da-adc-v1":
+            rows.append(
+                _microchip_avr_adc_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
+        elif schema_id == "alloy.adc.raspberrypi-rp2040-adc-v1":
+            rows.append(
+                _raspberrypi_adc_row(
+                    context,
+                    peripheral_name=peripheral.name,
+                    schema_id=schema_id,
+                )
+            )
         else:
             # Emit a fully-invalid stub row so that the artifact contract
             # (AdcSemanticTraits<PeripheralId::) is satisfied for devices whose
@@ -8823,6 +9706,132 @@ def _emit_driver_semantics_common_header(
             "inline constexpr RuntimeRegisterRef kInvalidRegisterRef{};",
             "inline constexpr RuntimeFieldRef kInvalidFieldRef{};",
             "inline constexpr RuntimeIndexedFieldRef kInvalidIndexedFieldRef{};",
+            "",
+            "// ADC trait support types (added by add-full-adc-coverage).",
+            "// Apps consuming the runtime use these to generate high-level helpers",
+            "// like readTemperature() / readVdd() with full compile-time validation.",
+            "enum class InternalAdcChannelKind : std::uint8_t {",
+            "  none,",
+            "  temperature_sensor,",
+            "  vrefint,",
+            "  vbat,",
+            "  opamp_output,",
+            "  dac_output,",
+            "};",
+            "",
+            "enum class AdcCalibrationKind : std::uint8_t {",
+            "  none,",
+            "  vrefint_cal,",
+            "  ts_cal_low,",
+            "  ts_cal_high,",
+            "  sigrow_sref,",
+            "  sigrow_tempsense_low,",
+            "  sigrow_tempsense_high,",
+            "  efuse_init_code,",
+            "};",
+            "",
+            "enum class AdcExternalTriggerSource : std::uint8_t {",
+            "  none,",
+            "  software,",
+            "  tim1_cc1,",
+            "  tim1_cc2,",
+            "  tim1_cc3,",
+            "  tim1_cc4,",
+            "  tim1_trgo,",
+            "  tim1_trgo2,",
+            "  tim2_trgo,",
+            "  tim3_trgo,",
+            "  tim4_trgo,",
+            "  tim6_trgo,",
+            "  tim7_trgo,",
+            "  tim15_trgo,",
+            "  tim16_trgo,",
+            "  exti11,",
+            "  exti15,",
+            "  gpt1_compare1,",
+            "  gpt2_compare1,",
+            "  xbar_in0,",
+            "  xbar_in1,",
+            "  pwm0_compare,",
+            "  pwm1_compare,",
+            "};",
+            "",
+            "enum class AdcDmaMode : std::uint8_t {",
+            "  none,",
+            "  one_shot,",
+            "  circular,",
+            "};",
+            "",
+            "struct InternalAdcChannel {",
+            "  InternalAdcChannelKind kind = InternalAdcChannelKind::none;",
+            "  std::uint32_t channel_index = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct CalibrationDataPoint {",
+            "  AdcCalibrationKind kind = AdcCalibrationKind::none;",
+            "  RuntimeRegisterRef location{};",
+            "  std::int32_t semantic_constant = 0;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct CalibrationContext {",
+            "  std::int16_t cal_temp_low_celsius = 0;",
+            "  std::int16_t cal_temp_high_celsius = 0;",
+            "  std::uint16_t cal_voltage_mv = 0u;",
+            "  std::uint16_t vrefint_nominal_mv = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct AdcResolutionOption {",
+            "  std::uint8_t bits = 0u;",
+            "  std::uint8_t field_value = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct AdcSampleTimeOption {",
+            "  // ``cycles_q8`` carries the cycle count in Q8.8 fixed-point so",
+            "  // fractional cycles (1.5, 7.5, ...) survive without floats.  Apps",
+            "  // do ``cycles_q8 / 256.0f`` to recover a float, or compare integers.",
+            "  std::uint16_t cycles_q8 = 0u;",
+            "  std::uint8_t field_value = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct AdcOversamplingOption {",
+            "  std::uint16_t ratio = 0u;",
+            "  std::uint8_t field_value = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct AdcExternalTrigger {",
+            "  AdcExternalTriggerSource source = AdcExternalTriggerSource::none;",
+            "  std::uint8_t extsel_value = 0u;",
+            "  std::uint8_t exten_polarity_default = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct AdcDmaBinding {",
+            "  // Source ADC peripheral name + DMA controller / route descriptor.",
+            "  // ``data_register`` mirrors the ADC trait's kDataRegister so DMA",
+            "  // configuration code can pull the source address without a second",
+            "  // lookup.  ``binding_id`` cross-references the existing",
+            "  // ``DmaSemanticTraits`` table when the consumer wants the full",
+            "  // DMA route/channel descriptor.",
+            "  PeripheralId controller_peripheral = PeripheralId::none;",
+            "  DmaControllerId controller_id = DmaControllerId::none;",
+            "  DmaBindingId binding_id = DmaBindingId::none;",
+            "  std::uint8_t request_value = 0u;",
+            "  RuntimeRegisterRef data_register{};",
+            "  std::uint8_t transfer_width_bits = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
+            "struct AdcDmaModeOption {",
+            "  AdcDmaMode mode = AdcDmaMode::none;",
+            "  std::uint8_t field_value = 0u;",
+            "  bool valid = false;",
+            "};",
         ]
     )
     namespace_block = _cpp_namespace_block(
@@ -8837,6 +9846,7 @@ def _emit_driver_semantics_common_header(
             '#include "../peripheral_instances.hpp"',
             '#include "../registers.hpp"',
             '#include "../register_fields.hpp"',
+            '#include "../dma_bindings.hpp"',
             "",
             namespace_block,
             "",
@@ -9464,7 +10474,7 @@ def _adc_specialization_builder(context: _SemanticContext):
         if row.is_stub:
             # Peripheral is present on hardware but schema not yet implemented —
             # emit a kPresent=false specialization so the alloy HAL can detect it.
-            return [
+            stub_lines = [
                 "  static constexpr bool kPresent = false;",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
                 "  static constexpr std::uint32_t kChannelCount = 0u;",
@@ -9500,6 +10510,8 @@ def _adc_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeIndexedFieldRef kChannelDisablePattern = kInvalidIndexedFieldRef;",
                 "  static constexpr RuntimeIndexedFieldRef kChannelStatusPattern = kInvalidIndexedFieldRef;",
             ]
+            stub_lines.extend(_render_adc_tier_extension_lines(row))
+            return stub_lines
         register_members = {
             "kControlRegister": row.control_reg,
             "kStatusRegister": row.status_reg,
@@ -9558,6 +10570,12 @@ def _adc_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeIndexedFieldRef {name} = {_indexed_field_ref_expr(value)};"
             for name, value in indexed_field_members.items()
         )
+        # Tier 2/3/4 extension — added by add-full-adc-coverage.  Defaults
+        # are empty/invalid for vendors that haven't populated the new data
+        # yet; populated vendors carry concrete cal context, internal channels,
+        # resolution / sample time / oversampling options, DMA bindings and
+        # external trigger sources.
+        lines.extend(_render_adc_tier_extension_lines(row))
         return lines
 
     return _build
@@ -10996,6 +12014,27 @@ def emit_runtime_driver_adc_semantics_header(
         "  static constexpr RuntimeIndexedFieldRef kChannelEnablePattern = kInvalidIndexedFieldRef;",
         "  static constexpr RuntimeIndexedFieldRef kChannelDisablePattern = kInvalidIndexedFieldRef;",
         "  static constexpr RuntimeIndexedFieldRef kChannelStatusPattern = kInvalidIndexedFieldRef;",
+        # Tier 2/3/4 — added by add-full-adc-coverage; defaults are zero-sized
+        # std::array so existing populated traits stay byte-stable until each
+        # vendor builder opts in to populating them.
+        "  static constexpr std::uint32_t kInternalChannelCount = 0u;",
+        "  static constexpr std::array<InternalAdcChannel, 0> kInternalChannels = {};",
+        "  static constexpr std::uint32_t kCalibrationDataPointCount = 0u;",
+        "  static constexpr std::array<CalibrationDataPoint, 0> kCalibrationDataPoints = {};",
+        "  static constexpr CalibrationContext kCalibrationContext = {};",
+        "  static constexpr std::uint32_t kSupportedResolutionCount = 0u;",
+        "  static constexpr std::array<AdcResolutionOption, 0> kSupportedResolutions = {};",
+        "  static constexpr std::uint32_t kSupportedSampleTimeCount = 0u;",
+        "  static constexpr std::array<AdcSampleTimeOption, 0> kSupportedSampleTimes = {};",
+        "  static constexpr std::uint32_t kSupportedOversamplingCount = 0u;",
+        "  static constexpr std::array<AdcOversamplingOption, 0> kSupportedOversamplings = {};",
+        "  static constexpr std::uint32_t kAdcMaxClockHz = 0u;",
+        "  static constexpr std::uint32_t kDmaBindingCount = 0u;",
+        "  static constexpr std::array<AdcDmaBinding, 0> kDmaBindings = {};",
+        "  static constexpr std::uint32_t kExternalTriggerCount = 0u;",
+        "  static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};",
+        "  static constexpr std::uint32_t kSupportedDmaModeCount = 0u;",
+        "  static constexpr std::array<AdcDmaModeOption, 0> kSupportedDmaModes = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
