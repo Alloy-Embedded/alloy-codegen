@@ -2161,8 +2161,7 @@ def load_device_patch(
             for item in payload.get("timer_master_outputs", ())
         ),
         timer_mode_flags=tuple(
-            _parse_timer_mode_flags_patch(item)
-            for item in payload.get("timer_mode_flags", ())
+            _parse_timer_mode_flags_patch(item) for item in payload.get("timer_mode_flags", ())
         ),
     )
 
