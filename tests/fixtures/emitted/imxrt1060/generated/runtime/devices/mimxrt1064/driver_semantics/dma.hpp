@@ -45,6 +45,7 @@ struct DmaControllerHwTraits {
   static constexpr std::uint32_t kMaxTransferCount = 0u;
   static constexpr bool kSupportsChaining = false;
   static constexpr bool kSupportsByteSwap = false;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 }

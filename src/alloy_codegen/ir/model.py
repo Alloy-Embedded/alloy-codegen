@@ -838,6 +838,13 @@ class Rp2040DmaControllerHwDescriptor:
     max_transfer_count: int
     supports_chaining: bool
     supports_byte_swap: bool
+    # NVIC vector lines exposed by the controller (added by
+    # ``add-irq-vector-traits`` Phase 1.4).  RP2040 ships
+    # ``DMA_IRQ_0`` (line 11) + ``DMA_IRQ_1`` (line 12), both
+    # shared by every channel via the INTE0/INTE1 routing mux —
+    # consumers select the IRQ by writing the channel mask, not by
+    # per-channel hardware IRQ ID.
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

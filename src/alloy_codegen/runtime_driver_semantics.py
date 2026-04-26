@@ -13672,11 +13672,20 @@ def _dma_controller_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
             "  static constexpr std::uint32_t kMaxTransferCount = 0u;",
             "  static constexpr bool kSupportsChaining = false;",
             "  static constexpr bool kSupportsByteSwap = false;",
+            "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
             "};",
             "",
         ]
     )
     for ctrl in device.rp2040_dma_controller_hw:
+        if ctrl.irq_numbers:
+            irq_items = ", ".join(f"{n}u" for n in ctrl.irq_numbers)
+            irq_line = (
+                f"  static constexpr std::array<std::uint32_t, {len(ctrl.irq_numbers)}> "
+                f"kIrqNumbers = {{{{{irq_items}}}}};"
+            )
+        else:
+            irq_line = "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};"
         lines.extend(
             [
                 "template<>",
@@ -13687,6 +13696,7 @@ def _dma_controller_hw_traits_block(device: CanonicalDeviceIR) -> list[str]:
                 f"  static constexpr std::uint32_t kMaxTransferCount = {ctrl.max_transfer_count:#010x}u;",
                 f"  static constexpr bool kSupportsChaining = {'true' if ctrl.supports_chaining else 'false'};",
                 f"  static constexpr bool kSupportsByteSwap = {'true' if ctrl.supports_byte_swap else 'false'};",
+                irq_line,
                 "};",
                 "",
             ]

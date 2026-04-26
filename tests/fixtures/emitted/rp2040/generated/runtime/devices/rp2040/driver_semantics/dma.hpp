@@ -218,6 +218,7 @@ struct DmaControllerHwTraits {
   static constexpr std::uint32_t kMaxTransferCount = 0u;
   static constexpr bool kSupportsChaining = false;
   static constexpr bool kSupportsByteSwap = false;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<>
@@ -228,6 +229,7 @@ struct DmaControllerHwTraits<RuntimeDmaCtrlId::DMA> {
   static constexpr std::uint32_t kMaxTransferCount = 0xffffffffu;
   static constexpr bool kSupportsChaining = true;
   static constexpr bool kSupportsByteSwap = true;
+  static constexpr std::array<std::uint32_t, 2> kIrqNumbers = {{11u, 12u}};
 };
 
 }

@@ -18890,7 +18890,11 @@
       "channel_count": 12,
       "max_transfer_count": 4294967295,
       "supports_chaining": true,
-      "supports_byte_swap": true
+      "supports_byte_swap": true,
+      "irq_numbers": [
+        11,
+        12
+      ]
     }
   ],
   "rp2040_timer_controller_hw": [

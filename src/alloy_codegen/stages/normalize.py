@@ -1367,13 +1367,25 @@ def _build_rp2040_spi_peripherals(
 
 
 def _build_rp2040_dma_controller_hw(
-    *, peripherals: tuple[PeripheralInstance, ...]
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+    interrupts: tuple[InterruptDefinition, ...] = (),
 ) -> tuple[Rp2040DmaControllerHwDescriptor, ...]:
     """RP2040 DMA: 12 channels, 32-bit transfer count register, supports
-    chaining + byte-swap (datasheet §2.5)."""
+    chaining + byte-swap (datasheet §2.5).  Surfaces the controller-level
+    NVIC vectors (DMA_IRQ_0/DMA_IRQ_1) in ``irq_numbers`` so consumers can
+    branch on them at compile time without re-deriving from
+    ``device.interrupts`` (add-irq-vector-traits Phase 1.4)."""
     base = next((p.base_address for p in peripherals if p.name == "DMA"), None)
     if base is None:
         return ()
+    irq_lines = tuple(
+        sorted(
+            irq.line
+            for irq in interrupts
+            if irq.peripheral == "DMA" and irq.name.startswith("DMA_IRQ_")
+        )
+    )
     return (
         Rp2040DmaControllerHwDescriptor(
             controller_id="DMA",
@@ -1382,6 +1394,7 @@ def _build_rp2040_dma_controller_hw(
             max_transfer_count=0xFFFFFFFF,
             supports_chaining=True,
             supports_byte_swap=True,
+            irq_numbers=irq_lines,
         ),
     )
 
@@ -2686,7 +2699,9 @@ def _build_rp2040_device_ir(
             peripherals=ir.peripherals,
         ),
         rp2040_adc_peripherals=_build_rp2040_adc_peripherals(peripherals=ir.peripherals),
-        rp2040_dma_controller_hw=_build_rp2040_dma_controller_hw(peripherals=ir.peripherals),
+        rp2040_dma_controller_hw=_build_rp2040_dma_controller_hw(
+            peripherals=ir.peripherals, interrupts=ir.interrupts
+        ),
         rp2040_timer_controller_hw=_build_rp2040_timer_controller_hw(peripherals=ir.peripherals),
         rp2040_pwm_slice_hw=_build_rp2040_pwm_slice_hw(peripherals=ir.peripherals),
         i2c_peripherals=_build_rp2040_i2c_peripherals(

@@ -17,18 +17,17 @@ import re
 import pytest
 
 from alloy_codegen.context import ExecutionContext
-from alloy_codegen.scope import PipelineScope
-from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.runtime_driver_semantics import (
     _ADC_INTERNAL_KIND_ENUMERATOR_NAME,
+    AdcInternalChannel,
+    AdcSemanticRow,
     _adc_channel_manifest,
     _invalid_field_ref,
     _invalid_indexed_field_ref,
     _invalid_register_ref,
-    AdcInternalChannel,
-    AdcSemanticRow,
 )
-
+from alloy_codegen.scope import PipelineScope
+from alloy_codegen.stages.emit import run as run_emit
 
 # ---------- emit-based tests --------------------------------------------------
 
