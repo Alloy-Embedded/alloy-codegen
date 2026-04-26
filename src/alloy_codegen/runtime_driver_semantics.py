@@ -1620,6 +1620,66 @@ def _adc_external_trigger_expr(trig: AdcExternalTrigger) -> str:
     )
 
 
+def _dma_binding_direction_token(signal: str) -> str:
+    """Map a UART/SPI/etc. ``signal`` field to the typed
+    ``DmaBindingDirection`` enum used by the shared ``DmaBindingRef``
+    record (add-peripheral-dma-cross-references)."""
+    upper = signal.upper()
+    if upper == "TX":
+        return "DmaBindingDirection::Tx"
+    if upper == "RX":
+        return "DmaBindingDirection::Rx"
+    return "DmaBindingDirection::none"
+
+
+def _dma_binding_ref_expr(
+    *,
+    controller_id: str,
+    binding_id: str,
+    request_value: int,
+    signal: str,
+    transfer_width_bits: int,
+) -> str:
+    return (
+        "DmaBindingRef{"
+        f"DmaControllerId::{controller_id}, "
+        f"DmaBindingId::{binding_id}, "
+        f"{request_value}u, "
+        f"{_dma_binding_direction_token(signal)}, "
+        f"{transfer_width_bits}u, true}}"
+    )
+
+
+def _dma_binding_ref_array_lines(
+    bindings: tuple[UartDmaBindingRow, ...] | tuple[SpiDmaBindingRow, ...],
+) -> list[str]:
+    """Render `kDmaBindings` as a `std::array<DmaBindingRef, N>`.
+
+    Both UartDmaBindingRow and SpiDmaBindingRow expose the same field
+    names (`controller_id`, `binding_id`, `request_value`, `signal`,
+    `transfer_width_bits`) so a single helper covers them.
+    """
+    if not bindings:
+        return ["  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};"]
+    item_lines = [
+        "    "
+        + _dma_binding_ref_expr(
+            controller_id=binding.controller_id,
+            binding_id=binding.binding_id,
+            request_value=binding.request_value,
+            signal=binding.signal,
+            transfer_width_bits=binding.transfer_width_bits,
+        )
+        + ","
+        for binding in bindings
+    ]
+    return [
+        f"  static constexpr std::array<DmaBindingRef, {len(bindings)}> kDmaBindings = {{{{",
+        *item_lines,
+        "  }};",
+    ]
+
+
 def _adc_dma_binding_expr(binding: AdcDmaBindingRow) -> str:
     return (
         "AdcDmaBinding{"
@@ -3561,23 +3621,15 @@ def _uart_dma_bindings_for_peripheral(
     for binding in _runtime_lite_dma_bindings(context.device):
         if binding.peripheral != peripheral_name:
             continue
-        signal = (getattr(binding, "signal", None) or "").upper()
+        signal = (binding.signal or "").upper()
         if signal not in {"TX", "RX"}:
-            continue
-        controller_peri = getattr(binding, "controller", None) or getattr(
-            binding, "controller_peripheral", None
-        )
-        controller_id = getattr(binding, "controller_id", None)
-        binding_id = getattr(binding, "binding_id", None)
-        request_value = getattr(binding, "request_value", None) or 0
-        if controller_peri is None or controller_id is None or binding_id is None:
             continue
         bindings.append(
             UartDmaBindingRow(
-                controller_peripheral=str(controller_peri),
-                controller_id=str(controller_id),
-                binding_id=str(binding_id),
-                request_value=int(request_value),
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
                 signal=signal,
                 transfer_width_bits=8,
             )
@@ -3607,23 +3659,15 @@ def _spi_dma_bindings_for_peripheral(
     for binding in _runtime_lite_dma_bindings(context.device):
         if binding.peripheral != peripheral_name:
             continue
-        signal = (getattr(binding, "signal", None) or "").upper()
+        signal = (binding.signal or "").upper()
         if signal not in {"TX", "RX"}:
-            continue
-        controller_peri = getattr(binding, "controller", None) or getattr(
-            binding, "controller_peripheral", None
-        )
-        controller_id = getattr(binding, "controller_id", None)
-        binding_id = getattr(binding, "binding_id", None)
-        request_value = getattr(binding, "request_value", None) or 0
-        if controller_peri is None or controller_id is None or binding_id is None:
             continue
         bindings.append(
             SpiDmaBindingRow(
-                controller_peripheral=str(controller_peri),
-                controller_id=str(controller_id),
-                binding_id=str(binding_id),
-                request_value=int(request_value),
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
                 signal=signal,
                 transfer_width_bits=width,
             )
@@ -3650,20 +3694,12 @@ def _adc_dma_bindings_for_peripheral(
     for binding in _runtime_lite_dma_bindings(context.device):
         if binding.peripheral != peripheral_name:
             continue
-        controller_peri = getattr(binding, "controller", None) or getattr(
-            binding, "controller_peripheral", None
-        )
-        controller_id = getattr(binding, "controller_id", None)
-        binding_id = getattr(binding, "binding_id", None)
-        request_value = getattr(binding, "request_value", None) or 0
-        if controller_peri is None or controller_id is None or binding_id is None:
-            continue
         bindings.append(
             AdcDmaBindingRow(
-                controller_peripheral=str(controller_peri),
-                controller_id=str(controller_id),
-                binding_id=str(binding_id),
-                request_value=int(request_value),
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
                 data_register=data_register,
                 transfer_width_bits=transfer_width_bits,
             )
@@ -10513,6 +10549,27 @@ def _emit_driver_semantics_common_header(
             "  bool valid = false;",
             "};",
             "",
+            "enum class DmaBindingDirection : std::uint8_t {",
+            "  none,",
+            "  Tx,",
+            "  Rx,",
+            "};",
+            "",
+            "struct DmaBindingRef {",
+            "  // Generic peripheral->DMA binding cross-reference (",
+            "  // add-peripheral-dma-cross-references).  ``binding_id``",
+            "  // and ``controller_id`` cross-reference the per-device",
+            "  // ``DmaSemanticTraits`` / ``BindingTraits`` enums emitted",
+            "  // in ``dma_bindings.hpp`` so consumer code can resolve the",
+            "  // full route descriptor without a textual scan.",
+            "  DmaControllerId controller_id = DmaControllerId::none;",
+            "  DmaBindingId binding_id = DmaBindingId::none;",
+            "  std::uint16_t request_value = 0u;",
+            "  DmaBindingDirection direction = DmaBindingDirection::none;",
+            "  std::uint8_t transfer_width_bits = 0u;",
+            "  bool valid = false;",
+            "};",
+            "",
             "struct AdcDmaModeOption {",
             "  AdcDmaMode mode = AdcDmaMode::none;",
             "  std::uint8_t field_value = 0u;",
@@ -10910,6 +10967,7 @@ def _uart_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsAutoBaud = {'true' if flags and flags.supports_auto_baud else 'false'};",
             f"  static constexpr bool kSupportsWakeFromStop = {'true' if flags and flags.supports_wake_from_stop else 'false'};",
             f"  static constexpr std::uint8_t kDmaBindingCount = {len(row.dma_bindings)}u;",
+            *_dma_binding_ref_array_lines(row.dma_bindings),
         ]
 
     def _build(row: UartSemanticRow) -> list[str]:
@@ -11299,6 +11357,7 @@ def _spi_specialization_builder(context: _SemanticContext):
             f"  static constexpr bool kSupportsLsbFirst = {'true' if flags and flags.supports_lsb_first else 'false'};",
             f"  static constexpr bool kSupportsNssHwManagement = {'true' if flags and flags.supports_nss_hw_management else 'false'};",
             f"  static constexpr std::uint8_t kSpiDmaBindingCount = {len(row.spi_dma_bindings)}u;",
+            *_dma_binding_ref_array_lines(row.spi_dma_bindings),
         ]
 
     def _build(row: SpiSemanticRow) -> list[str]:
@@ -13432,6 +13491,7 @@ def emit_runtime_driver_uart_semantics_header(
         "  static constexpr bool kSupportsAutoBaud = false;",
         "  static constexpr bool kSupportsWakeFromStop = false;",
         "  static constexpr std::uint8_t kDmaBindingCount = 0u;",
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kBrrRegister = kInvalidRegisterRef;",
@@ -13638,6 +13698,7 @@ def emit_runtime_driver_spi_semantics_header(
         "  static constexpr bool kSupportsLsbFirst = false;",
         "  static constexpr bool kSupportsNssHwManagement = false;",
         "  static constexpr std::uint8_t kSpiDmaBindingCount = 0u;",
+        "  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};",
         "  static constexpr RuntimeRegisterRef kCr1Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kCr2Register = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kSrRegister = kInvalidRegisterRef;",

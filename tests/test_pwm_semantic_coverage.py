@@ -23,8 +23,9 @@ from alloy_codegen.stages.emit import run as run_emit
 
 def _pwm_present_count(context: ExecutionContext, device: str) -> int:
     result = run_emit(PipelineScope(device=device), context)
+    suffix = f"/{device}/driver_semantics/pwm.hpp"
     artifact = next(
-        (a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/pwm.hpp")),
+        (a for a in result.payload.artifacts if a.path.endswith(suffix)),
         None,
     )
     assert artifact is not None, f"no pwm.hpp emitted for {device}"
