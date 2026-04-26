@@ -671,6 +671,46 @@
       },
       "additionalProperties": false
     },
+    "uart_peripheral_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "fifo_depth",
+        "dreq_tx", "dreq_rx",
+        "valid_tx_pins", "valid_rx_pins", "valid_cts_pins", "valid_rts_pins"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address": { "type": "integer", "minimum": 0 },
+        "fifo_depth": { "type": "integer", "minimum": 0 },
+        "dreq_tx": { "type": "integer", "minimum": 0 },
+        "dreq_rx": { "type": "integer", "minimum": 0 },
+        "valid_tx_pins":  { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_rx_pins":  { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_cts_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_rts_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
+    "spi_peripheral_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "max_clock_hz",
+        "dreq_tx", "dreq_rx",
+        "valid_mosi_pins", "valid_miso_pins", "valid_clk_pins", "valid_cs_pins"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address": { "type": "integer", "minimum": 0 },
+        "max_clock_hz": { "type": "integer", "minimum": 0 },
+        "dreq_tx": { "type": "integer", "minimum": 0 },
+        "dreq_rx": { "type": "integer", "minimum": 0 },
+        "valid_mosi_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_miso_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_clk_pins":  { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_cs_pins":   { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
     "pio_descriptor": {
       "type": "object",
       "required": [
@@ -890,6 +930,14 @@
     "gpio_pins": {
       "type": "array",
       "items": { "$ref": "#/$defs/gpio_pin_descriptor" }
+    },
+    "uart_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/uart_peripheral_descriptor" }
+    },
+    "spi_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/spi_peripheral_descriptor" }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"

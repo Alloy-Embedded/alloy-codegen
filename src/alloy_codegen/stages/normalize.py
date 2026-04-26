@@ -13,6 +13,8 @@ from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
     AltFunctionDescriptor,
     AppCpuControlPlane,
+    SpiPeripheralDescriptor,
+    UartPeripheralDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
     UsbControllerDescriptor,
@@ -1081,6 +1083,94 @@ def _build_st_gpio_pins(
     return tuple(descriptors)
 
 
+# --- complete-rp2040-semantics Phase B helpers ---------------------------
+#
+# RP2040 UART/SPI controllers carry family-constant DREQ values, FIFO
+# depths and peripheral-clock ceilings (datasheet Tables 2-7 and 2-25).
+# The pad sets are derived dynamically from `device.gpio_pins` by filtering
+# the FUNCSEL alt-function table.
+
+_RP2040_UART_FACTS: tuple[tuple[str, int, int, int], ...] = (
+    # (controller_id, fifo_depth, dreq_tx, dreq_rx)
+    ("UART0", 32, 20, 21),
+    ("UART1", 32, 22, 23),
+)
+
+_RP2040_SPI_FACTS: tuple[tuple[str, int, int, int, int], ...] = (
+    # (controller_id, max_clock_hz, dreq_tx, dreq_rx, _unused)
+    ("SPI0", 62_500_000, 16, 17, 0),
+    ("SPI1", 62_500_000, 18, 19, 0),
+)
+
+
+def _filter_pads(
+    gpio_pins: tuple[GpioPinDescriptor, ...],
+    *,
+    peripheral: str,
+    signal_names: tuple[str, ...],
+) -> tuple[int, ...]:
+    pads: set[int] = set()
+    for pin in gpio_pins:
+        for af in pin.alt_functions:
+            if af.peripheral == peripheral and af.signal_name in signal_names:
+                pads.add(pin.pin_index)
+    return tuple(sorted(pads))
+
+
+def _build_rp2040_uart_peripherals(
+    *,
+    gpio_pins: tuple[GpioPinDescriptor, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[UartPeripheralDescriptor, ...]:
+    base_by_name = {p.name: p.base_address for p in peripherals}
+    out: list[UartPeripheralDescriptor] = []
+    for ctrl, fifo, dreq_tx, dreq_rx in _RP2040_UART_FACTS:
+        if ctrl not in base_by_name:
+            continue
+        out.append(
+            UartPeripheralDescriptor(
+                controller_id=ctrl,
+                base_address=base_by_name[ctrl],
+                fifo_depth=fifo,
+                dreq_tx=dreq_tx,
+                dreq_rx=dreq_rx,
+                valid_tx_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("TX",)),
+                valid_rx_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("RX",)),
+                valid_cts_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("CTS",)),
+                valid_rts_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("RTS",)),
+            )
+        )
+    return tuple(out)
+
+
+def _build_rp2040_spi_peripherals(
+    *,
+    gpio_pins: tuple[GpioPinDescriptor, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[SpiPeripheralDescriptor, ...]:
+    base_by_name = {p.name: p.base_address for p in peripherals}
+    out: list[SpiPeripheralDescriptor] = []
+    for ctrl, max_hz, dreq_tx, dreq_rx, _ in _RP2040_SPI_FACTS:
+        if ctrl not in base_by_name:
+            continue
+        out.append(
+            SpiPeripheralDescriptor(
+                controller_id=ctrl,
+                base_address=base_by_name[ctrl],
+                max_clock_hz=max_hz,
+                dreq_tx=dreq_tx,
+                dreq_rx=dreq_rx,
+                # RP2040 SPI signal names from family.json: TX (MOSI), RX
+                # (MISO), SCK (CLK), CSN (CS).
+                valid_mosi_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("TX",)),
+                valid_miso_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("RX",)),
+                valid_clk_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("SCK",)),
+                valid_cs_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("CSN",)),
+            )
+        )
+    return tuple(out)
+
+
 def _build_avr_da_gpio_pins(
     *,
     pins: tuple[PinDefinition, ...],
@@ -2012,6 +2102,19 @@ def _build_rp2040_device_ir(
     )
     if rp2040_gpio_pins:
         ir = dataclasses.replace(ir, gpio_pins=rp2040_gpio_pins)
+    # Phase B: derive UART/SPI per-controller facts from the now-populated
+    # gpio_pins (pad sets) plus family-constant DREQ / FIFO data.
+    ir = dataclasses.replace(
+        ir,
+        uart_peripherals=_build_rp2040_uart_peripherals(
+            gpio_pins=ir.gpio_pins,
+            peripherals=ir.peripherals,
+        ),
+        spi_peripherals=_build_rp2040_spi_peripherals(
+            gpio_pins=ir.gpio_pins,
+            peripherals=ir.peripherals,
+        ),
+    )
     return ir
 
 

@@ -10361,6 +10361,7 @@ def _emit_peripheral_semantics_header(
     ],
     default_lines: list[str],
     specialization_builder,
+    extra_body_lines: list[str] | None = None,
 ) -> EmittedArtifact:
     trait_lines = [
         "template<PeripheralId Id>",
@@ -10383,16 +10384,18 @@ def _emit_peripheral_semantics_header(
         )
         if not getattr(row, "is_stub", False):
             peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
-    body = "\n".join(
-        [
-            *trait_lines,
-            *_std_array_lines(
-                type_name="PeripheralId",
-                variable_name=array_name,
-                row_lines=peripheral_rows,
-            ),
-        ]
-    )
+    body_parts: list[str] = [
+        *trait_lines,
+        *_std_array_lines(
+            type_name="PeripheralId",
+            variable_name=array_name,
+            row_lines=peripheral_rows,
+        ),
+    ]
+    if extra_body_lines:
+        body_parts.append("")
+        body_parts.extend(extra_body_lines)
+    body = "\n".join(body_parts)
     namespace_block = _cpp_namespace_block(
         (*_runtime_device_namespace_components(device), "driver_semantics"),
         body,
@@ -12064,6 +12067,143 @@ def emit_runtime_driver_gpio_semantics_header(
     return _emit_gpio_semantics_header(family_dir=family_dir, device=device)
 
 
+def _uart_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """Emit the per-controller UART trait struct + array contributed by
+    ``complete-rp2040-semantics`` Phase B.  When `device.uart_peripherals`
+    is empty (every family except RP2040 today) only the primary template
+    is emitted with zero defaults — non-RP2040 specializations are not
+    affected."""
+    lines = [
+        "// complete-rp2040-semantics Phase B: per-controller UART facts.",
+        "enum class RuntimeUartId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.uart_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeUartId Id>",
+            "struct UartPeripheralTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint8_t kFifoDepth = 0u;",
+            "  static constexpr std::uint8_t kDreqTx = 0u;",
+            "  static constexpr std::uint8_t kDreqRx = 0u;",
+            "  static constexpr std::array<std::uint8_t, 0> kValidTxPins = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kValidRxPins = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kValidCtsPins = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kValidRtsPins = {};",
+            "};",
+            "",
+        ]
+    )
+    for ctrl in device.uart_peripherals:
+        def _arr(pads: tuple[int, ...]) -> str:
+            if not pads:
+                return f"  static constexpr std::array<std::uint8_t, 0> kPads = {{}};"
+            return ", ".join(f"{p}u" for p in pads)
+        lines.extend(
+            [
+                "template<>",
+                f"struct UartPeripheralTraits<RuntimeUartId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint8_t kFifoDepth = {ctrl.fifo_depth}u;",
+                f"  static constexpr std::uint8_t kDreqTx = {ctrl.dreq_tx}u;",
+                f"  static constexpr std::uint8_t kDreqRx = {ctrl.dreq_rx}u;",
+                (
+                    f"  static constexpr std::array<std::uint8_t, {len(ctrl.valid_tx_pins)}>"
+                    f" kValidTxPins = {{{{{_arr(ctrl.valid_tx_pins)}}}}};"
+                    if ctrl.valid_tx_pins
+                    else "  static constexpr std::array<std::uint8_t, 0> kValidTxPins = {};"
+                ),
+                (
+                    f"  static constexpr std::array<std::uint8_t, {len(ctrl.valid_rx_pins)}>"
+                    f" kValidRxPins = {{{{{_arr(ctrl.valid_rx_pins)}}}}};"
+                    if ctrl.valid_rx_pins
+                    else "  static constexpr std::array<std::uint8_t, 0> kValidRxPins = {};"
+                ),
+                (
+                    f"  static constexpr std::array<std::uint8_t, {len(ctrl.valid_cts_pins)}>"
+                    f" kValidCtsPins = {{{{{_arr(ctrl.valid_cts_pins)}}}}};"
+                    if ctrl.valid_cts_pins
+                    else "  static constexpr std::array<std::uint8_t, 0> kValidCtsPins = {};"
+                ),
+                (
+                    f"  static constexpr std::array<std::uint8_t, {len(ctrl.valid_rts_pins)}>"
+                    f" kValidRtsPins = {{{{{_arr(ctrl.valid_rts_pins)}}}}};"
+                    if ctrl.valid_rts_pins
+                    else "  static constexpr std::array<std::uint8_t, 0> kValidRtsPins = {};"
+                ),
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
+def _spi_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """Phase B sibling for SPI."""
+    lines = [
+        "// complete-rp2040-semantics Phase B: per-controller SPI facts.",
+        "enum class RuntimeSpiId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.spi_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeSpiId Id>",
+            "struct SpiPeripheralTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint32_t kMaxClockHz = 0u;",
+            "  static constexpr std::uint8_t kDreqTx = 0u;",
+            "  static constexpr std::uint8_t kDreqRx = 0u;",
+            "  static constexpr std::array<std::uint8_t, 0> kValidMosiPins = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kValidMisoPins = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kValidClkPins = {};",
+            "  static constexpr std::array<std::uint8_t, 0> kValidCsPins = {};",
+            "};",
+            "",
+        ]
+    )
+    def _arr(pads: tuple[int, ...]) -> str:
+        return ", ".join(f"{p}u" for p in pads)
+
+    for ctrl in device.spi_peripherals:
+        def _pad_line(name: str, pads: tuple[int, ...]) -> str:
+            if not pads:
+                return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
+            return (
+                f"  static constexpr std::array<std::uint8_t, {len(pads)}> "
+                f"{name} = {{{{{_arr(pads)}}}}};"
+            )
+
+        lines.extend(
+            [
+                "template<>",
+                f"struct SpiPeripheralTraits<RuntimeSpiId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint32_t kMaxClockHz = {ctrl.max_clock_hz}u;",
+                f"  static constexpr std::uint8_t kDreqTx = {ctrl.dreq_tx}u;",
+                f"  static constexpr std::uint8_t kDreqRx = {ctrl.dreq_rx}u;",
+                _pad_line("kValidMosiPins", ctrl.valid_mosi_pins),
+                _pad_line("kValidMisoPins", ctrl.valid_miso_pins),
+                _pad_line("kValidClkPins", ctrl.valid_clk_pins),
+                _pad_line("kValidCsPins", ctrl.valid_cs_pins),
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
 def emit_runtime_driver_uart_semantics_header(
     *,
     family_dir: str,
@@ -12149,6 +12289,7 @@ def emit_runtime_driver_uart_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_uart_specialization_builder(context),
+        extra_body_lines=_uart_peripheral_traits_block(device),
     )
 
 
@@ -12305,6 +12446,7 @@ def emit_runtime_driver_spi_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_spi_specialization_builder(context),
+        extra_body_lines=_spi_peripheral_traits_block(device),
     )
 
 

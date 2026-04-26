@@ -157,6 +157,25 @@ struct UartSemanticTraits<PeripheralId::LPUART1> {
 inline constexpr std::array<PeripheralId, 1> kUartSemanticPeripherals = {{
   PeripheralId::LPUART1,
 }};
+
+// complete-rp2040-semantics Phase B: per-controller UART facts.
+enum class RuntimeUartId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeUartId Id>
+struct UartPeripheralTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kFifoDepth = 0u;
+  static constexpr std::uint8_t kDreqTx = 0u;
+  static constexpr std::uint8_t kDreqRx = 0u;
+  static constexpr std::array<std::uint8_t, 0> kValidTxPins = {};
+  static constexpr std::array<std::uint8_t, 0> kValidRxPins = {};
+  static constexpr std::array<std::uint8_t, 0> kValidCtsPins = {};
+  static constexpr std::array<std::uint8_t, 0> kValidRtsPins = {};
+};
+
 }
 }
 }

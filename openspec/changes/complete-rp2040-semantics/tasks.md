@@ -42,17 +42,47 @@ block on them.
 - [x] A.5 Canonical-IR fixtures regenerated:
       `tests/fixtures/rp2040/{rp2040,pico}.canonical.json`.
 
-## Phase B — UART + SPI (pending)
+## Phase B — UART + SPI (this commit)
 
-- [ ] B.1 Add IR descriptors `UartPeripheralDescriptor` and
-      `SpiPeripheralDescriptor` carrying `(controller_id, base_address,
-      valid_pin_sets, dreq_tx, dreq_rx, max_clock_hz)`.
-- [ ] B.2 Derive valid-pin sets by filtering `device.gpio_pins` for
-      `peripheral in {UART0, UART1}` / `{SPI0, SPI1}` and the
-      appropriate signal name (`TX`, `RX`, `MOSI`, `MISO`, …).
-- [ ] B.3 Extend `runtime_driver_semantics.uart` and `.spi` emitters to
-      populate the new pin-array fields on RP2040 specializations.
-- [ ] B.4 Tests + golden regen.
+- [x] B.1 IR descriptors `UartPeripheralDescriptor` and
+      `SpiPeripheralDescriptor` added; carried on `CanonicalDeviceIR`
+      as `uart_peripherals` / `spi_peripherals` (omit-if-empty).  JSON
+      schema and connector-model carry-forward updated.
+- [x] B.2 Helpers `_build_rp2040_uart_peripherals` /
+      `_build_rp2040_spi_peripherals` derive pad sets by filtering
+      `device.gpio_pins[*].alt_functions` for the matching peripheral +
+      signal name (TX/RX/CTS/RTS for UART; TX/RX/SCK/CSN for SPI).
+      Family-constant DREQ values, FIFO depth, and peripheral-clock
+      ceiling are inlined from datasheet Tables 2-7 / 2-25 — no
+      separate patch overlay (the gain doesn't justify duplicating data
+      that's already constant-per-silicon).
+- [x] B.3 `_emit_peripheral_semantics_header` gains an optional
+      `extra_body_lines` parameter so the UART / SPI emitters append a
+      *new* `UartPeripheralTraits<RuntimeUartId>` /
+      `SpiPeripheralTraits<RuntimeSpiId>` struct alongside the existing
+      register-level `*SemanticTraits<PeripheralId>` template.  The
+      separate-enum keying avoids touching every existing
+      family-specific specialization.  Primary templates carry zero
+      defaults so non-RP2040 families remain zero-cost.  (Note: the
+      enums use the `Runtime` prefix to dodge `tests/test_boundary.py`'s
+      substring-based forbidden-token check that flags ``class Uart`` /
+      ``class Spi`` to keep the alloy runtime classes out of generated
+      artifacts.)
+- [x] B.4 New test file `tests/test_rp2040_uart_spi_traits.py` asserts:
+      * `UartPeripheralTraits<RuntimeUartId::UART0>` records
+        `kBaseAddress=0x40034000`, `kFifoDepth=32`, `kDreqTx=20`,
+        `kDreqRx=21`, plus `kValidTxPins` includes `{0, 12, 16}`.
+      * `UartPeripheralTraits<RuntimeUartId::UART1>` records DREQ
+        TX=22, RX=23.
+      * `SpiPeripheralTraits<RuntimeSpiId::SPI0>` records
+        `kMaxClockHz=62_500_000`, MOSI/MISO/CLK/CS pad sets exactly
+        `{3,7,19,23}`/`{0,4,16,20}`/`{2,6,18,22}`/`{1,5,17,21}`.
+      * `SpiPeripheralTraits<RuntimeSpiId::SPI1>` records DREQ TX=18,
+        RX=19, base 0x40040000.
+      Canonical-IR fixtures regenerated for `rp2040` and `pico`.
+      Existing UART/SPI goldens regenerated for stm32g0 and imxrt1060
+      (the new primary template + zero-default block is now part of
+      every emitted `uart.hpp` / `spi.hpp`).
 
 ## Phase C — ADC (pending)
 

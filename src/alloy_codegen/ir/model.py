@@ -652,6 +652,46 @@ class GpioPinDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class UartPeripheralDescriptor:
+    """Per-controller UART hardware facts (added by complete-rp2040-semantics).
+
+    Surfaces the family-constant per-controller data — base address, FIFO
+    depth, per-direction DMA DREQ values — plus the set of GPIO pads that
+    can carry each UART signal.  ``valid_*_pins`` arrays are sorted
+    ascending by pad number so consumer concept checks see a stable order.
+    """
+
+    controller_id: str
+    base_address: int
+    fifo_depth: int
+    dreq_tx: int
+    dreq_rx: int
+    valid_tx_pins: tuple[int, ...]
+    valid_rx_pins: tuple[int, ...]
+    valid_cts_pins: tuple[int, ...]
+    valid_rts_pins: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SpiPeripheralDescriptor:
+    """Per-controller SPI hardware facts (added by complete-rp2040-semantics).
+
+    Mirrors ``UartPeripheralDescriptor`` for SPI.  ``max_clock_hz`` is the
+    silicon-level peripheral clock ceiling.
+    """
+
+    controller_id: str
+    base_address: int
+    max_clock_hz: int
+    dreq_tx: int
+    dreq_rx: int
+    valid_mosi_pins: tuple[int, ...]
+    valid_miso_pins: tuple[int, ...]
+    valid_clk_pins: tuple[int, ...]
+    valid_cs_pins: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class PioDescriptor:
     """Compile-time topology of one Programmable I/O block.
 
@@ -847,6 +887,17 @@ class CanonicalDeviceIR:
     # Empty for devices whose normalizers have not yet been wired to populate
     # GPIO topology; populated per family as the change rolls out.
     gpio_pins: tuple[GpioPinDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    # Per-controller UART/SPI facts (added by complete-rp2040-semantics
+    # Phase B).  Empty for families whose normalizers have not yet been
+    # wired to populate them; only RP2040 ships them today.
+    uart_peripherals: tuple[UartPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    spi_peripherals: tuple[SpiPeripheralDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

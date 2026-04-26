@@ -18524,6 +18524,64 @@
       "signal": "TX"
     }
   ],
+  "spi_peripherals": [
+    {
+      "base_address": 1073987584,
+      "controller_id": "SPI0",
+      "dreq_rx": 17,
+      "dreq_tx": 16,
+      "max_clock_hz": 62500000,
+      "valid_clk_pins": [
+        2,
+        6,
+        18,
+        22
+      ],
+      "valid_cs_pins": [
+        1,
+        5,
+        17,
+        21
+      ],
+      "valid_miso_pins": [
+        0,
+        4,
+        16,
+        20
+      ],
+      "valid_mosi_pins": [
+        3,
+        7,
+        19,
+        23
+      ]
+    },
+    {
+      "base_address": 1074003968,
+      "controller_id": "SPI1",
+      "dreq_rx": 19,
+      "dreq_tx": 18,
+      "max_clock_hz": 62500000,
+      "valid_clk_pins": [
+        10,
+        14
+      ],
+      "valid_cs_pins": [
+        9,
+        13,
+        25
+      ],
+      "valid_miso_pins": [
+        8,
+        12,
+        24
+      ],
+      "valid_mosi_pins": [
+        11,
+        15
+      ]
+    }
+  ],
   "startup_descriptors": [
     {
       "descriptor_id": "startup:vectors",
@@ -18653,6 +18711,64 @@
       "source_hz": 12000000,
       "source_kind": "pll-external",
       "sysclk_hz": 125000000
+    }
+  ],
+  "uart_peripherals": [
+    {
+      "base_address": 1073954816,
+      "controller_id": "UART0",
+      "dreq_rx": 21,
+      "dreq_tx": 20,
+      "fifo_depth": 32,
+      "valid_cts_pins": [
+        2,
+        14,
+        18
+      ],
+      "valid_rts_pins": [
+        3,
+        15,
+        19
+      ],
+      "valid_rx_pins": [
+        1,
+        13,
+        17
+      ],
+      "valid_tx_pins": [
+        0,
+        12,
+        16
+      ]
+    },
+    {
+      "base_address": 1073971200,
+      "controller_id": "UART1",
+      "dreq_rx": 23,
+      "dreq_tx": 22,
+      "fifo_depth": 32,
+      "valid_cts_pins": [
+        6,
+        10,
+        22,
+        24
+      ],
+      "valid_rts_pins": [
+        7,
+        11,
+        23
+      ],
+      "valid_rx_pins": [
+        5,
+        9,
+        21
+      ],
+      "valid_tx_pins": [
+        4,
+        8,
+        20,
+        25
+      ]
     }
   ],
   "usb_controllers": [
