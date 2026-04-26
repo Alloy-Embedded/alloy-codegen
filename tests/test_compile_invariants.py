@@ -88,6 +88,45 @@ def test_rp2040_pio_traits_compile_invariants() -> None:
     )
 
 
+def test_rp2040_peripheral_traits_compile_invariants() -> None:
+    """Aggregated compile-test for ``complete-rp2040-semantics`` Phases A–D.
+
+    Asserts the new RP2040 trait specializations compile and carry the
+    documented constants — GPIO FUNCSEL set, UART/SPI base addresses +
+    pin sets + DREQs, ADC channel mapping (incl. sentinel 255 for the
+    internal temperature sensor), and DMA / Timer / PWM HW topology.
+    """
+    source = COMPILE_TESTS_DIR / "test_rp2040_peripheral_traits.cpp"
+    rp2040_root = (
+        FIXTURES_EMITTED
+        / "rp2040"
+        / "generated"
+        / "runtime"
+        / "devices"
+        / "rp2040"
+    )
+    driver_root = rp2040_root / "driver_semantics"
+    headers = {
+        "ALLOY_CODEGEN_RP2040_GPIO_HEADER":  driver_root / "gpio.hpp",
+        "ALLOY_CODEGEN_RP2040_UART_HEADER":  driver_root / "uart.hpp",
+        "ALLOY_CODEGEN_RP2040_SPI_HEADER":   driver_root / "spi.hpp",
+        "ALLOY_CODEGEN_RP2040_ADC_HEADER":   driver_root / "adc.hpp",
+        "ALLOY_CODEGEN_RP2040_TIMER_HEADER": driver_root / "timer.hpp",
+        "ALLOY_CODEGEN_RP2040_PWM_HEADER":   driver_root / "pwm.hpp",
+        "ALLOY_CODEGEN_RP2040_DMA_HEADER":   driver_root / "dma.hpp",
+    }
+    for path in headers.values():
+        assert path.exists(), path
+    common_header = driver_root / "common.hpp"
+    if not common_header.exists():
+        common_header.write_text("#pragma once\n", encoding="utf-8")
+    _compile(
+        source=source,
+        defines={key: f'"{path}"' for key, path in headers.items()},
+        include_dirs=[driver_root, rp2040_root],
+    )
+
+
 def test_stm32g0_gpio_traits_compile_invariants() -> None:
     """Compile-test for ``fill-gpio-semantic-gaps`` Phase A.
 

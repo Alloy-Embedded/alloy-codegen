@@ -671,6 +671,110 @@
       },
       "additionalProperties": false
     },
+    "dma_controller_hw_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "channel_count",
+        "max_transfer_count", "supports_chaining", "supports_byte_swap"
+      ],
+      "properties": {
+        "controller_id":      { "type": "string" },
+        "base_address":       { "type": "integer", "minimum": 0 },
+        "channel_count":      { "type": "integer", "minimum": 0 },
+        "max_transfer_count": { "type": "integer", "minimum": 0 },
+        "supports_chaining":  { "type": "boolean" },
+        "supports_byte_swap": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "timer_controller_hw_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "counter_bits", "alarm_count", "dreq_alarm_base"
+      ],
+      "properties": {
+        "controller_id":   { "type": "string" },
+        "base_address":    { "type": "integer", "minimum": 0 },
+        "counter_bits":    { "type": "integer", "minimum": 0 },
+        "alarm_count":     { "type": "integer", "minimum": 0 },
+        "dreq_alarm_base": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "pwm_slice_hw_descriptor": {
+      "type": "object",
+      "required": [
+        "slice_index", "channel_a_pin", "channel_b_pin",
+        "counter_bits", "clock_div_min_q4", "clock_div_max_q4"
+      ],
+      "properties": {
+        "slice_index":      { "type": "integer", "minimum": 0 },
+        "channel_a_pin":    { "type": "integer", "minimum": 0 },
+        "channel_b_pin":    { "type": "integer", "minimum": 0 },
+        "counter_bits":     { "type": "integer", "minimum": 0 },
+        "clock_div_min_q4": { "type": "integer", "minimum": 0 },
+        "clock_div_max_q4": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "adc_peripheral_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "channel_count", "resolution_bits",
+        "channel_pins", "dreq", "fifo_depth", "supports_fifo"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address":  { "type": "integer", "minimum": 0 },
+        "channel_count": { "type": "integer", "minimum": 0 },
+        "resolution_bits": { "type": "integer", "minimum": 0 },
+        "channel_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "dreq": { "type": "integer", "minimum": 0 },
+        "fifo_depth": { "type": "integer", "minimum": 0 },
+        "supports_fifo": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "uart_peripheral_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "fifo_depth",
+        "dreq_tx", "dreq_rx",
+        "valid_tx_pins", "valid_rx_pins", "valid_cts_pins", "valid_rts_pins"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address": { "type": "integer", "minimum": 0 },
+        "fifo_depth": { "type": "integer", "minimum": 0 },
+        "dreq_tx": { "type": "integer", "minimum": 0 },
+        "dreq_rx": { "type": "integer", "minimum": 0 },
+        "valid_tx_pins":  { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_rx_pins":  { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_cts_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_rts_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
+    "spi_peripheral_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "max_clock_hz",
+        "dreq_tx", "dreq_rx",
+        "valid_mosi_pins", "valid_miso_pins", "valid_clk_pins", "valid_cs_pins"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address": { "type": "integer", "minimum": 0 },
+        "max_clock_hz": { "type": "integer", "minimum": 0 },
+        "dreq_tx": { "type": "integer", "minimum": 0 },
+        "dreq_rx": { "type": "integer", "minimum": 0 },
+        "valid_mosi_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_miso_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_clk_pins":  { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "valid_cs_pins":   { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+      },
+      "additionalProperties": false
+    },
     "pio_descriptor": {
       "type": "object",
       "required": [
@@ -890,6 +994,30 @@
     "gpio_pins": {
       "type": "array",
       "items": { "$ref": "#/$defs/gpio_pin_descriptor" }
+    },
+    "uart_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/uart_peripheral_descriptor" }
+    },
+    "spi_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/spi_peripheral_descriptor" }
+    },
+    "adc_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/adc_peripheral_descriptor" }
+    },
+    "dma_controller_hw": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dma_controller_hw_descriptor" }
+    },
+    "timer_controller_hw": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/timer_controller_hw_descriptor" }
+    },
+    "pwm_slice_hw": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pwm_slice_hw_descriptor" }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"

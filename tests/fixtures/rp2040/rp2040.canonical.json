@@ -4552,6 +4552,904 @@
       "signal": "TX"
     }
   ],
+  "gpio_pins": [
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP0",
+      "pin_index": 0,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP1",
+      "pin_index": 1,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "SCK"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP2",
+      "pin_index": 2,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "RTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP3",
+      "pin_index": 3,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP4",
+      "pin_index": 4,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP5",
+      "pin_index": 5,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "SCK"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP6",
+      "pin_index": 6,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "RTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP7",
+      "pin_index": 7,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP8",
+      "pin_index": 8,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP9",
+      "pin_index": 9,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "SCK"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP10",
+      "pin_index": 10,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "RTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP11",
+      "pin_index": 11,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP12",
+      "pin_index": 12,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP13",
+      "pin_index": 13,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "SCK"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP14",
+      "pin_index": 14,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "RTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP15",
+      "pin_index": 15,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP16",
+      "pin_index": 16,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP17",
+      "pin_index": 17,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "SCK"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP18",
+      "pin_index": 18,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART0",
+          "signal_name": "RTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP19",
+      "pin_index": 19,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP20",
+      "pin_index": 20,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP21",
+      "pin_index": 21,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "SCK"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP22",
+      "pin_index": 22,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI0",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "RTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C1",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP23",
+      "pin_index": 23,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "RX"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "CTS"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SDA"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP24",
+      "pin_index": 24,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [
+        {
+          "af_number": 1,
+          "peripheral": "SPI1",
+          "signal_name": "CSN"
+        },
+        {
+          "af_number": 2,
+          "peripheral": "UART1",
+          "signal_name": "TX"
+        },
+        {
+          "af_number": 3,
+          "peripheral": "I2C0",
+          "signal_name": "SCL"
+        }
+      ],
+      "is_input_only": false,
+      "pin_id": "GP25",
+      "pin_index": 25,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "GP26",
+      "pin_index": 26,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "GP27",
+      "pin_index": 27,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "GP28",
+      "pin_index": 28,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    },
+    {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "GP29",
+      "pin_index": 29,
+      "port": "GPIO",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "raspberrypi-rp2040-family-bootstrap-v1",
+          "raspberrypi-rp2040-bootstrap"
+        ],
+        "source_id": "pico-sdk",
+        "source_path": "rp2040.svd"
+      }
+    }
+  ],
   "identity": {
     "core": "cortex-m0plus-dual",
     "device": "rp2040",
@@ -17397,6 +18295,225 @@
       "value_int": 2,
       "value_ref_id": "selector:2",
       "value_ref_kind": "selector"
+    }
+  ],
+  "rp2040_adc_peripherals": [
+    {
+      "base_address": 1074053120,
+      "channel_count": 5,
+      "channel_pins": [
+        26,
+        27,
+        28,
+        29,
+        255
+      ],
+      "controller_id": "ADC",
+      "dreq": 36,
+      "fifo_depth": 4,
+      "resolution_bits": 12,
+      "supports_fifo": true
+    }
+  ],
+  "rp2040_dma_controller_hw": [
+    {
+      "base_address": 1342177280,
+      "channel_count": 12,
+      "controller_id": "DMA",
+      "max_transfer_count": 4294967295,
+      "supports_byte_swap": true,
+      "supports_chaining": true
+    }
+  ],
+  "rp2040_pwm_slice_hw": [
+    {
+      "channel_a_pin": 0,
+      "channel_b_pin": 1,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 0
+    },
+    {
+      "channel_a_pin": 2,
+      "channel_b_pin": 3,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 1
+    },
+    {
+      "channel_a_pin": 4,
+      "channel_b_pin": 5,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 2
+    },
+    {
+      "channel_a_pin": 6,
+      "channel_b_pin": 7,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 3
+    },
+    {
+      "channel_a_pin": 8,
+      "channel_b_pin": 9,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 4
+    },
+    {
+      "channel_a_pin": 10,
+      "channel_b_pin": 11,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 5
+    },
+    {
+      "channel_a_pin": 12,
+      "channel_b_pin": 13,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 6
+    },
+    {
+      "channel_a_pin": 14,
+      "channel_b_pin": 15,
+      "clock_div_max_q4": 4080,
+      "clock_div_min_q4": 16,
+      "counter_bits": 16,
+      "slice_index": 7
+    }
+  ],
+  "rp2040_spi_peripherals": [
+    {
+      "base_address": 1073987584,
+      "controller_id": "SPI0",
+      "dreq_rx": 17,
+      "dreq_tx": 16,
+      "max_clock_hz": 62500000,
+      "valid_clk_pins": [
+        2,
+        6,
+        18,
+        22
+      ],
+      "valid_cs_pins": [
+        1,
+        5,
+        17,
+        21
+      ],
+      "valid_miso_pins": [
+        0,
+        4,
+        16,
+        20
+      ],
+      "valid_mosi_pins": [
+        3,
+        7,
+        19,
+        23
+      ]
+    },
+    {
+      "base_address": 1074003968,
+      "controller_id": "SPI1",
+      "dreq_rx": 19,
+      "dreq_tx": 18,
+      "max_clock_hz": 62500000,
+      "valid_clk_pins": [
+        10,
+        14
+      ],
+      "valid_cs_pins": [
+        9,
+        13,
+        25
+      ],
+      "valid_miso_pins": [
+        8,
+        12,
+        24
+      ],
+      "valid_mosi_pins": [
+        11,
+        15
+      ]
+    }
+  ],
+  "rp2040_timer_controller_hw": [
+    {
+      "alarm_count": 4,
+      "base_address": 1074085888,
+      "controller_id": "TIMER",
+      "counter_bits": 64,
+      "dreq_alarm_base": 39
+    }
+  ],
+  "rp2040_uart_peripherals": [
+    {
+      "base_address": 1073954816,
+      "controller_id": "UART0",
+      "dreq_rx": 21,
+      "dreq_tx": 20,
+      "fifo_depth": 32,
+      "valid_cts_pins": [
+        2,
+        14,
+        18
+      ],
+      "valid_rts_pins": [
+        3,
+        15,
+        19
+      ],
+      "valid_rx_pins": [
+        1,
+        13,
+        17
+      ],
+      "valid_tx_pins": [
+        0,
+        12,
+        16
+      ]
+    },
+    {
+      "base_address": 1073971200,
+      "controller_id": "UART1",
+      "dreq_rx": 23,
+      "dreq_tx": 22,
+      "fifo_depth": 32,
+      "valid_cts_pins": [
+        6,
+        10,
+        22,
+        24
+      ],
+      "valid_rts_pins": [
+        7,
+        11,
+        23
+      ],
+      "valid_rx_pins": [
+        5,
+        9,
+        21
+      ],
+      "valid_tx_pins": [
+        4,
+        8,
+        20,
+        25
+      ]
     }
   ],
   "schema_version": "1.2.0",

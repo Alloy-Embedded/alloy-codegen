@@ -1653,6 +1653,14 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         dma_channels=device.dma_channels,
         pio_blocks=device.pio_blocks,
         gpio_pins=device.gpio_pins,
+        # RP2040 hardware-feature descriptors (added by
+        # ``complete-rp2040-semantics`` Phases B-D).
+        rp2040_uart_peripherals=device.rp2040_uart_peripherals,
+        rp2040_spi_peripherals=device.rp2040_spi_peripherals,
+        rp2040_adc_peripherals=device.rp2040_adc_peripherals,
+        rp2040_dma_controller_hw=device.rp2040_dma_controller_hw,
+        rp2040_timer_controller_hw=device.rp2040_timer_controller_hw,
+        rp2040_pwm_slice_hw=device.rp2040_pwm_slice_hw,
     )
 
 

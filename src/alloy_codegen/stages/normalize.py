@@ -12,8 +12,14 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
     AdcUnitDescriptor,
+    Rp2040AdcPeripheralDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
+    Rp2040DmaControllerHwDescriptor,
+    Rp2040PwmSliceHwDescriptor,
+    Rp2040SpiPeripheralDescriptor,
+    Rp2040TimerControllerHwDescriptor,
+    Rp2040UartPeripheralDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
     DmaChannelDescriptor,
@@ -1087,6 +1093,183 @@ def _build_st_gpio_pins(
     return tuple(descriptors)
 
 
+# --- complete-rp2040-semantics Phase B helpers ---------------------------
+#
+# RP2040 UART/SPI controllers carry family-constant DREQ values, FIFO
+# depths and peripheral-clock ceilings (datasheet Tables 2-7 and 2-25).
+# The pad sets are derived dynamically from `device.gpio_pins` by filtering
+# the FUNCSEL alt-function table.
+
+_RP2040_UART_FACTS: tuple[tuple[str, int, int, int], ...] = (
+    # (controller_id, fifo_depth, dreq_tx, dreq_rx)
+    ("UART0", 32, 20, 21),
+    ("UART1", 32, 22, 23),
+)
+
+_RP2040_SPI_FACTS: tuple[tuple[str, int, int, int, int], ...] = (
+    # (controller_id, max_clock_hz, dreq_tx, dreq_rx, _unused)
+    ("SPI0", 62_500_000, 16, 17, 0),
+    ("SPI1", 62_500_000, 18, 19, 0),
+)
+
+
+def _filter_pads(
+    gpio_pins: tuple[GpioPinDescriptor, ...],
+    *,
+    peripheral: str,
+    signal_names: tuple[str, ...],
+) -> tuple[int, ...]:
+    pads: set[int] = set()
+    for pin in gpio_pins:
+        for af in pin.alt_functions:
+            if af.peripheral == peripheral and af.signal_name in signal_names:
+                pads.add(pin.pin_index)
+    return tuple(sorted(pads))
+
+
+def _build_rp2040_uart_peripherals(
+    *,
+    gpio_pins: tuple[GpioPinDescriptor, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[Rp2040UartPeripheralDescriptor, ...]:
+    base_by_name = {p.name: p.base_address for p in peripherals}
+    out: list[Rp2040UartPeripheralDescriptor] = []
+    for ctrl, fifo, dreq_tx, dreq_rx in _RP2040_UART_FACTS:
+        if ctrl not in base_by_name:
+            continue
+        out.append(
+            Rp2040UartPeripheralDescriptor(
+                controller_id=ctrl,
+                base_address=base_by_name[ctrl],
+                fifo_depth=fifo,
+                dreq_tx=dreq_tx,
+                dreq_rx=dreq_rx,
+                valid_tx_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("TX",)),
+                valid_rx_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("RX",)),
+                valid_cts_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("CTS",)),
+                valid_rts_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("RTS",)),
+            )
+        )
+    return tuple(out)
+
+
+def _build_rp2040_spi_peripherals(
+    *,
+    gpio_pins: tuple[GpioPinDescriptor, ...],
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[Rp2040SpiPeripheralDescriptor, ...]:
+    base_by_name = {p.name: p.base_address for p in peripherals}
+    out: list[Rp2040SpiPeripheralDescriptor] = []
+    for ctrl, max_hz, dreq_tx, dreq_rx, _ in _RP2040_SPI_FACTS:
+        if ctrl not in base_by_name:
+            continue
+        out.append(
+            Rp2040SpiPeripheralDescriptor(
+                controller_id=ctrl,
+                base_address=base_by_name[ctrl],
+                max_clock_hz=max_hz,
+                dreq_tx=dreq_tx,
+                dreq_rx=dreq_rx,
+                # RP2040 SPI signal names from family.json: TX (MOSI), RX
+                # (MISO), SCK (CLK), CSN (CS).
+                valid_mosi_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("TX",)),
+                valid_miso_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("RX",)),
+                valid_clk_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("SCK",)),
+                valid_cs_pins=_filter_pads(gpio_pins, peripheral=ctrl, signal_names=("CSN",)),
+            )
+        )
+    return tuple(out)
+
+
+def _build_rp2040_dma_controller_hw(
+    *, peripherals: tuple[PeripheralInstance, ...]
+) -> tuple[Rp2040DmaControllerHwDescriptor, ...]:
+    """RP2040 DMA: 12 channels, 32-bit transfer count register, supports
+    chaining + byte-swap (datasheet §2.5)."""
+    base = next((p.base_address for p in peripherals if p.name == "DMA"), None)
+    if base is None:
+        return ()
+    return (
+        Rp2040DmaControllerHwDescriptor(
+            controller_id="DMA",
+            base_address=base,
+            channel_count=12,
+            max_transfer_count=0xFFFFFFFF,
+            supports_chaining=True,
+            supports_byte_swap=True,
+        ),
+    )
+
+
+def _build_rp2040_timer_controller_hw(
+    *, peripherals: tuple[PeripheralInstance, ...]
+) -> tuple[Rp2040TimerControllerHwDescriptor, ...]:
+    """RP2040 single TIMER block: 64-bit counter, 4 alarms, DREQs 39..42
+    (datasheet Table 2-7)."""
+    base = next((p.base_address for p in peripherals if p.name == "TIMER"), None)
+    if base is None:
+        return ()
+    return (
+        Rp2040TimerControllerHwDescriptor(
+            controller_id="TIMER",
+            base_address=base,
+            counter_bits=64,
+            alarm_count=4,
+            dreq_alarm_base=39,
+        ),
+    )
+
+
+def _build_rp2040_pwm_slice_hw(
+    *, peripherals: tuple[PeripheralInstance, ...]
+) -> tuple[Rp2040PwmSliceHwDescriptor, ...]:
+    """RP2040 PWM has 8 slices (0..7); each slice's channel A maps to
+    GP(2*slice) and channel B to GP(2*slice + 1) on the primary range."""
+    if not any(p.name == "PWM" for p in peripherals):
+        return ()
+    # Fractional clock divider on RP2040 is 8-bit integer + 4-bit fraction
+    # (datasheet §4.5.2.4); we record min=0x010 (1.0) and max=0xFF0 (~256.0)
+    # in Q4.4 form so consumer code can reconstruct the divider precisely.
+    return tuple(
+        Rp2040PwmSliceHwDescriptor(
+            slice_index=index,
+            channel_a_pin=index * 2,
+            channel_b_pin=index * 2 + 1,
+            counter_bits=16,
+            clock_div_min_q4=0x010,
+            clock_div_max_q4=0xFF0,
+        )
+        for index in range(8)
+    )
+
+
+def _build_rp2040_adc_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[Rp2040AdcPeripheralDescriptor, ...]:
+    """RP2040 has a single ADC controller with 5 channels: GP26..GP29 plus
+    the internal temperature sensor.  Datasheet §4.9 + Table 264.
+    """
+    base = next((p.base_address for p in peripherals if p.name == "ADC"), None)
+    if base is None:
+        return ()
+    return (
+        Rp2040AdcPeripheralDescriptor(
+            controller_id="ADC",
+            base_address=base,
+            channel_count=5,
+            resolution_bits=12,
+            # Channels 0..3 → GP26..GP29; channel 4 → internal temperature
+            # sensor (sentinel pad index 255, distinguished from real GPIOs
+            # whose number is in [0, 29]).
+            channel_pins=(26, 27, 28, 29, 255),
+            dreq=36,
+            fifo_depth=4,
+            supports_fifo=True,
+        ),
+    )
+
+
 def _build_avr_da_gpio_pins(
     *,
     pins: tuple[PinDefinition, ...],
@@ -1999,7 +2182,7 @@ def _build_rp2040_device_ir(
         family=family,
         family_patch_ids=family_patch_ids,
     )
-    return build_rp2040_canonical_ir(
+    ir = build_rp2040_canonical_ir(
         raw,
         patch,
         family_catalog,
@@ -2007,6 +2190,35 @@ def _build_rp2040_device_ir(
         family=family,
         pio_blocks=pio_blocks,
     )
+    # complete-rp2040-semantics Phase A: derive `gpio_pins` from the
+    # already-flattened pin signals.  RP2040 has a single GPIO peripheral
+    # (`pin.port == None`); the Espressif helper covers that case exactly
+    # (`port = "GPIO"`, `port_offset = 0`, `is_input_only = False`).
+    rp2040_gpio_pins = _build_espressif_gpio_pins(
+        pins=ir.pins,
+        family=family,
+        provenance=ir.provenance,
+    )
+    if rp2040_gpio_pins:
+        ir = dataclasses.replace(ir, gpio_pins=rp2040_gpio_pins)
+    # Phase B: derive UART/SPI per-controller facts from the now-populated
+    # gpio_pins (pad sets) plus family-constant DREQ / FIFO data.
+    ir = dataclasses.replace(
+        ir,
+        rp2040_uart_peripherals=_build_rp2040_uart_peripherals(
+            gpio_pins=ir.gpio_pins,
+            peripherals=ir.peripherals,
+        ),
+        rp2040_spi_peripherals=_build_rp2040_spi_peripherals(
+            gpio_pins=ir.gpio_pins,
+            peripherals=ir.peripherals,
+        ),
+        rp2040_adc_peripherals=_build_rp2040_adc_peripherals(peripherals=ir.peripherals),
+        rp2040_dma_controller_hw=_build_rp2040_dma_controller_hw(peripherals=ir.peripherals),
+        rp2040_timer_controller_hw=_build_rp2040_timer_controller_hw(peripherals=ir.peripherals),
+        rp2040_pwm_slice_hw=_build_rp2040_pwm_slice_hw(peripherals=ir.peripherals),
+    )
+    return ir
 
 
 def _dedup_esp32_peripherals(

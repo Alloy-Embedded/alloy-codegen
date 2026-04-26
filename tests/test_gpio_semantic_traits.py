@@ -179,3 +179,52 @@ def test_avr128da32_gpio_pins_emit_port_topology(
     pc0 = _struct_block(content, "GpioSemanticTraits<PinId::PC0>")
     assert "static constexpr std::uint32_t kPortOffset = 0x00000040u;" in pc0
     assert "static constexpr std::uint32_t kPinIndex = 0u;" in pc0
+
+
+# --- complete-rp2040-semantics Phase A: RP2040 GPIO ---------------------
+
+
+def test_rp2040_gp0_records_funcsel_alt_functions(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    """RP2040 GP0 supports SPI0_RX (FUNCSEL 1), UART0_TX (2), I2C0_SDA (3)
+    per the family-patch FUNCSEL table.  Verify those flow through to
+    the emitted GPIO trait specialization."""
+    content = _emit_gpio_hpp(rp2040_execution_context, "rp2040")
+
+    primary = _struct_block(content, "GpioSemanticTraits")
+    assert "static constexpr bool kIsInputOnly = false;" in primary
+
+    gp0 = _struct_block(content, "GpioSemanticTraits<PinId::GP0>")
+    assert "static constexpr bool kPresent = true;" in gp0
+    assert "static constexpr std::uint32_t kPortOffset = 0x00000000u;" in gp0
+    assert "static constexpr std::uint32_t kPinIndex = 0u;" in gp0
+    assert "kValidAltFunctions = {{1u, 2u, 3u}};" in gp0
+
+
+def test_rp2040_gp26_records_pad_topology(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    """GP26..GP29 on RP2040 are analog-capable; the family-patch FUNCSEL
+    table records their digital alt-functions with `af_number = null`
+    (validation explicitly exempts these pads).  Phase A still surfaces
+    them as `kPresent = true` pads with empty `kValidAltFunctions`; the
+    ADC channel ↔ pad mapping is emitted via `adc.hpp` in Phase C."""
+    content = _emit_gpio_hpp(rp2040_execution_context, "rp2040")
+
+    gp26 = _struct_block(content, "GpioSemanticTraits<PinId::GP26>")
+    assert "static constexpr bool kPresent = true;" in gp26
+    assert "static constexpr std::uint32_t kPinIndex = 26u;" in gp26
+    # Empty alt-function array — Phase C will surface the analog binding
+    # through a dedicated ADC trait, not via GpioSemanticTraits.
+    assert "kValidAltFunctions = {};" in gp26
+
+
+def test_rp2040_emits_30_populated_specializations(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    """RP2040 has 30 GPIOs (GP0..GP29).  After Phase A wires the FUNCSEL
+    table into `device.gpio_pins`, every pad should have a populated
+    GPIO trait specialization."""
+    content = _emit_gpio_hpp(rp2040_execution_context, "rp2040")
+    assert content.count("kPresent = true;") == 30

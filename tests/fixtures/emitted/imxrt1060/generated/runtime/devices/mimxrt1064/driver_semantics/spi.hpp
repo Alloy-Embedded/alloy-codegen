@@ -139,6 +139,25 @@ struct SpiSemanticTraits<PeripheralId::LPSPI1> {
 inline constexpr std::array<PeripheralId, 1> kSpiSemanticPeripherals = {{
   PeripheralId::LPSPI1,
 }};
+
+// complete-rp2040-semantics Phase B: per-controller SPI facts.
+enum class RuntimeSpiId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeSpiId Id>
+struct SpiPeripheralTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint32_t kMaxClockHz = 0u;
+  static constexpr std::uint8_t kDreqTx = 0u;
+  static constexpr std::uint8_t kDreqRx = 0u;
+  static constexpr std::array<std::uint8_t, 0> kValidMosiPins = {};
+  static constexpr std::array<std::uint8_t, 0> kValidMisoPins = {};
+  static constexpr std::array<std::uint8_t, 0> kValidClkPins = {};
+  static constexpr std::array<std::uint8_t, 0> kValidCsPins = {};
+};
+
 }
 }
 }

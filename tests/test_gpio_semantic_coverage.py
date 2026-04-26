@@ -13,8 +13,6 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-import pytest
-
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run as run_emit
@@ -73,9 +71,6 @@ def test_gpio_coverage_gate_espressif(
 def test_gpio_coverage_gate_rp2040(
     rp2040_execution_context: ExecutionContext,
 ) -> None:
-    """RP2040 GPIO traits are still pending (separate `complete-rp2040-semantics`
-    work).  This test documents the regression boundary: once that change
-    populates RP2040, flip ``pytest.xfail`` to ``_check_devices`` so the
-    gate becomes mandatory for RP2040 too."""
-    pytest.xfail("RP2040 GPIO traits land in complete-rp2040-semantics; tracked separately")
+    """Mandatory after `complete-rp2040-semantics` Phase A populates
+    `device.gpio_pins` for RP2040 from the FUNCSEL table."""
     _check_devices(rp2040_execution_context, ("rp2040", "pico"))

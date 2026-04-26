@@ -742,6 +742,109 @@ class GpioPinDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class Rp2040UartPeripheralDescriptor:
+    """Per-controller UART hardware facts (added by complete-rp2040-semantics).
+
+    Surfaces the family-constant per-controller data — base address, FIFO
+    depth, per-direction DMA DREQ values — plus the set of GPIO pads that
+    can carry each UART signal.  ``valid_*_pins`` arrays are sorted
+    ascending by pad number so consumer concept checks see a stable order.
+    """
+
+    controller_id: str
+    base_address: int
+    fifo_depth: int
+    dreq_tx: int
+    dreq_rx: int
+    valid_tx_pins: tuple[int, ...]
+    valid_rx_pins: tuple[int, ...]
+    valid_cts_pins: tuple[int, ...]
+    valid_rts_pins: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class Rp2040SpiPeripheralDescriptor:
+    """Per-controller SPI hardware facts (added by complete-rp2040-semantics).
+
+    Mirrors ``Rp2040UartPeripheralDescriptor`` for SPI.  ``max_clock_hz`` is the
+    silicon-level peripheral clock ceiling.
+    """
+
+    controller_id: str
+    base_address: int
+    max_clock_hz: int
+    dreq_tx: int
+    dreq_rx: int
+    valid_mosi_pins: tuple[int, ...]
+    valid_miso_pins: tuple[int, ...]
+    valid_clk_pins: tuple[int, ...]
+    valid_cs_pins: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class Rp2040DmaControllerHwDescriptor:
+    """Per-controller DMA hardware facts (added by complete-rp2040-semantics
+    Phase D).  Captures silicon-fixed parameters that the existing
+    ``DmaControllerDescriptor`` does not surface (channel count, max
+    transfer count, chaining / byte-swap support)."""
+
+    controller_id: str
+    base_address: int
+    channel_count: int
+    max_transfer_count: int
+    supports_chaining: bool
+    supports_byte_swap: bool
+
+
+@dataclass(frozen=True, slots=True)
+class Rp2040TimerControllerHwDescriptor:
+    """Per-controller timer hardware facts.  RP2040's single TIMER block
+    has 64-bit counter + 4 hardware alarms with consecutive DMA DREQs."""
+
+    controller_id: str
+    base_address: int
+    counter_bits: int
+    alarm_count: int
+    dreq_alarm_base: int  # ALARM0 DREQ; ALARMn DREQ = base + n
+
+
+@dataclass(frozen=True, slots=True)
+class Rp2040PwmSliceHwDescriptor:
+    """One PWM slice (RP2040 has 8 slices, each with A/B channels).
+    ``channel_a_pin`` / ``channel_b_pin`` carry the primary GPIO mapping
+    (slice 0 → A=GP0, B=GP1; slice 7 → A=GP14, B=GP15)."""
+
+    slice_index: int
+    channel_a_pin: int
+    channel_b_pin: int
+    counter_bits: int
+    clock_div_min_q4: int  # 1/16 of a count (fractional divider min)
+    clock_div_max_q4: int  # 256 << 4 (fractional divider max)
+
+
+@dataclass(frozen=True, slots=True)
+class Rp2040AdcPeripheralDescriptor:
+    """Per-controller ADC hardware facts (added by complete-rp2040-semantics
+    Phase C).
+
+    Captures the silicon-level fixed parameters for one ADC controller:
+    base address, channel count, ADC resolution, the GPIO pad list that
+    can route into each channel (sentinel ``255`` for the internal
+    temperature sensor), DMA DREQ value, and the per-controller FIFO
+    depth.
+    """
+
+    controller_id: str
+    base_address: int
+    channel_count: int
+    resolution_bits: int
+    channel_pins: tuple[int, ...]
+    dreq: int
+    fifo_depth: int
+    supports_fifo: bool
+
+
+@dataclass(frozen=True, slots=True)
 class PioDescriptor:
     """Compile-time topology of one Programmable I/O block.
 
@@ -958,6 +1061,35 @@ class CanonicalDeviceIR:
     # Empty for devices whose normalizers have not yet been wired to populate
     # GPIO topology; populated per family as the change rolls out.
     gpio_pins: tuple[GpioPinDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    # RP2040 per-controller hardware-feature descriptors (added by
+    # complete-rp2040-semantics Phases B-D).  Coexist with the Espressif
+    # ``uart_peripherals`` / ``spi_peripherals`` / etc. fields above
+    # which use a different schema (peripheral_id + GPIO-matrix signal
+    # indices).  All omit-if-empty.
+    rp2040_uart_peripherals: tuple[Rp2040UartPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    rp2040_spi_peripherals: tuple[Rp2040SpiPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    rp2040_adc_peripherals: tuple[Rp2040AdcPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    rp2040_dma_controller_hw: tuple[Rp2040DmaControllerHwDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    rp2040_timer_controller_hw: tuple[Rp2040TimerControllerHwDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    rp2040_pwm_slice_hw: tuple[Rp2040PwmSliceHwDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

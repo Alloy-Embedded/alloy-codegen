@@ -519,6 +519,18 @@ inline constexpr std::array<PeripheralId, 4> kPwmSemanticPeripherals = {{
   PeripheralId::PWM3,
   PeripheralId::PWM4,
 }};
+
+// complete-rp2040-semantics Phase D: per-slice PWM HW facts.
+template<std::uint8_t SliceIndex>
+struct PwmSliceHwTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint8_t kChannelAPin = 0u;
+  static constexpr std::uint8_t kChannelBPin = 0u;
+  static constexpr std::uint8_t kCounterBits = 0u;
+  static constexpr std::uint16_t kClockDivMinQ4 = 0u;
+  static constexpr std::uint16_t kClockDivMaxQ4 = 0u;
+};
+
 }
 }
 }
