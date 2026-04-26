@@ -36,8 +36,7 @@ def _check_devices(context: ExecutionContext, devices: Iterable[str]) -> None:
     for device in devices:
         count = _pwm_present_count(context, device)
         assert count >= 1, (
-            f"family PWM-coverage gate failed: no kPresent = true entries "
-            f"in pwm.hpp for '{device}'"
+            f"family PWM-coverage gate failed: no kPresent = true entries in pwm.hpp for '{device}'"
         )
 
 

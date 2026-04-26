@@ -1985,3 +1985,20 @@ def test_stm32g071rb_spi_traits_emit_tier234_facts(
         "kSupportedFrameSizes = {{4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u}};"
         in content
     )
+
+
+def test_stm32g071rb_uart_traits_emit_irq_numbers(
+    execution_context: ExecutionContext,
+) -> None:
+    """add-irq-vector-traits: STM32G0 USART1 trait specialization carries
+    a populated ``kIrqNumbers`` array sourced from the canonical-device-IR
+    interrupt_bindings table (USART1_IRQn = 27 on STM32G071)."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/uart.hpp"
+    content = arts[p].content
+    # Unspecialized template ships an empty array.
+    assert "static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};" in content
+    # USART1 specialization carries the NVIC line number.
+    assert "struct UartSemanticTraits<PeripheralId::USART1>" in content
+    assert "static constexpr std::array<std::uint32_t, 1> kIrqNumbers = {{27u}};" in content

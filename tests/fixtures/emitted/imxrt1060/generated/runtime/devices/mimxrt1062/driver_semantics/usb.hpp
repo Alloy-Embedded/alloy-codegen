@@ -57,6 +57,7 @@ struct UsbSemanticTraits {
   static constexpr RuntimeFieldRef kAddressEnableField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kAddressField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kClockUsableField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 0> kUsbSemanticPeripherals = {};

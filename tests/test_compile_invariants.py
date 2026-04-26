@@ -169,12 +169,7 @@ def test_stm32g0_pwm_traits_compile_invariants() -> None:
     """
     source = COMPILE_TESTS_DIR / "test_stm32g0_pwm_traits.cpp"
     stm32g0_root = (
-        FIXTURES_EMITTED
-        / "stm32g0"
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "stm32g071rb"
+        FIXTURES_EMITTED / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb"
     )
     driver_root = stm32g0_root / "driver_semantics"
     pwm_header = driver_root / "pwm.hpp"

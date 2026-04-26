@@ -58,6 +58,7 @@ struct RtcSemanticTraits {
   static constexpr RuntimeFieldRef kClearCalendarEventField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kClearTamperErrorField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kWriteProtectKeyField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<>
@@ -106,6 +107,7 @@ struct RtcSemanticTraits<PeripheralId::RTC> {
   static constexpr RuntimeFieldRef kClearCalendarEventField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kClearTamperErrorField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kWriteProtectKeyField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 1> kRtcSemanticPeripherals = {{

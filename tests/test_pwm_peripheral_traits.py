@@ -83,9 +83,7 @@ def test_mcpwm_traits_block_emits_for_esp32s3(
     assert "enum class RuntimeMcpwmId : std::uint8_t" in content
     primary = _struct_block(content, "McpwmTraits")
     assert "static constexpr bool kPresent = false;" in primary
-    assert (
-        "static constexpr std::array<std::uint16_t, 0> kGpioMatrixSignals = {};" in primary
-    )
+    assert "static constexpr std::array<std::uint16_t, 0> kGpioMatrixSignals = {};" in primary
     assert "MCPWM0 = 1," in content
     assert "MCPWM1 = 2," in content
 

@@ -210,6 +210,11 @@ class UartSemanticRow:
     mode_flags: UartModeFlags | None = None
     max_baud_hz: int = 0
     dma_bindings: tuple[UartDmaBindingRow, ...] = ()
+    # NVIC vector lines bound to this peripheral (added by
+    # ``add-irq-vector-traits``).  Empty on chips whose
+    # ``interrupt_bindings`` haven't surfaced this peripheral yet
+    # (e.g. AVR-DA — its vectors aren't modelled as NVIC lines).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -286,6 +291,8 @@ class I2cSemanticRow:
     nack_field: RuntimeFieldRef
     arblst_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -345,6 +352,8 @@ class SpiSemanticRow:
     fifo_threshold_options: tuple[SpiFifoThresholdOption, ...] = ()
     mode_flags: SpiModeFlags | None = None
     spi_dma_bindings: tuple[SpiDmaBindingRow, ...] = ()
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -670,6 +679,8 @@ class AdcSemanticRow:
     external_triggers: tuple[AdcExternalTrigger, ...] = ()
     dma_mode_options: tuple[AdcDmaModeOption, ...] = ()
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -697,6 +708,8 @@ class DacSemanticRow:
     trigger_enable_pattern: RuntimeIndexedFieldRef
     trigger_select_pattern: RuntimeIndexedFieldRef
     data_pattern: RuntimeIndexedFieldRef
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -762,6 +775,8 @@ class RtcSemanticRow:
     write_protect_disable_key1: int
     write_protect_enable_key: int
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -797,6 +812,8 @@ class WatchdogSemanticRow:
     refresh_key_value: int
     unlock_key_value: int
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -859,6 +876,9 @@ class CanSemanticRow:
     tx_fifo_queue_free_level_field: RuntimeFieldRef
     tx_buffer_add_request_pattern: RuntimeIndexedFieldRef
     tx_buffer_pending_pattern: RuntimeIndexedFieldRef
+    # NVIC vector lines (added by ``add-irq-vector-traits``).  CAN / FDCAN
+    # commonly carries 2 lines (e.g. FDCAN1_IT0 + FDCAN1_IT1).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -900,6 +920,8 @@ class EthSemanticRow:
     rx_complete_interrupt_enable_field: RuntimeFieldRef
     tx_complete_interrupt_enable_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -959,6 +981,8 @@ class UsbSemanticRow:
     dm_pin: str | None = None
     dp_pin: str | None = None
     clock_source: str | None = None
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1011,6 +1035,8 @@ class QspiSemanticRow:
     continuous_read_mode_field: RuntimeFieldRef
     dummy_cycles_field: RuntimeFieldRef
     scrambling_enable_field: RuntimeFieldRef
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1069,6 +1095,8 @@ class SdmmcSemanticRow:
     transfer_done_field: RuntimeFieldRef
     not_busy_field: RuntimeFieldRef
     dma_enable_field: RuntimeFieldRef
+    # NVIC vector lines (added by ``add-irq-vector-traits``).
+    irq_numbers: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -1116,6 +1144,14 @@ class TimerSemanticRow:
     encoder_phase_edge_field: RuntimeFieldRef
     direction_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # NVIC vector lines, split per advanced-timer convention (added by
+    # ``add-irq-vector-traits``).  ``None`` when the chip doesn't surface
+    # the vector; on chips with a single shared vector (e.g. STM32G0
+    # ``TIM1_BRK_UP_TRG_COM``) all four fields point at the same line.
+    update_irq_number: int | None = None
+    capture_irq_number: int | None = None
+    break_irq_number: int | None = None
+    trigger_irq_number: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -1717,6 +1753,62 @@ def _render_array_lines(
     lines.extend(item_lines)
     lines.append("  }};")
     return lines
+
+
+def _timer_irq_lines(row: TimerSemanticRow) -> list[str]:
+    """Render the four split TIMER vector scalars + the shared
+    ``kIrqNumbers`` array.  Added by ``add-irq-vector-traits``.
+
+    ``0xFFFFFFFFu`` sentinel for fields that aren't surfaced by the chip.
+    The shared array unions all four lines de-duplicated, so consumers
+    can either branch on the named scalar or iterate the array.
+    """
+
+    def _scalar(value: int | None) -> str:
+        if value is None:
+            return "0xFFFFFFFFu"
+        return f"{value}u"
+
+    union_lines: tuple[int, ...] = tuple(
+        sorted(
+            {
+                v
+                for v in (
+                    row.update_irq_number,
+                    row.capture_irq_number,
+                    row.break_irq_number,
+                    row.trigger_irq_number,
+                )
+                if v is not None
+            }
+        )
+    )
+    lines = [
+        f"  static constexpr std::uint32_t kUpdateIrqNumber = {_scalar(row.update_irq_number)};",
+        f"  static constexpr std::uint32_t kCaptureIrqNumber = {_scalar(row.capture_irq_number)};",
+        f"  static constexpr std::uint32_t kBreakIrqNumber = {_scalar(row.break_irq_number)};",
+        f"  static constexpr std::uint32_t kTriggerIrqNumber = {_scalar(row.trigger_irq_number)};",
+    ]
+    lines.extend(_irq_numbers_lines(union_lines))
+    return lines
+
+
+def _irq_numbers_lines(irq_numbers: tuple[int, ...]) -> list[str]:
+    """Render the ``kIrqNumbers`` constexpr array for a peripheral
+    specialisation.  Added by ``add-irq-vector-traits``.
+
+    Empty tuple yields ``std::array<std::uint32_t, 0>{}`` so consumer
+    code that branches on ``kIrqNumbers.size() > 0`` stays valid.
+    """
+    n = len(irq_numbers)
+    if n == 0:
+        return [
+            "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
+        ]
+    joined = ", ".join(f"{v}u" for v in irq_numbers)
+    return [
+        f"  static constexpr std::array<std::uint32_t, {n}> kIrqNumbers = {{{{{joined}}}}};",
+    ]
 
 
 def _render_adc_tier_extension_lines(row: AdcSemanticRow) -> list[str]:
@@ -2474,6 +2566,7 @@ def _uart_extension_for_peripheral(
     else:
         mode_flags = None
     dma_bindings = _uart_dma_bindings_for_peripheral(context, peripheral_name=peripheral_name)
+    irq_numbers = _irq_numbers_for_peripheral(context, peripheral_name=peripheral_name)
     return {
         "baud_clock_sources": baud_clock_sources,
         "baud_oversampling_options": baud_oversampling_options,
@@ -2484,6 +2577,7 @@ def _uart_extension_for_peripheral(
         "mode_flags": mode_flags,
         "max_baud_hz": device.uart_max_baud_hz,
         "dma_bindings": dma_bindings,
+        "irq_numbers": irq_numbers,
     }
 
 
@@ -2530,12 +2624,14 @@ def _spi_extension_for_peripheral(
     spi_dma_bindings = _spi_dma_bindings_for_peripheral(
         context, peripheral_name=peripheral_name, max_frame_bits=max_frame_bits
     )
+    irq_numbers = _irq_numbers_for_peripheral(context, peripheral_name=peripheral_name)
     return {
         "baud_prescaler_options": baud_prescaler_options,
         "frame_size_options": frame_size_options,
         "fifo_threshold_options": fifo_threshold_options,
         "mode_flags": mode_flags,
         "spi_dma_bindings": spi_dma_bindings,
+        "irq_numbers": irq_numbers,
     }
 
 
@@ -3635,6 +3731,77 @@ def _uart_dma_bindings_for_peripheral(
             )
         )
     return tuple(bindings)
+
+
+def _irq_numbers_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[int, ...]:
+    """Return NVIC vector lines bound to ``peripheral_name``, sorted.
+
+    Walks ``device.interrupt_bindings`` filtered by exact peripheral
+    match.  De-duplicates lines (a peripheral that shares a vector with
+    another peripheral still surfaces the line once) and yields them in
+    ascending numerical order so goldens stay deterministic across runs.
+    Added by ``add-irq-vector-traits``.
+    """
+    seen: set[int] = set()
+    for binding in context.device.interrupt_bindings:
+        if binding.peripheral != peripheral_name:
+            continue
+        seen.add(int(binding.line))
+    return tuple(sorted(seen))
+
+
+def _timer_irq_numbers_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, int | None]:
+    """Return the four split TIMER vector lines (UP/CC/BRK/TRG).
+
+    STM32 advanced timers split IRQs across UP, CC, BRK, TRG vectors;
+    smaller chips collapse them onto a single shared vector.  We classify
+    each binding by its ``interrupt`` name suffix.  Returns a dict with
+    keys ``update``, ``capture``, ``break_``, ``trigger`` mapping to the
+    line index, or ``None`` when not surfaced.
+
+    On chips where the four vectors collapse to one (e.g. STM32G0
+    ``TIM1_BRK_UP_TRG_COM``), the same line populates all four slots that
+    the binding name advertises, so the consumer can install one handler
+    via any of the four constants.
+    """
+    update: int | None = None
+    capture: int | None = None
+    brk: int | None = None
+    trigger: int | None = None
+    for binding in context.device.interrupt_bindings:
+        if binding.peripheral != peripheral_name:
+            continue
+        name = (binding.interrupt or "").upper()
+        line = int(binding.line)
+        # Order matters: classify on substrings so a shared
+        # "TIM1_BRK_UP_TRG_COM" vector populates UP / BRK / TRG
+        # simultaneously.
+        if "UP" in name and update is None:
+            update = line
+        if (("CC" in name) or ("COM" in name)) and capture is None:
+            capture = line
+        if "BRK" in name and brk is None:
+            brk = line
+        if "TRG" in name and trigger is None:
+            trigger = line
+        # Unclassified single-vector chips: fall back to the only line.
+        if update is None and capture is None and brk is None and trigger is None:
+            update = line
+            capture = line
+    return {
+        "update": update,
+        "capture": capture,
+        "break_": brk,
+        "trigger": trigger,
+    }
 
 
 def _spi_dma_bindings_for_peripheral(
@@ -11049,6 +11216,7 @@ def _uart_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;",
+                *_irq_numbers_lines(row.irq_numbers),
             ]
         return [
             "  static constexpr bool kPresent = true;",
@@ -11120,6 +11288,7 @@ def _uart_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef kUsTxemptyField = {_field_ref_expr(row.us_txempty_field)};",
             f"  static constexpr RuntimeFieldRef kUsTxchrField = {_field_ref_expr(row.us_txchr_field)};",
             f"  static constexpr RuntimeFieldRef kUsRxchrField = {_field_ref_expr(row.us_rxchr_field)};",
+            *_irq_numbers_lines(row.irq_numbers),
         ]
 
     return _build
@@ -11200,6 +11369,7 @@ def _i2c_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kTxrdyField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kNackField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kArblstField = kInvalidFieldRef;",
+                *_irq_numbers_lines(row.irq_numbers),
             ]
         register_members = {
             "kCr1Register": row.cr1_reg,
@@ -11284,6 +11454,7 @@ def _i2c_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -11415,6 +11586,7 @@ def _spi_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kTdField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kTdrPcsField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kRdField = kInvalidFieldRef;",
+                *_irq_numbers_lines(row.irq_numbers),
             ]
         register_members = {
             "kCr1Register": row.cr1_reg,
@@ -11477,6 +11649,7 @@ def _spi_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -11524,6 +11697,7 @@ def _adc_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeIndexedFieldRef kChannelStatusPattern = kInvalidIndexedFieldRef;",
             ]
             stub_lines.extend(_render_adc_tier_extension_lines(row))
+            stub_lines.extend(_irq_numbers_lines(row.irq_numbers))
             return stub_lines
         register_members = {
             "kControlRegister": row.control_reg,
@@ -11589,6 +11763,7 @@ def _adc_specialization_builder(context: _SemanticContext):
         # resolution / sample time / oversampling options, DMA bindings and
         # external trigger sources.
         lines.extend(_render_adc_tier_extension_lines(row))
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -11639,6 +11814,7 @@ def _dac_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeIndexedFieldRef {name} = {_indexed_field_ref_expr(value)};"
             for name, value in indexed_field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -11735,6 +11911,7 @@ def _rtc_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kClearCalendarEventField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kClearTamperErrorField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kWriteProtectKeyField = kInvalidFieldRef;",
+                *_irq_numbers_lines(row.irq_numbers),
             ]
         register_members = {
             "kControlRegister": row.control_reg,
@@ -11796,6 +11973,7 @@ def _rtc_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -11835,6 +12013,7 @@ def _watchdog_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kStatusTimeoutField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kStatusErrorField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kRequiredConfigField = kInvalidFieldRef;",
+                *_irq_numbers_lines(row.irq_numbers),
             ]
         register_members = {
             "kControlRegister": row.control_reg,
@@ -11878,6 +12057,7 @@ def _watchdog_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -11963,6 +12143,7 @@ def _can_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeIndexedFieldRef {name} = {_indexed_field_ref_expr(value)};"
             for name, value in indexed_field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -12085,6 +12266,7 @@ def _usb_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -12130,6 +12312,7 @@ def _eth_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kTxCompleteInterruptField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kRxCompleteInterruptEnableField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;",
+                *_irq_numbers_lines(row.irq_numbers),
             ]
         register_members = {
             "kControlRegister": row.control_reg,
@@ -12181,6 +12364,7 @@ def _eth_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -12252,6 +12436,7 @@ def _qspi_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -12325,6 +12510,7 @@ def _sdmmc_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_irq_numbers_lines(row.irq_numbers))
         return lines
 
     return _build
@@ -12376,6 +12562,7 @@ def _timer_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
+                *_timer_irq_lines(row),
             ]
         register_members = {
             "kControlRegister": row.control_reg,
@@ -12437,6 +12624,7 @@ def _timer_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_timer_irq_lines(row))
         return lines
 
     return _build
@@ -12991,10 +13179,7 @@ def _mcpwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
         if not signals:
             return f"  static constexpr std::array<std::uint16_t, 0> {name} = {{}};"
         items = ", ".join(f"{s}u" for s in signals)
-        return (
-            f"  static constexpr std::array<std::uint16_t, {len(signals)}> "
-            f"{name} = {{{items}}};"
-        )
+        return f"  static constexpr std::array<std::uint16_t, {len(signals)}> {name} = {{{items}}};"
 
     for ctrl in device.mcpwm_peripherals:
         lines.extend(
@@ -13072,10 +13257,7 @@ def _stm_timer_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
         if not pads:
             return f"  static constexpr std::array<PinId, 0> {name} = {{}};"
         items = ", ".join(f"PinId::{_enum_identifier(p)}" for p in pads)
-        return (
-            f"  static constexpr std::array<PinId, {len(pads)}> "
-            f"{name} = {{{items}}};"
-        )
+        return f"  static constexpr std::array<PinId, {len(pads)}> {name} = {{{items}}};"
 
     _kind_token = {
         "advanced": "RuntimeStmTimerKind::Advanced",
@@ -13151,10 +13333,7 @@ def _avr_da_tca_pwm_traits_block(device: CanonicalDeviceIR) -> list[str]:
         if not pads:
             return f"  static constexpr std::array<PinId, 0> {name} = {{}};"
         items = ", ".join(f"PinId::{_enum_identifier(p)}" for p in pads)
-        return (
-            f"  static constexpr std::array<PinId, {len(pads)}> "
-            f"{name} = {{{items}}};"
-        )
+        return f"  static constexpr std::array<PinId, {len(pads)}> {name} = {{{items}}};"
 
     for ctrl in device.avr_da_tca_pwm_peripherals:
         lines.extend(
@@ -13557,6 +13736,8 @@ def emit_runtime_driver_uart_semantics_header(
         "  static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -13648,6 +13829,8 @@ def emit_runtime_driver_i2c_semantics_header(
         "  static constexpr RuntimeFieldRef kTxrdyField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kNackField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kArblstField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -13742,6 +13925,8 @@ def emit_runtime_driver_spi_semantics_header(
         "  static constexpr RuntimeFieldRef kTdField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kTdrPcsField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kRdField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -13933,6 +14118,8 @@ def emit_runtime_driver_adc_semantics_header(
         "  static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};",
         "  static constexpr std::uint32_t kSupportedDmaModeCount = 0u;",
         "  static constexpr std::array<AdcDmaModeOption, 0> kSupportedDmaModes = {};",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -13978,6 +14165,8 @@ def emit_runtime_driver_dac_semantics_header(
         "  static constexpr RuntimeIndexedFieldRef kTriggerEnablePattern = kInvalidIndexedFieldRef;",
         "  static constexpr RuntimeIndexedFieldRef kTriggerSelectPattern = kInvalidIndexedFieldRef;",
         "  static constexpr RuntimeIndexedFieldRef kDataPattern = kInvalidIndexedFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
         "};",
         "",
     ]
@@ -14086,6 +14275,8 @@ def emit_runtime_driver_rtc_semantics_header(
         "  static constexpr RuntimeFieldRef kClearCalendarEventField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kClearTamperErrorField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kWriteProtectKeyField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14168,6 +14359,8 @@ def emit_runtime_driver_can_semantics_header(
         "kInvalidIndexedFieldRef;",
         "  static constexpr RuntimeIndexedFieldRef kTxBufferPendingPattern = "
         "kInvalidIndexedFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14237,6 +14430,8 @@ def emit_runtime_driver_usb_semantics_header(
         "  static constexpr RuntimeFieldRef kAddressEnableField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kAddressField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kClockUsableField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14292,6 +14487,8 @@ def emit_runtime_driver_eth_semantics_header(
         "  static constexpr RuntimeFieldRef kTxCompleteInterruptField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kRxCompleteInterruptEnableField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kTxCompleteInterruptEnableField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14359,6 +14556,8 @@ def emit_runtime_driver_qspi_semantics_header(
         "  static constexpr RuntimeFieldRef kContinuousReadModeField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kDummyCyclesField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kScramblingEnableField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14432,6 +14631,8 @@ def emit_runtime_driver_sdmmc_semantics_header(
         "  static constexpr RuntimeFieldRef kTransferDoneField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kNotBusyField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kDmaEnableField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14481,6 +14682,8 @@ def emit_runtime_driver_watchdog_semantics_header(
         "  static constexpr RuntimeFieldRef kStatusTimeoutField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kStatusErrorField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kRequiredConfigField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
     ]
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
@@ -14544,6 +14747,14 @@ def emit_runtime_driver_timer_semantics_header(
         "  static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kDirectionField = kInvalidFieldRef;",
+        # NVIC vector lines (added by ``add-irq-vector-traits``).  TIMER
+        # ships four split scalars (sentinel ``0xFFFFFFFFu``) plus the
+        # de-duplicated union array.
+        "  static constexpr std::uint32_t kUpdateIrqNumber = 0xFFFFFFFFu;",
+        "  static constexpr std::uint32_t kCaptureIrqNumber = 0xFFFFFFFFu;",
+        "  static constexpr std::uint32_t kBreakIrqNumber = 0xFFFFFFFFu;",
+        "  static constexpr std::uint32_t kTriggerIrqNumber = 0xFFFFFFFFu;",
+        "  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};",
         "};",
         "",
     ]
