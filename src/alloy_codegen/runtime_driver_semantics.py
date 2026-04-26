@@ -1269,6 +1269,17 @@ class PwmSemanticRow:
     clear_load_field: RuntimeFieldRef
     clock_prescaler_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # Tier 2/3/4 facts (add-pwm-tier-2-3-4-data).
+    max_prescaler: int = 0
+    max_period: int = 0
+    deadtime_options: tuple[tuple[int, int, int], ...] = ()  # (prescaler_field_value, count_bits, max_ns)
+    supported_alignments: tuple[tuple[str, int], ...] = ()  # (alignment, field_value)
+    break_inputs: tuple[tuple[str, int, int], ...] = ()  # (input_id, polarity_field_value, enable_field_value)
+    supports_deadtime: bool = False
+    supports_break_input: bool = False
+    supports_complementary_outputs: bool = False
+    supports_asymmetric_pwm: bool = False
+    supports_combined_pwm: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -11064,7 +11075,82 @@ def _build_pwm_rows(
                     deadtime_fall_field=invalid_field,
                 )
             )
-    return tuple(pwm_rows), tuple(channel_rows)
+    enriched_pwm_rows = _enrich_pwm_tier234(context, tuple(pwm_rows))
+    return tuple(enriched_pwm_rows), tuple(channel_rows)  # type: ignore[return-value]
+
+
+def _enrich_pwm_tier234(
+    context: _SemanticContext,
+    rows: tuple[object, ...],
+) -> tuple[object, ...]:
+    """add-pwm-tier-2-3-4-data: thread Tier 2/3/4 facts onto each PWM
+    row from the device patch's `pwm_*` tuples + the matching
+    `timer_prescaler_options` (PWM uses the same PSC range as its
+    backing timer)."""
+    import dataclasses as _dc
+
+    device = context.device
+    flags_by_peripheral = {
+        getattr(p, "peripheral", ""): p for p in getattr(device, "pwm_mode_flags", ())
+    }
+    deadtime_by_peripheral: dict[str, list[tuple[int, int, int]]] = {}
+    for d in getattr(device, "pwm_deadtime_options", ()):
+        deadtime_by_peripheral.setdefault(getattr(d, "peripheral", ""), []).append(
+            (
+                int(getattr(d, "prescaler_field_value", 0)),
+                int(getattr(d, "count_bits", 8)),
+                int(getattr(d, "max_ns", 0)),
+            )
+        )
+    alignments_by_peripheral: dict[str, list[tuple[str, int]]] = {}
+    for a in getattr(device, "pwm_alignment_options", ()):
+        alignments_by_peripheral.setdefault(getattr(a, "peripheral", ""), []).append(
+            (getattr(a, "alignment", ""), int(getattr(a, "field_value", 0)))
+        )
+    breaks_by_peripheral: dict[str, list[tuple[str, int, int]]] = {}
+    for b in getattr(device, "pwm_break_inputs", ()):
+        breaks_by_peripheral.setdefault(getattr(b, "peripheral", ""), []).append(
+            (
+                getattr(b, "input_id", ""),
+                int(getattr(b, "polarity_field_value", 0)),
+                int(getattr(b, "enable_field_value", 1)),
+            )
+        )
+    psc_by_peripheral = {
+        getattr(p, "peripheral", ""): p for p in getattr(device, "timer_prescaler_options", ())
+    }
+    enriched: list[object] = []
+    for row in rows:
+        peripheral = getattr(row, "peripheral_name", None)
+        if peripheral is None:
+            enriched.append(row)
+            continue
+        kw: dict[str, object] = {}
+        psc = psc_by_peripheral.get(peripheral)
+        if psc is not None:
+            kw["max_prescaler"] = int(getattr(psc, "max_prescaler", 0))
+            ar = int(getattr(psc, "max_auto_reload", 0))
+            kw["max_period"] = ar if ar else int(getattr(psc, "max_prescaler", 0))
+        if peripheral in deadtime_by_peripheral:
+            kw["deadtime_options"] = tuple(deadtime_by_peripheral[peripheral])
+        if peripheral in alignments_by_peripheral:
+            kw["supported_alignments"] = tuple(alignments_by_peripheral[peripheral])
+        if peripheral in breaks_by_peripheral:
+            kw["break_inputs"] = tuple(breaks_by_peripheral[peripheral])
+        flg = flags_by_peripheral.get(peripheral)
+        if flg is not None:
+            kw["supports_deadtime"] = bool(getattr(flg, "supports_deadtime", False))
+            kw["supports_break_input"] = bool(getattr(flg, "supports_break_input", False))
+            kw["supports_complementary_outputs"] = bool(
+                getattr(flg, "supports_complementary_outputs", False)
+            )
+            kw["supports_asymmetric_pwm"] = bool(getattr(flg, "supports_asymmetric_pwm", False))
+            kw["supports_combined_pwm"] = bool(getattr(flg, "supports_combined_pwm", False))
+        if not kw:
+            enriched.append(row)
+            continue
+        enriched.append(_dc.replace(row, **kw))
+    return tuple(enriched)
 
 
 def _emit_driver_semantics_common_header(
@@ -13441,6 +13527,7 @@ def _pwm_specialization_builder(context: _SemanticContext):
                 "  static constexpr RuntimeFieldRef kLoadField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kClearLoadField = kInvalidFieldRef;",
                 "  static constexpr RuntimeFieldRef kClockPrescalerField = kInvalidFieldRef;",
+                *_pwm_tier234_lines(row),
             ]
         register_members = {
             "kControlRegister": row.control_reg,
@@ -13482,9 +13569,40 @@ def _pwm_specialization_builder(context: _SemanticContext):
             f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
             for name, value in field_members.items()
         )
+        lines.extend(_pwm_tier234_lines(row))
         return lines
 
     return _build
+
+
+def _pwm_tier234_lines(row: PwmSemanticRow) -> list[str]:
+    """add-pwm-tier-2-3-4-data: max prescaler/period + deadtime / alignment /
+    break-input arrays + capability flag constexprs."""
+
+    def _u8_array(name: str, items: tuple[int, ...]) -> str:
+        if not items:
+            return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
+        values = ", ".join(f"{v}u" for v in items)
+        return (
+            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = "
+            f"{{{{{values}}}}};"
+        )
+
+    deadtime_psc = tuple(p for p, _bits, _ns in row.deadtime_options)
+    alignment_vals = tuple(v for _name, v in row.supported_alignments)
+    break_polarity = tuple(p for _id, p, _e in row.break_inputs)
+    return [
+        f"  static constexpr std::uint32_t kMaxPrescaler = {row.max_prescaler}u;",
+        f"  static constexpr std::uint32_t kMaxPeriod = {row.max_period}u;",
+        _u8_array("kDeadtimeOptions", deadtime_psc),
+        _u8_array("kSupportedAlignments", alignment_vals),
+        _u8_array("kBreakInputs", break_polarity),
+        f"  static constexpr bool kSupportsDeadtime = {'true' if row.supports_deadtime else 'false'};",
+        f"  static constexpr bool kSupportsBreakInput = {'true' if row.supports_break_input else 'false'};",
+        f"  static constexpr bool kSupportsComplementaryOutputs = {'true' if row.supports_complementary_outputs else 'false'};",
+        f"  static constexpr bool kSupportsAsymmetricPwm = {'true' if row.supports_asymmetric_pwm else 'false'};",
+        f"  static constexpr bool kSupportsCombinedPwm = {'true' if row.supports_combined_pwm else 'false'};",
+    ]
 
 
 def _pwm_channel_specialization_lines(
@@ -15605,6 +15723,17 @@ def emit_runtime_driver_pwm_semantics_header(
         "  static constexpr RuntimeFieldRef kLoadField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kClearLoadField = kInvalidFieldRef;",
         "  static constexpr RuntimeFieldRef kClockPrescalerField = kInvalidFieldRef;",
+        # Tier 2/3/4 facts (add-pwm-tier-2-3-4-data).
+        "  static constexpr std::uint32_t kMaxPrescaler = 0u;",
+        "  static constexpr std::uint32_t kMaxPeriod = 0u;",
+        "  static constexpr std::array<std::uint8_t, 0> kDeadtimeOptions = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kSupportedAlignments = {};",
+        "  static constexpr std::array<std::uint8_t, 0> kBreakInputs = {};",
+        "  static constexpr bool kSupportsDeadtime = false;",
+        "  static constexpr bool kSupportsBreakInput = false;",
+        "  static constexpr bool kSupportsComplementaryOutputs = false;",
+        "  static constexpr bool kSupportsAsymmetricPwm = false;",
+        "  static constexpr bool kSupportsCombinedPwm = false;",
         "};",
         "",
     ]

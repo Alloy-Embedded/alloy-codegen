@@ -1279,6 +1279,19 @@ class CanonicalDeviceIR:
     timer_mode_flags: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
+    # PWM Tier 2/3/4 (add-pwm-tier-2-3-4-data).
+    pwm_deadtime_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    pwm_alignment_options: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    pwm_break_inputs: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    pwm_mode_flags: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
     # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
     peripheral_max_clock_hz: tuple[object, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}

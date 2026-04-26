@@ -1654,6 +1654,10 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         timer_trigger_sources=device.timer_trigger_sources,
         timer_master_outputs=device.timer_master_outputs,
         timer_mode_flags=device.timer_mode_flags,
+        pwm_deadtime_options=device.pwm_deadtime_options,
+        pwm_alignment_options=device.pwm_alignment_options,
+        pwm_break_inputs=device.pwm_break_inputs,
+        pwm_mode_flags=device.pwm_mode_flags,
         peripheral_max_clock_hz=device.peripheral_max_clock_hz,
         # Carry forward multicore-topology facts (added by
         # ``expose-xtensa-dual-core-facts``) for the same reason.
