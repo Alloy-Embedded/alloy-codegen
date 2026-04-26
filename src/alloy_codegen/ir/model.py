@@ -652,7 +652,7 @@ class GpioPinDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
-class UartPeripheralDescriptor:
+class Rp2040UartPeripheralDescriptor:
     """Per-controller UART hardware facts (added by complete-rp2040-semantics).
 
     Surfaces the family-constant per-controller data — base address, FIFO
@@ -673,10 +673,10 @@ class UartPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
-class SpiPeripheralDescriptor:
+class Rp2040SpiPeripheralDescriptor:
     """Per-controller SPI hardware facts (added by complete-rp2040-semantics).
 
-    Mirrors ``UartPeripheralDescriptor`` for SPI.  ``max_clock_hz`` is the
+    Mirrors ``Rp2040UartPeripheralDescriptor`` for SPI.  ``max_clock_hz`` is the
     silicon-level peripheral clock ceiling.
     """
 
@@ -692,7 +692,7 @@ class SpiPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
-class DmaControllerHwDescriptor:
+class Rp2040DmaControllerHwDescriptor:
     """Per-controller DMA hardware facts (added by complete-rp2040-semantics
     Phase D).  Captures silicon-fixed parameters that the existing
     ``DmaControllerDescriptor`` does not surface (channel count, max
@@ -707,7 +707,7 @@ class DmaControllerHwDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
-class TimerControllerHwDescriptor:
+class Rp2040TimerControllerHwDescriptor:
     """Per-controller timer hardware facts.  RP2040's single TIMER block
     has 64-bit counter + 4 hardware alarms with consecutive DMA DREQs."""
 
@@ -719,7 +719,7 @@ class TimerControllerHwDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
-class PwmSliceHwDescriptor:
+class Rp2040PwmSliceHwDescriptor:
     """One PWM slice (RP2040 has 8 slices, each with A/B channels).
     ``channel_a_pin`` / ``channel_b_pin`` carry the primary GPIO mapping
     (slice 0 → A=GP0, B=GP1; slice 7 → A=GP14, B=GP15)."""
@@ -733,7 +733,7 @@ class PwmSliceHwDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
-class AdcPeripheralDescriptor:
+class Rp2040AdcPeripheralDescriptor:
     """Per-controller ADC hardware facts (added by complete-rp2040-semantics
     Phase C).
 
@@ -956,27 +956,27 @@ class CanonicalDeviceIR:
     # Per-controller UART/SPI facts (added by complete-rp2040-semantics
     # Phase B).  Empty for families whose normalizers have not yet been
     # wired to populate them; only RP2040 ships them today.
-    uart_peripherals: tuple[UartPeripheralDescriptor, ...] = field(
+    uart_peripherals: tuple[Rp2040UartPeripheralDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    spi_peripherals: tuple[SpiPeripheralDescriptor, ...] = field(
+    spi_peripherals: tuple[Rp2040SpiPeripheralDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    adc_peripherals: tuple[AdcPeripheralDescriptor, ...] = field(
+    adc_peripherals: tuple[Rp2040AdcPeripheralDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    dma_controller_hw: tuple[DmaControllerHwDescriptor, ...] = field(
+    dma_controller_hw: tuple[Rp2040DmaControllerHwDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    timer_controller_hw: tuple[TimerControllerHwDescriptor, ...] = field(
+    timer_controller_hw: tuple[Rp2040TimerControllerHwDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    pwm_slice_hw: tuple[PwmSliceHwDescriptor, ...] = field(
+    pwm_slice_hw: tuple[Rp2040PwmSliceHwDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

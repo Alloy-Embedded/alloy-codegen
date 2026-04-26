@@ -11,14 +11,14 @@ from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
-    AdcPeripheralDescriptor,
+    Rp2040AdcPeripheralDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
-    DmaControllerHwDescriptor,
-    PwmSliceHwDescriptor,
-    SpiPeripheralDescriptor,
-    TimerControllerHwDescriptor,
-    UartPeripheralDescriptor,
+    Rp2040DmaControllerHwDescriptor,
+    Rp2040PwmSliceHwDescriptor,
+    Rp2040SpiPeripheralDescriptor,
+    Rp2040TimerControllerHwDescriptor,
+    Rp2040UartPeripheralDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
     UsbControllerDescriptor,
@@ -1125,14 +1125,14 @@ def _build_rp2040_uart_peripherals(
     *,
     gpio_pins: tuple[GpioPinDescriptor, ...],
     peripherals: tuple[PeripheralInstance, ...],
-) -> tuple[UartPeripheralDescriptor, ...]:
+) -> tuple[Rp2040UartPeripheralDescriptor, ...]:
     base_by_name = {p.name: p.base_address for p in peripherals}
-    out: list[UartPeripheralDescriptor] = []
+    out: list[Rp2040UartPeripheralDescriptor] = []
     for ctrl, fifo, dreq_tx, dreq_rx in _RP2040_UART_FACTS:
         if ctrl not in base_by_name:
             continue
         out.append(
-            UartPeripheralDescriptor(
+            Rp2040UartPeripheralDescriptor(
                 controller_id=ctrl,
                 base_address=base_by_name[ctrl],
                 fifo_depth=fifo,
@@ -1151,14 +1151,14 @@ def _build_rp2040_spi_peripherals(
     *,
     gpio_pins: tuple[GpioPinDescriptor, ...],
     peripherals: tuple[PeripheralInstance, ...],
-) -> tuple[SpiPeripheralDescriptor, ...]:
+) -> tuple[Rp2040SpiPeripheralDescriptor, ...]:
     base_by_name = {p.name: p.base_address for p in peripherals}
-    out: list[SpiPeripheralDescriptor] = []
+    out: list[Rp2040SpiPeripheralDescriptor] = []
     for ctrl, max_hz, dreq_tx, dreq_rx, _ in _RP2040_SPI_FACTS:
         if ctrl not in base_by_name:
             continue
         out.append(
-            SpiPeripheralDescriptor(
+            Rp2040SpiPeripheralDescriptor(
                 controller_id=ctrl,
                 base_address=base_by_name[ctrl],
                 max_clock_hz=max_hz,
@@ -1177,14 +1177,14 @@ def _build_rp2040_spi_peripherals(
 
 def _build_rp2040_dma_controller_hw(
     *, peripherals: tuple[PeripheralInstance, ...]
-) -> tuple[DmaControllerHwDescriptor, ...]:
+) -> tuple[Rp2040DmaControllerHwDescriptor, ...]:
     """RP2040 DMA: 12 channels, 32-bit transfer count register, supports
     chaining + byte-swap (datasheet §2.5)."""
     base = next((p.base_address for p in peripherals if p.name == "DMA"), None)
     if base is None:
         return ()
     return (
-        DmaControllerHwDescriptor(
+        Rp2040DmaControllerHwDescriptor(
             controller_id="DMA",
             base_address=base,
             channel_count=12,
@@ -1197,14 +1197,14 @@ def _build_rp2040_dma_controller_hw(
 
 def _build_rp2040_timer_controller_hw(
     *, peripherals: tuple[PeripheralInstance, ...]
-) -> tuple[TimerControllerHwDescriptor, ...]:
+) -> tuple[Rp2040TimerControllerHwDescriptor, ...]:
     """RP2040 single TIMER block: 64-bit counter, 4 alarms, DREQs 39..42
     (datasheet Table 2-7)."""
     base = next((p.base_address for p in peripherals if p.name == "TIMER"), None)
     if base is None:
         return ()
     return (
-        TimerControllerHwDescriptor(
+        Rp2040TimerControllerHwDescriptor(
             controller_id="TIMER",
             base_address=base,
             counter_bits=64,
@@ -1216,7 +1216,7 @@ def _build_rp2040_timer_controller_hw(
 
 def _build_rp2040_pwm_slice_hw(
     *, peripherals: tuple[PeripheralInstance, ...]
-) -> tuple[PwmSliceHwDescriptor, ...]:
+) -> tuple[Rp2040PwmSliceHwDescriptor, ...]:
     """RP2040 PWM has 8 slices (0..7); each slice's channel A maps to
     GP(2*slice) and channel B to GP(2*slice + 1) on the primary range."""
     if not any(p.name == "PWM" for p in peripherals):
@@ -1225,7 +1225,7 @@ def _build_rp2040_pwm_slice_hw(
     # (datasheet §4.5.2.4); we record min=0x010 (1.0) and max=0xFF0 (~256.0)
     # in Q4.4 form so consumer code can reconstruct the divider precisely.
     return tuple(
-        PwmSliceHwDescriptor(
+        Rp2040PwmSliceHwDescriptor(
             slice_index=index,
             channel_a_pin=index * 2,
             channel_b_pin=index * 2 + 1,
@@ -1240,7 +1240,7 @@ def _build_rp2040_pwm_slice_hw(
 def _build_rp2040_adc_peripherals(
     *,
     peripherals: tuple[PeripheralInstance, ...],
-) -> tuple[AdcPeripheralDescriptor, ...]:
+) -> tuple[Rp2040AdcPeripheralDescriptor, ...]:
     """RP2040 has a single ADC controller with 5 channels: GP26..GP29 plus
     the internal temperature sensor.  Datasheet §4.9 + Table 264.
     """
@@ -1248,7 +1248,7 @@ def _build_rp2040_adc_peripherals(
     if base is None:
         return ()
     return (
-        AdcPeripheralDescriptor(
+        Rp2040AdcPeripheralDescriptor(
             controller_id="ADC",
             base_address=base,
             channel_count=5,
