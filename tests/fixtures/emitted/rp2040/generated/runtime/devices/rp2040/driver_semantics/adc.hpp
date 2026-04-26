@@ -66,6 +66,7 @@ struct AdcSemanticTraits {
   static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};
   static constexpr std::uint32_t kSupportedDmaModeCount = 0u;
   static constexpr std::array<AdcDmaModeOption, 0> kSupportedDmaModes = {};
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<>
@@ -126,6 +127,7 @@ struct AdcSemanticTraits<PeripheralId::ADC> {
   static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};
   static constexpr std::uint32_t kSupportedDmaModeCount = 0u;
   static constexpr std::array<AdcDmaModeOption, 0> kSupportedDmaModes = {};
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 1> kAdcSemanticPeripherals = {{
@@ -162,6 +164,30 @@ struct AdcPeripheralTraits<RuntimeAdcId::ADC> {
   static constexpr std::array<std::uint8_t, 5> kChannelPins = {{26u, 27u, 28u, 29u, 255u}};
 };
 
+
+// add-adc-channel-typed-enum: typed per-peripheral channel enum.
+// Each specialization scopes the channel set so
+// AdcChannel<ADC1> and AdcChannel<ADC2> are distinct types and
+// the type system rejects cross-peripheral channel mixing.
+template<PeripheralId Id>
+struct AdcChannelOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct AdcChannelOf<PeripheralId::ADC> {
+  enum class type : std::uint8_t {
+    CH0 = 0u,
+    CH1 = 1u,
+    CH2 = 2u,
+    CH3 = 3u,
+    CH4 = 4u,
+    TempSensor = 4u,
+  };
+};
+
+template<PeripheralId Id>
+using AdcChannel = typename AdcChannelOf<Id>::type;
 }
 }
 }

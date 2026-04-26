@@ -41,6 +41,20 @@ peripherals the alloy HAL roadmap targets.
 | 5 | `fill-gpio-tier-1-fields` | n/a (Tier-1 activation) | STM32 GPIO mode/pull/speed/output-type fields are `kInvalidFieldRef` today; populate them |
 | 6 | `add-timer-tier-2-3-4-data` | UART/SPI Tier 2/3/4 | Prescaler ranges, trigger sources (ITRx/ETR), DMA bindings, IRQ split (UP/CC/BRK) |
 
+## Stage 2.5 — typed-channel projection on the ADC trait
+
+Pure emission-layer change. Lifts the IR's existing
+`AdcSemanticRow.internal_channels` data into a typed
+`enum class AdcChannelOf<P>::type` per peripheral so consumers
+(notably alloy's `extend-adc-coverage`) drop the `std::uint8_t`
+transitional shim. No new IR sources, no patch overlay changes.
+
+| # | Change | What it adds |
+|---|---|---|
+| 6.5 | `add-adc-channel-typed-enum` | `AdcChannelOf<P>` typed enum + `AdcChannel<P>` alias in every emitted ADC `driver_semantics/adc.hpp`; closed kind→name table; duplicate-name detection; tests + `docs/adc-channel-enum.md` |
+
+Unblocks alloy `extend-adc-coverage` phase 1.
+
 ## Stage 3 — secondary peripherals (P2)
 
 Build on Stage 2 outputs.  Lower priority because no async driver

@@ -150,6 +150,10 @@ Successful publication writes:
 - `generated/runtime/devices/<device>/driver_semantics/*.hpp` is the semantic layer that maps
   runtime facts into zero-overhead driver roles for `gpio`, `uart`, `i2c`, `spi`, `dma`,
   `adc`, `dac`, `can`, `eth`, `usb`, `qspi`, `sdmmc`, `rtc`, `watchdog`, `timer`, and `pwm`.
+  The ADC header additionally publishes `AdcChannelOf<P>` — a typed per-peripheral
+  channel enum fusing ordinal channels with named internal-channel aliases. See
+  [`docs/adc-channel-enum.md`](adc-channel-enum.md) for the closed-set name table,
+  duplicate-detection contract, and aliasing semantics.
 - `generated/runtime/devices/<device>/startup.hpp` is the typed startup metadata contract.
 - `generated/runtime/devices/<device>/interrupt_stubs.hpp` is the typed weak-interrupt
   declaration contract aligned with the generated startup surface.

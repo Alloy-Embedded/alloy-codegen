@@ -65,6 +65,18 @@ FAMILIES = [
         {"vendor": "espressif", "family": "esp32s3", "device": "esp32s3"},
         {"espressif-svd": str(_FX / "espressif-svd")},
     ),
+    (
+        "esp32",
+        "espressif/esp32/",
+        {"vendor": "espressif", "family": "esp32", "device": "esp32"},
+        {"espressif-svd": str(_FX / "espressif-svd")},
+    ),
+    (
+        "rp2040",
+        "raspberrypi/rp2040/",
+        {"vendor": "raspberrypi", "family": "rp2040", "device": "rp2040"},
+        {"pico-sdk": str(_FX / "pico-sdk")},
+    ),
 ]
 
 
