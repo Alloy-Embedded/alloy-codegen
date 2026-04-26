@@ -206,7 +206,10 @@ zero-specialization state.
 
 The gate is rolled out per-family alongside the implementation phase that
 populates that family. The gate becomes mandatory for every admitted family
-once the final implementation phase lands.
+once the final implementation phase lands. **As of `complete-rp2040-semantics`
+Phase A, the gate is mandatory for RP2040 — the previous `xfail` marker
+on the RP2040 case is removed and the family is expected to emit at
+least one populated `GpioSemanticTraits` specialization.**
 
 #### Scenario: GPIO coverage gate accepts a populated family
 
@@ -222,4 +225,11 @@ once the final implementation phase lands.
   specializations is changed in a way that drops all specializations
 - **THEN** the coverage gate flags the family as regressed and the CI job
   fails
+
+#### Scenario: RP2040 is included in the mandatory gate
+
+- **WHEN** `tests/test_gpio_semantic_coverage.py` runs
+- **THEN** the rp2040 device emits at least one `GpioSemanticTraits`
+  specialization with `kPresent = true`
+- **AND** the test does NOT carry an `xfail` marker for RP2040
 
