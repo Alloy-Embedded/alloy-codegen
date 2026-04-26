@@ -96,5 +96,19 @@
     { "request_id": "gdma-spi2-rx",  "controller": "DMA", "request_line": "SPI2_RX",  "peripheral": "SPI2",       "signal": "RX",   "request_value": 2 },
     { "request_id": "gdma-spi2-tx",  "controller": "DMA", "request_line": "SPI2_TX",  "peripheral": "SPI2",       "signal": "TX",   "request_value": 3 },
     { "request_id": "gdma-adc",      "controller": "DMA", "request_line": "ADC",      "peripheral": "APB_SARADC", "signal": "DATA", "request_value": 13 }
+  ],
+  "usb_controllers": [
+    {
+      "controller_id": "USB_OTG",
+      "base_address": 1611137024,
+      "endpoint_count": 6,
+      "supports_high_speed": false,
+      "supports_host_mode": false,
+      "supports_dma": false,
+      "crystalless": true,
+      "dm_pin": "GPIO19",
+      "dp_pin": "GPIO20",
+      "clock_source": "internal-phy-48mhz"
+    }
   ]
 }

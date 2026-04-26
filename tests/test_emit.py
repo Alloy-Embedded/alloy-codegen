@@ -1793,3 +1793,45 @@ def test_emit_stage_is_byte_stable(execution_context: ExecutionContext) -> None:
     result_b = json.dumps(run(scope, execution_context).to_dict(), sort_keys=True)
 
     assert result_a == result_b
+
+
+# ---------------------------------------------------------------------------
+# add-usb-semantic-traits: USB hardware-feature trait coverage
+# ---------------------------------------------------------------------------
+
+
+def test_stm32g0_usb_traits_emit_hardware_feature_constexprs(
+    execution_context: ExecutionContext,
+) -> None:
+    """Phase 2.4 of add-usb-semantic-traits: STM32G0 USB FS trait
+    specialization carries kHardwarePresent=true plus the silicon facts
+    from ``Device.usb_controllers``."""
+    result = run(PipelineScope(device="stm32g0b1re"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    usb_path = "st/stm32g0/generated/runtime/devices/stm32g0b1re/driver_semantics/usb.hpp"
+    assert usb_path in arts
+    content = arts[usb_path].content
+    # Locate the per-peripheral specialization (USB) and assert hardware fields
+    assert "struct UsbSemanticTraits<PeripheralId::USB>" in content
+    assert "static constexpr bool kHardwarePresent = true;" in content
+    assert "static constexpr std::uintptr_t kBaseAddress = 0x40005C00u;" in content
+    assert "static constexpr std::uint16_t kEndpointCount = 8u;" in content
+    assert "static constexpr bool kCrystalless = true;" in content
+    assert "static constexpr std::uintptr_t kDpramBaseAddress = 0x40006000u;" in content
+    assert "static constexpr std::uint32_t kDpramSizeBytes = 1024u;" in content
+
+
+def test_stm32f4_usb_traits_emit_otg_fs_facts(
+    execution_context: ExecutionContext,
+) -> None:
+    """Phase 3.4: STM32F4 USB OTG FS trait specialization carries the
+    OTG FS silicon facts."""
+    result = run(PipelineScope(device="stm32f401re"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    usb_path = "st/stm32f4/generated/runtime/devices/stm32f401re/driver_semantics/usb.hpp"
+    assert usb_path in arts
+    content = arts[usb_path].content
+    assert "struct UsbSemanticTraits<PeripheralId::OTG_FS>" in content
+    assert "static constexpr std::uintptr_t kBaseAddress = 0x50000000u;" in content
+    assert "static constexpr std::uint16_t kEndpointCount = 4u;" in content
+    assert "static constexpr bool kSupportsDma = true;" in content

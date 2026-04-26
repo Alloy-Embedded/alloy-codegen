@@ -237,5 +237,19 @@
       "channel_index": 2,
       "channel_selector": 4
     }
+  ],
+  "usb_controllers": [
+    {
+      "controller_id": "OTG_FS",
+      "base_address": 1342177280,
+      "endpoint_count": 4,
+      "supports_high_speed": false,
+      "supports_host_mode": false,
+      "supports_dma": true,
+      "crystalless": false,
+      "dm_pin": "PA11",
+      "dp_pin": "PA12",
+      "clock_source": "pll-48mhz"
+    }
   ]
 }

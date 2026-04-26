@@ -14,6 +14,7 @@ from alloy_codegen.ir.model import (
     AppCpuControlPlane,
     CanonicalDeviceIR,
     ClockGateDescriptor,
+    UsbControllerDescriptor,
     ClockNodeLite,
     ClockSelectorLite,
     DeviceIdentity,
@@ -2204,6 +2205,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         topology_value: str = device.multicore_topology
         app_cpu_plane: AppCpuControlPlane | None = device.app_cpu_control_plane
         registers = device.registers
+        usb_controllers: tuple[UsbControllerDescriptor, ...] = device.usb_controllers
         try:
             family_catalog = load_family_patch_catalog(
                 execution_context,
@@ -2212,6 +2214,28 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             )
         except StageExecutionError:
             family_catalog = None
+        # USB controller hardware-feature blocks (added by
+        # ``add-usb-semantic-traits``).  Mirrors family.json::usb_controllers
+        # entries onto the device IR as ``UsbControllerDescriptor`` rows.
+        if family_catalog is not None and family_catalog.usb_controllers:
+            usb_controllers = tuple(
+                UsbControllerDescriptor(
+                    controller_id=patch_usb.controller_id,
+                    base_address=patch_usb.base_address,
+                    endpoint_count=patch_usb.endpoint_count,
+                    supports_high_speed=patch_usb.supports_high_speed,
+                    supports_host_mode=patch_usb.supports_host_mode,
+                    supports_dma=patch_usb.supports_dma,
+                    crystalless=patch_usb.crystalless,
+                    dpram_base_address=patch_usb.dpram_base_address,
+                    dpram_size_bytes=patch_usb.dpram_size_bytes,
+                    dma_channel_count=patch_usb.dma_channel_count,
+                    dm_pin=patch_usb.dm_pin,
+                    dp_pin=patch_usb.dp_pin,
+                    clock_source=patch_usb.clock_source,
+                )
+                for patch_usb in family_catalog.usb_controllers
+            )
         if family_catalog is not None and family_catalog.multicore_topology is not None:
             mc_patch = family_catalog.multicore_topology
             topology_map = {
@@ -2274,6 +2298,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 adc_max_clock_hz=patch.adc_max_clock_hz,
                 multicore_topology=topology_value,
                 app_cpu_control_plane=app_cpu_plane,
+                usb_controllers=usb_controllers,
             )
         )
     return StageResult(

@@ -431,5 +431,19 @@
       "channel_index": 1,
       "request_value": 51
     }
+  ],
+  "usb_controllers": [
+    {
+      "controller_id": "USB",
+      "base_address": 1073765376,
+      "endpoint_count": 8,
+      "supports_high_speed": false,
+      "supports_host_mode": false,
+      "supports_dma": false,
+      "crystalless": true,
+      "dpram_base_address": 1073766400,
+      "dpram_size_bytes": 1024,
+      "clock_source": "hsi48-with-crs"
+    }
   ]
 }

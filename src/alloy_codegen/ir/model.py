@@ -70,6 +70,44 @@ RegisterRole = Literal["general", "secondary_core_release"]
 
 
 @dataclass(frozen=True, slots=True)
+class UsbControllerDescriptor:
+    """Hardware-feature facts for one USB controller (added by
+    ``add-usb-semantic-traits``).
+
+    Captures the high-level USB hardware shape (base address, packet memory,
+    endpoint count, speed/host capabilities, fixed DM/DP pin assignments)
+    that drives the alloy ``UsbDeviceController<T>`` concept.  These are the
+    facts that are *static for the silicon* — register layout details for
+    runtime poking live in the existing register/field descriptors.
+
+    ``controller_id`` is the peripheral name (``"USB"``, ``"OTG_FS"``,
+    ``"UOTGHS"``, etc.) so the emitter can key trait specializations by
+    typed ``PeripheralId``.  ``dpram_base_address`` / ``dpram_size_bytes``
+    are populated only when the controller has a dedicated packet memory
+    area (STM32 PMA, RP2040 DPRAM); ``None`` for OTG-style FIFO
+    architectures.  ``dm_pin`` / ``dp_pin`` are populated for controllers
+    with fixed pin routing (no IO matrix); ``None`` when the pads are
+    routed through GPIO/IO-matrix.  ``clock_source`` is a free-form token
+    (``"hsi48-with-crs"``, ``"pll-48mhz"``, ``"xtal-12mhz"``) consumed by
+    the alloy clock tree validator.
+    """
+
+    controller_id: str
+    base_address: int
+    endpoint_count: int
+    supports_high_speed: bool = False
+    supports_host_mode: bool = False
+    supports_dma: bool = False
+    crystalless: bool = False
+    dpram_base_address: int | None = None
+    dpram_size_bytes: int | None = None
+    dma_channel_count: int = 0
+    dm_pin: str | None = None
+    dp_pin: str | None = None
+    clock_source: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class MemoryRegion:
     """A memory region in the canonical IR."""
 
@@ -755,6 +793,14 @@ class CanonicalDeviceIR:
     # PIO block topology (added by define-pio-semantic-struct).  Empty for
     # devices without Programmable I/O hardware.
     pio_blocks: tuple[PioDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    # USB controller hardware-feature descriptors (added by
+    # ``add-usb-semantic-traits``).  Populated only for devices with USB
+    # hardware (STM32G0, STM32F4, RP2040, SAME70, ESP32-S3); empty tuple
+    # everywhere else so existing fixtures stay byte-stable.
+    usb_controllers: tuple[UsbControllerDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

@@ -232,6 +232,36 @@ class FamilyPatchCatalog:
     # ``"PERIPHERAL.REGISTER"`` form — the normalizer resolves it to a typed
     # ``register_id`` after register filtering.
     multicore_topology: "MulticoreTopologyPatch | None" = None
+    # USB controller hardware-feature blocks (added by
+    # ``add-usb-semantic-traits``).  Empty tuple for families without USB.
+    # The normalizer mirrors each entry into a ``UsbControllerDescriptor``
+    # on the device IR.
+    usb_controllers: tuple["UsbControllerPatch", ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class UsbControllerPatch:
+    """USB controller hardware-feature block carried in family.json.
+
+    The fields mirror ``UsbControllerDescriptor`` on the IR — patch parsing
+    is intentionally a thin pass-through so the normalizer doesn't have to
+    re-derive these facts from SVD/ATDF (USB hardware shape doesn't fit
+    cleanly into the upstream register descriptions).
+    """
+
+    controller_id: str
+    base_address: int
+    endpoint_count: int
+    supports_high_speed: bool = False
+    supports_host_mode: bool = False
+    supports_dma: bool = False
+    crystalless: bool = False
+    dpram_base_address: int | None = None
+    dpram_size_bytes: int | None = None
+    dma_channel_count: int = 0
+    dm_pin: str | None = None
+    dp_pin: str | None = None
+    clock_source: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -852,6 +882,58 @@ def load_family_patch_catalog(
         ),
         readme_caveat=_extract_readme_caveat(payload),
         multicore_topology=_parse_multicore_topology_patch(payload.get("multicore_topology")),
+        usb_controllers=tuple(
+            entry
+            for entry in (
+                _parse_usb_controller_patch(item)
+                for item in payload.get("usb_controllers", ())
+            )
+            if entry is not None
+        ),
+    )
+
+
+def _parse_usb_controller_patch(payload: object) -> "UsbControllerPatch | None":
+    """Parse one ``family.json::usb_controllers[*]`` entry."""
+    if not isinstance(payload, dict):
+        return None
+    controller_id = payload.get("controller_id")
+    base_address = payload.get("base_address")
+    endpoint_count = payload.get("endpoint_count")
+    if (
+        not isinstance(controller_id, str)
+        or not isinstance(base_address, int)
+        or not isinstance(endpoint_count, int)
+    ):
+        return None
+
+    def _opt_int(key: str) -> int | None:
+        value = payload.get(key)
+        return value if isinstance(value, int) else None
+
+    def _opt_str(key: str) -> str | None:
+        value = payload.get(key)
+        return value if isinstance(value, str) else None
+
+    def _flag(key: str) -> bool:
+        return bool(payload.get(key, False))
+
+    return UsbControllerPatch(
+        controller_id=controller_id,
+        base_address=base_address,
+        endpoint_count=endpoint_count,
+        supports_high_speed=_flag("supports_high_speed"),
+        supports_host_mode=_flag("supports_host_mode"),
+        supports_dma=_flag("supports_dma"),
+        crystalless=_flag("crystalless"),
+        dpram_base_address=_opt_int("dpram_base_address"),
+        dpram_size_bytes=_opt_int("dpram_size_bytes"),
+        dma_channel_count=payload.get("dma_channel_count", 0)
+        if isinstance(payload.get("dma_channel_count", 0), int)
+        else 0,
+        dm_pin=_opt_str("dm_pin"),
+        dp_pin=_opt_str("dp_pin"),
+        clock_source=_opt_str("clock_source"),
     )
 
 

@@ -228,5 +228,19 @@
     { "request_id": "dma-spi1-rx",  "controller": "DMA", "request_line": "SPI1_RX",  "peripheral": "SPI1",  "signal": "RX",  "request_value": 18 },
     { "request_id": "dma-spi1-tx",  "controller": "DMA", "request_line": "SPI1_TX",  "peripheral": "SPI1",  "signal": "TX",  "request_value": 19 },
     { "request_id": "dma-adc",      "controller": "DMA", "request_line": "ADC",       "peripheral": "ADC",   "signal": "FIFO","request_value": 36 }
+  ],
+  "usb_controllers": [
+    {
+      "controller_id": "USBCTRL_REGS",
+      "base_address": 1343225856,
+      "endpoint_count": 16,
+      "supports_high_speed": false,
+      "supports_host_mode": true,
+      "supports_dma": false,
+      "crystalless": true,
+      "dpram_base_address": 1343160320,
+      "dpram_size_bytes": 4096,
+      "clock_source": "pll-48mhz"
+    }
   ]
 }

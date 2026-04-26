@@ -555,3 +555,70 @@ def test_register_descriptor_default_role_is_general_and_omitted() -> None:
 
     flagged = replace(register, role="secondary_core_release")
     assert to_primitive(flagged)["role"] == "secondary_core_release"
+
+
+def test_usb_controller_descriptor_defaults_omit_falsy_fields():
+    """``UsbControllerDescriptor`` (added by add-usb-semantic-traits) carries
+    USB hardware-feature facts; defaults strip from JSON so empty fields
+    don't bloat fixtures."""
+    from alloy_codegen.ir.model import UsbControllerDescriptor
+    from alloy_codegen.serialization import to_primitive
+
+    desc = UsbControllerDescriptor(
+        controller_id="USB",
+        base_address=0x40005C00,
+        endpoint_count=8,
+    )
+    payload = to_primitive(desc)
+    assert payload["controller_id"] == "USB"
+    assert payload["base_address"] == 0x40005C00
+    assert payload["endpoint_count"] == 8
+
+    # Now exercise the optional fields.
+    full = UsbControllerDescriptor(
+        controller_id="USB",
+        base_address=0x50110000,
+        endpoint_count=16,
+        supports_host_mode=True,
+        crystalless=True,
+        dpram_base_address=0x50100000,
+        dpram_size_bytes=4096,
+        clock_source="pll-48mhz",
+    )
+    payload_full = to_primitive(full)
+    assert payload_full["supports_host_mode"] is True
+    assert payload_full["dpram_base_address"] == 0x50100000
+    assert payload_full["clock_source"] == "pll-48mhz"
+
+
+def test_usb_controller_descriptor_round_trips_through_canonical_ir():
+    """``Device.usb_controllers`` survives ``to_dict`` round-trip with all
+    optional fields populated (added by add-usb-semantic-traits)."""
+    from dataclasses import replace
+    from alloy_codegen.ir.model import UsbControllerDescriptor
+
+    device = _base_device()
+    enriched = replace(
+        device,
+        usb_controllers=(
+            UsbControllerDescriptor(
+                controller_id="USB",
+                base_address=0x40005C00,
+                endpoint_count=8,
+                crystalless=True,
+                dpram_base_address=0x40006000,
+                dpram_size_bytes=1024,
+                clock_source="hsi48-with-crs",
+            ),
+        ),
+    )
+    payload = enriched.to_dict()
+    assert payload["usb_controllers"][0]["controller_id"] == "USB"
+    assert payload["usb_controllers"][0]["crystalless"] is True
+    assert payload["usb_controllers"][0]["dpram_size_bytes"] == 1024
+    assert payload["usb_controllers"][0]["clock_source"] == "hsi48-with-crs"
+
+
+def test_canonical_device_ir_omits_empty_usb_controllers():
+    payload = _base_device().to_dict()
+    assert "usb_controllers" not in payload

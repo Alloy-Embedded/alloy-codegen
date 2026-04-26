@@ -4222,6 +4222,23 @@
       "sysclk_hz": 64000000
     }
   ],
+  "usb_controllers": [
+    {
+      "base_address": 1073765376,
+      "clock_source": "hsi48-with-crs",
+      "controller_id": "USB",
+      "crystalless": true,
+      "dm_pin": null,
+      "dma_channel_count": 0,
+      "dp_pin": null,
+      "dpram_base_address": 1073766400,
+      "dpram_size_bytes": 1024,
+      "endpoint_count": 8,
+      "supports_dma": false,
+      "supports_high_speed": false,
+      "supports_host_mode": false
+    }
+  ],
   "vector_slots": [
     {
       "interrupt": null,

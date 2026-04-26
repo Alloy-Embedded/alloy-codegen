@@ -17757,6 +17757,23 @@
       "sysclk_hz": 125000000
     }
   ],
+  "usb_controllers": [
+    {
+      "base_address": 1343225856,
+      "clock_source": "pll-48mhz",
+      "controller_id": "USBCTRL_REGS",
+      "crystalless": true,
+      "dm_pin": null,
+      "dma_channel_count": 0,
+      "dp_pin": null,
+      "dpram_base_address": 1343160320,
+      "dpram_size_bytes": 4096,
+      "endpoint_count": 16,
+      "supports_dma": false,
+      "supports_high_speed": false,
+      "supports_host_mode": true
+    }
+  ],
   "vector_slots": [
     {
       "interrupt": null,

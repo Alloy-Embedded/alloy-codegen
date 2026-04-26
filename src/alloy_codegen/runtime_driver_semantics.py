@@ -740,10 +740,19 @@ class EthSemanticRow:
 
 @dataclass(frozen=True, slots=True)
 class UsbSemanticRow:
-    """USB semantic trait payload keyed by peripheral."""
+    """USB semantic trait payload keyed by peripheral.
+
+    Hardware-feature fields (added by ``add-usb-semantic-traits``) carry the
+    static silicon facts (base address, packet memory, endpoint count,
+    speed/host capabilities, fixed pin assignments) sourced from
+    ``Device.usb_controllers``.  ``hardware_present`` is ``False`` for rows
+    derived only from register inspection — those rows still emit register
+    references but the alloy HAL's ``kPresent`` predicate stays ``false``
+    until a ``UsbControllerDescriptor`` is admitted for the peripheral.
+    """
 
     peripheral_name: str
-    schema_id: str
+    schema_id: str | None
     supports_device_mode: bool
     supports_host_mode: bool
     has_dedicated_endpoint_config: bool
@@ -774,6 +783,18 @@ class UsbSemanticRow:
     address_enable_field: RuntimeFieldRef
     address_field: RuntimeFieldRef
     clock_usable_field: RuntimeFieldRef
+    hardware_present: bool = False
+    base_address: int = 0
+    endpoint_count: int = 0
+    supports_high_speed: bool = False
+    supports_dma: bool = False
+    crystalless: bool = False
+    dpram_base_address: int | None = None
+    dpram_size_bytes: int | None = None
+    dma_channel_count: int = 0
+    dm_pin: str | None = None
+    dp_pin: str | None = None
+    clock_source: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -7065,6 +7086,37 @@ def _microchip_usb_row(
 
 
 def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
+    # USB controller hardware-feature lookup (added by
+    # ``add-usb-semantic-traits``).  Keyed by ``controller_id`` so the row
+    # builder below can enrich each register-level row with the static
+    # silicon facts (base address, endpoint count, packet memory, fixed
+    # pin assignment) that drive the alloy ``UsbDeviceController<T>`` HAL.
+    usb_hw_by_id = {
+        usb.controller_id: usb for usb in context.device.usb_controllers
+    }
+
+    import dataclasses as _dc
+
+    def _enrich(row: UsbSemanticRow) -> UsbSemanticRow:
+        hw = usb_hw_by_id.get(row.peripheral_name)
+        if hw is None:
+            return row
+        return _dc.replace(
+            row,
+            hardware_present=True,
+            base_address=hw.base_address,
+            endpoint_count=hw.endpoint_count,
+            supports_high_speed=hw.supports_high_speed,
+            supports_dma=hw.supports_dma,
+            crystalless=hw.crystalless,
+            dpram_base_address=hw.dpram_base_address,
+            dpram_size_bytes=hw.dpram_size_bytes,
+            dma_channel_count=hw.dma_channel_count,
+            dm_pin=hw.dm_pin,
+            dp_pin=hw.dp_pin,
+            clock_source=hw.clock_source,
+        )
+
     rows: list[UsbSemanticRow] = []
     for peripheral in context.runtime_peripherals_by_class.get("usb", ()):
         schema_id = peripheral.backend_schema_id
@@ -7072,22 +7124,99 @@ def _build_usb_rows(context: _SemanticContext) -> tuple[UsbSemanticRow, ...]:
             continue
         if schema_id.startswith("alloy.usb.st-") or schema_id.startswith("alloy.otg_fs.st-"):
             rows.append(
-                _st_usb_row(
-                    context,
-                    peripheral_name=peripheral.name,
-                    schema_id=schema_id,
+                _enrich(
+                    _st_usb_row(
+                        context,
+                        peripheral_name=peripheral.name,
+                        schema_id=schema_id,
+                    )
                 )
             )
         elif schema_id.startswith("alloy.usb.microchip-") or schema_id.startswith(
             "alloy.usbhs.microchip-"
         ):
             rows.append(
-                _microchip_usb_row(
-                    context,
-                    peripheral_name=peripheral.name,
-                    schema_id=schema_id,
+                _enrich(
+                    _microchip_usb_row(
+                        context,
+                        peripheral_name=peripheral.name,
+                        schema_id=schema_id,
+                    )
                 )
             )
+    # Synthesize register-empty rows for hardware that has a USB controller
+    # but no register-level schema yet (e.g. RP2040, ESP32-S3 OTG, where the
+    # alloy.usb.* schema admission lands in a follow-on change).  These rows
+    # surface ``kPresent = true`` to the alloy HAL so consumers see the
+    # silicon facts even before the register schema is admitted.
+    covered = {row.peripheral_name for row in rows}
+    invalid_reg = _invalid_register_ref()
+    invalid_field = _invalid_field_ref()
+    runtime_peripheral_names = {
+        peripheral.name
+        for peripheral in context.runtime_peripherals_by_class.get("usb", ())
+    }
+    for hw in context.device.usb_controllers:
+        if hw.controller_id in covered:
+            continue
+        # Skip synthesizing a row when the controller's peripheral is not
+        # admitted to the runtime-lite ``PeripheralId`` enum — referencing a
+        # missing enum value would break the published consumer-smoke build.
+        # The USB hardware-feature facts still surface via the IR JSON; the
+        # alloy HAL just can't pick them up by ``PeripheralId`` until the
+        # peripheral itself is admitted (separate proposal).
+        if hw.controller_id not in runtime_peripheral_names:
+            continue
+        peripheral = context.peripheral_by_name.get(hw.controller_id)
+        schema_id = peripheral.backend_schema_id if peripheral is not None else None
+        rows.append(
+            UsbSemanticRow(
+                peripheral_name=hw.controller_id,
+                schema_id=schema_id,
+                supports_device_mode=True,
+                supports_host_mode=hw.supports_host_mode,
+                has_dedicated_endpoint_config=False,
+                has_clock_freeze=False,
+                control_reg=invalid_reg,
+                status_reg=invalid_reg,
+                interrupt_status_reg=invalid_reg,
+                interrupt_mask_reg=invalid_reg,
+                device_control_reg=invalid_reg,
+                device_status_reg=invalid_reg,
+                device_interrupt_status_reg=invalid_reg,
+                device_interrupt_mask_reg=invalid_reg,
+                device_interrupt_enable_reg=invalid_reg,
+                device_interrupt_disable_reg=invalid_reg,
+                host_control_reg=invalid_reg,
+                host_status_reg=invalid_reg,
+                host_interrupt_status_reg=invalid_reg,
+                host_interrupt_mask_reg=invalid_reg,
+                host_interrupt_enable_reg=invalid_reg,
+                host_interrupt_disable_reg=invalid_reg,
+                enable_field=invalid_field,
+                freeze_clock_field=invalid_field,
+                force_device_mode_field=invalid_field,
+                force_host_mode_field=invalid_field,
+                mode_status_field=invalid_field,
+                soft_disconnect_field=invalid_field,
+                remote_wakeup_field=invalid_field,
+                address_enable_field=invalid_field,
+                address_field=invalid_field,
+                clock_usable_field=invalid_field,
+                hardware_present=True,
+                base_address=hw.base_address,
+                endpoint_count=hw.endpoint_count,
+                supports_high_speed=hw.supports_high_speed,
+                supports_dma=hw.supports_dma,
+                crystalless=hw.crystalless,
+                dpram_base_address=hw.dpram_base_address,
+                dpram_size_bytes=hw.dpram_size_bytes,
+                dma_channel_count=hw.dma_channel_count,
+                dm_pin=hw.dm_pin,
+                dp_pin=hw.dp_pin,
+                clock_source=hw.clock_source,
+            )
+        )
     return tuple(rows)
 
 
@@ -10184,6 +10313,12 @@ def _emit_peripheral_semantics_header(
             "#include <array>",
             "#include <cstdint>",
             '#include "common.hpp"',
+            # ``../pins.hpp`` provides the typed ``PinId`` enum referenced by
+            # USB ``kDmPin`` / ``kDpPin`` traits (added by
+            # ``add-usb-semantic-traits``).  Other driver semantics headers
+            # never use ``PinId`` so the include is a harmless extra but is
+            # uniformly available across this layer.
+            '#include "../pins.hpp"',
             "",
             namespace_block,
             "",
@@ -11108,7 +11243,27 @@ def _can_specialization_builder(context: _SemanticContext):
     return _build
 
 
+def _usb_pin_ref_expr(pin: str | None, *, known_pins: frozenset[str] | None = None) -> str:
+    """Format a USB DM/DP pin reference as a typed ``PinId`` expression.
+
+    Returns ``PinId::none`` for controllers with IO-matrix-routed pads
+    (e.g. RP2040, where USB DP/DM are not on a fixed pin), AND when the
+    pin is not present in the device's admitted ``PinId`` enum.  The
+    latter handles the case where a USB controller's documented DM/DP
+    pin is on a package variant that the current target's pin set
+    doesn't admit (e.g. STM32F401RE without PA11/PA12 in the QFP
+    pinout).
+    """
+    if pin is None:
+        return "PinId::none"
+    if known_pins is not None and pin not in known_pins:
+        return "PinId::none"
+    return f"PinId::{_enum_identifier(pin)}"
+
+
 def _usb_specialization_builder(context: _SemanticContext):
+    known_pins = frozenset(pin.name for pin in context.device.pins)
+
     def _build(row: UsbSemanticRow) -> list[str]:
         register_members = {
             "kControlRegister": row.control_reg,
@@ -11156,6 +11311,55 @@ def _usb_specialization_builder(context: _SemanticContext):
             + ("true" if row.has_clock_freeze else "false")
             + ";",
         ]
+        # Hardware-feature constexprs (added by ``add-usb-semantic-traits``).
+        # ``kHardwarePresent`` is the alloy HAL's ``UsbDeviceController<T>``
+        # gate — it stays ``false`` for register-only rows that have no
+        # ``UsbControllerDescriptor`` admitted yet.
+        lines.append(
+            "  static constexpr bool kHardwarePresent = "
+            + ("true" if row.hardware_present else "false")
+            + ";"
+        )
+        lines.append(
+            f"  static constexpr std::uintptr_t kBaseAddress = 0x{row.base_address:08X}u;"
+        )
+        lines.append(
+            f"  static constexpr std::uint16_t kEndpointCount = {row.endpoint_count}u;"
+        )
+        lines.append(
+            "  static constexpr bool kSupportsHighSpeed = "
+            + ("true" if row.supports_high_speed else "false")
+            + ";"
+        )
+        lines.append(
+            "  static constexpr bool kSupportsDma = "
+            + ("true" if row.supports_dma else "false")
+            + ";"
+        )
+        lines.append(
+            "  static constexpr bool kCrystalless = "
+            + ("true" if row.crystalless else "false")
+            + ";"
+        )
+        dpram_base = (
+            f"0x{row.dpram_base_address:08X}u" if row.dpram_base_address is not None else "0u"
+        )
+        dpram_size = row.dpram_size_bytes if row.dpram_size_bytes is not None else 0
+        lines.append(
+            f"  static constexpr std::uintptr_t kDpramBaseAddress = {dpram_base};"
+        )
+        lines.append(
+            f"  static constexpr std::uint32_t kDpramSizeBytes = {dpram_size}u;"
+        )
+        lines.append(
+            f"  static constexpr std::uint8_t kDmaChannelCount = {row.dma_channel_count}u;"
+        )
+        lines.append(
+            f"  static constexpr PinId kDmPin = {_usb_pin_ref_expr(row.dm_pin, known_pins=known_pins)};"
+        )
+        lines.append(
+            f"  static constexpr PinId kDpPin = {_usb_pin_ref_expr(row.dp_pin, known_pins=known_pins)};"
+        )
         lines.extend(
             f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
             for name, value in register_members.items()
@@ -12449,6 +12653,18 @@ def emit_runtime_driver_usb_semantics_header(
         "  static constexpr bool kSupportsHostMode = false;",
         "  static constexpr bool kHasDedicatedEndpointConfig = false;",
         "  static constexpr bool kHasClockFreeze = false;",
+        # Hardware-feature defaults (added by ``add-usb-semantic-traits``).
+        "  static constexpr bool kHardwarePresent = false;",
+        "  static constexpr std::uintptr_t kBaseAddress = 0u;",
+        "  static constexpr std::uint16_t kEndpointCount = 0u;",
+        "  static constexpr bool kSupportsHighSpeed = false;",
+        "  static constexpr bool kSupportsDma = false;",
+        "  static constexpr bool kCrystalless = false;",
+        "  static constexpr std::uintptr_t kDpramBaseAddress = 0u;",
+        "  static constexpr std::uint32_t kDpramSizeBytes = 0u;",
+        "  static constexpr std::uint8_t kDmaChannelCount = 0u;",
+        "  static constexpr PinId kDmPin = PinId::none;",
+        "  static constexpr PinId kDpPin = PinId::none;",
         "  static constexpr RuntimeRegisterRef kControlRegister = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kStatusRegister = kInvalidRegisterRef;",
         "  static constexpr RuntimeRegisterRef kInterruptStatusRegister = kInvalidRegisterRef;",

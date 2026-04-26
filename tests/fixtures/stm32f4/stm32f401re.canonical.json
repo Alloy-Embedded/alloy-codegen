@@ -4397,6 +4397,23 @@
       "sysclk_hz": 84000000
     }
   ],
+  "usb_controllers": [
+    {
+      "base_address": 1342177280,
+      "clock_source": "pll-48mhz",
+      "controller_id": "OTG_FS",
+      "crystalless": false,
+      "dm_pin": "PA11",
+      "dma_channel_count": 0,
+      "dp_pin": "PA12",
+      "dpram_base_address": null,
+      "dpram_size_bytes": null,
+      "endpoint_count": 4,
+      "supports_dma": true,
+      "supports_high_speed": false,
+      "supports_host_mode": false
+    }
+  ],
   "vector_slots": [
     {
       "interrupt": null,

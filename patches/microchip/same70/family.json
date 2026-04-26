@@ -216,5 +216,18 @@
       "version": null
     }
   ],
-  "dma_requests": []
+  "dma_requests": [],
+  "usb_controllers": [
+    {
+      "controller_id": "USBHS",
+      "base_address": 1074035200,
+      "endpoint_count": 7,
+      "supports_high_speed": true,
+      "supports_host_mode": true,
+      "supports_dma": true,
+      "crystalless": false,
+      "dma_channel_count": 7,
+      "clock_source": "xtal-12mhz"
+    }
+  ]
 }
