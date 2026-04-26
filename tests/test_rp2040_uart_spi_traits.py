@@ -92,3 +92,29 @@ def test_rp2040_spi1_records_dreqs(
     assert "static constexpr std::uint32_t kBaseAddress = 0x40040000u;" in spi1
     assert "static constexpr std::uint8_t kDreqTx = 18u;" in spi1
     assert "static constexpr std::uint8_t kDreqRx = 19u;" in spi1
+
+
+# --- Phase C: ADC ----------------------------------------------------------
+
+
+def test_rp2040_adc_records_all_silicon_facts(
+    rp2040_execution_context: ExecutionContext,
+) -> None:
+    """RP2040 has a single ADC with 5 channels (GP26..GP29 + internal
+    temperature sensor at the sentinel pad index 255), 12-bit resolution,
+    DMA DREQ 36, and a 4-deep FIFO (datasheet §4.9 + Table 264)."""
+    content = _emit(rp2040_execution_context, "rp2040", "adc.hpp")
+
+    primary = _struct_block(content, "AdcPeripheralTraits")
+    assert "static constexpr std::uint32_t kBaseAddress = 0u;" in primary
+    assert "static constexpr bool kSupportsFifo = false;" in primary
+
+    adc = _struct_block(content, "AdcPeripheralTraits<RuntimeAdcId::ADC>")
+    assert "static constexpr bool kPresent = true;" in adc
+    assert "static constexpr std::uint32_t kBaseAddress = 0x4004c000u;" in adc
+    assert "static constexpr std::uint8_t kChannelCount = 5u;" in adc
+    assert "static constexpr std::uint8_t kResolutionBits = 12u;" in adc
+    assert "static constexpr std::uint8_t kDreq = 36u;" in adc
+    assert "static constexpr std::uint8_t kFifoDepth = 4u;" in adc
+    assert "static constexpr bool kSupportsFifo = true;" in adc
+    assert "kChannelPins = {{26u, 27u, 28u, 29u, 255u}};" in adc

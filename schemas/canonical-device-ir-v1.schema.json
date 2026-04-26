@@ -671,6 +671,24 @@
       },
       "additionalProperties": false
     },
+    "adc_peripheral_descriptor": {
+      "type": "object",
+      "required": [
+        "controller_id", "base_address", "channel_count", "resolution_bits",
+        "channel_pins", "dreq", "fifo_depth", "supports_fifo"
+      ],
+      "properties": {
+        "controller_id": { "type": "string" },
+        "base_address":  { "type": "integer", "minimum": 0 },
+        "channel_count": { "type": "integer", "minimum": 0 },
+        "resolution_bits": { "type": "integer", "minimum": 0 },
+        "channel_pins": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+        "dreq": { "type": "integer", "minimum": 0 },
+        "fifo_depth": { "type": "integer", "minimum": 0 },
+        "supports_fifo": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "uart_peripheral_descriptor": {
       "type": "object",
       "required": [
@@ -938,6 +956,10 @@
     "spi_peripherals": {
       "type": "array",
       "items": { "$ref": "#/$defs/spi_peripheral_descriptor" }
+    },
+    "adc_peripherals": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/adc_peripheral_descriptor" }
     },
     "provenance": {
       "$ref": "#/$defs/provenance"

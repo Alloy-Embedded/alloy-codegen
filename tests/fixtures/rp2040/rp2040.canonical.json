@@ -7,6 +7,24 @@
     }
   ],
   "adc_max_clock_hz": 48000000,
+  "adc_peripherals": [
+    {
+      "base_address": 1074053120,
+      "channel_count": 5,
+      "channel_pins": [
+        26,
+        27,
+        28,
+        29,
+        255
+      ],
+      "controller_id": "ADC",
+      "dreq": 36,
+      "fifo_depth": 4,
+      "resolution_bits": 12,
+      "supports_fifo": true
+    }
+  ],
   "adc_resolution_options": [
     {
       "bits": 12,

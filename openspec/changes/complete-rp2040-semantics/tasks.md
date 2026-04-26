@@ -84,16 +84,29 @@ block on them.
       (the new primary template + zero-default block is now part of
       every emitted `uart.hpp` / `spi.hpp`).
 
-## Phase C — ADC (pending)
+## Phase C — ADC (this commit)
 
-- [ ] C.1 Add `AdcChannelDescriptor` to the IR carrying the channel ↔
-      pad mapping (`{26, 27, 28, 29}` external + `255` for the internal
-      temperature sensor).
-- [ ] C.2 Wire the RP2040 normalizer to populate the ADC channel list
-      (FIFO depth = 4, DREQ = 36 from datasheet §4.9 Table 264).
-- [ ] C.3 Extend the ADC emitter to surface `kChannelPins`,
-      `kFifoDepth`, `kDreq`.
-- [ ] C.4 Tests + golden regen.
+- [x] C.1 New IR type `AdcPeripheralDescriptor` with
+      `(controller_id, base_address, channel_count, resolution_bits,
+      channel_pins, dreq, fifo_depth, supports_fifo)`.  Channel pads use
+      sentinel index `255` for the internal temperature sensor (real
+      GPIOs are 0..29).  Carried on `Device.adc_peripherals`
+      (omit-if-empty).  JSON schema + connector-model carry-forward
+      updated.
+- [x] C.2 `_build_rp2040_adc_peripherals` returns one descriptor with the
+      datasheet §4.9 + Table 264 facts (channel_count=5,
+      resolution_bits=12, channel_pins=(26,27,28,29,255), dreq=36,
+      fifo_depth=4, supports_fifo=true).  Wired into
+      `_build_rp2040_device_ir`.
+- [x] C.3 ADC emitter appends `_adc_peripheral_traits_block` —
+      `RuntimeAdcId` enum + `AdcPeripheralTraits<RuntimeAdcId>`
+      template, populated specialization for RP2040.  Other families
+      keep zero defaults.
+- [x] C.4 Test in `tests/test_rp2040_uart_spi_traits.py`:
+      `test_rp2040_adc_records_all_silicon_facts`.  Goldens regenerated
+      across stm32g0 / imxrt1060 / avr-da / esp32c3 / rp2040 / pico
+      `adc.hpp` (the new primary template + zero defaults are now part
+      of every emitted ADC header).
 
 ## Phase D — DMA / Timer / PWM completion (pending)
 

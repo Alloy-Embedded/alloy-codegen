@@ -12144,6 +12144,62 @@ def _uart_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     return lines
 
 
+def _adc_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
+    """complete-rp2040-semantics Phase C: per-controller ADC trait struct.
+
+    Emits a `RuntimeAdcId` enum + `AdcPeripheralTraits<RuntimeAdcId>`
+    template populated from `device.adc_peripherals`.  Sentinel pad
+    index 255 in `kChannelPins` denotes the internal temperature sensor.
+    """
+    lines = [
+        "// complete-rp2040-semantics Phase C: per-controller ADC facts.",
+        "enum class RuntimeAdcId : std::uint8_t {",
+        "  None = 0,",
+    ]
+    for index, ctrl in enumerate(device.adc_peripherals, start=1):
+        lines.append(f"  {ctrl.controller_id} = {index},")
+    lines.extend(
+        [
+            "};",
+            "",
+            "template<RuntimeAdcId Id>",
+            "struct AdcPeripheralTraits {",
+            "  static constexpr bool kPresent = false;",
+            "  static constexpr std::uint32_t kBaseAddress = 0u;",
+            "  static constexpr std::uint8_t kChannelCount = 0u;",
+            "  static constexpr std::uint8_t kResolutionBits = 0u;",
+            "  static constexpr std::uint8_t kDreq = 0u;",
+            "  static constexpr std::uint8_t kFifoDepth = 0u;",
+            "  static constexpr bool kSupportsFifo = false;",
+            "  static constexpr std::array<std::uint8_t, 0> kChannelPins = {};",
+            "};",
+            "",
+        ]
+    )
+    for ctrl in device.adc_peripherals:
+        pads_str = ", ".join(f"{p}u" for p in ctrl.channel_pins)
+        lines.extend(
+            [
+                "template<>",
+                f"struct AdcPeripheralTraits<RuntimeAdcId::{ctrl.controller_id}> {{",
+                "  static constexpr bool kPresent = true;",
+                f"  static constexpr std::uint32_t kBaseAddress = {ctrl.base_address:#010x}u;",
+                f"  static constexpr std::uint8_t kChannelCount = {ctrl.channel_count}u;",
+                f"  static constexpr std::uint8_t kResolutionBits = {ctrl.resolution_bits}u;",
+                f"  static constexpr std::uint8_t kDreq = {ctrl.dreq}u;",
+                f"  static constexpr std::uint8_t kFifoDepth = {ctrl.fifo_depth}u;",
+                f"  static constexpr bool kSupportsFifo = {'true' if ctrl.supports_fifo else 'false'};",
+                (
+                    f"  static constexpr std::array<std::uint8_t, {len(ctrl.channel_pins)}>"
+                    f" kChannelPins = {{{{{pads_str}}}}};"
+                ),
+                "};",
+                "",
+            ]
+        )
+    return lines
+
+
 def _spi_peripheral_traits_block(device: CanonicalDeviceIR) -> list[str]:
     """Phase B sibling for SPI."""
     lines = [
@@ -12635,6 +12691,7 @@ def emit_runtime_driver_adc_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_adc_specialization_builder(context),
+        extra_body_lines=_adc_peripheral_traits_block(device),
     )
 
 

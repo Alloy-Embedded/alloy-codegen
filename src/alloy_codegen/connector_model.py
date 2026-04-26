@@ -1647,6 +1647,7 @@ def enrich_connector_descriptors(device: CanonicalDeviceIR) -> CanonicalDeviceIR
         gpio_pins=device.gpio_pins,
         uart_peripherals=device.uart_peripherals,
         spi_peripherals=device.spi_peripherals,
+        adc_peripherals=device.adc_peripherals,
     )
 
 

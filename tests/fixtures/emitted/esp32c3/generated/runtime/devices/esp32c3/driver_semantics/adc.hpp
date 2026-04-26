@@ -129,6 +129,24 @@ struct AdcSemanticTraits<PeripheralId::APB_SARADC> {
 inline constexpr std::array<PeripheralId, 1> kAdcSemanticPeripherals = {{
   PeripheralId::APB_SARADC,
 }};
+
+// complete-rp2040-semantics Phase C: per-controller ADC facts.
+enum class RuntimeAdcId : std::uint8_t {
+  None = 0,
+};
+
+template<RuntimeAdcId Id>
+struct AdcPeripheralTraits {
+  static constexpr bool kPresent = false;
+  static constexpr std::uint32_t kBaseAddress = 0u;
+  static constexpr std::uint8_t kChannelCount = 0u;
+  static constexpr std::uint8_t kResolutionBits = 0u;
+  static constexpr std::uint8_t kDreq = 0u;
+  static constexpr std::uint8_t kFifoDepth = 0u;
+  static constexpr bool kSupportsFifo = false;
+  static constexpr std::array<std::uint8_t, 0> kChannelPins = {};
+};
+
 }
 }
 }

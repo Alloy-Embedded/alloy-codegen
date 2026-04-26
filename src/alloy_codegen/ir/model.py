@@ -692,6 +692,28 @@ class SpiPeripheralDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class AdcPeripheralDescriptor:
+    """Per-controller ADC hardware facts (added by complete-rp2040-semantics
+    Phase C).
+
+    Captures the silicon-level fixed parameters for one ADC controller:
+    base address, channel count, ADC resolution, the GPIO pad list that
+    can route into each channel (sentinel ``255`` for the internal
+    temperature sensor), DMA DREQ value, and the per-controller FIFO
+    depth.
+    """
+
+    controller_id: str
+    base_address: int
+    channel_count: int
+    resolution_bits: int
+    channel_pins: tuple[int, ...]
+    dreq: int
+    fifo_depth: int
+    supports_fifo: bool
+
+
+@dataclass(frozen=True, slots=True)
 class PioDescriptor:
     """Compile-time topology of one Programmable I/O block.
 
@@ -898,6 +920,10 @@ class CanonicalDeviceIR:
         metadata={"omit_if_empty": True},
     )
     spi_peripherals: tuple[SpiPeripheralDescriptor, ...] = field(
+        default_factory=tuple,
+        metadata={"omit_if_empty": True},
+    )
+    adc_peripherals: tuple[AdcPeripheralDescriptor, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )

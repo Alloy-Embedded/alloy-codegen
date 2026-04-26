@@ -11,6 +11,7 @@ from alloy_codegen.connector_model import ensure_connector_descriptors
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import (
+    AdcPeripheralDescriptor,
     AltFunctionDescriptor,
     AppCpuControlPlane,
     SpiPeripheralDescriptor,
@@ -1171,6 +1172,33 @@ def _build_rp2040_spi_peripherals(
     return tuple(out)
 
 
+def _build_rp2040_adc_peripherals(
+    *,
+    peripherals: tuple[PeripheralInstance, ...],
+) -> tuple[AdcPeripheralDescriptor, ...]:
+    """RP2040 has a single ADC controller with 5 channels: GP26..GP29 plus
+    the internal temperature sensor.  Datasheet §4.9 + Table 264.
+    """
+    base = next((p.base_address for p in peripherals if p.name == "ADC"), None)
+    if base is None:
+        return ()
+    return (
+        AdcPeripheralDescriptor(
+            controller_id="ADC",
+            base_address=base,
+            channel_count=5,
+            resolution_bits=12,
+            # Channels 0..3 → GP26..GP29; channel 4 → internal temperature
+            # sensor (sentinel pad index 255, distinguished from real GPIOs
+            # whose number is in [0, 29]).
+            channel_pins=(26, 27, 28, 29, 255),
+            dreq=36,
+            fifo_depth=4,
+            supports_fifo=True,
+        ),
+    )
+
+
 def _build_avr_da_gpio_pins(
     *,
     pins: tuple[PinDefinition, ...],
@@ -2114,6 +2142,7 @@ def _build_rp2040_device_ir(
             gpio_pins=ir.gpio_pins,
             peripherals=ir.peripherals,
         ),
+        adc_peripherals=_build_rp2040_adc_peripherals(peripherals=ir.peripherals),
     )
     return ir
 
