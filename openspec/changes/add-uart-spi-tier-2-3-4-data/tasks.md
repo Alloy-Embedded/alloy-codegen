@@ -2,16 +2,16 @@
 
 ## Phase 1: Patch parser plumbing
 
-- [ ] 1.1 Add UART patch dataclasses + parsers to `patches.py`:
+- [x] 1.1 Add UART patch dataclasses + parsers to `patches.py`:
       `UartDmaBindingPatch`, `UartBaudClockSourcePatch`,
       `UartBaudOversamplingOptionPatch`, `UartFifoTriggerOptionPatch`,
       `UartDataBitsOptionPatch`, `UartParityOptionPatch`,
       `UartStopBitsOptionPatch`, `UartModeFlagsPatch`
-- [ ] 1.2 Add SPI patch dataclasses + parsers to `patches.py`:
+- [x] 1.2 Add SPI patch dataclasses + parsers to `patches.py`:
       `SpiDmaBindingPatch`, `SpiBaudPrescalerOptionPatch`,
       `SpiFrameSizeOptionPatch`, `SpiFifoThresholdOptionPatch`,
       `SpiModeFlagsPatch`
-- [ ] 1.3 Extend `DevicePatch` with optional tuples for both peripherals:
+- [x] 1.3 Extend `DevicePatch` with optional tuples for both peripherals:
       `uart_dma_bindings`, `uart_baud_clock_sources`,
       `uart_baud_oversampling_options`, `uart_fifo_trigger_options`,
       `uart_data_bits_options`, `uart_parity_options`,
@@ -19,11 +19,11 @@
       `spi_dma_bindings`, `spi_baud_prescaler_options`,
       `spi_frame_size_options`, `spi_fifo_threshold_options`,
       `spi_mode_flags`
-- [ ] 1.4 Extend `CanonicalDeviceIR` with the same optional tuples
-- [ ] 1.5 Forward the patch fields through every device IR builder
+- [x] 1.4 Extend `CanonicalDeviceIR` with the same optional tuples
+- [x] 1.5 Forward the patch fields through every device IR builder
       (ST, Microchip, AVR-DA, ESP32, RP2040, iMXRT1060) — pass-through
       pattern, mirrors ADC Phase 1.4
-- [ ] 1.6 Round-trip tests in `tests/test_ir_model.py` (defaults strip
+- [x] 1.6 Round-trip tests in `tests/test_ir_model.py` (defaults strip
       from JSON, populated values surface through `to_dict`)
 
 ## Phase 2: DMA bindings helpers

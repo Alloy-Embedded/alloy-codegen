@@ -196,6 +196,20 @@ class UartSemanticRow:
     us_txchr_field: RuntimeFieldRef
     us_rxchr_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Empty tuples /
+    # invalid mode-flags block / 0 max baud for families that don't carry
+    # the data; the rendered C++ defaults to empty std::array<X, 0>{} so
+    # existing goldens stay byte-stable until the specific family's
+    # builder populates these fields.
+    baud_clock_sources: tuple[UartBaudClockSource, ...] = ()
+    baud_oversampling_options: tuple[UartBaudOversamplingOption, ...] = ()
+    fifo_trigger_options: tuple[UartFifoTriggerOption, ...] = ()
+    data_bits_options: tuple[UartDataBitsOption, ...] = ()
+    parity_options: tuple[UartParityOption, ...] = ()
+    stop_bits_options: tuple[UartStopBitsOption, ...] = ()
+    mode_flags: "UartModeFlags | None" = None
+    max_baud_hz: int = 0
+    dma_bindings: tuple["UartDmaBindingRow", ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -324,6 +338,13 @@ class SpiSemanticRow:
     tdr_pcs_field: RuntimeFieldRef
     rd_field: RuntimeFieldRef
     is_stub: bool = False  # True when peripheral exists but schema is not yet implemented
+    # Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Default-empty
+    # tuples / invalid mode-flags block; populated by per-family builders.
+    baud_prescaler_options: tuple["SpiBaudPrescalerOption", ...] = ()
+    frame_size_options: tuple["SpiFrameSizeOption", ...] = ()
+    fifo_threshold_options: tuple["SpiFifoThresholdOption", ...] = ()
+    mode_flags: "SpiModeFlags | None" = None
+    spi_dma_bindings: tuple["SpiDmaBindingRow", ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -443,11 +464,153 @@ class AdcDmaBindingRow:
 
 
 @dataclass(frozen=True, slots=True)
+class UartDmaBindingRow:
+    """One DMA route for UART data.  Derived from ``device.dma_requests``.
+
+    Added by ``add-uart-spi-tier-2-3-4-data``.  ``signal`` is "TX" or "RX".
+    ``transfer_width_bits`` is always 8 on every admitted family — even
+    9-bit data on STM32 uses an 8-bit DMA stride from the data register's
+    low byte; 16-bit register access is a CPU concern, not DMA.
+    """
+
+    controller_peripheral: str
+    controller_id: str
+    binding_id: str
+    request_value: int
+    signal: str  # "TX" | "RX"
+    transfer_width_bits: int = 8
+
+
+@dataclass(frozen=True, slots=True)
+class SpiDmaBindingRow:
+    """One DMA route for SPI data.  Derived from ``device.dma_requests``.
+
+    Added by ``add-uart-spi-tier-2-3-4-data``.  ``signal`` is "TX" or "RX".
+    ``transfer_width_bits`` follows the largest admitted ``frame_size``:
+    ≤8 bits → 8, 9..16 → 16, 17..32 → 32 (iMXRT LPSPI, ESP32 SPI).
+    """
+
+    controller_peripheral: str
+    controller_id: str
+    binding_id: str
+    request_value: int
+    signal: str  # "TX" | "RX"
+    transfer_width_bits: int = 8
+
+
+@dataclass(frozen=True, slots=True)
 class AdcDmaModeOption:
     """One DMA mode (one_shot|circular) + the field value that selects it."""
 
     mode: str  # "one_shot" | "circular"
     field_value: int
+
+
+# ---------------------------------------------------------------------------
+# UART + SPI Tier 2/3/4 value dataclasses (added by add-uart-spi-tier-2-3-4-data)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class UartBaudClockSource:
+    """One baud-rate clock source + the field value that selects it."""
+
+    source: str  # "pclk" | "sysclk" | "hsi16" | "lse" | "apb" | "ref_tick" | ...
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartBaudOversamplingOption:
+    """8x or 16x oversampling option + the field value that selects it."""
+
+    ratio: int  # 8 or 16
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartFifoTriggerOption:
+    """One FIFO trigger level (Q8.8 fraction) + the field value that selects it."""
+
+    fraction_q8: int  # Q8(1/4)=64, Q8(1/2)=128, Q8(3/4)=192, Q8(1)=256
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartDataBitsOption:
+    """One supported data-bits option + the M0/M1 field combination."""
+
+    bits: int
+    m0_value: int = 0
+    m1_value: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class UartParityOption:
+    """One parity option + the PCE/PS field combination."""
+
+    parity: str  # "none" | "even" | "odd" | "mark" | "space"
+    pce_value: int
+    ps_value: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class UartStopBitsOption:
+    """One stop-bits option (Q8.8 fixed-point) + the field value."""
+
+    stop_bits_q8: int  # Q8(0.5)=128, Q8(1)=256, Q8(1.5)=384, Q8(2)=512
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class UartModeFlags:
+    """Per-UART mode capability flags (one block per peripheral)."""
+
+    supports_lin: bool = False
+    supports_irda: bool = False
+    supports_smartcard: bool = False
+    supports_half_duplex: bool = False
+    supports_synchronous: bool = False
+    supports_auto_baud: bool = False
+    supports_wake_from_stop: bool = False
+    valid: bool = False  # True when the patch overlay actually populated this
+
+
+@dataclass(frozen=True, slots=True)
+class SpiBaudPrescalerOption:
+    """One SPI baud prescaler divisor + the BR field value that selects it."""
+
+    divisor: int  # 2, 4, 8, 16, 32, 64, 128, 256
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiFrameSizeOption:
+    """One supported SPI frame size in bits + the DS / DFF field value."""
+
+    bits: int
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiFifoThresholdOption:
+    """One SPI FIFO threshold (8-bit / 16-bit on STM32 FRXTH)."""
+
+    threshold_bits: int  # 8 or 16
+    field_value: int
+
+
+@dataclass(frozen=True, slots=True)
+class SpiModeFlags:
+    """Per-SPI mode capability flags (one block per peripheral)."""
+
+    supports_crc: bool = False
+    supports_ti_frame: bool = False
+    supports_motorola_frame: bool = True
+    supports_i2s_submode: bool = False
+    supports_bidirectional_3wire: bool = False
+    supports_lsb_first: bool = False
+    supports_nss_hw_management: bool = False
+    valid: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -3245,6 +3408,92 @@ def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str)
         binding.peripheral == peripheral_name
         for binding in _runtime_lite_dma_bindings(context.device)
     )
+
+
+def _uart_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple["UartDmaBindingRow", ...]:
+    """Derive UartDmaBinding rows from `device.dma_requests` filtered by
+    UART peripheral.  Added by ``add-uart-spi-tier-2-3-4-data``.
+
+    UART always transfers single bytes — even when 9-bit data uses a 16-bit
+    register, DMA stride stays 8-bit on every admitted family — so the
+    transfer width is hardcoded to 8 here.
+    """
+    bindings: list[UartDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        signal = (getattr(binding, "signal", None) or "").upper()
+        if signal not in {"TX", "RX"}:
+            continue
+        controller_peri = getattr(binding, "controller", None) or getattr(
+            binding, "controller_peripheral", None
+        )
+        controller_id = getattr(binding, "controller_id", None)
+        binding_id = getattr(binding, "binding_id", None)
+        request_value = getattr(binding, "request_value", None) or 0
+        if controller_peri is None or controller_id is None or binding_id is None:
+            continue
+        bindings.append(
+            UartDmaBindingRow(
+                controller_peripheral=str(controller_peri),
+                controller_id=str(controller_id),
+                binding_id=str(binding_id),
+                request_value=int(request_value),
+                signal=signal,
+                transfer_width_bits=8,
+            )
+        )
+    return tuple(bindings)
+
+
+def _spi_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    max_frame_bits: int = 8,
+) -> tuple["SpiDmaBindingRow", ...]:
+    """Derive SpiDmaBinding rows from `device.dma_requests` filtered by
+    SPI peripheral.  Added by ``add-uart-spi-tier-2-3-4-data``.
+
+    ``transfer_width_bits`` defaults from the largest admitted frame size:
+    ≤8 → 8, 9..16 → 16, 17..32 → 32 (iMXRT LPSPI / ESP32 SPI).
+    """
+    if max_frame_bits <= 8:
+        width = 8
+    elif max_frame_bits <= 16:
+        width = 16
+    else:
+        width = 32
+    bindings: list[SpiDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        signal = (getattr(binding, "signal", None) or "").upper()
+        if signal not in {"TX", "RX"}:
+            continue
+        controller_peri = getattr(binding, "controller", None) or getattr(
+            binding, "controller_peripheral", None
+        )
+        controller_id = getattr(binding, "controller_id", None)
+        binding_id = getattr(binding, "binding_id", None)
+        request_value = getattr(binding, "request_value", None) or 0
+        if controller_peri is None or controller_id is None or binding_id is None:
+            continue
+        bindings.append(
+            SpiDmaBindingRow(
+                controller_peripheral=str(controller_peri),
+                controller_id=str(controller_id),
+                binding_id=str(binding_id),
+                request_value=int(request_value),
+                signal=signal,
+                transfer_width_bits=width,
+            )
+        )
+    return tuple(bindings)
 
 
 def _adc_dma_bindings_for_peripheral(
