@@ -26,10 +26,9 @@ from alloy_codegen.ir.model import (
     FlexPwmDescriptor,
     GpioPinDescriptor,
     I2cPeripheralDescriptor,
-    McpwmDescriptor,
-    StmTimerPwmDescriptor,
     InterruptDefinition,
     LedcDescriptor,
+    McpwmDescriptor,
     MemoryRegion,
     PackageDefinition,
     PackagePad,
@@ -51,6 +50,7 @@ from alloy_codegen.ir.model import (
     Rp2040UartPeripheralDescriptor,
     Same70PwmDescriptor,
     SpiPeripheralDescriptor,
+    StmTimerPwmDescriptor,
     SystemClockProfile,
     TimerUnitDescriptor,
     UartPeripheralDescriptor,
@@ -1054,9 +1054,7 @@ def _st_canonical_peripherals_for_helpers(
 # outputs (CHnN), brake inputs and dead-time generation.  Basic timers
 # (TIM6/TIM7) have no PWM output capability and are excluded from
 # `device.stm_timer_pwm_peripherals`.
-_ST_ADVANCED_TIMERS: frozenset[str] = frozenset(
-    ("TIM1", "TIM8", "TIM15", "TIM16", "TIM17")
-)
+_ST_ADVANCED_TIMERS: frozenset[str] = frozenset(("TIM1", "TIM8", "TIM15", "TIM16", "TIM17"))
 _ST_BASIC_TIMERS: frozenset[str] = frozenset(("TIM6", "TIM7"))
 _ST_32BIT_TIMERS: frozenset[str] = frozenset(("TIM2", "TIM5"))
 
@@ -1137,9 +1135,7 @@ def _build_st_timer_pwm_peripherals(
                 valid_ch_pins_per_channel=tuple(
                     tuple(sorted(ch_pins[ch])) for ch in range(1, channel_count + 1)
                 ),
-                valid_chn_pins_per_channel=tuple(
-                    tuple(sorted(chn_pins[ch])) for ch in (1, 2, 3)
-                ),
+                valid_chn_pins_per_channel=tuple(tuple(sorted(chn_pins[ch])) for ch in (1, 2, 3)),
                 supports_complementary=supports_complementary,
                 # STM32 ties dead-time generation to complementary outputs.
                 supports_deadtime=supports_complementary,
@@ -2349,7 +2345,9 @@ def build_nxp_canonical_ir(
                 _peripheral_to_ir(
                     peripheral_name=_canonical_peripheral_name(peripheral.name),
                     base_address=peripheral.base_address,
-                    patch_metadata=peripheral_patches.get(_canonical_peripheral_name(peripheral.name)),
+                    patch_metadata=peripheral_patches.get(
+                        _canonical_peripheral_name(peripheral.name)
+                    ),
                     ip_version=None,
                     provenance=svd_provenance,
                 )

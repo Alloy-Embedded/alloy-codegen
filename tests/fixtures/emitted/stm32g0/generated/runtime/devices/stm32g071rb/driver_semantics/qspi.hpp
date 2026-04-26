@@ -60,6 +60,7 @@ struct QspiSemanticTraits {
   static constexpr RuntimeFieldRef kContinuousReadModeField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kDummyCyclesField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kScramblingEnableField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 0> kQspiSemanticPeripherals = {};

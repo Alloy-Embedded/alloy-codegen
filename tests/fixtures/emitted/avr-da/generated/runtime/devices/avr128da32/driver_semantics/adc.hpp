@@ -66,6 +66,7 @@ struct AdcSemanticTraits {
   static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};
   static constexpr std::uint32_t kSupportedDmaModeCount = 0u;
   static constexpr std::array<AdcDmaModeOption, 0> kSupportedDmaModes = {};
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<>
@@ -140,6 +141,7 @@ struct AdcSemanticTraits<PeripheralId::ADC0> {
   static constexpr std::array<AdcExternalTrigger, 0> kExternalTriggers = {};
   static constexpr std::uint32_t kSupportedDmaModeCount = 0u;
   static constexpr std::array<AdcDmaModeOption, 0> kSupportedDmaModes = {};
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 inline constexpr std::array<PeripheralId, 1> kAdcSemanticPeripherals = {{

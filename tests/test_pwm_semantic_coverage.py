@@ -24,7 +24,11 @@ from alloy_codegen.stages.emit import run as run_emit
 def _pwm_present_count(context: ExecutionContext, device: str) -> int:
     result = run_emit(PipelineScope(device=device), context)
     artifact = next(
-        (a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/pwm.hpp")),
+        (
+            a
+            for a in result.payload.artifacts
+            if a.path.endswith(f"/{device}/driver_semantics/pwm.hpp")
+        ),
         None,
     )
     assert artifact is not None, f"no pwm.hpp emitted for {device}"
@@ -35,8 +39,7 @@ def _check_devices(context: ExecutionContext, devices: Iterable[str]) -> None:
     for device in devices:
         count = _pwm_present_count(context, device)
         assert count >= 1, (
-            f"family PWM-coverage gate failed: no kPresent = true entries "
-            f"in pwm.hpp for '{device}'"
+            f"family PWM-coverage gate failed: no kPresent = true entries in pwm.hpp for '{device}'"
         )
 
 

@@ -102,6 +102,7 @@ struct UartSemanticTraits {
   static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 0> kIrqNumbers = {};
 };
 
 template<>
@@ -194,6 +195,7 @@ struct UartSemanticTraits<PeripheralId::LPUART1> {
   static constexpr RuntimeFieldRef kUsTxemptyField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsTxchrField = kInvalidFieldRef;
   static constexpr RuntimeFieldRef kUsRxchrField = kInvalidFieldRef;
+  static constexpr std::array<std::uint32_t, 1> kIrqNumbers = {{20u}};
 };
 
 inline constexpr std::array<PeripheralId, 1> kUartSemanticPeripherals = {{

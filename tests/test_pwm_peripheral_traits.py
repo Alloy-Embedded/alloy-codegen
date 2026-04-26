@@ -20,7 +20,9 @@ from alloy_codegen.stages.emit import run as run_emit
 def _emit_pwm_hpp(context: ExecutionContext, device: str) -> str:
     result = run_emit(PipelineScope(device=device), context)
     artifact = next(
-        a for a in result.payload.artifacts if a.path.endswith(f"/{device}/driver_semantics/pwm.hpp")
+        a
+        for a in result.payload.artifacts
+        if a.path.endswith(f"/{device}/driver_semantics/pwm.hpp")
     )
     return artifact.content
 
@@ -84,9 +86,7 @@ def test_mcpwm_traits_block_emits_for_esp32s3(
     assert "enum class RuntimeMcpwmId : std::uint8_t" in content
     primary = _struct_block(content, "McpwmTraits")
     assert "static constexpr bool kPresent = false;" in primary
-    assert (
-        "static constexpr std::array<std::uint16_t, 0> kGpioMatrixSignals = {};" in primary
-    )
+    assert "static constexpr std::array<std::uint16_t, 0> kGpioMatrixSignals = {};" in primary
     assert "MCPWM0 = 1," in content
     assert "MCPWM1 = 2," in content
 
