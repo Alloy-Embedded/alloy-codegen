@@ -34,6 +34,7 @@ from alloy_codegen.runtime_avr_startup import (
     emit_avr_startup_source,
     emit_avr_startup_vectors_source,
 )
+from alloy_codegen.runtime_board_emission import emit_boards_manifest, emit_runtime_board_header
 from alloy_codegen.runtime_capabilities import (
     emit_runtime_capabilities_header,
     emit_runtime_capabilities_json,
@@ -333,6 +334,15 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 ),
             )
         )
+        # add-board-support-package-emitter: per-board BSP headers.
+        for board in device.boards:
+            artifacts.append(
+                emit_runtime_board_header(
+                    family_dir=family_dir, device=device, board=board
+                )
+            )
+    # Top-level boards manifest aggregating every admitted board.
+    artifacts.append(emit_boards_manifest(family_dir=family_dir, devices=devices))
     artifacts.append(emit_runtime_lite_types_header(family_dir=family_dir, devices=devices))
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,

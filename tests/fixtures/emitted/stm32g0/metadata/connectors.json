@@ -1268,6 +1268,20 @@
     },
     {
       "direction": null,
+      "endpoint_id": "endpoint:gpio:in5",
+      "peripheral_class": "gpio",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "signal": "IN5"
+    },
+    {
+      "direction": null,
       "endpoint_id": "endpoint:gpio:in6",
       "peripheral_class": "gpio",
       "provenance": {

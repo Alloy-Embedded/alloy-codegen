@@ -32,6 +32,12 @@
           "position_label": "20"
         },
         {
+          "pad_id": "21",
+          "pad_kind": "io",
+          "physical_index": 21,
+          "position_label": "21"
+        },
+        {
           "pad_id": "29",
           "pad_kind": "io",
           "physical_index": 29,
@@ -78,6 +84,13 @@
                 "20"
               ],
               "pin": "PA3"
+            },
+            {
+              "constraint_ids": [],
+              "pad_ids": [
+                "21"
+              ],
+              "pin": "PA5"
             },
             {
               "constraint_ids": [],
@@ -130,6 +143,15 @@
               "pad_kind": "io",
               "physical_index": 20,
               "position_label": "20"
+            },
+            {
+              "bonded_pin": "PA5",
+              "bonding_state": "bonded",
+              "constraint_ids": [],
+              "pad_id": "21",
+              "pad_kind": "io",
+              "physical_index": 21,
+              "position_label": "21"
             },
             {
               "bonded_pin": "PB6",

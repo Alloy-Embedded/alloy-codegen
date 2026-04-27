@@ -16,6 +16,7 @@ enum class PinId : std::uint16_t {
   PA1,
   PA2,
   PA3,
+  PA5,
   PB6,
   PB7,
 };
@@ -56,6 +57,13 @@ struct PinTraits<PinId::PA3> {
 };
 
 template<>
+struct PinTraits<PinId::PA5> {
+  static constexpr bool kPresent = true;
+  static constexpr PortId kPortId = PortId::port_A;
+  static constexpr int kPinNumber = 5;
+};
+
+template<>
 struct PinTraits<PinId::PB6> {
   static constexpr bool kPresent = true;
   static constexpr PortId kPortId = PortId::port_B;
@@ -69,11 +77,12 @@ struct PinTraits<PinId::PB7> {
   static constexpr int kPinNumber = 7;
 };
 
-inline constexpr std::array<PinId, 6> kPins = {{
+inline constexpr std::array<PinId, 7> kPins = {{
   PinId::PA0,
   PinId::PA1,
   PinId::PA2,
   PinId::PA3,
+  PinId::PA5,
   PinId::PB6,
   PinId::PB7,
 }};

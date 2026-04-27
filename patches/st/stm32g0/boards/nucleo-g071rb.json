@@ -1,0 +1,16 @@
+{
+  "board_id": "nucleo-g071rb",
+  "device": "stm32g071rb",
+  "package": "lqfp64",
+  "summary": "ST Nucleo-64 board with STM32G071RB.",
+  "named_pins": [
+    {"name": "LED_GREEN", "pin": "PA5", "polarity": "active_high"},
+    {"name": "BUTTON_USER", "pin": "PB7", "polarity": "active_low"},
+    {"name": "UART_DBG_TX", "pin": "PA2", "peripheral": "USART2", "signal": "TX"},
+    {"name": "UART_DBG_RX", "pin": "PA3", "peripheral": "USART2", "signal": "RX"}
+  ],
+  "default_clock_profile": "performance-pll-64mhz",
+  "external_oscillators": [
+    {"kind": "hse", "frequency_hz": 8000000, "source": "st-link-mco"}
+  ]
+}

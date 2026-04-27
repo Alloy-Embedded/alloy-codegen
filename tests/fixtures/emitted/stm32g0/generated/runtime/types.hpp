@@ -49,6 +49,7 @@ enum class SignalId : std::uint16_t {
   signal_IN1,
   signal_IN2,
   signal_IN3,
+  signal_IN5,
   signal_IN6,
   signal_IN7,
   signal_RX,

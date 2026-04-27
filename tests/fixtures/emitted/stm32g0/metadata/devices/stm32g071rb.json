@@ -197,6 +197,52 @@
       "peripheral": "ADC1"
     }
   ],
+  "boards": [
+    {
+      "board_id": "nucleo-g071rb",
+      "default_clock_profile": "performance-pll-64mhz",
+      "device": "stm32g071rb",
+      "external_oscillators": [
+        {
+          "frequency_hz": 8000000,
+          "kind": "hse",
+          "source": "st-link-mco"
+        }
+      ],
+      "named_pins": [
+        {
+          "name": "LED_GREEN",
+          "peripheral": null,
+          "pin": "PA5",
+          "polarity": "active_high",
+          "signal": null
+        },
+        {
+          "name": "BUTTON_USER",
+          "peripheral": null,
+          "pin": "PB7",
+          "polarity": "active_low",
+          "signal": null
+        },
+        {
+          "name": "UART_DBG_TX",
+          "peripheral": "USART2",
+          "pin": "PA2",
+          "polarity": "active_high",
+          "signal": "TX"
+        },
+        {
+          "name": "UART_DBG_RX",
+          "peripheral": "USART2",
+          "pin": "PA3",
+          "polarity": "active_high",
+          "signal": "RX"
+        }
+      ],
+      "package": "lqfp64",
+      "summary": "ST Nucleo-64 board with STM32G071RB."
+    }
+  ],
   "capabilities": [
     {
       "capability_id": "capability-instance:spi1:lqfp64:sck",
@@ -941,6 +987,22 @@
       }
     },
     {
+      "alt_functions": [],
+      "is_input_only": false,
+      "pin_id": "PA5",
+      "pin_index": 5,
+      "port": "GPIOA",
+      "port_offset": 0,
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      }
+    },
+    {
       "alt_functions": [
         {
           "af_number": 0,
@@ -1467,6 +1529,23 @@
       "pad_kind": "io",
       "physical_index": 20,
       "position_label": "20",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      }
+    },
+    {
+      "bonded_pin": "PA5",
+      "bonding_state": "bonded",
+      "package": "lqfp64",
+      "pad_id": "21",
+      "pad_kind": "io",
+      "physical_index": 21,
+      "position_label": "21",
       "provenance": {
         "patch_ids": [
           "st-stm32g0-family-bootstrap-v1",
@@ -2089,6 +2168,35 @@
             "source_path": "STM32G071R(6-8-B)Tx.xml"
           },
           "signal": "IN3"
+        }
+      ]
+    },
+    {
+      "name": "PA5",
+      "number": 5,
+      "port": "A",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOA",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN5"
         }
       ]
     },
@@ -4742,6 +4850,20 @@
         "source_path": "STM32G071R(6-8-B)Tx.xml"
       },
       "signal": "IN3"
+    },
+    {
+      "direction": null,
+      "endpoint_id": "endpoint:gpio:in5",
+      "peripheral_class": "gpio",
+      "provenance": {
+        "patch_ids": [
+          "st-stm32g0-family-bootstrap-v1",
+          "st-stm32g0-stm32g071rb-bootstrap"
+        ],
+        "source_id": "stm32-open-pin-data",
+        "source_path": "STM32G071R(6-8-B)Tx.xml"
+      },
+      "signal": "IN5"
     },
     {
       "direction": null,

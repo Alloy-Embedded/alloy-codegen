@@ -517,6 +517,33 @@
       "devices": [
         "stm32g071rb"
       ],
+      "name": "PA5",
+      "number": 5,
+      "packages": [
+        "lqfp64"
+      ],
+      "port": "A",
+      "signals": [
+        {
+          "af_number": null,
+          "function": "gpio",
+          "peripheral": "GPIOA",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          },
+          "signal": "IN5"
+        }
+      ]
+    },
+    {
+      "devices": [
+        "stm32g071rb"
+      ],
       "name": "PB6",
       "number": 6,
       "packages": [

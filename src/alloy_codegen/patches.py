@@ -994,6 +994,102 @@ def patch_file_path(
     return context.patch_root / vendor / family / "devices" / f"{device_name}.json"
 
 
+# ---------------------------------------------------------------------------
+# Board support package (add-board-support-package-emitter)
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True, slots=True)
+class NamedPinPatch:
+    """One named board pin (LED, BUTTON, debug-UART signal, ...)."""
+
+    name: str  # canonical name, e.g. "LED_GREEN" / "BUTTON_USER" / "UART_DBG_TX"
+    pin: str  # device pin label, e.g. "PA5" / "GP25"
+    polarity: str = "active_high"  # "active_high" | "active_low"
+    peripheral: str | None = None  # for debug peripheral signals
+    signal: str | None = None  # "TX" | "RX" | "MOSI" | ...
+
+
+@dataclass(frozen=True, slots=True)
+class ExternalOscillatorPatch:
+    """External oscillator wiring on the board (HSE, LSE, ...)."""
+
+    kind: str  # "hse" | "lse" | "extal" | ...
+    frequency_hz: int
+    source: str = ""  # "st-link-mco" | "crystal" | ...
+
+
+@dataclass(frozen=True, slots=True)
+class BoardPatch:
+    """One board overlay JSON document."""
+
+    board_id: str
+    device: str
+    package: str
+    summary: str = ""
+    named_pins: tuple[NamedPinPatch, ...] = ()
+    default_clock_profile: str = ""
+    external_oscillators: tuple[ExternalOscillatorPatch, ...] = ()
+
+
+def board_patch_dir(context: ExecutionContext, *, vendor: str, family: str) -> Path:
+    return context.patch_root / vendor / family / "boards"
+
+
+def _parse_named_pin_patch(payload: dict[str, object]) -> NamedPinPatch:
+    return NamedPinPatch(
+        name=str(payload["name"]),
+        pin=str(payload["pin"]),
+        polarity=str(payload.get("polarity", "active_high")),
+        peripheral=str(payload["peripheral"]) if payload.get("peripheral") is not None else None,
+        signal=str(payload["signal"]) if payload.get("signal") is not None else None,
+    )
+
+
+def _parse_external_oscillator_patch(payload: dict[str, object]) -> ExternalOscillatorPatch:
+    return ExternalOscillatorPatch(
+        kind=str(payload["kind"]),
+        frequency_hz=int(payload["frequency_hz"]),  # type: ignore[arg-type]
+        source=str(payload.get("source", "")),
+    )
+
+
+def _parse_board_patch(payload: dict[str, object]) -> BoardPatch:
+    return BoardPatch(
+        board_id=str(payload["board_id"]),
+        device=str(payload["device"]),
+        package=str(payload["package"]),
+        summary=str(payload.get("summary", "")),
+        named_pins=tuple(
+            _parse_named_pin_patch(item)  # type: ignore[arg-type]
+            for item in payload.get("named_pins", ())  # type: ignore[union-attr]
+        ),
+        default_clock_profile=str(payload.get("default_clock_profile", "")),
+        external_oscillators=tuple(
+            _parse_external_oscillator_patch(item)  # type: ignore[arg-type]
+            for item in payload.get("external_oscillators", ())  # type: ignore[union-attr]
+        ),
+    )
+
+
+def load_board_patches(
+    context: ExecutionContext, *, vendor: str, family: str, device: str
+) -> tuple[BoardPatch, ...]:
+    """Load every board.json under ``patches/<vendor>/<family>/boards/`` whose
+    ``device`` field matches the requested device.  Returns an empty tuple
+    when the directory is missing or has no matching boards."""
+    boards_dir = board_patch_dir(context, vendor=vendor, family=family)
+    if not boards_dir.exists():
+        return ()
+    boards: list[BoardPatch] = []
+    for path in sorted(boards_dir.glob("*.json")):
+        payload = json.loads(path.read_text())
+        board = _parse_board_patch(payload)  # type: ignore[arg-type]
+        if board.device == device:
+            boards.append(board)
+    return tuple(boards)
+
+
 def _parse_pin_signal(payload: dict[str, object]) -> PinSignalPatch:
     return PinSignalPatch(
         function=str(payload["function"]),

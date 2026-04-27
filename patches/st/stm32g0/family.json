@@ -58,6 +58,12 @@
       "port": "B",
       "number": 8,
       "packages": ["lqfp64"]
+    },
+    {
+      "name": "PA5",
+      "port": "A",
+      "number": 5,
+      "packages": ["lqfp64"]
     }
   ],
   "peripherals": [
@@ -385,6 +391,14 @@
       "peripheral": "FDCAN1",
       "signal": "TX",
       "af_number": 3
+    },
+    {
+      "signal_id": "pa5-spi1-sck",
+      "pin_name": "PA5",
+      "function": "spi1_sck",
+      "peripheral": "SPI1",
+      "signal": "SCK",
+      "af_number": 0
     }
   ],
   "dma_controllers": [

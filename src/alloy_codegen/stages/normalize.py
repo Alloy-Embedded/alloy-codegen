@@ -15,6 +15,7 @@ from alloy_codegen.ir.model import (
     AltFunctionDescriptor,
     AppCpuControlPlane,
     AvrDaTcaPwmDescriptor,
+    BoardDescriptor,
     CanonicalDeviceIR,
     ClockGateDescriptor,
     ClockNodeLite,
@@ -23,6 +24,7 @@ from alloy_codegen.ir.model import (
     DmaChannelDescriptor,
     DmaControllerDescriptor,
     DmaRequestDefinition,
+    ExternalOscillatorDescriptor,
     FlexPwmDescriptor,
     GpioPinDescriptor,
     I2cPeripheralDescriptor,
@@ -30,6 +32,7 @@ from alloy_codegen.ir.model import (
     LedcDescriptor,
     McpwmDescriptor,
     MemoryRegion,
+    NamedPinDescriptor,
     PackageDefinition,
     PackagePad,
     PeripheralClockBinding,
@@ -74,6 +77,7 @@ from alloy_codegen.patches import (
     RegisterPatch,
     ResetPatch,
     SystemClockProfilePatch,
+    load_board_patches,
     load_device_patch,
     load_family_patch_catalog,
 )
@@ -3132,6 +3136,66 @@ def _build_avr_da_device_ir(
     )
 
 
+def _load_and_validate_boards(
+    execution_context: ExecutionContext,
+    *,
+    device: CanonicalDeviceIR,
+) -> tuple[BoardDescriptor, ...]:
+    """add-board-support-package-emitter: load every board.json that
+    targets ``device.identity.device`` and validate each ``named_pin``
+    against the device's admitted ``pin_definitions``.  A board file
+    referencing a non-existent pin raises a ``StageExecutionError``
+    so a BSP header that would ``static_assert`` at the consumer's
+    ``#include`` is rejected at codegen time."""
+    boards = load_board_patches(
+        execution_context,
+        vendor=device.identity.vendor,
+        family=device.identity.family,
+        device=device.identity.device,
+    )
+    if not boards:
+        return ()
+    admitted_pin_names = {pin.name for pin in device.pins}
+    descriptors: list[BoardDescriptor] = []
+    for board in boards:
+        for named in board.named_pins:
+            if named.pin not in admitted_pin_names:
+                raise StageExecutionError(
+                    f"board '{board.board_id}' named pin '{named.name}' "
+                    f"references unknown pin '{named.pin}' "
+                    f"(device {device.identity.device} admits "
+                    f"{sorted(admitted_pin_names)[:8]}…)"
+                )
+        descriptors.append(
+            BoardDescriptor(
+                board_id=board.board_id,
+                device=board.device,
+                package=board.package,
+                summary=board.summary,
+                named_pins=tuple(
+                    NamedPinDescriptor(
+                        name=p.name,
+                        pin=p.pin,
+                        polarity=p.polarity,
+                        peripheral=p.peripheral,
+                        signal=p.signal,
+                    )
+                    for p in board.named_pins
+                ),
+                default_clock_profile=board.default_clock_profile,
+                external_oscillators=tuple(
+                    ExternalOscillatorDescriptor(
+                        kind=o.kind,
+                        frequency_hz=o.frequency_hz,
+                        source=o.source,
+                    )
+                    for o in board.external_oscillators
+                ),
+            )
+        )
+    return tuple(descriptors)
+
+
 def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageResult:
     """Run the bootstrap normalize stage."""
     execution_context = context or ExecutionContext.default()
@@ -3425,6 +3489,10 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 i2c_speed_options=patch.i2c_speed_options,
                 i2c_timing_presets=patch.i2c_timing_presets,
                 i2c_mode_flags=patch.i2c_mode_flags,
+                boards=_load_and_validate_boards(
+                    execution_context,
+                    device=device,
+                ),
                 multicore_topology=topology_value,
                 app_cpu_control_plane=app_cpu_plane,
                 usb_controllers=usb_controllers,

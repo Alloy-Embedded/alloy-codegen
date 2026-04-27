@@ -11,8 +11,12 @@ The pipeline SHALL emit a `<vendor>/<family>/generated/runtime/boards/<board_id>
   SHALL contain `static constexpr PinId kGreen = PinId::PA5;` inside a
   `Leds` struct
 - **AND** SHALL contain `static constexpr bool kGreenActiveHigh = true;`
-- **AND** SHALL contain `static constexpr PinId kUser = PinId::PC13;`
+- **AND** SHALL contain `static constexpr PinId kUser = PinId::PB7;`
   inside a `Buttons` struct with `kUserActiveHigh = false`
+  (the test fixture's STM32G071RB SVD slice does not include GPIOC,
+  so the seed board uses PB7 as the user-button pin; the real
+  Nucleo-G071RB silicon uses PC13 — switching back is a one-line
+  patch once the fixture admits GPIOC)
 - **AND** SHALL contain a `DebugUart` struct exposing
   `kPeripheral == PeripheralId::USART2`, `kTxPin == PinId::PA2`,
   `kRxPin == PinId::PA3`

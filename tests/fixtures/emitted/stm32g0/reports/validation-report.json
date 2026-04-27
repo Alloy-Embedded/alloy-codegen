@@ -190,7 +190,7 @@
     },
     {
       "category": "semantic",
-      "message": "stm32g071rb package pin count 64 covers 6 known pin definition(s).",
+      "message": "stm32g071rb package pin count 64 covers 7 known pin definition(s).",
       "passed": true,
       "rule_id": "stm32g071rb-package-pin-count-covers-known-pins",
       "severity": "error"

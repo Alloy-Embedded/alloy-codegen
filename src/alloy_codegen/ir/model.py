@@ -1100,6 +1100,41 @@ class PioDescriptor:
 
 
 @dataclass(frozen=True, slots=True)
+class NamedPinDescriptor:
+    """One named board pin (LED, BUTTON, debug-UART signal, ...)."""
+
+    name: str
+    pin: str
+    polarity: str  # "active_high" | "active_low"
+    peripheral: str | None = None
+    signal: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ExternalOscillatorDescriptor:
+    """External oscillator wiring on the board (HSE, LSE, ...)."""
+
+    kind: str
+    frequency_hz: int
+    source: str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class BoardDescriptor:
+    """One board overlay descriptor (added by
+    ``add-board-support-package-emitter``).  Names on-board pin
+    functions plus default clock + external oscillator wiring."""
+
+    board_id: str
+    device: str
+    package: str
+    summary: str = ""
+    named_pins: tuple[NamedPinDescriptor, ...] = ()
+    default_clock_profile: str = ""
+    external_oscillators: tuple[ExternalOscillatorDescriptor, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class CanonicalDeviceIR:
     """Canonical device description used by validation and emitters."""
 
@@ -1307,6 +1342,10 @@ class CanonicalDeviceIR:
     )
     # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
     peripheral_max_clock_hz: tuple[object, ...] = field(
+        default_factory=tuple, metadata={"omit_if_empty": True}
+    )
+    # Board overlays (add-board-support-package-emitter).
+    boards: tuple[BoardDescriptor, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # I2C Tier 2/3/4 (added by ``add-i2c-tier-2-3-4-data``).

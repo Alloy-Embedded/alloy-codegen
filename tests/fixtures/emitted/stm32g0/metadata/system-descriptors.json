@@ -564,6 +564,23 @@
           }
         },
         {
+          "bonded_pin": "PA5",
+          "bonding_state": "bonded",
+          "package": "lqfp64",
+          "pad_id": "21",
+          "pad_kind": "io",
+          "physical_index": 21,
+          "position_label": "21",
+          "provenance": {
+            "patch_ids": [
+              "st-stm32g0-family-bootstrap-v1",
+              "st-stm32g0-stm32g071rb-bootstrap"
+            ],
+            "source_id": "stm32-open-pin-data",
+            "source_path": "STM32G071R(6-8-B)Tx.xml"
+          }
+        },
+        {
           "bonded_pin": "PB6",
           "bonding_state": "bonded",
           "package": "lqfp64",

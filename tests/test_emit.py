@@ -1780,7 +1780,11 @@ def test_emit_packages_metadata_can_reconstruct_physical_pinout(
         for pad in device_pinout["pinout"]
     ]
 
-    assert [pad["pad_id"] for pad in reconstructed_pinout] == ["17", "18", "19", "20", "29", "30"]
+    # Pad "21" (PA5) was admitted by add-board-support-package-emitter so the
+    # Nucleo-G071RB seed board's LED_GREEN pin survives validation.
+    assert [pad["pad_id"] for pad in reconstructed_pinout] == [
+        "17", "18", "19", "20", "21", "29", "30",
+    ]
     assert reconstructed_pinout[0]["position_label"] == "17"
     assert reconstructed_pinout[0]["bonded_pin"] == "PA0"
     assert reconstructed_pinout[0]["pad_kind"] == "io"
