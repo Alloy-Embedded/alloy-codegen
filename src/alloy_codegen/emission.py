@@ -35,6 +35,22 @@ def _text_artifact(
     )
 
 
+def _cmake_artifact(*, path: str, content: str) -> EmittedArtifact:
+    """Emit a CMake module / toolchain fragment.  Tagged
+    ``generated-cmake`` so the runtime-C++ string-literal gate does
+    not scan it (CMake script files contain string literals by
+    construction).  Added by ``add-cmake-package-config``."""
+    content_bytes = len(content.encode("utf-8"))
+    content_sha256 = canonical_json_sha256({"content": content})
+    return EmittedArtifact(
+        path=path,
+        artifact_kind="generated-cmake",
+        content=content,
+        content_sha256=content_sha256,
+        content_bytes=content_bytes,
+    )
+
+
 def _cpp_artifact(*, path: str, content: str) -> EmittedArtifact:
     content_bytes = len(content.encode("utf-8"))
     content_sha256 = canonical_json_sha256({"content": content})

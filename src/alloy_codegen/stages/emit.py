@@ -9,6 +9,11 @@ from alloy_codegen.bootstrap import (
     PIPELINE_NAME,
     PUBLICATION_TARGET_REPOSITORY,
 )
+from alloy_codegen.cmake_emission import (
+    emit_cmake_device_module,
+    emit_cmake_meta_package,
+    emit_cmake_toolchain_fragment,
+)
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     emit_artifact_manifest,
@@ -163,6 +168,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             (
                 emit_device_metadata(family_dir=family_dir, device=device),
                 emit_runtime_linker_script(family_dir=family_dir, device=device),
+                emit_cmake_device_module(family_dir=family_dir, device=device),
                 (
                     emit_avr_startup_source(family_dir=family_dir, device=device)
                     if _is_avr_device(device)
@@ -344,6 +350,22 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     # Top-level boards manifest aggregating every admitted board.
     artifacts.append(emit_boards_manifest(family_dir=family_dir, devices=devices))
     artifacts.append(emit_runtime_lite_types_header(family_dir=family_dir, devices=devices))
+    # CMake package-config (added by ``add-cmake-package-config``).  One
+    # opt-in toolchain fragment per unique core, plus a top-level
+    # ``cmake/AlloyDeviceConfig.cmake`` + version file resolving
+    # ``find_package(AlloyDevice REQUIRED COMPONENTS <device>...)``.
+    seen_cores: set[str] = set()
+    for device in devices:
+        core = device.identity.core
+        if core in seen_cores:
+            continue
+        seen_cores.add(core)
+        toolchain = emit_cmake_toolchain_fragment(family_dir=family_dir, device=device)
+        if toolchain is not None:
+            artifacts.append(toolchain)
+    cmake_config, cmake_version = emit_cmake_meta_package(devices=tuple(devices))
+    artifacts.append(cmake_config)
+    artifacts.append(cmake_version)
     materialized_artifacts = materialize_artifacts(
         artifact_root=execution_context.artifact_root,
         artifacts=tuple(artifacts),

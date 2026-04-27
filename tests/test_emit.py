@@ -2114,3 +2114,57 @@ def test_stm32g071rb_i2c_traits_emit_typed_speed_mode(
     assert "standard = 0u," in content
     assert "fast = 1u," in content
     assert "fast_plus = 2u," in content
+
+
+def test_stm32g071rb_emits_cmake_device_module(
+    execution_context: ExecutionContext,
+) -> None:
+    """add-cmake-package-config: STM32G0 emits per-device
+    AlloyDevice-stm32g071rb.cmake declaring an INTERFACE IMPORTED
+    target with Cortex-M0+ compile flags + linker-script reference."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/cmake/AlloyDevice-stm32g071rb.cmake"
+    assert p in arts
+    content = arts[p].content
+    assert "add_library(AlloyDevice::stm32g071rb INTERFACE IMPORTED)" in content
+    assert "target_compile_features(AlloyDevice::stm32g071rb INTERFACE cxx_std_20)" in content
+    assert "-mcpu=cortex-m0plus" in content
+    assert "-mthumb" in content
+    assert "-mfloat-abi=soft" in content
+    assert "device.ld" in content
+    assert "startup.cpp" in content
+    assert "${ALLOY_DEVICE_ROOT}" in content
+
+
+def test_stm32g071rb_emits_cmake_toolchain_fragment(
+    execution_context: ExecutionContext,
+) -> None:
+    """The opt-in toolchain fragment for cortex-m0plus selects
+    arm-none-eabi-gcc as the cross-compiler."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/cmake/toolchain-cortex-m0plus.cmake"
+    assert p in arts
+    content = arts[p].content
+    assert "set(CMAKE_SYSTEM_NAME Generic)" in content
+    assert "set(CMAKE_SYSTEM_PROCESSOR arm)" in content
+    assert "set(CMAKE_C_COMPILER arm-none-eabi-gcc)" in content
+    assert "set(CMAKE_CXX_COMPILER arm-none-eabi-g++)" in content
+
+
+def test_emits_cmake_meta_package(
+    execution_context: ExecutionContext,
+) -> None:
+    """The top-level cmake/AlloyDeviceConfig.cmake resolves
+    find_package(AlloyDevice REQUIRED COMPONENTS stm32g071rb) by
+    including the per-device module."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    assert "cmake/AlloyDeviceConfig.cmake" in arts
+    assert "cmake/AlloyDeviceConfigVersion.cmake" in arts
+    config = arts["cmake/AlloyDeviceConfig.cmake"].content
+    assert '"stm32g071rb=st/stm32g0/generated/cmake/AlloyDevice-stm32g071rb.cmake"' in config
+    assert "AlloyDevice_FIND_COMPONENTS" in config
+    version = arts["cmake/AlloyDeviceConfigVersion.cmake"].content
+    assert "set(PACKAGE_VERSION" in version
