@@ -1,0 +1,9 @@
+# Pinned metadata for `data/known_devices.toml`.
+# Regenerate by re-running `tools/import_probe_rs_targets.py`
+# against a probe-rs checkout at the SHA below.
+
+probe_rs_sha = "seed-2026-04-27"
+imported_at_utc = "2026-04-27T00:00:00Z"
+tool_version = "ingest-probe-rs-target-catalog/v1"
+target_yaml_count = 13
+device_count = 13
