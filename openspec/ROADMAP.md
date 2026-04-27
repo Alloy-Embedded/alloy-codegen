@@ -111,3 +111,57 @@ items 1–3 are deliberately ordered for that reason: IRQ vectors
 unblock 5 driver kinds; DMA cross-refs unblock 4; kernel-clock
 unblocks 5 *but* requires the runtime-lite clock tree to consume
 the new field-ref shape, so it ships last in Stage 1.
+
+---
+
+## Scaling Track — toward 1000–2000 MCUs
+
+Separate from the driver-semantics depth track above, these 10
+changes attack scaling: collapsing per-MCU manual work, layering
+in cross-vendor data sources, and gating runtime C++ quality.
+Order optimised for "biggest unblock first".
+
+### Sprint 1 — quick wins (2–3 weeks, 1 dev)
+
+| # | Change | Effect |
+|---|---|---|
+| 1 | `add-vendor-adapter-registry` | Replace hard-coded `if vendor == ...` cascades with a decorator/registry — every later sprint depends on this |
+| 2 | `autogen-device-patches-from-svd` | Generate ~80% of per-device patch JSON from SVD + CMSIS-Pack; cuts per-MCU work from 180 → ~30 LOC |
+| 3 | `auto-update-goldens` | `ALLOY_UPDATE_GOLDENS=1` flag — stops the per-family copy-paste chore on emitter changes |
+
+### Sprint 2 — external sources (3–4 weeks)
+
+| # | Change | Effect |
+|---|---|---|
+| 4 | `ingest-probe-rs-target-catalog` | ~5,000-chip catalog imported as `data/known_devices.toml` — discoverability + admission scaffolding |
+| 5 | `ingest-zephyr-dts-as-source` | The cross-vendor spine — Zephyr DTS unlocks Nordic, Renesas, TI, Infineon, Ambiq, etc. through one adapter |
+
+### Sprint 3 — structural rewrite (4–5 weeks)
+
+| # | Change | Effect |
+|---|---|---|
+| 6 | `invert-patch-as-diff` | Patches become diffs over a source-derived baseline; per-MCU patches collapse 80–90% |
+
+### Sprint 4 — depth + STM32 deep dive (3 weeks)
+
+| # | Change | Effect |
+|---|---|---|
+| 7 | `peripheral-trait-template-library` | Tier 2/3/4 defaults inherited per `(class, ip_version)`; eliminates per-device duplication |
+| 8 | `ingest-modm-devices-as-source` | modm's clock-tree + DMA-matrix data layered behind patches; STM32 coverage matches modm |
+
+### Sprint 5 — runtime C++ quality gates (2 weeks)
+
+| # | Change | Effect |
+|---|---|---|
+| 9 | `add-runtime-cpp-smoke-compile-ci` | Every device's emitted headers compile cleanly in a freestanding clang job in CI |
+| 10 | `artifact-footprint-budget` | Per-artifact byte budgets + per-device overrides; caps blast radius as catalog grows |
+
+### What lands at the end
+
+- Per-MCU manual work drops from ~180 LOC to ~10–20 LOC.
+- New family admission via Zephyr DTS + adapter registry: ~500 LOC.
+- 1000–2000 MCUs becomes mechanically tractable; the bulk admission
+  is then a series of "import + autogen + minify + review" commits.
+- Runtime C++ output is gated by three layers: type-safety (smoke
+  compile), zero overhead (no string literals — existing gate),
+  bounded footprint (byte budget per artifact).
