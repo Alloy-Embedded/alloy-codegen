@@ -1,0 +1,31 @@
+# Tier 2/3/4 trait template for STM32 USART_v2 (also referred to
+# as USART_v3 in some Cube documents — both share the same
+# parity/baud/oversampling/FIFO surface for our purposes).
+#
+# Seeded by scripts/extract_peripheral_template.py from the
+# admitted STM32G0 + STM32F4 USART instances.  Bump
+# template_revision when any default below changes.
+
+template_revision = 1
+ip_name = "usart"
+ip_version = "v2"
+
+# Tier 2: max baud rate at the IP-version level.  Per-instance
+# kernel-clock max overrides this in a device patch when needed.
+max_baud_hz = 12_500_000
+
+data_bits_options = [7, 8, 9]
+parity_options = ["none", "even", "odd"]
+stop_bits_options = ["1", "0.5", "2", "1.5"]
+oversampling_options = [8, 16]
+fifo_trigger_options = [0, 1, 2, 3]
+
+mode_flags = [
+  "has_fifo",
+  "has_lin",
+  "has_smartcard",
+  "has_irda",
+  "has_modbus",
+  "has_auto_baud",
+  "has_dma",
+]

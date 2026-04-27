@@ -1,0 +1,18 @@
+# STM32 SPI_v2 — covers STM32F4 + STM32G0 SPI peripherals.
+template_revision = 1
+ip_name = "spi"
+ip_version = "v2"
+
+max_clock_hz = 50_000_000
+
+frame_size_options = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+baud_prescaler_options = [2, 4, 8, 16, 32, 64, 128, 256]
+fifo_threshold_options = [0, 1, 2, 3]
+
+mode_flags = [
+  "has_motorola",
+  "has_ti",
+  "has_crc",
+  "has_dma",
+  "has_fifo",
+]

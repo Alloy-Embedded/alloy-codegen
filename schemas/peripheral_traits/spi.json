@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://alloy-embedded.dev/schemas/peripheral_traits/spi.json",
+  "title": "SPI peripheral-trait template",
+  "description": "Tier 2/3/4 trait values for one SPI IP version.  See peripheral-trait-template-library.",
+  "type": "object",
+  "required": ["template_revision", "ip_name", "ip_version"],
+  "properties": {
+    "template_revision": {"type": "integer", "minimum": 1},
+    "ip_name": {"type": "string"},
+    "ip_version": {"type": "string"},
+    "max_clock_hz": {"type": "integer", "minimum": 0},
+    "frame_size_options": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 4, "maximum": 32},
+      "description": "Supported frame-size widths in bits."
+    },
+    "baud_prescaler_options": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "Supported divider exponents (e.g. [2, 4, 8, 16, 32, 64, 128, 256])."
+    },
+    "fifo_threshold_options": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "Supported FIFO threshold byte counts."
+    },
+    "mode_flags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Boolean capability flags (e.g. 'has_motorola', 'has_ti', 'has_quad', 'has_octospi')."
+    }
+  },
+  "additionalProperties": false
+}

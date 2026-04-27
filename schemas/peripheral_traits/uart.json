@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://alloy-embedded.dev/schemas/peripheral_traits/uart.json",
+  "title": "UART peripheral-trait template",
+  "description": "Tier 2/3/4 trait values for one (ip_name='usart'|'lpuart', ip_version=...) IP version.  Added by the peripheral-trait-template-library OpenSpec change.  Templates live at data/peripheral_traits/uart/<ip_version>.toml and are joined to peripheral instances by (ip_name, ip_version) during normalization.",
+  "type": "object",
+  "required": ["template_revision", "ip_name", "ip_version"],
+  "properties": {
+    "template_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Bumps when any default below changes; recorded in per-peripheral provenance so device patches can pin against a known revision."
+    },
+    "ip_name": {
+      "type": "string",
+      "description": "Canonical IP name (matches PeripheralInstance.ip_name)."
+    },
+    "ip_version": {
+      "type": "string",
+      "description": "Canonical IP version (matches PeripheralInstance.ip_version)."
+    },
+    "max_baud_hz": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Maximum baud rate the IP can clock (Tier 2)."
+    },
+    "data_bits_options": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 5, "maximum": 16},
+      "description": "Supported data-bit widths."
+    },
+    "parity_options": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["none", "even", "odd"]},
+      "description": "Supported parity modes."
+    },
+    "stop_bits_options": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Supported stop-bit configurations (e.g. '1', '0.5', '2', '1.5')."
+    },
+    "oversampling_options": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "Supported baud oversampling factors (e.g. [8, 16])."
+    },
+    "fifo_trigger_options": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "Supported FIFO threshold values (in bytes)."
+    },
+    "mode_flags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Boolean capability flags supported by this IP version (e.g. 'has_fifo', 'has_lin', 'has_smartcard', 'has_irda')."
+    }
+  },
+  "additionalProperties": false
+}

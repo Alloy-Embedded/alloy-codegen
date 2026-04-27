@@ -1,0 +1,17 @@
+# Nordic nRF52 UART (legacy non-EasyDMA variant).  Seeded for
+# the ingest-zephyr-dts-as-source admission.
+template_revision = 1
+ip_name = "nrf-uart"
+ip_version = "v1"
+
+max_baud_hz = 1_000_000
+
+data_bits_options = [8]
+parity_options = ["none", "even"]
+stop_bits_options = ["1"]
+oversampling_options = [16]
+fifo_trigger_options = []
+
+mode_flags = [
+  "has_hardware_flow_control",
+]

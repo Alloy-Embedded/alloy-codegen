@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://alloy-embedded.dev/schemas/peripheral_traits/i2c.json",
+  "title": "I2C peripheral-trait template",
+  "description": "Tier 2/3/4 trait values for one I2C IP version.  See peripheral-trait-template-library.",
+  "type": "object",
+  "required": ["template_revision", "ip_name", "ip_version"],
+  "properties": {
+    "template_revision": {"type": "integer", "minimum": 1},
+    "ip_name": {"type": "string"},
+    "ip_version": {"type": "string"},
+    "speed_modes": {
+      "type": "array",
+      "items": {"type": "string", "enum": ["standard", "fast", "fast_plus", "high_speed"]},
+      "description": "Supported I2C speed modes."
+    },
+    "max_speed_hz_per_mode": {
+      "type": "object",
+      "additionalProperties": {"type": "integer"},
+      "description": "Max clock per supported speed mode (e.g. {'standard': 100000, 'fast': 400000})."
+    },
+    "mode_flags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Boolean capability flags (e.g. 'has_smbus', 'has_pec', 'has_dual_address', 'has_dma')."
+    },
+    "address_widths": {
+      "type": "array",
+      "items": {"type": "integer", "enum": [7, 10]},
+      "description": "Supported address widths in bits."
+    }
+  },
+  "additionalProperties": false
+}

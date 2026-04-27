@@ -1,0 +1,19 @@
+# NXP MCUXpresso LPUART_v1 — covers iMXRT1060 LPUART1..LPUART8.
+template_revision = 1
+ip_name = "lpuart"
+ip_version = "v1"
+
+max_baud_hz = 8_000_000
+
+data_bits_options = [7, 8, 9, 10]
+parity_options = ["none", "even", "odd"]
+stop_bits_options = ["1", "2"]
+oversampling_options = [4, 8, 16, 32]
+fifo_trigger_options = [0, 1, 2, 3, 4]
+
+mode_flags = [
+  "has_fifo",
+  "has_dma",
+  "has_idle_detect",
+  "has_smartcard",
+]

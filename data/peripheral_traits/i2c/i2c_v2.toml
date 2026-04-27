@@ -1,0 +1,20 @@
+# STM32 I2C_v2 (G0 + F4 share the same speed surface).
+template_revision = 1
+ip_name = "i2c"
+ip_version = "v2"
+
+speed_modes = ["standard", "fast", "fast_plus"]
+
+[max_speed_hz_per_mode]
+standard = 100_000
+fast = 400_000
+fast_plus = 1_000_000
+
+mode_flags = [
+  "has_smbus",
+  "has_pec",
+  "has_dual_address",
+  "has_dma",
+]
+
+address_widths = [7, 10]

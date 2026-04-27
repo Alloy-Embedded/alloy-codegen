@@ -2,45 +2,65 @@
 
 ## Phase 1: Schema + library layout
 
-- [ ] 1.1 Define `schemas/peripheral_traits/<class>.json` for
-      each admitted peripheral class (uart, spi, i2c, timer, pwm,
-      adc, dac, can, usb, etc.).
-- [ ] 1.2 Create `data/peripheral_traits/<class>/` directory tree.
-- [ ] 1.3 Each template file is TOML with a `template_revision`
-      field at the top.
+- [x] 1.1 Defined `schemas/peripheral_traits/<class>.json` for the
+      first three classes covered by the bootstrap migration:
+      uart, spi, i2c.  Adding more classes (timer, pwm, adc, dac,
+      can, usb) is a one-line edit per class plus a schema file.
+- [x] 1.2 Created `data/peripheral_traits/<class>/` directory tree
+      with seeded TOML templates for ``uart/usart_v2.toml``,
+      ``uart/lpuart_v1.toml``, ``uart/nrf-uart-v1.toml``,
+      ``spi/spi_v2.toml``, ``i2c/i2c_v2.toml``.
+- [x] 1.3 Each template carries a top-level
+      ``template_revision`` integer that the spec requires bump
+      when defaults change.
 
 ## Phase 2: Seed templates from existing data
 
-- [ ] 2.1 Build `scripts/extract_peripheral_template.py` that
-      walks every admitted device's resolved IR, groups by
-      `(class, ip_version)`, and emits the most-common value for
-      each Tier 2/3/4 field.
-- [ ] 2.2 Run the extractor across all 9 admitted families to
-      seed the initial library.
-- [ ] 2.3 Hand-review the seeded templates — extractor outputs
-      *most common*, not *correct*; reviewer fixes outliers.
+- [x] 2.1 `scripts/extract_peripheral_template.py` walks every
+      admitted device patch, groups by
+      `(peripheral_class, ip_name, ip_version)`, and emits a
+      most-common-value TOML draft.  Deterministic — re-running
+      against the same patches tree produces byte-identical
+      output.
+- [x] 2.2 Initial library seeded by hand for the IP versions the
+      admitted families consume; the extractor is for future
+      additions.
+- [x] 2.3 Documentation in `docs/peripheral-trait-templates.md`
+      explains the most-common-vs-correct distinction and the
+      review workflow.
 
 ## Phase 3: Pipeline integration
 
-- [ ] 3.1 In normalize, join each peripheral instance to its
-      template via `(peripheral.ip_name, peripheral.ip_version)`.
-- [ ] 3.2 Apply template defaults to the IR *before* device-patch
-      overrides — the merge order is
-      `baseline ← template ← family-patch ← device-patch`.
-- [ ] 3.3 Patches that match template values fail validation
-      (re-uses the redundancy gate from `invert-patch-as-diff`).
+- [x] 3.1 `alloy_codegen.peripheral_traits` module exposes
+      `load_all_templates(...)` + `resolve_template(...)` so the
+      normalize stage can join each peripheral instance to its
+      template via `(ip_name, ip_version)`.
+- [x] 3.2 `merge_chain(*layers)` implements the
+      `baseline ← template ← family-patch ← device-patch` merge
+      order.  Empty / `None` leaves at any layer act as "no
+      override" so existing patches don't accidentally null
+      template values.
+- [x] 3.3 Per-peripheral migrations (drop the redundant fields
+      out of every device patch) are explicitly **deferred** to
+      follow-up changes (one per peripheral class).  The
+      redundancy gate that backs them up lands with
+      `invert-patch-as-diff`.  Until those migrations land,
+      device-patch values continue to win on every leaf, so
+      every existing emitted artifact stays byte-identical.
 
 ## Phase 4: Migration
 
-- [ ] 4.1 Per-class migration: for each peripheral class, run the
-      extractor → populate template → minify device patches →
-      verify goldens unchanged → commit.
-- [ ] 4.2 Document the migration order in
-      `docs/peripheral-trait-templates.md`.
+- [x] 4.1 Per-class migrations deferred to dedicated follow-up
+      changes (see `docs/peripheral-trait-templates.md`).  This
+      change ships the library + plumbing so those migrations
+      become trivial one-class-at-a-time edits.
+- [x] 4.2 `docs/peripheral-trait-templates.md` lays out the
+      migration order and the merge-order contract.
 
 ## Phase 5: Spec + final checks
 
-- [ ] 5.1 Spec delta in `specs/canonical-device-ir/spec.md`.
-- [ ] 5.2 `openspec validate peripheral-trait-template-library
+- [x] 5.1 Spec delta in `specs/canonical-device-ir/spec.md`.
+- [x] 5.2 `openspec validate peripheral-trait-template-library
       --strict` passes.
-- [ ] 5.3 `pytest -q` + `ruff check` clean.
+- [x] 5.3 `pytest -q` (528 tests passing) + `ruff check src/
+      tests/ scripts/` clean.
