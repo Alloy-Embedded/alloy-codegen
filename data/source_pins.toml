@@ -1,0 +1,19 @@
+# Pinned upstream source revisions consumed by the alloy
+# enrichment adapters.  Each `[<source_id>]` section records the
+# git SHA the integration was last validated against.  Adapter
+# loaders (e.g. `alloy_codegen.sources.modm_devices`) compare this
+# pin against the on-disk checkout's git HEAD and fail with a
+# clear drift message unless the caller passes
+# `--accept-stale-sources`.
+#
+# Bumping a pin is a reviewable diff: the entire source tree
+# changed under our feet, and the goldens / tests must be re-run
+# to confirm the new revision still produces a structurally
+# compatible IR fragment.
+
+[modm_devices]
+# Set to "" to disable the stale-source guard and accept any
+# checkout content.  When committed with a real SHA, the
+# adapter rejects loads from a divergent checkout.
+sha = ""
+origin_url = "https://github.com/modm-io/modm-devices"

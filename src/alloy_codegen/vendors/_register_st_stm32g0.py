@@ -6,6 +6,15 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.sources.cmsis_svd import fetch_records as fetch_svd_records
+from alloy_codegen.sources.modm_devices import (
+    apply_modm_enrichment,
+)
+from alloy_codegen.sources.modm_devices import (
+    fetch_records as fetch_modm_records,
+)
+from alloy_codegen.sources.modm_devices import (
+    load_enrichment as load_modm_enrichment,
+)
 from alloy_codegen.sources.stm32_open_pin_data import fetch_records as fetch_pin_records
 
 from .registry import VendorAdapter, register_vendor_adapter
@@ -17,6 +26,7 @@ def _fetch(
     return (
         *fetch_svd_records(execution_context, scope),
         *fetch_pin_records(execution_context, scope),
+        *fetch_modm_records(execution_context, scope),
     )
 
 
@@ -31,12 +41,20 @@ def _normalize(
     # back to its private builder at registration time would cycle.
     from alloy_codegen.stages.normalize import _build_st_device_ir
 
-    return _build_st_device_ir(
+    device = _build_st_device_ir(
         execution_context=execution_context,
         device_name=device_name,
         vendor=vendor,
         family=family,
     )
+    # Layer modm-devices enrichment below the patch layer (which the
+    # ST builder already applied).  Only fills DMA-request gaps; the
+    # patch tier wins on conflict.  No-op when no `modm-devices`
+    # source override is configured.
+    enrichment = load_modm_enrichment(
+        execution_context, vendor=vendor, family=family, device=device_name
+    )
+    return apply_modm_enrichment(device, enrichment)  # type: ignore[return-value]
 
 
 @register_vendor_adapter("st", "stm32g0")
