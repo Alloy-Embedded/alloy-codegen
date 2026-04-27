@@ -1,0 +1,304 @@
+# Per-artifact byte-size budgets (artifact-footprint-budget).
+#
+# The publish stage compares every emitted artifact's UTF-8 byte
+# size against the matching entry below.  An exceedance of `warn`
+# surfaces in the publication's warnings; an exceedance of `fail`
+# aborts the build unless an explicit override exists in
+# `data/artifact_footprint_overrides.toml`.
+#
+# Values are derived from the largest currently admitted device's
+# actual output (SAME70 / RP2040 / ESP32-C3 worst cases) plus 25%
+# / 50% headroom so the gate is non-disruptive on day one — no
+# admitted device fails today, and any new emitter regression
+# that grows output beyond ~50% of the worst-case baseline trips
+# the gate.
+#
+# Units are bytes.  Each entry matches an artifact basename
+# (path-suffix).  A `default` entry catches artifacts that have
+# no explicit row; pick conservative numbers there to keep
+# diagnostic noise low.
+
+[default]
+# Catch-all for emitted JSON manifests that scale with device
+# complexity.  Set generously so day-1 devices don't trip;
+# tighten in follow-up changes after the per-class budgets are
+# refined.
+warn = 16777216  # 16 MiB
+fail = 33554432  # 32 MiB
+
+# ---------------------------------------------------------------------------
+# Generated runtime C++ headers — one per artifact name.
+# ---------------------------------------------------------------------------
+
+[artifact."register_fields.hpp"]
+# SAME70 ATDF expands to ~5 MB of typed field descriptors today.
+warn = 7340032   # 7 MiB
+fail = 10485760  # 10 MiB
+
+[artifact."registers.hpp"]
+# SAME70 worst-case: 468 KB.
+warn = 786432    # 768 KiB  (1.68× current)
+fail = 1310720   # 1.25 MiB
+
+[artifact."routes.hpp"]
+# RP2040 worst-case: 396 KB.
+warn = 524288    # 512 KiB
+fail = 1048576   # 1 MiB
+
+[artifact."connectors.hpp"]
+# RP2040 worst-case: 378 KB.
+warn = 524288    # 512 KiB
+fail = 1048576
+
+[artifact."capabilities.hpp"]
+# SAME70 worst-case: 347 KB.
+warn = 524288    # 512 KiB
+fail = 1048576
+
+[artifact."gpio.hpp"]
+# SAME70 worst-case: 261 KB.
+warn = 393216    # 384 KiB
+fail = 786432
+
+[artifact."pin_validation.hpp"]
+# SAME70 worst-case: 102 KB; iMXRT1060 expected to grow with full
+# IOMUX coverage in future admissions.
+warn = 196608    # 192 KiB
+fail = 393216
+
+[artifact."uart.hpp"]
+# SAME70 worst-case: 86 KB.
+warn = 131072    # 128 KiB
+fail = 262144
+
+[artifact."timer.hpp"]
+# Largest current: 54 KB.
+warn = 81920
+fail = 163840
+
+[artifact."pwm.hpp"]
+warn = 81920
+fail = 163840
+
+[artifact."i2c.hpp"]
+warn = 49152     # 48 KiB
+fail = 98304
+
+[artifact."spi.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."adc.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."can.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."peripheral_instances.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."system_clock.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."clock_bindings.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."dma.hpp"]
+warn = 49152
+fail = 98304
+
+[artifact."dma_bindings.hpp"]
+warn = 32768     # 32 KiB
+fail = 65536
+
+[artifact."interrupt_stubs.hpp"]
+warn = 32768
+fail = 65536
+
+[artifact."enable_domains.hpp"]
+warn = 24576     # 24 KiB
+fail = 49152
+
+[artifact."watchdog.hpp"]
+warn = 16384     # 16 KiB
+fail = 32768
+
+[artifact."startup.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."rtc.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."pins.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."common.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."dac.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."systick.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."eth.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."sdmmc.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."qspi.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."system_sequences.hpp"]
+warn = 12288     # 12 KiB
+fail = 24576
+
+[artifact."pio.hpp"]
+warn = 8192
+fail = 16384
+
+[artifact."interrupts.hpp"]
+warn = 12288
+fail = 24576
+
+[artifact."usb.hpp"]
+warn = 8192
+fail = 16384
+
+[artifact."types.hpp"]
+warn = 16384
+fail = 32768
+
+[artifact."resets.hpp"]
+warn = 8192
+fail = 16384
+
+[artifact."low_power.hpp"]
+warn = 8192
+fail = 16384
+
+[artifact."clock_graph.hpp"]
+warn = 8192
+fail = 16384
+
+[artifact."clock_profiles.hpp"]
+warn = 4096
+fail = 8192
+
+[artifact."clock_config.hpp"]
+warn = 4096
+fail = 8192
+
+# ---------------------------------------------------------------------------
+# Metadata + report JSON.  Sizes track device complexity.
+# ---------------------------------------------------------------------------
+
+[artifact."atsame70q21b.json"]
+# SAME70 ATDF + register_fields explosion produces a ~9.7 MB
+# sidecar today.  Bumped well above the catch-all so the per-
+# device entry trips only on a future regression.
+warn = 13631488  # 13 MiB
+fail = 16777216  # 16 MiB
+
+[artifact."atsame70n21b.json"]
+warn = 13631488
+fail = 16777216
+
+[artifact."esp32c3.json"]
+warn = 4194304   # 4 MiB
+fail = 8388608
+
+[artifact."esp32.json"]
+warn = 4194304
+fail = 8388608
+
+[artifact."esp32s3.json"]
+warn = 4194304
+fail = 8388608
+
+[artifact."connectors.json"]
+warn = 3145728   # 3 MiB
+fail = 6291456
+
+[artifact."runtime-provenance.json"]
+warn = 2621440   # 2.5 MiB
+fail = 5242880
+
+[artifact."runtime-explainability.json"]
+warn = 2097152   # 2 MiB
+fail = 4194304
+
+[artifact."capabilities.json"]
+warn = 786432    # 768 KiB
+fail = 1572864
+
+[artifact."system-descriptors.json"]
+warn = 786432
+fail = 1572864
+
+[artifact."rp2040.json"]
+warn = 786432
+fail = 1572864
+
+[artifact."pico.json"]
+warn = 786432
+fail = 1572864
+
+[artifact."family-connectivity.json"]
+warn = 524288    # 512 KiB
+fail = 1048576
+
+[artifact."mimxrt1062.json"]
+warn = 524288
+fail = 1048576
+
+[artifact."mimxrt1064.json"]
+warn = 524288
+fail = 1048576
+
+[artifact."stm32g071rb.json"]
+warn = 262144    # 256 KiB
+fail = 524288
+
+[artifact."stm32g0b1re.json"]
+warn = 262144
+fail = 524288
+
+[artifact."stm32g030f6.json"]
+warn = 262144
+fail = 524288
+
+[artifact."stm32f401re.json"]
+warn = 262144
+fail = 524288
+
+[artifact."stm32f405rg.json"]
+warn = 262144
+fail = 524288
+
+[artifact."avr128da32.json"]
+warn = 262144
+fail = 524288
+
+[artifact."packages.json"]
+warn = 262144
+fail = 524288
+
+[artifact."validation-report.json"]
+warn = 196608    # 192 KiB
+fail = 393216

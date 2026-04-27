@@ -1,0 +1,27 @@
+# Per-device exemptions for `data/artifact_footprint_budget.toml`
+# (artifact-footprint-budget).
+#
+# Each entry permits a specific
+# `(vendor, family, device, artifact_name)` tuple to exceed the
+# global default budget without relaxing it for any other device
+# sharing the same artifact name.
+#
+# Use this when a known-large device (e.g. an iMXRT with 800
+# pinmux candidates) would breach the default budget but the
+# size is intentional.  Bumping a value here is a reviewable
+# diff: every entry should carry a one-line rationale comment so
+# future maintainers see why the override exists.
+#
+# Schema::
+#
+#     [[override]]
+#     vendor = "nxp"
+#     family = "imxrt1060"
+#     device = "mimxrt1062"
+#     artifact = "pin_validation.hpp"
+#     warn = 262144     # 256 KiB
+#     fail = 524288     # 512 KiB
+#     rationale = "iMXRT1060 ships 800 IOMUX pin candidates; ..."
+#
+# Initially empty — every admitted device fits within the global
+# defaults set in `data/artifact_footprint_budget.toml`.

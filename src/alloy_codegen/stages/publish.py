@@ -14,6 +14,10 @@ from alloy_codegen.emission import (
     emit_publication_summary,
     materialize_artifacts,
 )
+from alloy_codegen.footprint_budget import (
+    evaluate_artifacts,
+    format_violation_message,
+)
 from alloy_codegen.publication import (
     compute_target_artifact_revision,
     emit_publication_record,
@@ -138,6 +142,40 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             warnings=(
                 "Publication is blocked because runtime-lite artifacts are incomplete or still "
                 f"depend on reflection payloads: {sample}",
+            ),
+        )
+    # artifact-footprint-budget: cap per-artifact byte size so the
+    # consumer's compile-time + firmware-image blast radius stays
+    # bounded as the device catalog grows.  ``warn`` exceedances
+    # surface as warnings; ``fail`` exceedances abort the build
+    # unless an override entry covers the offending tuple.
+    footprint_violations = evaluate_artifacts(
+        artifacts=emit_result.payload.artifacts,
+        vendor=emit_result.scope.resolved_vendor(),
+        family=emit_result.scope.resolved_family(),
+    )
+    fail_violations = tuple(v for v in footprint_violations if v.severity == "fail")
+    warn_violations = tuple(v for v in footprint_violations if v.severity == "warn")
+    if fail_violations:
+        sample = "; ".join(format_violation_message(v) for v in fail_violations[:3])
+        if len(fail_violations) > 3:
+            sample = f"{sample}; ..."
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(
+                "Publication is blocked because emitted artifacts exceed their "
+                f"declared footprint budgets: {sample}",
             ),
         )
     runtime_report_violations = find_runtime_report_violations(
@@ -291,5 +329,5 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             publication_summary=materialized_summary,
             draft_system_descriptor_domains=draft_system_descriptor_domains,
         ),
-        warnings=(),
+        warnings=tuple(format_violation_message(v) for v in warn_violations),
     )
