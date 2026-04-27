@@ -25,6 +25,10 @@ DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = {
     ("microchip", "avr-da"): ("avr128da32",),
     ("nxp", "imxrt1060"): ("mimxrt1062", "mimxrt1064"),
     ("raspberrypi", "rp2040"): ("pico", "rp2040"),
+    # ingest-zephyr-dts-as-source: Nordic nRF52 admitted via the
+    # cross-vendor Zephyr-DTS adapter.  Same plumbing will unlock
+    # Renesas / TI / Infineon / Ambiq in follow-up changes.
+    ("nordic", "nrf52"): ("nrf52840",),
 }
 
 SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
@@ -37,6 +41,7 @@ SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
     ("microchip", "avr-da"): ("microchip-dfp-pack", "microchip-dfp-extract"),
     ("nxp", "imxrt1060"): ("nxp-mcux-soc-svd", "nxp-mcux-sdk"),
     ("raspberrypi", "rp2040"): ("pico-sdk",),
+    ("nordic", "nrf52"): ("zephyr-dts",),
 }
 
 # Flat reverse map for auto-resolving family from device name.

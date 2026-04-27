@@ -141,6 +141,7 @@ def _families_with_core_prefix(prefixes: tuple[str, ...]) -> tuple[tuple[str, st
         ("espressif", "esp32s3"): "xtensa-lx7",
         ("microchip", "avr-da"): "avr8",
         ("microchip", "same70"): "cortex-m7f",
+        ("nordic", "nrf52"): "cortex-m4f",
         ("nxp", "imxrt1060"): "cortex-m7f",
         ("raspberrypi", "rp2040"): "cortex-m0plus-dual",
         ("st", "stm32f4"): "cortex-m4f",

@@ -14,6 +14,7 @@ from . import (
     _register_espressif,  # noqa: F401
     _register_microchip_avr_da,  # noqa: F401
     _register_microchip_same70,  # noqa: F401
+    _register_nordic_nrf52,  # noqa: F401  — ingest-zephyr-dts-as-source
     _register_nxp_imxrt1060,  # noqa: F401
     _register_raspberrypi_rp2040,  # noqa: F401
     _register_st_stm32f4,  # noqa: F401

@@ -38,6 +38,11 @@ _NOT_IN_PROBE_RS: dict[tuple[str, str, str], str] = {
     ("raspberrypi", "rp2040", "pico"): (
         "Pico is a board, not a chip; the chip entry rp2040 covers it"
     ),
+    ("nordic", "nrf52", "nrf52840"): (
+        "ingest-zephyr-dts-as-source: Nordic admitted via Zephyr DTS, "
+        "not yet imported into data/known_devices.toml.  Adding it to "
+        "the catalog is a follow-up under the bulk-import flow."
+    ),
 }
 
 

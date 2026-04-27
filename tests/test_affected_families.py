@@ -87,6 +87,7 @@ def test_cortex_m_runtime_emitter_scopes_to_cortex_m_families() -> None:
     assert affected.all_families is False
     expected = {
         ("microchip", "same70"),
+        ("nordic", "nrf52"),
         ("nxp", "imxrt1060"),
         ("raspberrypi", "rp2040"),
         ("st", "stm32f4"),

@@ -12,7 +12,12 @@ license = { text = "MIT" }
 authors = [
   { name = "Alloy Embedded" },
 ]
-dependencies = []
+dependencies = [
+    # ingest-zephyr-dts-as-source: parse Zephyr DTS files in
+    # ``alloy_codegen.sources.zephyr_dts``.  ``devicetree>=0.0.2`` ships
+    # ``dtlib`` (low-level structural parser) and ``edtlib`` (binding-aware).
+    "devicetree>=0.0.2",
+]
 
 [project.scripts]
 alloy-codegen = "alloy_codegen.cli:main"

@@ -1,0 +1,88 @@
+/*
+ * Minimal Zephyr-style DTS fixture for the Nordic nRF52840.
+ *
+ * Snapshotted under tests/fixtures/zephyr-dts/ for the
+ * `ingest-zephyr-dts-as-source` change.  Real Zephyr builds use
+ * dts/arm/nordic/nrf52840.dtsi included into a board.dts; this
+ * fixture is pre-flattened so the adapter can be exercised
+ * without dragging in the full Zephyr binding tree.
+ *
+ * Carries enough peripherals to assert the adapter extracts the
+ * canonical Nordic peripheral set (UART, SPI, TWI/I2C, TIMER,
+ * RTC, GPIO).
+ */
+/dts-v1/;
+
+/ {
+    compatible = "nordic,nrf52840";
+    model = "Nordic nRF52840";
+
+    soc {
+        compatible = "simple-bus";
+
+        sram0: memory@20000000 {
+            compatible = "mmio-sram";
+            reg = <0x20000000 0x40000>;
+        };
+
+        flash0: flash@0 {
+            compatible = "soc-nv-flash";
+            reg = <0x0 0x100000>;
+        };
+
+        uart0: uart@40002000 {
+            compatible = "nordic,nrf-uart";
+            reg = <0x40002000 0x1000>;
+            interrupts = <2 1>;
+            status = "okay";
+        };
+
+        spi0: spi@40003000 {
+            compatible = "nordic,nrf-spi";
+            reg = <0x40003000 0x1000>;
+            interrupts = <3 1>;
+            status = "okay";
+        };
+
+        i2c0: i2c@40003100 {
+            compatible = "nordic,nrf-twi";
+            reg = <0x40003100 0x1000>;
+            interrupts = <3 1>;
+            status = "okay";
+        };
+
+        timer0: timer@40008000 {
+            compatible = "nordic,nrf-timer";
+            reg = <0x40008000 0x1000>;
+            interrupts = <8 1>;
+            status = "okay";
+        };
+
+        rtc0: rtc@4000b000 {
+            compatible = "nordic,nrf-rtc";
+            reg = <0x4000b000 0x1000>;
+            interrupts = <11 1>;
+            status = "okay";
+        };
+
+        gpio0: gpio@50000000 {
+            compatible = "nordic,nrf-gpio";
+            reg = <0x50000000 0x300>;
+            status = "okay";
+        };
+
+        wdt0: wdt@40010000 {
+            compatible = "nordic,nrf-wdt";
+            reg = <0x40010000 0x1000>;
+            interrupts = <16 1>;
+            status = "okay";
+        };
+
+        clock: clock@40000000 {
+            compatible = "nordic,nrf-clock";
+            reg = <0x40000000 0x1000>;
+            interrupts = <0 1>;
+            status = "okay";
+        };
+    };
+};

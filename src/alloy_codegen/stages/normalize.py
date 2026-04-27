@@ -2718,6 +2718,137 @@ def build_rp2040_canonical_ir(
     )
 
 
+def _build_zephyr_dts_device_ir(
+    *,
+    execution_context: ExecutionContext,
+    device_name: str,
+    vendor: str,
+    family: str,
+) -> CanonicalDeviceIR:
+    """Build canonical IR for a device admitted via the Zephyr DTS adapter.
+
+    Added by ``ingest-zephyr-dts-as-source``.  This is the
+    cross-vendor spine — the same builder serves Nordic (initial
+    admission), and follow-up changes plug Renesas / TI / Infineon
+    / Ambiq behind the same call by widening the compatible-map in
+    ``alloy_codegen.sources.zephyr_dts.COMPATIBLE_MAPS``.
+
+    Scope (v1):
+      * identity, memories, packages from the device + family patches
+      * peripherals + interrupts extracted from the resolved
+        ``.dts`` and filtered to the patch's peripheral allowlist
+      * empty registers / register_fields / connection_candidates
+        / clock_nodes / dma — these land in follow-up changes
+        (pinctrl decoder, clock-tree edges)
+    """
+    from alloy_codegen.sources.zephyr_dts import (
+        compatible_map_for_vendor,
+        parse_zephyr_device_document,
+        resolve_dts_path,
+    )
+
+    patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
+    family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
+    dts_path = resolve_dts_path(
+        execution_context, vendor=vendor, family=family, device=device_name
+    )
+    compatible_map = compatible_map_for_vendor(vendor)
+    document = parse_zephyr_device_document(dts_path, compatible_map=compatible_map)
+
+    patch_ids: tuple[str, ...] = (
+        (patch.family_patch_id, patch.patch_id)
+        if patch.family_patch_id is not None
+        else (patch.patch_id,)
+    )
+    dts_provenance = Provenance(
+        source_id="zephyr-dts",
+        source_path=str(dts_path.name),
+        patch_ids=patch_ids,
+    )
+    patch_provenance = Provenance(
+        source_id="bootstrap-patch",
+        source_path=f"patches/{vendor}/{family}/devices/{patch.device}.json",
+        patch_ids=patch_ids,
+    )
+
+    # Peripheral instance allowlist: device patch enumerates which
+    # DTS-discovered peripherals to admit into the IR (mirrors the
+    # AVR-DA pattern — DTS exposes many; the patch curates a
+    # bootstrap subset).
+    allowed_peripheral_names = frozenset(p.name for p in patch.peripherals)
+    peripheral_patches = _peripheral_patch_map(patch)
+    family_peripheral_patches = {p.name: p for p in family_catalog.peripherals}
+
+    peripherals: list[PeripheralInstance] = []
+    for raw_peripheral in document.raw.peripherals:
+        canonical = _canonical_peripheral_name(raw_peripheral.name)
+        if allowed_peripheral_names and canonical not in allowed_peripheral_names:
+            continue
+        # Prefer device-patch metadata; fall back to family catalog.
+        meta = peripheral_patches.get(canonical)
+        ip_version = meta.ip_version if meta is not None else None
+        if ip_version is None and canonical in family_peripheral_patches:
+            ip_version = family_peripheral_patches[canonical].ip_version
+        peripherals.append(
+            _peripheral_to_ir(
+                peripheral_name=canonical,
+                base_address=raw_peripheral.base_address,
+                patch_metadata=meta,
+                ip_version=ip_version,
+                provenance=dts_provenance,
+            )
+        )
+
+    interrupts = _normalize_interrupts(
+        document.raw.interrupts,
+        provenance=dts_provenance,
+        peripheral_aliases={},
+        patch_interrupts=patch.interrupts,
+        patch_provenance=patch_provenance,
+    )
+    if allowed_peripheral_names:
+        interrupts = tuple(
+            irq
+            for irq in interrupts
+            if irq.peripheral is None or irq.peripheral in allowed_peripheral_names
+        )
+
+    package = next(
+        (pkg for pkg in family_catalog.packages if pkg.name == patch.package),
+        None,
+    )
+    packages = (
+        (
+            PackageDefinition(
+                name=patch.package,
+                pin_count=package.pin_count if package is not None else 0,
+                provenance=dts_provenance,
+            ),
+        )
+        if patch.package
+        else ()
+    )
+
+    return CanonicalDeviceIR(
+        schema_version=IR_SCHEMA_VERSION,
+        identity=DeviceIdentity(
+            vendor=vendor,
+            family=family,
+            device=patch.device,
+            package=patch.package or "",
+            core=patch.core,
+            summary=patch.summary,
+        ),
+        memories=tuple(_memory_to_ir(memory, patch_provenance) for memory in patch.memories),
+        packages=packages,
+        pins=(),
+        peripherals=tuple(peripherals),
+        interrupts=interrupts,
+        dma_requests=(),
+        provenance=dts_provenance,
+    )
+
+
 def _build_rp2040_device_ir(
     *,
     execution_context: ExecutionContext,
