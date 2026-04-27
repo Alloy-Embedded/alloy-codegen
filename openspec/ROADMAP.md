@@ -218,3 +218,75 @@ work.  These are queued in priority order.
   admission as mechanical work.
 - Header bloat down ~30% on the worst offenders (iMXRT PWM,
   TIMER, capabilities) — locked in by the footprint-budget gate.
+
+---
+
+## Architectural Pivot — Three-Repo Split
+
+After Phase-2 was drafted, an architectural rethink concluded
+that the alloy-codegen monolith should split into three repos
+(matching what modm-data/modm-devices and Embassy's
+stm32-data-gen/stm32-data did, plus extending coverage to PIC
+and other categories no OSS framework reaches).
+
+### The four foundational changes
+
+| Order | Change | Effect |
+|---|---|---|
+| 1 | `define-canonical-device-yaml-schema` | Stable text form for `CanonicalDeviceIR` — JSON Schema + round-trip contract.  Foundation of everything below. |
+| 2 | `extract-alloy-devices-data-repo` | Spin out `alloy-devices-yml` (data only).  alloy-codegen consumes via git submodule.  Existing 17 admitted devices migrate first. |
+| 3 | `add-alloy-data-extractor-repo` | Spin out `alloy-data-extractor` — Python ETL for every vendor source (CMSIS-SVD, ATDF/PIC/AVR, MCUXpresso, ESP-IDF, Zephyr DTS, STM32 CubeMX, modm-data PDF, Pico SDK, datasheet scraping).  Generates YAML into the data repo. |
+| 4 | `bulk-admit-from-alloy-devices-yml` | alloy-codegen's `DEVICE_REGISTRY` becomes filesystem-derived from `data/devices/`.  Adding a chip = committing a YAML.  Sharded CI matrix runs over thousands of devices. |
+
+### What this supersedes
+
+- ❌ **`add-bulk-admission-flow`** (deleted) — the original flow
+  assumed data lived in alloy-codegen.  Replaced by
+  `bulk-admit-from-alloy-devices-yml` which is simpler because
+  data already canonical.
+- ❌ **`migrate-existing-mcus-to-template-and-diff-format`**
+  (deleted) — the migration of existing patches IS the YAML
+  emission step in `extract-alloy-devices-data-repo`.
+
+### What stays from Phase-2
+
+These remain valid as codegen-side changes (or as extractor-side
+changes after the split — the `WHAT` doesn't move, only the
+`WHERE`):
+
+- `extend-zephyr-dts-vendor-coverage` (extractor side)
+- `decode-zephyr-pinctrl-into-connection-candidates` (extractor side)
+- `migrate-uart-emitter-to-template-library` (codegen side)
+- `populate-imxrt-iomux-gpio-pins` (extractor side)
+- `consume-modm-clock-tree-edges` (extractor side)
+- `add-additional-validity-concepts` (codegen side)
+- `reduce-cpp-header-bloat-via-shared-luts` (codegen side)
+
+### What lands at the end of the architectural pivot
+
+```
+alloy-data-extractor    (Python ETL, multi-source, multi-vendor)
+       │ generates YAML
+       ▼
+alloy-devices-yml       (~8000 device YAMLs; data only, no code)
+       │ consumed by
+       ▼
+alloy-codegen           (C++ emitter, this repo, slimmed down)
+alloy-codegen-rust      (future)
+alloy-codegen-zig       (future)
+alloy-codegen-docs      (future)
+```
+
+- 8,000 admitted MCUs across ARM Cortex-M (~5,000), AVR/SAM
+  (~2,000 incl. **PIC8/16/18/24/32 + dsPIC33** — ~2,150 chips
+  no OSS HAL covers), iMXRT/Kinetis/LPC/MCX (~400), Espressif
+  (~15), RP2040 (~2), Zephyr-covered cross-vendor
+  (Renesas/TI/Infineon/Ambiq/SiLabs/…).
+- Adding a vendor = one PR in alloy-data-extractor.
+  Adding a chip = one YAML in alloy-devices-yml.
+- Adding a target language = a new sibling generator
+  alongside alloy-codegen.
+
+This is the move that takes alloy from "promising codegen with 9
+admitted families" to **the broadest multi-vendor, multi-arch HAL
+data foundation in OSS**, period.
