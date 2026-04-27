@@ -61,7 +61,7 @@ jobs:
       - name: Install build toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential
+          sudo apt-get install -y build-essential clang
 
       - name: Ruff
         run: python -m ruff check src tests
@@ -71,6 +71,14 @@ jobs:
 
       - name: Ruff format
         run: python -m ruff format --check src tests
+
+      - name: Runtime C++ smoke compile
+        # add-runtime-cpp-smoke-compile-ci: clang -std=c++20
+        # -ffreestanding -nostdlib over every admitted device's
+        # emitted runtime headers.  Catches template-metaprogramming
+        # regressions invisible to the golden + string-presence
+        # assertions above.
+        run: ALLOY_RUNTIME_CPP_SMOKE=1 python -m pytest tests/test_runtime_cpp_smoke.py -q
 
       - name: Vendor admission gate
         run: |

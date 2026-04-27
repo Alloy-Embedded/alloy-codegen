@@ -33,7 +33,7 @@ _FIXTURE_DIR_RELATIVE = Path("tests/fixtures")
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Register the ``--update-goldens`` CLI flag."""
+    """Register custom CLI flags."""
     parser.addoption(
         "--update-goldens",
         action="store_true",
@@ -45,6 +45,52 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             "run if non-fixture files are dirty in git."
         ),
     )
+    # add-runtime-cpp-smoke-compile-ci
+    parser.addoption(
+        "--runtime-cpp-smoke",
+        action="store_true",
+        default=False,
+        help=(
+            "Run the runtime-cpp-smoke gate (clang++ -std=c++20 "
+            "-ffreestanding -nostdlib -c) over every admitted device's "
+            "emitted runtime headers.  Equivalent to setting "
+            "ALLOY_RUNTIME_CPP_SMOKE=1.  Skipped when clang++ is not "
+            "on PATH."
+        ),
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers",
+        "runtime_cpp_smoke: opt-in clang freestanding smoke compile "
+        "of every admitted device's emitted runtime headers.  Gated "
+        "by --runtime-cpp-smoke / ALLOY_RUNTIME_CPP_SMOKE=1.",
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    """Skip ``runtime_cpp_smoke`` tests unless the gate is opted in."""
+    flag_set = bool(config.getoption("--runtime-cpp-smoke"))
+    env_set = os.environ.get("ALLOY_RUNTIME_CPP_SMOKE", "").strip() in {
+        "1",
+        "true",
+        "yes",
+    }
+    if flag_set or env_set:
+        return
+    skip_reason = pytest.mark.skip(
+        reason=(
+            "runtime-cpp-smoke gate not requested; pass --runtime-cpp-smoke "
+            "or set ALLOY_RUNTIME_CPP_SMOKE=1 to enable."
+        )
+    )
+    for item in items:
+        if "runtime_cpp_smoke" in item.keywords:
+            item.add_marker(skip_reason)
 
 
 def _is_dirty_outside_fixtures() -> tuple[bool, list[str]]:
