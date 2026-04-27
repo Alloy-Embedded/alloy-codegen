@@ -2168,3 +2168,71 @@ def test_emits_cmake_meta_package(
     assert "AlloyDevice_FIND_COMPONENTS" in config
     version = arts["cmake/AlloyDeviceConfigVersion.cmake"].content
     assert "set(PACKAGE_VERSION" in version
+
+
+def test_emit_pin_validation_header_for_stm32g071rb(
+    execution_context: ExecutionContext,
+) -> None:
+    """emit-pinmux-validator-concepts: per-device pin_validation.hpp
+    projects ``device.connection_candidates`` into C++20 concepts."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    key = "st/stm32g0/generated/runtime/devices/stm32g071rb/pin_validation.hpp"
+    assert key in arts
+    content = arts[key].content
+
+    # Closed PeripheralSignal enum carries every admitted pair.
+    assert "enum class PeripheralSignal : std::uint16_t {" in content
+    assert "SPI1_SCK = 0u," in content
+    assert "USART1_RX = " in content
+    assert "USART1_TX = " in content
+
+    # Closed RouteKind enum (no string literals).
+    assert "enum class RouteKind : std::uint8_t {" in content
+    assert "alternate_function = 0u," in content
+    assert "std::string_view" not in content
+
+    # Primary template defaults to std::false_type.
+    assert (
+        "template<PinId Pin, PeripheralSignal Signal>\n"
+        "struct PinAssignmentValid : std::false_type {};" in content
+    )
+
+    # At least one populated specialisation flips it to true_type.
+    assert (
+        "struct PinAssignmentValid<PinId::PA1, PeripheralSignal::SPI1_SCK> "
+        ": std::true_type {" in content
+    )
+    assert "static constexpr RouteKind kRouteKind = RouteKind::alternate_function;" in content
+    assert "static constexpr std::uint8_t kRouteSelectorIndex = 0u;" in content
+
+    # ValidPinAssignment concept declared.
+    assert (
+        "concept ValidPinAssignment = "
+        "PinAssignmentValid<Pin, Signal>::value;" in content
+    )
+
+    # Constexpr lookup table + linear scan.
+    assert "struct PinAssignmentEntry {" in content
+    assert "inline constexpr std::array<PinAssignmentEntry, 3> kPinAssignments" in content
+    assert "constexpr bool is_valid_pin_assignment(" in content
+
+
+def test_emit_pin_validation_omits_unrouted_pin_signal_pairs(
+    execution_context: ExecutionContext,
+) -> None:
+    """A (pin, signal) pair NOT in the IR's connection_candidates yields
+    only the primary std::false_type template — no specialisation."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    content = arts[
+        "st/stm32g0/generated/runtime/devices/stm32g071rb/pin_validation.hpp"
+    ].content
+
+    # PA1 is admitted as SPI1_SCK but NOT as USART1_TX — the
+    # specialisation block for the latter must not exist, so the
+    # primary false_type template applies.
+    assert (
+        "struct PinAssignmentValid<PinId::PA1, PeripheralSignal::USART1_TX>"
+        not in content
+    )

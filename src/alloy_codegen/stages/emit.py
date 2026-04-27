@@ -50,6 +50,7 @@ from alloy_codegen.runtime_clock_config import (
 )
 from alloy_codegen.runtime_clock_graph import emit_runtime_clock_graph_header
 from alloy_codegen.runtime_connectors import emit_runtime_connectors_header
+from alloy_codegen.runtime_pin_validation import emit_runtime_pin_validation_header
 from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_adc_semantics_header,
     emit_runtime_driver_can_semantics_header,
@@ -340,6 +341,16 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
                 ),
             )
         )
+        # emit-pinmux-validator-concepts: per-device C++20-concepts
+        # projection of ``device.connection_candidates`` so HAL drivers
+        # can constrain templates with ``ValidPinAssignment<...>``.  Only
+        # devices that actually carry connection candidates emit a
+        # header.
+        pin_validation = emit_runtime_pin_validation_header(
+            family_dir=family_dir, device=device
+        )
+        if pin_validation is not None:
+            artifacts.append(pin_validation)
         # add-board-support-package-emitter: per-board BSP headers.
         for board in device.boards:
             artifacts.append(
