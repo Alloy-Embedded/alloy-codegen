@@ -165,3 +165,56 @@ Order optimised for "biggest unblock first".
 - Runtime C++ output is gated by three layers: type-safety (smoke
   compile), zero overhead (no string literals — existing gate),
   bounded footprint (byte budget per artifact).
+
+---
+
+## Phase 2 Scaling Track — post-audit
+
+After landing the 10-change scaling track, an IR-completeness +
+C++-quality + patch-migration audit identified the next layer of
+work.  These are queued in priority order.
+
+### Wave 6 — Cross-vendor expansion (user-asked)
+
+| # | Change | Effect |
+|---|---|---|
+| 1 | `extend-zephyr-dts-vendor-coverage` | Renesas / TI / Infineon / Ambiq / SiLabs admissible (5 pilots, ~500 LOC each) |
+| 2 | `decode-zephyr-pinctrl-into-connection-candidates` | Nordic + STM32 pinctrl decoder; nRF52 emits real `pin_validation.hpp` |
+| 3 | `add-bulk-admission-flow` | Single CLI: catalog query → autogen → registry scaffold; admits 50 MCUs in one batch |
+| 4 | `migrate-uart-emitter-to-template-library` | First emitter consumer — proves the template chain end-to-end |
+
+### Wave 7 — IR-completeness wins (audit findings)
+
+| # | Change | Effect |
+|---|---|---|
+| 5 | `populate-imxrt-iomux-gpio-pins` | iMXRT goes from zero `gpio_pins` to hundreds; `pin_validation.hpp` emitted for NXP for the first time |
+| 6 | `consume-modm-clock-tree-edges` | modm STM32 clock graph already parsed but ignored — wire it into `clock_nodes` |
+| 7 | (deferred) `extract-svd-enumerated-values` | Bitfield enums + register-array `<dim>` from SVD |
+| 8 | (deferred) `query-probe-rs-catalog-from-pipeline` | Make `data/known_devices.toml` actually consulted |
+
+### Wave 8 — C++ quality wins
+
+| # | Change | Effect |
+|---|---|---|
+| 9 | `add-additional-validity-concepts` | `ValidDmaBinding` + `ValidClockSource` + `ValidInterruptSlot` + `ValidI2cSpeed` — 4 more compile-time moats over modm |
+| 10 | `reduce-cpp-header-bloat-via-shared-luts` | iMXRT pwm.hpp 52 KB → 35 KB via shared LUTs; pairs with footprint-budget gate |
+
+### Wave 9 — Existing MCUs migration
+
+| # | Change | Effect |
+|---|---|---|
+| 11 | `migrate-existing-mcus-to-template-and-diff-format` | 14k → ~3.5k LOC across all admitted patches.  5 sub-waves: pilots, STM32, Espressif, iMXRT, ATDF (gated on a prereq) |
+| 12 | (prereq for ATDF wave) `extend-autogen-to-atdf-and-mcuxpresso` | Autogen reads ATDF + MCUXpresso headers, not just SVD |
+
+### What lands at the end
+
+- 11+ admitted vendors (vs. 6 today), 50+ pilot MCUs from each
+  Zephyr-supported vendor admitted via one CLI command.
+- iMXRT emits real compile-time pinmux validation (parity with
+  STM32 — first non-ST vendor to get the structural moat).
+- 5 compile-time validity concepts (vs. 1 today): ValidPin,
+  ValidDma, ValidClock, ValidIrq, ValidI2cSpeed.
+- 75% reduction in patch LOC (~14k → ~3.5k), enabling 1000+ MCU
+  admission as mechanical work.
+- Header bloat down ~30% on the worst offenders (iMXRT PWM,
+  TIMER, capabilities) — locked in by the footprint-budget gate.
