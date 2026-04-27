@@ -743,7 +743,15 @@ class PwmModeFlagsPatch:
 
 @dataclass(frozen=True, slots=True)
 class DevicePatch:
-    """Patch document for one bootstrap device."""
+    """Patch document for one bootstrap device.
+
+    Per ``invert-patch-as-diff``, ``baseline_revision`` records the
+    source identifier the patch was minified against.  When set, the
+    loader compares it to the current vendor-source SHA and rejects
+    stale baselines (overridable via ``--accept-stale-baselines``).
+    Empty string = no baseline declared (legacy patches; loader skips
+    the check).
+    """
 
     patch_id: str
     family_patch_id: str | None
@@ -810,6 +818,11 @@ class DevicePatch:
     pwm_alignment_options: tuple[PwmAlignmentOptionPatch, ...] = ()
     pwm_break_inputs: tuple[PwmBreakInputPatch, ...] = ()
     pwm_mode_flags: tuple[PwmModeFlagsPatch, ...] = ()
+    # invert-patch-as-diff: pinned source revision the diff was
+    # computed against.  Empty string for legacy non-minified
+    # patches; the loader skips the stale-baseline check in that
+    # case.
+    baseline_revision: str = ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -992,6 +1005,57 @@ def patch_file_path(
 ) -> Path:
     """Resolve the patch path for one device."""
     return context.patch_root / vendor / family / "devices" / f"{device_name}.json"
+
+
+# ---------------------------------------------------------------------------
+# Patch-as-diff baseline tracking (invert-patch-as-diff)
+# ---------------------------------------------------------------------------
+
+
+def compute_source_revision_for_patch(patch_path: Path) -> str:
+    """Return the canonical source-revision identifier for a device patch.
+
+    The identifier is the SHA-256 of the patch file contents (truncated
+    to 16 hex chars).  This is a deliberately lightweight stand-in for
+    "vendor-source SHA": the ``$baseline-revision`` field records the
+    state the diff was minified against, and the loader rejects patches
+    whose recorded revision drifts away from this hash unless the caller
+    explicitly opts in to stale baselines.  Real per-vendor source SHAs
+    (probe-rs / Zephyr DTS) attach later via dedicated source manifests
+    — this function is the one place to swap in that lookup without
+    touching every loader call site.
+    """
+    import hashlib
+
+    digest = hashlib.sha256(patch_path.read_bytes()).hexdigest()
+    return digest[:16]
+
+
+def validate_baseline_revision(
+    patch_path: Path,
+    *,
+    accept_stale_baselines: bool = False,
+) -> None:
+    """Raise ``StageExecutionError`` when the patch's ``$baseline-revision``
+    is set but does not match the source-revision derived from the patch
+    file.  Legacy patches that omit the field bypass the check (empty
+    string).  ``accept_stale_baselines`` lets reviewers opt in to a
+    stale diff during re-derivation."""
+    payload = json.loads(patch_path.read_text())
+    declared = str(payload.get("$baseline-revision", ""))
+    if not declared:
+        return
+    current = compute_source_revision_for_patch(patch_path)
+    if declared == current:
+        return
+    if accept_stale_baselines:
+        return
+    raise StageExecutionError(
+        f"baseline-revision drift for {patch_path.name}: patch declares "
+        f"{declared!r} but current source revision is {current!r}; "
+        f"re-run scripts/minify_device_patches.py against the new source "
+        f"or pass --accept-stale-baselines to override."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2375,6 +2439,10 @@ def load_device_patch(
         pwm_mode_flags=tuple(
             _parse_pwm_mode_flags_patch(item) for item in payload.get("pwm_mode_flags", ())
         ),
+        # invert-patch-as-diff: optional pinned source revision; the
+        # JSON key is ``$baseline-revision`` (dollar-prefixed so it
+        # cannot collide with future patch fields).
+        baseline_revision=str(payload.get("$baseline-revision", "")),
     )
 
 
