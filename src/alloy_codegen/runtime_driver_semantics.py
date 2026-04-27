@@ -1794,6 +1794,353 @@ def _adc_channel_manifest(
     return tuple(manifest)
 
 
+def _render_typed_option_enum_block(
+    *,
+    template_name: str,
+    alias_name: str,
+    peripheral_entries: tuple[tuple[str, tuple[tuple[str, int], ...]], ...],
+    leading_comment: str | None = None,
+) -> list[str]:
+    """Render a per-peripheral typed-option ``enum class`` block.
+
+    Mirrors the ``AdcChannelOf<P>`` pattern established by
+    ``add-adc-channel-typed-enum`` and lifted out by
+    ``add-typed-peripheral-enums-everywhere``: emits a primary
+    template ``struct <template_name>`` carrying an empty ``enum
+    class type : std::uint8_t {};``, plus one specialisation per
+    populated peripheral with named ``(enumerator, field_value)``
+    pairs.  Trails with a ``using <alias_name> = typename ...::type;``
+    convenience alias.
+
+    ``peripheral_entries`` is a tuple of
+    ``(peripheral_id_enum, ((name, field_value), ...))`` pairs.
+    Peripherals carrying no entries are skipped — consumers reach
+    for the alias via ``if constexpr (kPresent)`` gates and the
+    primary template's empty enum keeps that branch compilable.
+    """
+    lines: list[str] = []
+    if leading_comment:
+        lines.append(f"// {leading_comment}")
+    lines.extend(
+        [
+            "template<PeripheralId Id>",
+            f"struct {template_name} {{",
+            "  enum class type : std::uint8_t {};",
+            "};",
+            "",
+        ]
+    )
+    for peripheral_id, entries in peripheral_entries:
+        if not entries:
+            continue
+        lines.extend(
+            [
+                "template<>",
+                f"struct {template_name}<PeripheralId::{peripheral_id}> {{",
+                "  enum class type : std::uint8_t {",
+            ]
+        )
+        for name, field_value in entries:
+            lines.append(f"    {name} = {field_value}u,")
+        lines.extend(
+            [
+                "  };",
+                "};",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "template<PeripheralId Id>",
+            f"using {alias_name} = typename {template_name}<Id>::type;",
+            "",
+        ]
+    )
+    return lines
+
+
+# Note: a name-table helper was considered but dropped — runtime
+# C++ artifacts must not carry string literals (publication gate),
+# and the typed enums alone are the value-add.  Consumers needing
+# stringification handle it host-side via switch statements over the
+# typed enum values.
+
+
+_UART_PARITY_NAME: dict[str, str] = {
+    "none": "none",
+    "even": "even",
+    "odd": "odd",
+    "mark": "mark",
+    "space": "space",
+}
+
+_UART_PARITY_CANONICAL_ORDER: tuple[str, ...] = ("none", "even", "odd", "mark", "space")
+
+_UART_STOP_BITS_NAME: dict[int, str] = {
+    128: "half",  # 0.5 stop bits
+    256: "one",  # 1.0
+    384: "one_and_half",  # 1.5
+    512: "two",  # 2.0
+}
+
+_UART_FIFO_TRIGGER_NAME: dict[int, str] = {
+    32: "one_eighth",  # 1/8
+    64: "quarter",  # 1/4 = 2/8
+    128: "half",  # 1/2 = 4/8
+    192: "three_quarters",  # 3/4 = 6/8
+    224: "seven_eighths",  # 7/8
+    256: "full",  # 1 (8/8)
+}
+
+_I2C_SPEED_MODE_NAME: dict[str, str] = {
+    "standard": "standard",
+    "fast": "fast",
+    "fast_plus": "fast_plus",
+    "high_speed": "high_speed",
+}
+
+
+def _build_uart_typed_enum_blocks(rows: tuple[UartSemanticRow, ...]) -> list[str]:
+    """Render UART typed-option enum blocks.  Added by
+    ``add-typed-peripheral-enums-everywhere``.
+
+    Emits per-peripheral typed enums for parity, stop bits,
+    oversampling, baud-clock source, data bits, and FIFO trigger
+    fraction.  Each enum specialisation is paired with a
+    ``std::array<std::string_view, N>`` name table so consumers can
+    stringify values without a switch statement.
+    """
+    parity_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    stop_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    over_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    baud_clk_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    data_bits_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    fifo_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    for row in rows:
+        if row.is_stub:
+            continue
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        # Parity: canonical positional ordering matches kSupportedParityRaw.
+        parity_present = {opt.parity for opt in row.parity_options}
+        parity = tuple(
+            (_UART_PARITY_NAME[name], idx)
+            for idx, name in enumerate(_UART_PARITY_CANONICAL_ORDER)
+            if name in parity_present
+        )
+        if parity:
+            parity_entries.append((peripheral_id, parity))
+        # Stop bits: positional, indexed in row order (matches kSupportedStopBitsQ8).
+        stop = tuple(
+            (_UART_STOP_BITS_NAME[opt.stop_bits_q8], idx)
+            for idx, opt in enumerate(row.stop_bits_options)
+            if opt.stop_bits_q8 in _UART_STOP_BITS_NAME
+        )
+        if stop:
+            stop_entries.append((peripheral_id, stop))
+        # Oversampling: 8x or 16x.
+        over = tuple(
+            (f"over_{opt.ratio}x", idx) for idx, opt in enumerate(row.baud_oversampling_options)
+        )
+        if over:
+            over_entries.append((peripheral_id, over))
+        # Baud clock source: classifier strings already canonicalised.
+        baud_clk = tuple((str(opt.source), idx) for idx, opt in enumerate(row.baud_clock_sources))
+        if baud_clk:
+            baud_clk_entries.append((peripheral_id, baud_clk))
+        # Data bits.
+        data_bits = tuple(
+            (f"bits_{opt.bits}", idx) for idx, opt in enumerate(row.data_bits_options)
+        )
+        if data_bits:
+            data_bits_entries.append((peripheral_id, data_bits))
+        # FIFO trigger fractions.
+        fifo = tuple(
+            (_UART_FIFO_TRIGGER_NAME[opt.fraction_q8], idx)
+            for idx, opt in enumerate(row.fifo_trigger_options)
+            if opt.fraction_q8 in _UART_FIFO_TRIGGER_NAME
+        )
+        if fifo:
+            fifo_entries.append((peripheral_id, fifo))
+
+    lines: list[str] = []
+    for spec in (
+        ("UartParityOf", "UartParity", parity_entries),
+        ("UartStopBitsOf", "UartStopBits", stop_entries),
+        ("UartOversamplingOf", "UartOversampling", over_entries),
+        ("UartBaudClockSourceOf", "UartBaudClockSource", baud_clk_entries),
+        ("UartDataBitsOf", "UartDataBits", data_bits_entries),
+        ("UartFifoTriggerOf", "UartFifoTrigger", fifo_entries),
+    ):
+        template_name, alias_name, entries = spec
+        if not any(e for _, e in entries):
+            continue
+        lines.append(
+            f"// add-typed-peripheral-enums-everywhere: typed {template_name} per peripheral."
+        )
+        lines.extend(
+            _render_typed_option_enum_block(
+                template_name=template_name,
+                alias_name=alias_name,
+                peripheral_entries=tuple(entries),
+            )
+        )
+    return lines
+
+
+def _build_spi_typed_enum_blocks(rows: tuple[SpiSemanticRow, ...]) -> list[str]:
+    """Render SPI typed-option enum blocks (prescaler / frame size /
+    FIFO threshold)."""
+    prescaler_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    frame_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    fifo_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    for row in rows:
+        if row.is_stub:
+            continue
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        prescaler = tuple(
+            (f"div_{opt.divisor}", idx) for idx, opt in enumerate(row.baud_prescaler_options)
+        )
+        if prescaler:
+            prescaler_entries.append((peripheral_id, prescaler))
+        frame = tuple((f"bits_{opt.bits}", idx) for idx, opt in enumerate(row.frame_size_options))
+        if frame:
+            frame_entries.append((peripheral_id, frame))
+        fifo = tuple(
+            (f"threshold_{opt.threshold_bits}bit", idx)
+            for idx, opt in enumerate(row.fifo_threshold_options)
+        )
+        if fifo:
+            fifo_entries.append((peripheral_id, fifo))
+
+    lines: list[str] = []
+    for spec in (
+        ("SpiPrescalerOf", "SpiPrescaler", prescaler_entries),
+        ("SpiFrameSizeOf", "SpiFrameSize", frame_entries),
+        ("SpiFifoThresholdOf", "SpiFifoThreshold", fifo_entries),
+    ):
+        template_name, alias_name, entries = spec
+        if not any(e for _, e in entries):
+            continue
+        lines.append(
+            f"// add-typed-peripheral-enums-everywhere: typed {template_name} per peripheral."
+        )
+        lines.extend(
+            _render_typed_option_enum_block(
+                template_name=template_name,
+                alias_name=alias_name,
+                peripheral_entries=tuple(entries),
+            )
+        )
+    return lines
+
+
+def _build_i2c_typed_enum_blocks(rows: tuple[I2cSemanticRow, ...]) -> list[str]:
+    """Render I2C typed-option enum blocks (speed mode)."""
+    mode_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    for row in rows:
+        if row.is_stub:
+            continue
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        modes = tuple(
+            (_I2C_SPEED_MODE_NAME[opt.mode], idx)
+            for idx, opt in enumerate(row.speed_options)
+            if opt.mode in _I2C_SPEED_MODE_NAME
+        )
+        if modes:
+            mode_entries.append((peripheral_id, modes))
+
+    if not any(e for _, e in mode_entries):
+        return []
+    lines: list[str] = [
+        "// add-typed-peripheral-enums-everywhere: typed I2cSpeedModeOf per peripheral.",
+    ]
+    lines.extend(
+        _render_typed_option_enum_block(
+            template_name="I2cSpeedModeOf",
+            alias_name="I2cSpeedMode",
+            peripheral_entries=tuple(mode_entries),
+        )
+    )
+    return lines
+
+
+def _build_timer_typed_enum_blocks(rows: tuple[TimerSemanticRow, ...]) -> list[str]:
+    """Render TIMER typed-option enum blocks (trigger source / master
+    output)."""
+    trigger_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    master_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    for row in rows:
+        if row.is_stub:
+            continue
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        triggers = tuple((str(src), idx) for idx, (src, _fv) in enumerate(row.trigger_sources))
+        if triggers:
+            trigger_entries.append((peripheral_id, triggers))
+        masters = tuple((str(src), idx) for idx, (src, _fv) in enumerate(row.master_outputs))
+        if masters:
+            master_entries.append((peripheral_id, masters))
+
+    lines: list[str] = []
+    for spec in (
+        ("TimerTriggerSourceOf", "TimerTriggerSource", trigger_entries),
+        ("TimerMasterOutputOf", "TimerMasterOutput", master_entries),
+    ):
+        template_name, alias_name, entries = spec
+        if not any(e for _, e in entries):
+            continue
+        lines.append(
+            f"// add-typed-peripheral-enums-everywhere: typed {template_name} per peripheral."
+        )
+        lines.extend(
+            _render_typed_option_enum_block(
+                template_name=template_name,
+                alias_name=alias_name,
+                peripheral_entries=tuple(entries),
+            )
+        )
+    return lines
+
+
+def _build_pwm_typed_enum_blocks(rows: tuple[PwmSemanticRow, ...]) -> list[str]:
+    """Render PWM typed-option enum blocks (alignment / break input)."""
+    align_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    break_entries: list[tuple[str, tuple[tuple[str, int], ...]]] = []
+    for row in rows:
+        if row.is_stub:
+            continue
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        alignments = tuple(
+            (str(name), idx) for idx, (name, _fv) in enumerate(row.supported_alignments)
+        )
+        if alignments:
+            align_entries.append((peripheral_id, alignments))
+        breaks = tuple(
+            (str(input_id), idx) for idx, (input_id, _pol, _en) in enumerate(row.break_inputs)
+        )
+        if breaks:
+            break_entries.append((peripheral_id, breaks))
+
+    lines: list[str] = []
+    for spec in (
+        ("PwmAlignmentOf", "PwmAlignment", align_entries),
+        ("PwmBreakInputOf", "PwmBreakInput", break_entries),
+    ):
+        template_name, alias_name, entries = spec
+        if not any(e for _, e in entries):
+            continue
+        lines.append(
+            f"// add-typed-peripheral-enums-everywhere: typed {template_name} per peripheral."
+        )
+        lines.extend(
+            _render_typed_option_enum_block(
+                template_name=template_name,
+                alias_name=alias_name,
+                peripheral_entries=tuple(entries),
+            )
+        )
+    return lines
+
+
 def _render_adc_channel_enum_block(rows: tuple[AdcSemanticRow, ...]) -> list[str]:
     """Render the `AdcChannelOf<P>` primary template + specializations + alias.
 
@@ -14776,6 +15123,12 @@ def emit_runtime_driver_uart_semantics_header(
         "  static constexpr std::uint32_t kKernelMaxClockHz = 0u;",
         "  static constexpr RuntimeFieldRef kClockGateField = kInvalidFieldRef;",
     ]
+    extra_body: list[str] = list(_uart_peripheral_traits_block(device))
+    typed_blocks = _build_uart_typed_enum_blocks(rows)
+    if typed_blocks:
+        if extra_body:
+            extra_body.append("")
+        extra_body.extend(typed_blocks)
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
         device=device,
@@ -14785,7 +15138,7 @@ def emit_runtime_driver_uart_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_uart_specialization_builder(context),
-        extra_body_lines=_uart_peripheral_traits_block(device),
+        extra_body_lines=extra_body,
     )
 
 
@@ -14895,8 +15248,21 @@ def emit_runtime_driver_i2c_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_i2c_specialization_builder(context),
-        extra_body_lines=_i2c_peripheral_traits_block(device),
+        extra_body_lines=_compose_i2c_extra_body(rows, device),
     )
+
+
+def _compose_i2c_extra_body(
+    rows: tuple[I2cSemanticRow, ...],
+    device: CanonicalDeviceIR,
+) -> list[str]:
+    extra_body: list[str] = list(_i2c_peripheral_traits_block(device))
+    typed_blocks = _build_i2c_typed_enum_blocks(rows)
+    if typed_blocks:
+        if extra_body:
+            extra_body.append("")
+        extra_body.extend(typed_blocks)
+    return extra_body
 
 
 def emit_runtime_driver_spi_semantics_header(
@@ -14987,6 +15353,12 @@ def emit_runtime_driver_spi_semantics_header(
         "  static constexpr std::uint32_t kKernelMaxClockHz = 0u;",
         "  static constexpr RuntimeFieldRef kClockGateField = kInvalidFieldRef;",
     ]
+    extra_body: list[str] = list(_spi_peripheral_traits_block(device))
+    typed_blocks = _build_spi_typed_enum_blocks(rows)
+    if typed_blocks:
+        if extra_body:
+            extra_body.append("")
+        extra_body.extend(typed_blocks)
     return _emit_peripheral_semantics_header(
         family_dir=family_dir,
         device=device,
@@ -14996,7 +15368,7 @@ def emit_runtime_driver_spi_semantics_header(
         rows=rows,
         default_lines=default_lines,
         specialization_builder=_spi_specialization_builder(context),
-        extra_body_lines=_spi_peripheral_traits_block(device),
+        extra_body_lines=extra_body,
     )
 
 
@@ -15869,6 +16241,7 @@ def emit_runtime_driver_timer_semantics_header(
         )
         if not row.is_stub:
             timer_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+    typed_blocks = _build_timer_typed_enum_blocks(timer_rows)
     body = "\n".join(
         [
             *trait_lines,
@@ -15880,6 +16253,8 @@ def emit_runtime_driver_timer_semantics_header(
             ),
             "",
             *_timer_controller_hw_traits_block(device),
+            *(("",) if typed_blocks else ()),
+            *typed_blocks,
         ]
     )
     namespace_block = _cpp_namespace_block(
@@ -15966,6 +16341,7 @@ def emit_runtime_driver_pwm_semantics_header(
         )
         if not row.is_stub:
             pwm_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+    pwm_typed_blocks = _build_pwm_typed_enum_blocks(pwm_rows)
     body = "\n".join(
         [
             *trait_lines,
@@ -15987,6 +16363,8 @@ def emit_runtime_driver_pwm_semantics_header(
             *_avr_da_tca_pwm_traits_block(device),
             "",
             *_same70_pwm_traits_block(device),
+            *(("",) if pwm_typed_blocks else ()),
+            *pwm_typed_blocks,
         ]
     )
     namespace_block = _cpp_namespace_block(

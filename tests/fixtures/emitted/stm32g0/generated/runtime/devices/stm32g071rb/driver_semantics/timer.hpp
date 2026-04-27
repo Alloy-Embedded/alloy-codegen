@@ -274,6 +274,53 @@ struct TimerControllerHwTraits {
   static constexpr std::uint8_t kDreqAlarmBase = 0u;
 };
 
+
+// add-typed-peripheral-enums-everywhere: typed TimerTriggerSourceOf per peripheral.
+template<PeripheralId Id>
+struct TimerTriggerSourceOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct TimerTriggerSourceOf<PeripheralId::TIM1> {
+  enum class type : std::uint8_t {
+    itr0 = 0u,
+    itr1 = 1u,
+    itr2 = 2u,
+    itr3 = 3u,
+    ti1f_ed = 4u,
+    ti1fp1 = 5u,
+    ti2fp2 = 6u,
+    etrf = 7u,
+  };
+};
+
+template<PeripheralId Id>
+using TimerTriggerSource = typename TimerTriggerSourceOf<Id>::type;
+
+// add-typed-peripheral-enums-everywhere: typed TimerMasterOutputOf per peripheral.
+template<PeripheralId Id>
+struct TimerMasterOutputOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct TimerMasterOutputOf<PeripheralId::TIM1> {
+  enum class type : std::uint8_t {
+    reset = 0u,
+    enable = 1u,
+    update = 2u,
+    compare_pulse = 3u,
+    oc1ref = 4u,
+    oc2ref = 5u,
+    oc3ref = 6u,
+    oc4ref = 7u,
+  };
+};
+
+template<PeripheralId Id>
+using TimerMasterOutput = typename TimerMasterOutputOf<Id>::type;
+
 }
 }
 }

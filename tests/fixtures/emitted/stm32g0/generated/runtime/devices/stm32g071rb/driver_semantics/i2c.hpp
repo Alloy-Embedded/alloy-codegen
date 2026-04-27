@@ -344,6 +344,34 @@ struct I2cPeripheralTraits<RuntimeI2cCtrlId::I2C2> {
   static constexpr bool kPortmuxAlt = false;
 };
 
+
+// add-typed-peripheral-enums-everywhere: typed I2cSpeedModeOf per peripheral.
+template<PeripheralId Id>
+struct I2cSpeedModeOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct I2cSpeedModeOf<PeripheralId::I2C1> {
+  enum class type : std::uint8_t {
+    standard = 0u,
+    fast = 1u,
+    fast_plus = 2u,
+  };
+};
+
+template<>
+struct I2cSpeedModeOf<PeripheralId::I2C2> {
+  enum class type : std::uint8_t {
+    standard = 0u,
+    fast = 1u,
+    fast_plus = 2u,
+  };
+};
+
+template<PeripheralId Id>
+using I2cSpeedMode = typename I2cSpeedModeOf<Id>::type;
+
 }
 }
 }

@@ -338,6 +338,42 @@ struct Same70PwmTraits {
   static constexpr bool kSupportsDma = false;
 };
 
+
+// add-typed-peripheral-enums-everywhere: typed PwmAlignmentOf per peripheral.
+template<PeripheralId Id>
+struct PwmAlignmentOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct PwmAlignmentOf<PeripheralId::TIM1> {
+  enum class type : std::uint8_t {
+    edge = 0u,
+    center_down = 1u,
+    center_up = 2u,
+    center_up_down = 3u,
+  };
+};
+
+template<PeripheralId Id>
+using PwmAlignment = typename PwmAlignmentOf<Id>::type;
+
+// add-typed-peripheral-enums-everywhere: typed PwmBreakInputOf per peripheral.
+template<PeripheralId Id>
+struct PwmBreakInputOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct PwmBreakInputOf<PeripheralId::TIM1> {
+  enum class type : std::uint8_t {
+    bkin = 0u,
+  };
+};
+
+template<PeripheralId Id>
+using PwmBreakInput = typename PwmBreakInputOf<Id>::type;
+
 }
 }
 }

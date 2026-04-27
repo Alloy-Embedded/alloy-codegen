@@ -230,6 +230,94 @@ struct UartPeripheralTraits {
   static constexpr std::array<std::uint8_t, 0> kValidRtsPins = {};
 };
 
+
+// add-typed-peripheral-enums-everywhere: typed UartParityOf per peripheral.
+template<PeripheralId Id>
+struct UartParityOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct UartParityOf<PeripheralId::LPUART1> {
+  enum class type : std::uint8_t {
+    none = 0u,
+    even = 1u,
+    odd = 2u,
+  };
+};
+
+template<PeripheralId Id>
+using UartParity = typename UartParityOf<Id>::type;
+
+// add-typed-peripheral-enums-everywhere: typed UartStopBitsOf per peripheral.
+template<PeripheralId Id>
+struct UartStopBitsOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct UartStopBitsOf<PeripheralId::LPUART1> {
+  enum class type : std::uint8_t {
+    one = 0u,
+    two = 1u,
+  };
+};
+
+template<PeripheralId Id>
+using UartStopBits = typename UartStopBitsOf<Id>::type;
+
+// add-typed-peripheral-enums-everywhere: typed UartOversamplingOf per peripheral.
+template<PeripheralId Id>
+struct UartOversamplingOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct UartOversamplingOf<PeripheralId::LPUART1> {
+  enum class type : std::uint8_t {
+    over_16x = 0u,
+    over_32x = 1u,
+  };
+};
+
+template<PeripheralId Id>
+using UartOversampling = typename UartOversamplingOf<Id>::type;
+
+// add-typed-peripheral-enums-everywhere: typed UartBaudClockSourceOf per peripheral.
+template<PeripheralId Id>
+struct UartBaudClockSourceOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct UartBaudClockSourceOf<PeripheralId::LPUART1> {
+  enum class type : std::uint8_t {
+    lpuart_clk_root = 0u,
+  };
+};
+
+template<PeripheralId Id>
+using UartBaudClockSource = typename UartBaudClockSourceOf<Id>::type;
+
+// add-typed-peripheral-enums-everywhere: typed UartDataBitsOf per peripheral.
+template<PeripheralId Id>
+struct UartDataBitsOf {
+  enum class type : std::uint8_t {};
+};
+
+template<>
+struct UartDataBitsOf<PeripheralId::LPUART1> {
+  enum class type : std::uint8_t {
+    bits_7 = 0u,
+    bits_8 = 1u,
+    bits_9 = 2u,
+    bits_10 = 3u,
+  };
+};
+
+template<PeripheralId Id>
+using UartDataBits = typename UartDataBitsOf<Id>::type;
+
 }
 }
 }

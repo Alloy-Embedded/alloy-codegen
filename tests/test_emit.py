@@ -2054,3 +2054,59 @@ def test_stm32g071rb_i2c_traits_emit_specialization_and_tier234(
     # TIMINGR preset for 400 kHz @ 64 MHz.
     assert "kTimingPresets = {{" in content
     assert "400000u, 64000000u" in content
+
+
+def test_stm32g071rb_uart_traits_emit_typed_enums(
+    execution_context: ExecutionContext,
+) -> None:
+    """add-typed-peripheral-enums-everywhere: STM32G0 USART1 surfaces
+    typed `UartParityOf<USART1>::type` etc. with named entries.  No
+    string-view name tables — the publication gate forbids string
+    literals in runtime C++ output, so consumers stringify host-side."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/uart.hpp"
+    content = arts[p].content
+    assert "struct UartParityOf {" in content
+    assert "struct UartParityOf<PeripheralId::USART1> {" in content
+    assert "using UartParity = typename UartParityOf<Id>::type;" in content
+    assert "struct UartStopBitsOf<PeripheralId::USART1> {" in content
+    assert "struct UartOversamplingOf<PeripheralId::USART1> {" in content
+    assert "struct UartDataBitsOf<PeripheralId::USART1> {" in content
+    assert "struct UartBaudClockSourceOf<PeripheralId::USART1> {" in content
+    # Publication gate: no string literals + no string_view include.
+    assert "#include <string_view>" not in content
+    assert '"none"' not in content
+    assert '"even"' not in content
+
+
+def test_stm32g071rb_spi_traits_emit_typed_enums(
+    execution_context: ExecutionContext,
+) -> None:
+    """SPI1 surfaces typed prescaler + frame-size enums with named
+    entries (`div_2`..`div_256`, `bits_4`..`bits_16`)."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/spi.hpp"
+    content = arts[p].content
+    assert "struct SpiPrescalerOf<PeripheralId::SPI1> {" in content
+    assert "div_2 = 0u," in content
+    assert "div_256 = 7u," in content
+    assert "struct SpiFrameSizeOf<PeripheralId::SPI1> {" in content
+    assert "bits_4 = 0u," in content
+    assert "bits_16 = 12u," in content
+
+
+def test_stm32g071rb_i2c_traits_emit_typed_speed_mode(
+    execution_context: ExecutionContext,
+) -> None:
+    """I2C1 surfaces typed `I2cSpeedModeOf<I2C1>::type` with
+    `standard`, `fast`, `fast_plus` entries."""
+    result = run(PipelineScope(device="stm32g071rb"), execution_context)
+    arts = {a.path: a for a in result.payload.artifacts}
+    p = "st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/i2c.hpp"
+    content = arts[p].content
+    assert "struct I2cSpeedModeOf<PeripheralId::I2C1> {" in content
+    assert "standard = 0u," in content
+    assert "fast = 1u," in content
+    assert "fast_plus = 2u," in content

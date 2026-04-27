@@ -32,15 +32,16 @@ For every option-array currently emitted as `std::array<std::uint8_t, N>` on UAR
   enum class with entries `standard` and `fast` (no `fast_plus`)
 - **AND** the typed `kSupportedSpeedModes` array SHALL have size 2
 
-### Requirement: Typed enums SHALL ship name-tables for round-trip stringification
+### Requirement: Runtime C++ artifacts SHALL NOT carry string literals for typed enum names
 
-Every emitted typed enum SHALL be paired with a closed `std::array<NameEntry, N>` constant mapping each enum entry to its lowercase string label.  Consumer code that needs runtime stringification SHALL be able to look the name up without a `switch` statement.  Mirrors the ADC channel-name table established by `add-adc-channel-typed-enum`.
+Per the publication gate, runtime-generated C++ artifacts MUST NOT contain string literals (firmware-image bloat).  The typed enum value names themselves (`UartParityOf<USART1>::type::even`) provide compile-time identification — round-trip stringification, when needed, SHALL be implemented host-side by consumers via a switch over the typed enum.  No `std::string_view` name-table is emitted alongside the typed enums.
 
-#### Scenario: UART parity name table round-trips
+#### Scenario: Emitted UART header carries no string literals for parity names
 
 - **WHEN** the pipeline emits `uart.hpp` for STM32G0 stm32g071rb
-- **THEN** the file SHALL define a `kUartParityNames` table for
-  `USART1` of size 3
-- **AND** the entry corresponding to
-  `UartParityOf<PeripheralId::USART1>::type::even` SHALL carry the
-  string `"even"`
+- **THEN** the file SHALL contain the typed
+  `UartParityOf<PeripheralId::USART1>::type` enum class with named
+  entries `none`, `even`, `odd`
+- **AND** the file SHALL NOT contain a `kUartParityNames` string-view
+  table — the publication gate enforces zero string literals in
+  runtime C++ artifacts
