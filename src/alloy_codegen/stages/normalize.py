@@ -3203,70 +3203,24 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     devices: list[CanonicalDeviceIR] = []
     vendor = patch_result.scope.resolved_vendor()
     family = patch_result.scope.resolved_family()
+    # add-vendor-adapter-registry: dispatch through the central registry
+    # so every admitted family resolves via a side-effect-registered
+    # `VendorAdapter` rather than a hard-coded ``if vendor == ...`` cascade.
+    # ``alloy_codegen.vendors`` is imported lazily here to avoid the
+    # circular dependency that would arise if the registry imports
+    # `_build_*_device_ir` from this module at registration time.
+    from alloy_codegen.vendors import resolve_vendor_adapter
+
+    adapter = resolve_vendor_adapter(vendor, family)
     for device_name in patch_result.scope.resolved_device_names():
-        if vendor == "st":
-            devices.append(
-                _build_st_device_ir(
-                    execution_context=execution_context,
-                    device_name=device_name,
-                    vendor=vendor,
-                    family=family,
-                )
-            )
-            continue
-        if vendor == "microchip" and family == "same70":
-            same70_ir = _build_microchip_device_ir(
+        devices.append(
+            adapter.normalize(
                 execution_context=execution_context,
                 device_name=device_name,
                 vendor=vendor,
                 family=family,
             )
-            same70_pwm = _build_same70_pwm_peripherals(peripherals=same70_ir.peripherals)
-            if same70_pwm:
-                same70_ir = dataclasses.replace(same70_ir, same70_pwm_peripherals=same70_pwm)
-            devices.append(same70_ir)
-            continue
-        if vendor == "microchip" and family == "avr-da":
-            devices.append(
-                _build_avr_da_device_ir(
-                    execution_context=execution_context,
-                    device_name=device_name,
-                    vendor=vendor,
-                    family=family,
-                )
-            )
-            continue
-        if vendor == "nxp" and family == "imxrt1060":
-            devices.append(
-                _build_nxp_device_ir(
-                    execution_context=execution_context,
-                    device_name=device_name,
-                    vendor=vendor,
-                    family=family,
-                )
-            )
-            continue
-        if vendor == "raspberrypi" and family == "rp2040":
-            devices.append(
-                _build_rp2040_device_ir(
-                    execution_context=execution_context,
-                    device_name=device_name,
-                    vendor=vendor,
-                    family=family,
-                )
-            )
-            continue
-        if vendor == "espressif":
-            devices.append(
-                _build_esp32_device_ir(
-                    execution_context=execution_context,
-                    device_name=device_name,
-                    vendor=vendor,
-                    family=family,
-                )
-            )
-            continue
-        raise StageExecutionError(f"Unsupported normalize path for {vendor}/{family}.")
+        )
     # Forward ADC Tier 2/3/4 patch fields onto the canonical IR.  Each device
     # builder above already loaded the device patch — we re-load to access the
     # ADC tuples without rewriting every builder.  Cost is negligible (the

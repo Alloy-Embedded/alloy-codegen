@@ -50,7 +50,6 @@ from alloy_codegen.runtime_clock_config import (
 )
 from alloy_codegen.runtime_clock_graph import emit_runtime_clock_graph_header
 from alloy_codegen.runtime_connectors import emit_runtime_connectors_header
-from alloy_codegen.runtime_pin_validation import emit_runtime_pin_validation_header
 from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_adc_semantics_header,
     emit_runtime_driver_can_semantics_header,
@@ -86,6 +85,7 @@ from alloy_codegen.runtime_lite_emission import (
     emit_runtime_lite_types_header,
 )
 from alloy_codegen.runtime_low_power import emit_runtime_low_power_header
+from alloy_codegen.runtime_pin_validation import emit_runtime_pin_validation_header
 from alloy_codegen.runtime_reports import (
     emit_runtime_capability_summary_report,
     emit_runtime_compatibility_matrix_report,
