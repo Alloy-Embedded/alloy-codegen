@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -14,6 +16,94 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from alloy_codegen.context import ExecutionContext  # noqa: E402
+
+# ---------------------------------------------------------------------------
+# auto-update-goldens: opt-in flag that rewrites golden fixtures from
+# the current pipeline output instead of asserting equality.
+#
+# Activated by either ``ALLOY_UPDATE_GOLDENS=1`` env var or pytest's
+# ``--update-goldens`` CLI flag.  When the flag is *not* set, golden
+# helpers behave exactly like a plain ``assert`` — the default contract
+# is unchanged in CI.  When the flag IS set, the harness refuses to
+# run if ``git status`` reports dirty files outside ``tests/fixtures/``
+# so source changes can't get baked into goldens silently.
+# ---------------------------------------------------------------------------
+
+_FIXTURE_DIR_RELATIVE = Path("tests/fixtures")
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register the ``--update-goldens`` CLI flag."""
+    parser.addoption(
+        "--update-goldens",
+        action="store_true",
+        default=False,
+        help=(
+            "Rewrite golden fixtures from the current pipeline output "
+            "instead of asserting equality.  Equivalent to setting "
+            "ALLOY_UPDATE_GOLDENS=1 in the environment.  Refuses to "
+            "run if non-fixture files are dirty in git."
+        ),
+    )
+
+
+def _is_dirty_outside_fixtures() -> tuple[bool, list[str]]:
+    """Return (dirty?, offending_paths).  Treat git failures as
+    non-dirty — devs without git on PATH still need the test suite."""
+    try:
+        proc = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False, []
+    if proc.returncode != 0:
+        return False, []
+    offenders: list[str] = []
+    fixture_prefix = _FIXTURE_DIR_RELATIVE.as_posix()
+    for line in proc.stdout.splitlines():
+        # Porcelain v1 lines: "XY <path>" (or "XY <orig> -> <new>" on
+        # rename).  Strip the 2-char status + leading space.
+        if len(line) < 4:
+            continue
+        path = line[3:].strip()
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        path = path.strip('"')  # porcelain quotes paths with special chars
+        if not path.startswith(fixture_prefix + "/") and path != fixture_prefix:
+            offenders.append(path)
+    return bool(offenders), offenders
+
+
+def _resolve_update_mode(config: pytest.Config) -> bool:
+    flag_set = bool(config.getoption("--update-goldens"))
+    env_set = os.environ.get("ALLOY_UPDATE_GOLDENS", "").strip() in {"1", "true", "yes"}
+    return flag_set or env_set
+
+
+@pytest.fixture(scope="session")
+def goldens_update_mode(pytestconfig: pytest.Config) -> bool:
+    """Session-scoped boolean: are we rewriting goldens this run?"""
+    update = _resolve_update_mode(pytestconfig)
+    if update:
+        dirty, offenders = _is_dirty_outside_fixtures()
+        if dirty:
+            preview = "\n  ".join(offenders[:10])
+            extra = "" if len(offenders) <= 10 else f"\n  … and {len(offenders) - 10} more"
+            raise pytest.UsageError(
+                "Refusing to run with --update-goldens / "
+                "ALLOY_UPDATE_GOLDENS=1: there are dirty files outside "
+                f"tests/fixtures/.  Commit or stash them first so source "
+                f"changes are not baked into goldens silently.\n"
+                f"Offending paths:\n  {preview}{extra}"
+            )
+    return update
+
+
+__all__ = ("goldens_update_mode",)
 
 
 @pytest.fixture

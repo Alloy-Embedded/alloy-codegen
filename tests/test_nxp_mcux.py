@@ -7,6 +7,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from golden_helpers import assert_matches_text_golden  # noqa: E402
 
 from alloy_codegen.bootstrap import registered_device_names
 from alloy_codegen.context import ExecutionContext
@@ -588,12 +589,14 @@ def test_emit_nxp_imxrt1060_reports_publishable_descriptor_coverage(
 def test_emit_nxp_imxrt1060_matches_golden_fixtures(
     nxp_execution_context: ExecutionContext,
     fixture_nxp_sources_root: Path,
+    goldens_update_mode: bool,
 ) -> None:
     """Task 3.3: emitted mimxrt1062 C++ artifacts match committed golden files."""
     result = run_emit(PipelineScope(device="mimxrt1062"), nxp_execution_context)
     artifacts = {a.path: a for a in result.payload.artifacts}
     family_dir = "nxp/imxrt1060"
     fixture_root = IMXRT1060_EMITTED_DIR
+    device_runtime_root = fixture_root / "generated" / "runtime" / "devices" / "mimxrt1062"
 
     for name in (
         "peripheral_instances.hpp",
@@ -615,10 +618,10 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "dma_bindings.hpp",
         "routes.hpp",
     ):
-        assert artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/{name}"].content == (
-            fixture_root / "generated" / "runtime" / "devices" / "mimxrt1062" / name
-        ).read_text(encoding="utf-8"), (
-            f"generated/runtime/devices/mimxrt1062/{name} does not match golden fixture"
+        assert_matches_text_golden(
+            artifacts[f"{family_dir}/generated/runtime/devices/mimxrt1062/{name}"].content,
+            device_runtime_root / name,
+            update_mode=goldens_update_mode,
         )
 
     for name in (
@@ -640,19 +643,12 @@ def test_emit_nxp_imxrt1060_matches_golden_fixtures(
         "timer.hpp",
         "pwm.hpp",
     ):
-        assert artifacts[
-            f"{family_dir}/generated/runtime/devices/mimxrt1062/driver_semantics/{name}"
-        ].content == (
-            fixture_root
-            / "generated"
-            / "runtime"
-            / "devices"
-            / "mimxrt1062"
-            / "driver_semantics"
-            / name
-        ).read_text(encoding="utf-8"), (
-            "generated/runtime/devices/mimxrt1062/driver_semantics/"
-            f"{name} does not match golden fixture"
+        assert_matches_text_golden(
+            artifacts[
+                f"{family_dir}/generated/runtime/devices/mimxrt1062/driver_semantics/{name}"
+            ].content,
+            device_runtime_root / "driver_semantics" / name,
+            update_mode=goldens_update_mode,
         )
 
     assert not any(path.startswith(f"{family_dir}/generated/peripherals/") for path in artifacts)

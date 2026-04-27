@@ -4,6 +4,11 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
+from golden_helpers import (  # noqa: E402  — added by auto-update-goldens
+    assert_matches_json_golden,
+    assert_matches_text_golden,
+)
+
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
@@ -24,10 +29,6 @@ from alloy_codegen.runtime_linker_script import emit_runtime_linker_script
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run
 from alloy_codegen.stages.normalize import run as run_normalize
-
-
-def _load_json_fixture(path: Path) -> dict[str, object]:
-    return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _normalize_manifest_payload(
@@ -1004,46 +1005,54 @@ def test_emit_matches_golden_artifacts(
     execution_context: ExecutionContext,
     fixture_source_root: Path,
     fixture_pin_source_root: Path,
+    goldens_update_mode: bool,
 ) -> None:
     result = run(PipelineScope(device="stm32g071rb"), execution_context)
     artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
     fixture_root = Path(__file__).parent / "fixtures" / "emitted" / "stm32g0"
 
+    def _text(path: str, fixture_subpath: tuple[str, ...]) -> None:
+        assert_matches_text_golden(
+            artifacts[path].content,
+            fixture_root.joinpath(*fixture_subpath),
+            update_mode=goldens_update_mode,
+        )
+
+    def _json(path: str, fixture_subpath: tuple[str, ...]) -> None:
+        assert_matches_json_golden(
+            json.loads(artifacts[path].content),
+            fixture_root.joinpath(*fixture_subpath),
+            update_mode=goldens_update_mode,
+        )
+
     manifest_payload = json.loads(artifacts["st/stm32g0/artifact-manifest.json"].content)
     validation_payload = json.loads(artifacts["st/stm32g0/reports/validation-report.json"].content)
 
-    assert _normalize_manifest_payload(
-        manifest_payload,
-        fixture_source_root=fixture_source_root,
-        fixture_pin_source_root=fixture_pin_source_root,
-    ) == _load_json_fixture(fixture_root / "artifact-manifest.json")
-    assert validation_payload == _load_json_fixture(
-        fixture_root / "reports" / "validation-report.json"
+    assert_matches_json_golden(
+        _normalize_manifest_payload(
+            manifest_payload,
+            fixture_source_root=fixture_source_root,
+            fixture_pin_source_root=fixture_pin_source_root,
+        ),
+        fixture_root / "artifact-manifest.json",
+        update_mode=goldens_update_mode,
     )
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/family-index.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "family-index.json")
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/family-connectivity.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "family-connectivity.json")
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/ip-blocks.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "ip-blocks.json")
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/capabilities.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "capabilities.json")
-    assert json.loads(artifacts["st/stm32g0/metadata/packages.json"].content) == _load_json_fixture(
-        fixture_root / "metadata" / "packages.json"
+    assert_matches_json_golden(
+        validation_payload,
+        fixture_root / "reports" / "validation-report.json",
+        update_mode=goldens_update_mode,
     )
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/connectors.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "connectors.json")
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/system-descriptors.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "system-descriptors.json")
-    assert json.loads(
-        artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"].content
-    ) == _load_json_fixture(fixture_root / "metadata" / "devices" / "stm32g071rb.json")
+    _json("st/stm32g0/metadata/family-index.json", ("metadata", "family-index.json"))
+    _json("st/stm32g0/metadata/family-connectivity.json", ("metadata", "family-connectivity.json"))
+    _json("st/stm32g0/metadata/ip-blocks.json", ("metadata", "ip-blocks.json"))
+    _json("st/stm32g0/metadata/capabilities.json", ("metadata", "capabilities.json"))
+    _json("st/stm32g0/metadata/packages.json", ("metadata", "packages.json"))
+    _json("st/stm32g0/metadata/connectors.json", ("metadata", "connectors.json"))
+    _json("st/stm32g0/metadata/system-descriptors.json", ("metadata", "system-descriptors.json"))
+    _json(
+        "st/stm32g0/metadata/devices/stm32g071rb.json",
+        ("metadata", "devices", "stm32g071rb.json"),
+    )
     assert not any(path.startswith("st/stm32g0/generated/ip/") for path in artifacts), (
         "Legacy IP headers should not be emitted"
     )
@@ -1061,46 +1070,27 @@ def test_emit_matches_golden_artifacts(
     assert "st/stm32g0/generated/clock_tree_lite.hpp" not in artifacts
     assert "st/stm32g0/generated/dma_map.hpp" not in artifacts
     assert "st/stm32g0/generated/rcc_map.hpp" not in artifacts
-    assert artifacts["st/stm32g0/generated/runtime/types.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "types.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/peripheral_instances.hpp"
-    ].content == (
-        fixture_root
-        / "generated"
-        / "runtime"
-        / "devices"
-        / "stm32g071rb"
-        / "peripheral_instances.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/pins.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "pins.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/registers.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "registers.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/register_fields.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "register_fields.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_bindings.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_bindings.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/dma_bindings.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "dma_bindings.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/routes.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "routes.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/connectors.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "connectors.hpp"
-    ).read_text(encoding="utf-8")
+    _text("st/stm32g0/generated/runtime/types.hpp", ("generated", "runtime", "types.hpp"))
+    _device_runtime = (
+        "generated",
+        "runtime",
+        "devices",
+        "stm32g071rb",
+    )
+    for hpp in (
+        "peripheral_instances.hpp",
+        "pins.hpp",
+        "registers.hpp",
+        "register_fields.hpp",
+        "clock_bindings.hpp",
+        "dma_bindings.hpp",
+        "routes.hpp",
+        "connectors.hpp",
+    ):
+        _text(
+            f"st/stm32g0/generated/runtime/devices/stm32g071rb/{hpp}",
+            (*_device_runtime, hpp),
+        )
     for name in (
         "common.hpp",
         "gpio.hpp",
@@ -1120,83 +1110,35 @@ def test_emit_matches_golden_artifacts(
         "timer.hpp",
         "pwm.hpp",
     ):
-        assert artifacts[
-            f"st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/{name}"
-        ].content == (
-            fixture_root
-            / "generated"
-            / "runtime"
-            / "devices"
-            / "stm32g071rb"
-            / "driver_semantics"
-            / name
-        ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "startup.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/device.ld"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "device.ld"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup.cpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/devices/stm32g071rb/startup_vectors.cpp"].content == (
-        fixture_root / "generated" / "devices" / "stm32g071rb" / "startup_vectors.cpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/systick.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "systick.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/interrupts.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "interrupts.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/interrupt_stubs.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "interrupt_stubs.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts["st/stm32g0/generated/runtime/devices/stm32g071rb/resets.hpp"].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "resets.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/enable_domains.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "enable_domains.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_graph.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_graph.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "capabilities.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/capabilities.json"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "capabilities.json"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/system_sequences.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_sequences.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/system_clock.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "system_clock.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_profiles.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_profiles.hpp"
-    ).read_text(encoding="utf-8")
-    assert artifacts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/clock_config.hpp"
-    ].content == (
-        fixture_root / "generated" / "runtime" / "devices" / "stm32g071rb" / "clock_config.hpp"
-    ).read_text(encoding="utf-8")
+        _text(
+            f"st/stm32g0/generated/runtime/devices/stm32g071rb/driver_semantics/{name}",
+            (*_device_runtime, "driver_semantics", name),
+        )
+    for hpp in (
+        "startup.hpp",
+        "systick.hpp",
+        "interrupts.hpp",
+        "interrupt_stubs.hpp",
+        "resets.hpp",
+        "enable_domains.hpp",
+        "clock_graph.hpp",
+        "capabilities.hpp",
+        "capabilities.json",
+        "system_sequences.hpp",
+        "system_clock.hpp",
+        "clock_profiles.hpp",
+        "clock_config.hpp",
+    ):
+        _text(
+            f"st/stm32g0/generated/runtime/devices/stm32g071rb/{hpp}",
+            (*_device_runtime, hpp),
+        )
+    _device_generated = ("generated", "devices", "stm32g071rb")
+    for name in ("device.ld", "startup.cpp", "startup_vectors.cpp"):
+        _text(
+            f"st/stm32g0/generated/devices/stm32g071rb/{name}",
+            (*_device_generated, name),
+        )
 
 
 def test_emit_can_semantics_cover_wave1_vendors(
