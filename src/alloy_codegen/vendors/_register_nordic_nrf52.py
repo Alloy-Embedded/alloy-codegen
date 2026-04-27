@@ -17,9 +17,7 @@ from alloy_codegen.sources.zephyr_dts import fetch_records as fetch_zephyr_dts_r
 from .registry import VendorAdapter, register_vendor_adapter
 
 
-def _fetch(
-    execution_context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def _fetch(execution_context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     return fetch_zephyr_dts_records(execution_context, scope)
 
 
@@ -44,6 +42,4 @@ def _normalize(
 
 @register_vendor_adapter("nordic", "nrf52")
 def _build() -> VendorAdapter:
-    return VendorAdapter(
-        vendor="nordic", family="nrf52", fetch=_fetch, normalize=_normalize
-    )
+    return VendorAdapter(vendor="nordic", family="nrf52", fetch=_fetch, normalize=_normalize)

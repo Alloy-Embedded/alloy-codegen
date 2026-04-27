@@ -53,9 +53,7 @@ def _stm32g0_context_with_modm() -> ExecutionContext:
 
 def test_load_enrichment_parses_clock_edges_dma_requests_and_signals() -> None:
     ctx = _stm32g0_context_with_modm()
-    enrichment = load_modm_enrichment(
-        ctx, vendor="st", family="stm32g0", device="stm32g071rb"
-    )
+    enrichment = load_modm_enrichment(ctx, vendor="st", family="stm32g0", device="stm32g071rb")
     assert enrichment is not None
     assert enrichment.device == "stm32g071rb"
     assert enrichment.family == "stm32g0"
@@ -73,9 +71,7 @@ def test_load_enrichment_returns_none_without_override() -> None:
     ``modm-devices`` source override is missing the loader returns
     None and the pipeline behaves exactly like today's flow."""
     base = ExecutionContext.default()
-    enrichment = load_modm_enrichment(
-        base, vendor="st", family="stm32g0", device="stm32g071rb"
-    )
+    enrichment = load_modm_enrichment(base, vendor="st", family="stm32g0", device="stm32g071rb")
     assert enrichment is None
 
 
@@ -83,9 +79,10 @@ def test_load_enrichment_returns_none_for_non_st_vendor() -> None:
     """The adapter is STM32-only (per the proposal); other vendors
     short-circuit even when an override is configured."""
     ctx = _stm32g0_context_with_modm()
-    assert load_modm_enrichment(
-        ctx, vendor="microchip", family="same70", device="atsame70q21b"
-    ) is None
+    assert (
+        load_modm_enrichment(ctx, vendor="microchip", family="same70", device="atsame70q21b")
+        is None
+    )
 
 
 def test_apply_enrichment_gap_fills_missing_dma_requests() -> None:
@@ -116,8 +113,10 @@ def test_apply_enrichment_does_not_overwrite_patch_rows() -> None:
     result = run_normalize(PipelineScope(device="stm32g071rb"), ctx)
     device = result.payload.devices[0]
     usart1_rx_rows = [
-        req for req in device.dma_requests
-        if req.peripheral == "USART1" and req.signal == "RX"
+        req
+        for req in device.dma_requests
+        if req.peripheral == "USART1"
+        and req.signal == "RX"
         and req.request_line == "DMA1_CH1"  # patch-supplied request_line
     ]
     assert len(usart1_rx_rows) == 1
@@ -183,6 +182,7 @@ def test_validate_modm_source_pin_rejects_drift_when_sha_pinned(
             returncode = 0
             stdout = "ffffffffffffffff\n"
             stderr = ""
+
         return _R()
 
     monkeypatch.setattr(subprocess, "run", fake_run)
@@ -194,9 +194,7 @@ def test_validate_modm_source_pin_rejects_drift_when_sha_pinned(
     assert "ffffffffffffffff" in msg
     assert "--accept-stale-sources" in msg
     # Override flag bypasses the check.
-    modm_module.validate_modm_source_pin(
-        modm_root=_MODM_FIXTURE_ROOT, accept_stale_sources=True
-    )
+    modm_module.validate_modm_source_pin(modm_root=_MODM_FIXTURE_ROOT, accept_stale_sources=True)
 
     # Restore (monkeypatch handles automatic teardown).
     _ = real_run

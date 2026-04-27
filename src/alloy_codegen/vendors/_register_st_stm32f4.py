@@ -20,9 +20,7 @@ from alloy_codegen.sources.stm32_open_pin_data import fetch_records as fetch_pin
 from .registry import VendorAdapter, register_vendor_adapter
 
 
-def _fetch(
-    execution_context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def _fetch(execution_context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     return (
         *fetch_svd_records(execution_context, scope),
         *fetch_pin_records(execution_context, scope),

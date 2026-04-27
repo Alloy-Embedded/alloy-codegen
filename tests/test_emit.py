@@ -1725,7 +1725,13 @@ def test_emit_packages_metadata_can_reconstruct_physical_pinout(
     # Pad "21" (PA5) was admitted by add-board-support-package-emitter so the
     # Nucleo-G071RB seed board's LED_GREEN pin survives validation.
     assert [pad["pad_id"] for pad in reconstructed_pinout] == [
-        "17", "18", "19", "20", "21", "29", "30",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "29",
+        "30",
     ]
     assert reconstructed_pinout[0]["position_label"] == "17"
     assert reconstructed_pinout[0]["bonded_pin"] == "PA0"
@@ -2149,10 +2155,7 @@ def test_emit_pin_validation_header_for_stm32g071rb(
     assert "static constexpr std::uint8_t kRouteSelectorIndex = 0u;" in content
 
     # ValidPinAssignment concept declared.
-    assert (
-        "concept ValidPinAssignment = "
-        "PinAssignmentValid<Pin, Signal>::value;" in content
-    )
+    assert "concept ValidPinAssignment = PinAssignmentValid<Pin, Signal>::value;" in content
 
     # Constexpr lookup table + linear scan.
     assert "struct PinAssignmentEntry {" in content
@@ -2167,14 +2170,9 @@ def test_emit_pin_validation_omits_unrouted_pin_signal_pairs(
     only the primary std::false_type template — no specialisation."""
     result = run(PipelineScope(device="stm32g071rb"), execution_context)
     arts = {a.path: a for a in result.payload.artifacts}
-    content = arts[
-        "st/stm32g0/generated/runtime/devices/stm32g071rb/pin_validation.hpp"
-    ].content
+    content = arts["st/stm32g0/generated/runtime/devices/stm32g071rb/pin_validation.hpp"].content
 
     # PA1 is admitted as SPI1_SCK but NOT as USART1_TX — the
     # specialisation block for the latter must not exist, so the
     # primary false_type template applies.
-    assert (
-        "struct PinAssignmentValid<PinId::PA1, PeripheralSignal::USART1_TX>"
-        not in content
-    )
+    assert "struct PinAssignmentValid<PinId::PA1, PeripheralSignal::USART1_TX>" not in content

@@ -70,9 +70,7 @@ def pytest_configure(config: pytest.Config) -> None:
     )
 
 
-def pytest_collection_modifyitems(
-    config: pytest.Config, items: list[pytest.Item]
-) -> None:
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     """Skip ``runtime_cpp_smoke`` tests unless the gate is opted in."""
     flag_set = bool(config.getoption("--runtime-cpp-smoke"))
     env_set = os.environ.get("ALLOY_RUNTIME_CPP_SMOKE", "").strip() in {

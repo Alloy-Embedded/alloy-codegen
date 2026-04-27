@@ -2749,9 +2749,7 @@ def _build_zephyr_dts_device_ir(
 
     patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
     family_catalog = load_family_patch_catalog(execution_context, vendor=vendor, family=family)
-    dts_path = resolve_dts_path(
-        execution_context, vendor=vendor, family=family, device=device_name
-    )
+    dts_path = resolve_dts_path(execution_context, vendor=vendor, family=family, device=device_name)
     compatible_map = compatible_map_for_vendor(vendor)
     document = parse_zephyr_device_document(dts_path, compatible_map=compatible_map)
 

@@ -10,9 +10,7 @@ from alloy_codegen.sources.esp_idf import fetch_records as fetch_espressif_recor
 from .registry import VendorAdapter, register_vendor_adapter
 
 
-def _fetch(
-    execution_context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def _fetch(execution_context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     return fetch_espressif_records(execution_context, scope)
 
 

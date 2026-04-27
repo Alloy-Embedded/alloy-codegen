@@ -76,9 +76,7 @@ def runtime_pin_validation_required_paths(
     devices: tuple[CanonicalDeviceIR, ...],
 ) -> tuple[str, ...]:
     return tuple(
-        _device_runtime_generated_path(
-            family_dir, device.identity.device, PIN_VALIDATION_HEADER
-        )
+        _device_runtime_generated_path(family_dir, device.identity.device, PIN_VALIDATION_HEADER)
         for device in devices
         if device.connection_candidates
     )
@@ -107,8 +105,7 @@ def emit_runtime_pin_validation_header(
     peripheral_signal_lines = [
         "enum class PeripheralSignal : std::uint16_t {",
         *(
-            f"  {_peripheral_signal_identifier(peripheral, signal)} = "
-            f"{index}u,"
+            f"  {_peripheral_signal_identifier(peripheral, signal)} = {index}u,"
             for index, (peripheral, signal) in enumerate(peripheral_signal_pairs)
         ),
         "};",
@@ -123,10 +120,7 @@ def emit_runtime_pin_validation_header(
     )
     route_kind_lines = [
         "enum class RouteKind : std::uint8_t {",
-        *(
-            f"  {identifier} = {index}u,"
-            for index, identifier in enumerate(route_kind_identifiers)
-        ),
+        *(f"  {identifier} = {index}u," for index, identifier in enumerate(route_kind_identifiers)),
         "};",
         "",
     ]
@@ -141,35 +135,26 @@ def emit_runtime_pin_validation_header(
     table_rows: list[str] = []
     for candidate in candidates:
         pin_ref = f"PinId::{_enum_identifier(candidate.pin)}"
-        signal_ref = (
-            "PeripheralSignal::"
-            + _peripheral_signal_identifier(candidate.peripheral, candidate.signal)
+        signal_ref = "PeripheralSignal::" + _peripheral_signal_identifier(
+            candidate.peripheral, candidate.signal
         )
-        route_kind_ref = (
-            "RouteKind::" + _route_kind_identifier(candidate.route_kind)
-        )
+        route_kind_ref = "RouteKind::" + _route_kind_identifier(candidate.route_kind)
         selector_index = _route_selector_index(candidate.route_selector)
         specialisation_lines.extend(
             [
                 "template<>",
-                f"struct PinAssignmentValid<{pin_ref}, {signal_ref}> "
-                ": std::true_type {",
+                f"struct PinAssignmentValid<{pin_ref}, {signal_ref}> : std::true_type {{",
                 f"  static constexpr RouteKind kRouteKind = {route_kind_ref};",
-                "  static constexpr std::uint8_t kRouteSelectorIndex = "
-                f"{selector_index}u;",
+                f"  static constexpr std::uint8_t kRouteSelectorIndex = {selector_index}u;",
                 "};",
                 "",
             ]
         )
-        table_rows.append(
-            f"  {{{pin_ref}, {signal_ref}, {route_kind_ref}, "
-            f"{selector_index}u}},"
-        )
+        table_rows.append(f"  {{{pin_ref}, {signal_ref}, {route_kind_ref}, {selector_index}u}},")
 
     concept_lines = [
         "template<PinId Pin, PeripheralSignal Signal>",
-        "concept ValidPinAssignment = "
-        "PinAssignmentValid<Pin, Signal>::value;",
+        "concept ValidPinAssignment = PinAssignmentValid<Pin, Signal>::value;",
         "",
     ]
 
@@ -186,8 +171,7 @@ def emit_runtime_pin_validation_header(
         *table_rows,
         "}};",
         "",
-        "constexpr bool is_valid_pin_assignment("
-        "PinId pin, PeripheralSignal signal) noexcept {",
+        "constexpr bool is_valid_pin_assignment(PinId pin, PeripheralSignal signal) noexcept {",
         "  for (auto const& entry : kPinAssignments) {",
         "    if (entry.pin == pin && entry.signal == signal) {",
         "      return true;",

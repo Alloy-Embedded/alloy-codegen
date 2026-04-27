@@ -10,9 +10,7 @@ from alloy_codegen.sources.nxp_mcux import fetch_records as fetch_nxp_mcux_recor
 from .registry import VendorAdapter, register_vendor_adapter
 
 
-def _fetch(
-    execution_context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def _fetch(execution_context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     return fetch_nxp_mcux_records(execution_context, scope)
 
 
@@ -35,6 +33,4 @@ def _normalize(
 
 @register_vendor_adapter("nxp", "imxrt1060")
 def _build() -> VendorAdapter:
-    return VendorAdapter(
-        vendor="nxp", family="imxrt1060", fetch=_fetch, normalize=_normalize
-    )
+    return VendorAdapter(vendor="nxp", family="imxrt1060", fetch=_fetch, normalize=_normalize)

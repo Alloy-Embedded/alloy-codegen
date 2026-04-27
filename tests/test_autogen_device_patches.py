@@ -55,9 +55,7 @@ def curated_g071_patch() -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_autogen_deterministic_output(
-    autogen_module, stm32g071_svd: Path
-) -> None:
+def test_autogen_deterministic_output(autogen_module, stm32g071_svd: Path) -> None:
     """Running the generator twice on the same inputs MUST produce
     byte-identical JSON."""
     patch_a = autogen_module.build_patch(
@@ -109,9 +107,7 @@ def test_autogen_peripherals_match_svd_contents(
     assert curated_in_svd.issubset(set(autogen_periphs))
 
 
-def test_autogen_emits_irq_table_with_stable_order(
-    autogen_module, stm32g071_svd: Path
-) -> None:
+def test_autogen_emits_irq_table_with_stable_order(autogen_module, stm32g071_svd: Path) -> None:
     """The IRQ table MUST be sorted by (line, name) so reruns
     produce identical output."""
     patch = autogen_module.build_patch(
@@ -155,9 +151,7 @@ def test_autogen_marks_undriverable_fields_as_todo_review(
     assert not missing, f"missing from $todo_review: {missing}"
 
 
-def test_autogen_resolves_core_from_cpu_block(
-    autogen_module, tmp_path: Path
-) -> None:
+def test_autogen_resolves_core_from_cpu_block(autogen_module, tmp_path: Path) -> None:
     """When the SVD declares a ``<cpu>`` block, the generator MUST
     resolve a canonical core string (e.g. ``cortex-m4f`` for a
     ``CM4`` cpu with ``fpuPresent`` set)."""

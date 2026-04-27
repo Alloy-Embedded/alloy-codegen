@@ -58,9 +58,7 @@ def test_boards_manifest_lists_nucleo_g071rb(
     execution_context: ExecutionContext,
 ) -> None:
     artifacts = _emit(execution_context, "stm32g071rb")
-    manifest_artifact = next(
-        a for a in artifacts if a.path.endswith("/metadata/boards.json")
-    )
+    manifest_artifact = next(a for a in artifacts if a.path.endswith("/metadata/boards.json"))
     payload = json.loads(manifest_artifact.content)
     assert payload["manifest_kind"] == "boards-manifest-v1"
     assert any(
@@ -87,6 +85,7 @@ def test_board_with_unknown_pin_fails_normalize(
     fake_root.mkdir()
     # Copy the st subtree so we can mutate boards/ without touching shared fixtures.
     import shutil
+
     shutil.copytree(fixture_patches / "st", fake_root / "st", symlinks=False)
     bad_board = fake_root / "st" / "stm32g0" / "boards" / "broken-board.json"
     bad_board.write_text(

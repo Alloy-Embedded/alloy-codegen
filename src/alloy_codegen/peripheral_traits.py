@@ -86,8 +86,7 @@ def _validate_required_fields(payload: dict[str, Any], path: Path) -> None:
     for field_name in ("template_revision", "ip_name", "ip_version"):
         if field_name not in payload:
             raise StageExecutionError(
-                f"peripheral_traits template {path} is missing required "
-                f"field {field_name!r}"
+                f"peripheral_traits template {path} is missing required field {field_name!r}"
             )
     if not isinstance(payload["template_revision"], int):
         raise StageExecutionError(
@@ -124,8 +123,7 @@ def load_templates(
     ``<templates_dir>/<peripheral_class>/*.toml`` for one class."""
     if peripheral_class not in SUPPORTED_CLASSES:
         raise StageExecutionError(
-            f"unsupported peripheral_class {peripheral_class!r}; "
-            f"known classes: {SUPPORTED_CLASSES}"
+            f"unsupported peripheral_class {peripheral_class!r}; known classes: {SUPPORTED_CLASSES}"
         )
     base = (templates_dir or TEMPLATES_DIR) / peripheral_class
     if not base.exists():
@@ -142,9 +140,7 @@ def load_all_templates(
     ``{peripheral_class: {(ip_name, ip_version): PeripheralTemplate}}``."""
     catalog: dict[str, dict[tuple[str, str], PeripheralTemplate]] = {}
     for peripheral_class in SUPPORTED_CLASSES:
-        templates = load_templates(
-            peripheral_class=peripheral_class, templates_dir=templates_dir
-        )
+        templates = load_templates(peripheral_class=peripheral_class, templates_dir=templates_dir)
         catalog[peripheral_class] = {tpl.key: tpl for tpl in templates}
     return catalog
 

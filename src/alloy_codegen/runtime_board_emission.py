@@ -94,19 +94,13 @@ def emit_runtime_board_header(
         for named in items:
             short = _short_name(named)
             pin_id = _enum_identifier(named.pin)
-            block_lines.append(
-                f"  static constexpr PinId k{short} = PinId::{pin_id};"
-            )
+            block_lines.append(f"  static constexpr PinId k{short} = PinId::{pin_id};")
             polarity_value = "true" if named.polarity == "active_high" else "false"
-            block_lines.append(
-                f"  static constexpr bool k{short}ActiveHigh = {polarity_value};"
-            )
+            block_lines.append(f"  static constexpr bool k{short}ActiveHigh = {polarity_value};")
             if named.peripheral and debug_peripheral is None and category.startswith("Debug"):
                 debug_peripheral = named.peripheral
             if named.signal:
-                block_lines.append(
-                    f"  // {named.name} signal = {named.signal}"
-                )
+                block_lines.append(f"  // {named.name} signal = {named.signal}")
             static_asserts.append(
                 f"static_assert(::{_runtime_namespace_components(device)[0]}::"
                 f"{_runtime_namespace_components(device)[1]}::generated::runtime::"
@@ -134,9 +128,7 @@ def emit_runtime_board_header(
 
     body = "\n\n".join([*body_blocks, clock_profile_line])
 
-    namespace_block = _cpp_namespace_block(
-        _board_namespace_components(device, board), body
-    )
+    namespace_block = _cpp_namespace_block(_board_namespace_components(device, board), body)
 
     device_id = _enum_identifier(device.identity.device)
     content = "\n".join(

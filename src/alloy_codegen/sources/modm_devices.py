@@ -95,25 +95,34 @@ class ModmEnrichment:
             "device": self.device,
             "family": self.family,
             "clock_edges": [
-                {"source": e.source, "target": e.target,
-                 "multiplier": e.multiplier, "divisor": e.divisor}
+                {
+                    "source": e.source,
+                    "target": e.target,
+                    "multiplier": e.multiplier,
+                    "divisor": e.divisor,
+                }
                 for e in self.clock_edges
             ],
             "dma_requests": [
-                {"peripheral": d.peripheral, "signal": d.signal,
-                 "request_value": d.request_value}
+                {"peripheral": d.peripheral, "signal": d.signal, "request_value": d.request_value}
                 for d in self.dma_requests
             ],
             "signal_afs": [
-                {"pin": s.pin, "peripheral": s.peripheral,
-                 "signal": s.signal, "af_number": s.af_number}
+                {
+                    "pin": s.pin,
+                    "peripheral": s.peripheral,
+                    "signal": s.signal,
+                    "af_number": s.af_number,
+                }
                 for s in self.signal_afs
             ],
             "provenance_sha": self.provenance_sha,
         }
 
 
-def _parse_modm_xml(path: Path) -> tuple[
+def _parse_modm_xml(
+    path: Path,
+) -> tuple[
     tuple[ModmClockEdge, ...],
     tuple[ModmDmaRequest, ...],
     tuple[ModmSignalAf, ...],
@@ -196,9 +205,7 @@ def _parse_modm_xml(path: Path) -> tuple[
                             af = int(signal.attrib.get("af", "0"))
                         except ValueError:
                             continue
-                        peripheral = (
-                            f"{peri_driver.upper()}{instance}" if peri_driver else ""
-                        )
+                        peripheral = f"{peri_driver.upper()}{instance}" if peri_driver else ""
                         if peripheral and signal_name:
                             signal_afs.append(
                                 ModmSignalAf(
@@ -281,9 +288,7 @@ def load_enrichment(
     )
 
 
-def apply_modm_enrichment(
-    device: object, enrichment: ModmEnrichment | None
-) -> object:
+def apply_modm_enrichment(device: object, enrichment: ModmEnrichment | None) -> object:
     """Layer the modm enrichment onto a partially-built canonical IR.
 
     ``device`` is a ``CanonicalDeviceIR`` (typed as ``object`` here
@@ -347,9 +352,7 @@ def apply_modm_enrichment(
     )
 
 
-def fetch_records(
-    context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     """Source-manifest fetch entry for modm-devices.
 
     Returns one record per device when an override path is set, so
@@ -377,9 +380,7 @@ def fetch_records(
                 "origin_url": "https://github.com/modm-io/modm-devices",
                 "revision": pin_sha,
                 "local_path": str(xml_path),
-                "upstream_path": (
-                    f"devices/stm32/{family.removeprefix('stm32')}/{xml_path.name}"
-                ),
+                "upstream_path": (f"devices/stm32/{family.removeprefix('stm32')}/{xml_path.name}"),
             }
         )
     return tuple(records)

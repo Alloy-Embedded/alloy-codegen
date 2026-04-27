@@ -59,9 +59,7 @@ def nordic_nrf52_context(zephyr_dts_root: Path, tmp_path: Path) -> ExecutionCont
 
 def test_parse_extracts_nordic_peripherals(nordic_nrf52_dts: Path) -> None:
     """Adapter pulls out the canonical Nordic peripheral set."""
-    doc = parse_zephyr_device_document(
-        nordic_nrf52_dts, compatible_map=NORDIC_COMPATIBLE_MAP
-    )
+    doc = parse_zephyr_device_document(nordic_nrf52_dts, compatible_map=NORDIC_COMPATIBLE_MAP)
     names = {p.name for p in doc.raw.peripherals}
     expected = {"UART0", "SPI0", "I2C0", "TIMER0", "RTC0", "GPIO0", "WDT0"}
     assert expected.issubset(names), f"missing peripherals: {expected - names}"
@@ -70,9 +68,7 @@ def test_parse_extracts_nordic_peripherals(nordic_nrf52_dts: Path) -> None:
 def test_parse_extracts_interrupts_with_peripheral_attribution(
     nordic_nrf52_dts: Path,
 ) -> None:
-    doc = parse_zephyr_device_document(
-        nordic_nrf52_dts, compatible_map=NORDIC_COMPATIBLE_MAP
-    )
+    doc = parse_zephyr_device_document(nordic_nrf52_dts, compatible_map=NORDIC_COMPATIBLE_MAP)
     irqs_by_peripheral = {irq.peripheral: irq.line for irq in doc.raw.interrupts}
     assert irqs_by_peripheral["UART0"] == 2
     assert irqs_by_peripheral["TIMER0"] == 8
@@ -81,9 +77,7 @@ def test_parse_extracts_interrupts_with_peripheral_attribution(
 
 
 def test_parse_extracts_memory_regions(nordic_nrf52_dts: Path) -> None:
-    doc = parse_zephyr_device_document(
-        nordic_nrf52_dts, compatible_map=NORDIC_COMPATIBLE_MAP
-    )
+    doc = parse_zephyr_device_document(nordic_nrf52_dts, compatible_map=NORDIC_COMPATIBLE_MAP)
     bases = {m.base_address: m.size_bytes for m in doc.memories}
     assert bases.get(0x20000000) == 0x40000  # SRAM 256 KB
     assert bases.get(0x00000000) == 0x100000  # Flash 1 MB
@@ -219,9 +213,23 @@ def test_normalize_nrf52840_filters_out_unmapped_dts_compatibles(
     # Sanity: nothing exotic crept in; every admitted peripheral is
     # part of the family catalog's known set.
     family_known = {
-        "UART0", "UART1", "SPI0", "SPI1", "SPI2", "I2C0", "I2C1",
-        "TIMER0", "TIMER1", "TIMER2", "RTC0", "RTC1", "PWM0",
-        "ADC0", "WDT0", "GPIO0", "GPIO1",
+        "UART0",
+        "UART1",
+        "SPI0",
+        "SPI1",
+        "SPI2",
+        "I2C0",
+        "I2C1",
+        "TIMER0",
+        "TIMER1",
+        "TIMER2",
+        "RTC0",
+        "RTC1",
+        "PWM0",
+        "ADC0",
+        "WDT0",
+        "GPIO0",
+        "GPIO1",
     }
     assert peripheral_names.issubset(family_known)
 

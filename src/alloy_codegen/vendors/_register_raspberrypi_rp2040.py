@@ -10,9 +10,7 @@ from alloy_codegen.sources.pico_sdk import fetch_records as fetch_pico_sdk_recor
 from .registry import VendorAdapter, register_vendor_adapter
 
 
-def _fetch(
-    execution_context: ExecutionContext, scope: PipelineScope
-) -> tuple[dict[str, str], ...]:
+def _fetch(execution_context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
     return fetch_pico_sdk_records(execution_context, scope)
 
 
@@ -35,6 +33,4 @@ def _normalize(
 
 @register_vendor_adapter("raspberrypi", "rp2040")
 def _build() -> VendorAdapter:
-    return VendorAdapter(
-        vendor="raspberrypi", family="rp2040", fetch=_fetch, normalize=_normalize
-    )
+    return VendorAdapter(vendor="raspberrypi", family="rp2040", fetch=_fetch, normalize=_normalize)

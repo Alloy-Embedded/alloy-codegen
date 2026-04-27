@@ -104,9 +104,7 @@ def ensure_source_root(context: ExecutionContext) -> Path:
             "Zephyr checkout (or a snapshotted DTS subtree)."
         )
     if not configured_root.exists():
-        raise StageExecutionError(
-            f"zephyr-dts source root does not exist: {configured_root}"
-        )
+        raise StageExecutionError(f"zephyr-dts source root does not exist: {configured_root}")
     return configured_root
 
 
@@ -135,8 +133,7 @@ def resolve_dts_path(
             return candidate
     searched = "\n  ".join(str(c) for c in candidates)
     raise StageExecutionError(
-        f"No zephyr-dts file found for {vendor}/{family}/{device}. "
-        f"Searched:\n  {searched}"
+        f"No zephyr-dts file found for {vendor}/{family}/{device}. Searched:\n  {searched}"
     )
 
 

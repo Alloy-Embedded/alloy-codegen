@@ -82,12 +82,8 @@ def test_two_instances_on_same_ip_version_resolve_to_same_template() -> None:
     """Spec scenario: STM32G0 USART1 and STM32F4 USART2 both
     `(ip_name=usart, ip_version=v2)` MUST receive identical defaults."""
     catalog = load_all_templates()
-    g0 = resolve_template(
-        catalog, peripheral_class="uart", ip_name="usart", ip_version="v2"
-    )
-    f4 = resolve_template(
-        catalog, peripheral_class="uart", ip_name="usart", ip_version="v2"
-    )
+    g0 = resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version="v2")
+    f4 = resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version="v2")
     assert g0 is not None and f4 is not None
     assert g0 is f4  # cached lookup returns the exact same object
     assert g0.values == f4.values
@@ -96,9 +92,7 @@ def test_two_instances_on_same_ip_version_resolve_to_same_template() -> None:
 def test_resolve_template_returns_none_for_unknown_ip_version() -> None:
     catalog = load_all_templates()
     assert (
-        resolve_template(
-            catalog, peripheral_class="uart", ip_name="usart", ip_version="v999"
-        )
+        resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version="v999")
         is None
     )
 
@@ -106,10 +100,7 @@ def test_resolve_template_returns_none_for_unknown_ip_version() -> None:
 def test_resolve_template_returns_none_when_ip_version_is_none() -> None:
     catalog = load_all_templates()
     assert (
-        resolve_template(
-            catalog, peripheral_class="uart", ip_name="usart", ip_version=None
-        )
-        is None
+        resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version=None) is None
     )
 
 
@@ -117,9 +108,7 @@ def test_template_provenance_tag_carries_revision() -> None:
     """Spec scenario: template revision MUST be visible in
     per-peripheral provenance."""
     catalog = load_all_templates()
-    template = resolve_template(
-        catalog, peripheral_class="uart", ip_name="usart", ip_version="v2"
-    )
+    template = resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version="v2")
     assert template is not None
     tag = template_provenance_tag(template)
     assert tag.startswith("peripheral_traits/uart/usart__v2@rev")
@@ -172,9 +161,7 @@ def test_merge_chain_skips_empty_leaves_in_override_layers() -> None:
 
 def test_merged_into_helper_matches_merge_chain() -> None:
     catalog = load_all_templates()
-    template = resolve_template(
-        catalog, peripheral_class="uart", ip_name="usart", ip_version="v2"
-    )
+    template = resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version="v2")
     assert template is not None
     overrides = {"max_baud_hz": 5_000_000}
     merged = template.merged_into(overrides)
@@ -234,13 +221,9 @@ def test_extractor_is_deterministic_on_synthetic_input(tmp_path: Path) -> None:
 
     extractor = _load_extractor()
     out = tmp_path / "uart.toml"
-    extractor.main(
-        ["--class", "uart", "--patches-root", str(fake_root), "--out", str(out)]
-    )
+    extractor.main(["--class", "uart", "--patches-root", str(fake_root), "--out", str(out)])
     text_a = out.read_text(encoding="utf-8")
-    extractor.main(
-        ["--class", "uart", "--patches-root", str(fake_root), "--out", str(out)]
-    )
+    extractor.main(["--class", "uart", "--patches-root", str(fake_root), "--out", str(out)])
     text_b = out.read_text(encoding="utf-8")
     assert text_a == text_b
     assert "lpuart-v1" in text_a

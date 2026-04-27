@@ -346,17 +346,13 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         # can constrain templates with ``ValidPinAssignment<...>``.  Only
         # devices that actually carry connection candidates emit a
         # header.
-        pin_validation = emit_runtime_pin_validation_header(
-            family_dir=family_dir, device=device
-        )
+        pin_validation = emit_runtime_pin_validation_header(family_dir=family_dir, device=device)
         if pin_validation is not None:
             artifacts.append(pin_validation)
         # add-board-support-package-emitter: per-board BSP headers.
         for board in device.boards:
             artifacts.append(
-                emit_runtime_board_header(
-                    family_dir=family_dir, device=device, board=board
-                )
+                emit_runtime_board_header(family_dir=family_dir, device=device, board=board)
             )
     # Top-level boards manifest aggregating every admitted board.
     artifacts.append(emit_boards_manifest(family_dir=family_dir, devices=devices))
