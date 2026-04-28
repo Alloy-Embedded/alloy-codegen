@@ -1,25 +1,21 @@
-"""Vendor adapter registry (add-vendor-adapter-registry).
+"""Vendor adapter registry — emptied by
+``consume-alloy-devices-yml-as-canonical-input``.
 
-Importing this package registers every built-in adapter so the
-pipeline stages (`stages.fetch`, `stages.normalize`) can resolve
-``(vendor, family)`` pairs without touching their own source code.
+Originally this package side-effect-registered one
+``VendorAdapter`` per family so the pipeline stages could resolve
+``(vendor, family)`` pairs without hard-coded ``if vendor == ...``
+cascades.  After the canonical-YAML pivot, every admitted
+device's IR comes from ``alloy-devices-yml`` directly — there is
+no per-family adapter code left in this repo.
+
+The :func:`resolve_vendor_adapter` shim is kept only so the
+diagnostics surface (CLI, tests) gets an actionable error
+pointing contributors at the data repo if anything still tries
+to dispatch through the registry.
 """
 
 from __future__ import annotations
 
-# Registering imports — kept as side-effects.  Order doesn't matter:
-# every `_register` module just calls
-# ``register_vendor_adapter(...)`` at import time.
-from . import (
-    _register_espressif,  # noqa: F401
-    _register_microchip_avr_da,  # noqa: F401
-    _register_microchip_same70,  # noqa: F401
-    _register_nordic_nrf52,  # noqa: F401  — ingest-zephyr-dts-as-source
-    _register_nxp_imxrt1060,  # noqa: F401
-    _register_raspberrypi_rp2040,  # noqa: F401
-    _register_st_stm32f4,  # noqa: F401
-    _register_st_stm32g0,  # noqa: F401
-)
 from .registry import (
     VendorAdapter,
     list_registered_adapters,

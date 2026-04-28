@@ -1,15 +1,20 @@
-"""Central vendor adapter registry (add-vendor-adapter-registry).
+"""Vendor adapter registry — emptied by
+``consume-alloy-devices-yml-as-canonical-input``.
 
-Replaces the hard-coded ``if vendor == ...`` cascades in
-``stages/normalize.py`` and ``stages/fetch.py`` with a tiny
-decorator + lookup table.  Each adapter registers itself at import
-time using ``@register_vendor_adapter(vendor, family)``; pipeline
-stages call ``resolve_vendor_adapter(vendor, family)`` to look up
-the right ``VendorAdapter`` instance.
+The original module side-effect-registered one ``VendorAdapter``
+per family so ``stages.fetch`` / ``stages.normalize`` could look
+up family-specific source-parsing entry points.  Every admitted
+device's IR now comes from the ``alloy-devices-yml`` data repo,
+so no per-family adapter code lives here anymore — the registry
+is permanently empty.
 
-Adding a new family is then a single-file change (drop a new
-``vendors/_register_<name>.py`` plus the adapter sources) — no
-edits to pipeline modules.
+The public surface (``VendorAdapter`` / ``register_vendor_adapter``
+/ ``resolve_vendor_adapter`` / ``list_registered_adapters``) is
+preserved as a no-op compatibility layer:
+``resolve_vendor_adapter`` always raises with an actionable
+message pointing the contributor at the data repo, and
+``register_vendor_adapter`` is a no-op decorator so any
+out-of-tree caller fails loudly the moment it tries to dispatch.
 """
 
 from __future__ import annotations
@@ -45,8 +50,8 @@ class _NormalizeFn(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class VendorAdapter:
-    """Bundles the per-family fetch + normalize entry points so the
-    pipeline can resolve them in a single registry lookup."""
+    """Legacy bundle — no instances are registered after
+    ``consume-alloy-devices-yml-as-canonical-input``."""
 
     vendor: str
     family: str
@@ -54,54 +59,32 @@ class VendorAdapter:
     normalize: _NormalizeFn
 
 
-_REGISTRY: dict[tuple[str, str], VendorAdapter] = {}
-
-
 def register_vendor_adapter(
     vendor: str, family: str
 ) -> Callable[[Callable[[], VendorAdapter]], Callable[[], VendorAdapter]]:
-    """Decorator returning the input unchanged after stashing the
-    paired ``VendorAdapter`` instance in the global registry.
-
-    The decorator targets a builder factory — a no-argument callable
-    that returns a ``VendorAdapter``.  Registering at the factory
-    level (vs. on each fetch/normalize pair) keeps the decorated
-    object small and avoids reorder-sensitive partials.
-    """
+    """No-op compat shim.  Vendor adapters were removed when device
+    admission moved to the ``alloy-devices-yml`` data repo."""
 
     def _decorator(builder: Callable[[], VendorAdapter]) -> Callable[[], VendorAdapter]:
-        adapter = builder()
-        key = (vendor, family)
-        if key in _REGISTRY and _REGISTRY[key] is not adapter:
-            raise RuntimeError(
-                f"vendor adapter already registered for ({vendor!r}, {family!r}); "
-                f"refusing silent override."
-            )
-        _REGISTRY[key] = adapter
         return builder
 
     return _decorator
 
 
 def resolve_vendor_adapter(vendor: str, family: str) -> VendorAdapter:
-    """Look up the adapter for ``(vendor, family)``.
-
-    Raises ``StageExecutionError`` with the discoverable list of
-    registered adapters on a miss — surfaced so a developer adding
-    a family-without-adapter sees the available set.
-    """
-    key = (vendor, family)
-    adapter = _REGISTRY.get(key)
-    if adapter is None:
-        registered = ", ".join(f"({v!r}, {f!r})" for v, f in sorted(_REGISTRY))
-        raise StageExecutionError(
-            f"no vendor adapter registered for ({vendor!r}, {family!r}); "
-            f"registered adapters: [{registered}]"
-        )
-    return adapter
+    """Always raises — admission goes through the canonical YAML
+    data repo, not this registry."""
+    raise StageExecutionError(
+        f"vendor adapter registry is empty after "
+        f"consume-alloy-devices-yml-as-canonical-input "
+        f"(asked for vendor={vendor!r}, family={family!r}).  "
+        "Admit the device by committing its YAML to the "
+        "alloy-devices-yml data repo; this codegen repo no longer "
+        "parses raw vendor sources."
+    )
 
 
 def list_registered_adapters() -> tuple[tuple[str, str], ...]:
-    """Return a stable-sorted snapshot of registered ``(vendor, family)``
-    keys.  Useful for tests + diagnostic logging."""
-    return tuple(sorted(_REGISTRY))
+    """Always returns the empty tuple — kept for test/diagnostic
+    callers that snapshot the registry."""
+    return ()
