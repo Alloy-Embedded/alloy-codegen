@@ -150,39 +150,20 @@ def goldens_update_mode(pytestconfig: pytest.Config) -> bool:
 __all__ = ("goldens_update_mode",)
 
 
-@pytest.fixture
-def fixture_source_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "cmsis-svd-data"
+# All upstream sources moved out of this repo by
+# ``consume-alloy-devices-yml-as-canonical-input``.  The test fixtures
+# below survive only as no-op placeholders — every admitted device's
+# canonical YAML is read directly from ``data/devices/`` (the
+# alloy-devices-yml submodule), so no per-vendor source override is
+# required.  Each ``*_execution_context`` fixture is a thin wrapper
+# around ``ExecutionContext.default()`` with isolated artifact +
+# publication roots so concurrent tests don't trample each other.
 
 
-@pytest.fixture
-def fixture_pin_source_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "stm32-open-pin-data"
-
-
-@pytest.fixture
-def fixture_microchip_extract_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "microchip-dfp-same70"
-
-
-@pytest.fixture
-def fixture_nxp_sources_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "nxp-mcux-imxrt1060"
-
-
-@pytest.fixture
-def execution_context(
-    fixture_source_root: Path,
-    fixture_pin_source_root: Path,
-    tmp_path: Path,
-) -> ExecutionContext:
+def _default_execution_context(tmp_path: Path) -> ExecutionContext:
     default_context = ExecutionContext.default()
     alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
     return default_context.with_overrides(
-        source_overrides={
-            "cmsis-svd-data": str(fixture_source_root),
-            "stm32-open-pin-data": str(fixture_pin_source_root),
-        },
         artifact_root=str(tmp_path / "artifacts"),
         publication_root=str(tmp_path / "publication"),
         alloy_root=str(alloy_root),
@@ -190,101 +171,65 @@ def execution_context(
 
 
 @pytest.fixture
-def microchip_execution_context(
-    fixture_microchip_extract_root: Path,
-    tmp_path: Path,
-) -> ExecutionContext:
-    default_context = ExecutionContext.default()
-    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
-    return default_context.with_overrides(
-        source_overrides={
-            "microchip-dfp-extract": str(fixture_microchip_extract_root),
-        },
-        artifact_root=str(tmp_path / "artifacts"),
-        publication_root=str(tmp_path / "publication"),
-        alloy_root=str(alloy_root),
-    )
+def fixture_source_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_source_root"
 
 
 @pytest.fixture
-def nxp_execution_context(
-    fixture_nxp_sources_root: Path,
-    tmp_path: Path,
-) -> ExecutionContext:
-    default_context = ExecutionContext.default()
-    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
-    return default_context.with_overrides(
-        source_overrides={
-            "nxp-mcux-soc-svd": str(fixture_nxp_sources_root / "svd"),
-            "nxp-mcux-sdk": str(fixture_nxp_sources_root / "sdk"),
-        },
-        artifact_root=str(tmp_path / "artifacts"),
-        publication_root=str(tmp_path / "publication"),
-        alloy_root=str(alloy_root),
-    )
+def fixture_pin_source_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_pin_source_root"
 
 
 @pytest.fixture
-def fixture_microchip_avr_da_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "microchip-dfp-avr-da"
+def fixture_microchip_extract_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_microchip_extract"
 
 
 @pytest.fixture
-def microchip_avr_da_execution_context(
-    fixture_microchip_avr_da_root: Path,
-    tmp_path: Path,
-) -> ExecutionContext:
-    default_context = ExecutionContext.default()
-    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
-    return default_context.with_overrides(
-        source_overrides={
-            "microchip-dfp-extract": str(fixture_microchip_avr_da_root),
-        },
-        artifact_root=str(tmp_path / "artifacts"),
-        publication_root=str(tmp_path / "publication"),
-        alloy_root=str(alloy_root),
-    )
+def fixture_nxp_sources_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_nxp_sources"
 
 
 @pytest.fixture
-def fixture_espressif_svd_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "espressif-svd"
+def fixture_microchip_avr_da_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_avr_da"
 
 
 @pytest.fixture
-def espressif_execution_context(
-    fixture_espressif_svd_root: Path,
-    tmp_path: Path,
-) -> ExecutionContext:
-    default_context = ExecutionContext.default()
-    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
-    return default_context.with_overrides(
-        source_overrides={
-            "espressif-svd": str(fixture_espressif_svd_root),
-        },
-        artifact_root=str(tmp_path / "artifacts"),
-        publication_root=str(tmp_path / "publication"),
-        alloy_root=str(alloy_root),
-    )
+def fixture_espressif_svd_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_espressif_svd"
 
 
 @pytest.fixture
-def fixture_pico_sdk_root() -> Path:
-    return ROOT / "tests" / "fixtures" / "pico-sdk"
+def fixture_pico_sdk_root(tmp_path: Path) -> Path:
+    return tmp_path / "_unused_pico_sdk"
 
 
 @pytest.fixture
-def rp2040_execution_context(
-    fixture_pico_sdk_root: Path,
-    tmp_path: Path,
-) -> ExecutionContext:
-    default_context = ExecutionContext.default()
-    alloy_root = default_context.alloy_root or (ROOT.parent / "alloy")
-    return default_context.with_overrides(
-        source_overrides={
-            "pico-sdk": str(fixture_pico_sdk_root),
-        },
-        artifact_root=str(tmp_path / "artifacts"),
-        publication_root=str(tmp_path / "publication"),
-        alloy_root=str(alloy_root),
-    )
+def execution_context(tmp_path: Path) -> ExecutionContext:
+    return _default_execution_context(tmp_path)
+
+
+@pytest.fixture
+def microchip_execution_context(tmp_path: Path) -> ExecutionContext:
+    return _default_execution_context(tmp_path)
+
+
+@pytest.fixture
+def nxp_execution_context(tmp_path: Path) -> ExecutionContext:
+    return _default_execution_context(tmp_path)
+
+
+@pytest.fixture
+def microchip_avr_da_execution_context(tmp_path: Path) -> ExecutionContext:
+    return _default_execution_context(tmp_path)
+
+
+@pytest.fixture
+def espressif_execution_context(tmp_path: Path) -> ExecutionContext:
+    return _default_execution_context(tmp_path)
+
+
+@pytest.fixture
+def rp2040_execution_context(tmp_path: Path) -> ExecutionContext:
+    return _default_execution_context(tmp_path)

@@ -94,10 +94,11 @@ def emit_runtime_i2c_speed_validation_header(
                 "  }",
             ]
         )
-        for speed, mode in speeds:
-            table_rows.append(
-                f'  {{{peripheral_ref}, {speed}u, "{mode}"}},'
-            )
+        for speed, _mode in speeds:
+            # Mode is a string label and so it is dropped from the
+            # emitted runtime contract per
+            # ``eliminate-runtime-strings-from-cpp-contract``.
+            table_rows.append(f"  {{{peripheral_ref}, {speed}u}},")
 
     predicate_lines = [
         "consteval bool is_valid_i2c_speed(PeripheralId peripheral, "
@@ -120,7 +121,6 @@ def emit_runtime_i2c_speed_validation_header(
         "struct I2cSpeedEntry {",
         "  PeripheralId peripheral;",
         "  std::uint32_t speed_hz;",
-        "  char const* mode;",
         "};",
         "",
         f"inline constexpr std::array<I2cSpeedEntry, {len(table_rows)}> "

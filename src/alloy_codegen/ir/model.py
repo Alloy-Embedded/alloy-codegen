@@ -5,6 +5,38 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
+from alloy_codegen.ir.tier_data import (
+    AdcCalibrationContextPatch,
+    AdcCalibrationDataPointPatch,
+    AdcExternalTriggerPatch,
+    AdcInternalChannelPatch,
+    AdcOversamplingOptionPatch,
+    AdcResolutionOptionPatch,
+    AdcSampleTimeOptionPatch,
+    I2cModeFlagsPatch,
+    I2cSpeedOptionPatch,
+    I2cTimingPresetPatch,
+    PeripheralMaxClockPatch,
+    PwmAlignmentOptionPatch,
+    PwmBreakInputPatch,
+    PwmDeadtimeOptionPatch,
+    PwmModeFlagsPatch,
+    SpiBaudPrescalerOptionPatch,
+    SpiFifoThresholdOptionPatch,
+    SpiFrameSizeOptionPatch,
+    SpiModeFlagsPatch,
+    TimerMasterOutputPatch,
+    TimerModeFlagsPatch,
+    TimerPrescalerOptionPatch,
+    TimerTriggerSourcePatch,
+    UartBaudClockSourcePatch,
+    UartBaudOversamplingOptionPatch,
+    UartDataBitsOptionPatch,
+    UartFifoTriggerOptionPatch,
+    UartModeFlagsPatch,
+    UartParityOptionPatch,
+    UartStopBitsOptionPatch,
+)
 from alloy_codegen.serialization import to_primitive
 
 
@@ -1247,101 +1279,98 @@ class CanonicalDeviceIR:
     # patch dataclasses (the IR layer is a thin pass-through; the typed C++
     # rendering happens in `runtime_driver_semantics`).  ``omit_if_empty`` so
     # devices without ADC config don't bloat the canonical IR JSON.
-    adc_internal_channels: tuple[object, ...] = field(
+    adc_internal_channels: tuple[AdcInternalChannelPatch, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    adc_calibration_data_points: tuple[object, ...] = field(
+    adc_calibration_data_points: tuple[AdcCalibrationDataPointPatch, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    adc_calibration_context: object | None = field(
+    adc_calibration_context: AdcCalibrationContextPatch | None = field(
         default=None,
         metadata={"omit_if_empty": True},
     )
-    adc_resolution_options: tuple[object, ...] = field(
+    adc_resolution_options: tuple[AdcResolutionOptionPatch, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    adc_sample_time_options: tuple[object, ...] = field(
+    adc_sample_time_options: tuple[AdcSampleTimeOptionPatch, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    adc_oversampling_options: tuple[object, ...] = field(
+    adc_oversampling_options: tuple[AdcOversamplingOptionPatch, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
-    adc_external_triggers: tuple[object, ...] = field(
+    adc_external_triggers: tuple[AdcExternalTriggerPatch, ...] = field(
         default_factory=tuple,
         metadata={"omit_if_empty": True},
     )
     adc_max_clock_hz: int = field(default=0, metadata={"omit_if_default": True})
-    # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).  Same
-    # pass-through pattern as ADC: tuples of patch dataclasses, the typed
-    # C++ rendering happens in ``runtime_driver_semantics``.  Empty for
-    # families whose device patches don't curate the data.
-    uart_baud_clock_sources: tuple[object, ...] = field(
+    # UART + SPI Tier 2/3/4 (added by add-uart-spi-tier-2-3-4-data).
+    uart_baud_clock_sources: tuple[UartBaudClockSourcePatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    uart_baud_oversampling_options: tuple[object, ...] = field(
+    uart_baud_oversampling_options: tuple[UartBaudOversamplingOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    uart_fifo_trigger_options: tuple[object, ...] = field(
+    uart_fifo_trigger_options: tuple[UartFifoTriggerOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    uart_data_bits_options: tuple[object, ...] = field(
+    uart_data_bits_options: tuple[UartDataBitsOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    uart_parity_options: tuple[object, ...] = field(
+    uart_parity_options: tuple[UartParityOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    uart_stop_bits_options: tuple[object, ...] = field(
+    uart_stop_bits_options: tuple[UartStopBitsOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    uart_mode_flags: tuple[object, ...] = field(
+    uart_mode_flags: tuple[UartModeFlagsPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     uart_max_baud_hz: int = field(default=0, metadata={"omit_if_default": True})
-    spi_baud_prescaler_options: tuple[object, ...] = field(
+    spi_baud_prescaler_options: tuple[SpiBaudPrescalerOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    spi_frame_size_options: tuple[object, ...] = field(
+    spi_frame_size_options: tuple[SpiFrameSizeOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    spi_fifo_threshold_options: tuple[object, ...] = field(
+    spi_fifo_threshold_options: tuple[SpiFifoThresholdOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    spi_mode_flags: tuple[object, ...] = field(
+    spi_mode_flags: tuple[SpiModeFlagsPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # Timer Tier 2/3/4 (add-timer-tier-2-3-4-data).
-    timer_prescaler_options: tuple[object, ...] = field(
+    timer_prescaler_options: tuple[TimerPrescalerOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    timer_trigger_sources: tuple[object, ...] = field(
+    timer_trigger_sources: tuple[TimerTriggerSourcePatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    timer_master_outputs: tuple[object, ...] = field(
+    timer_master_outputs: tuple[TimerMasterOutputPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    timer_mode_flags: tuple[object, ...] = field(
+    timer_mode_flags: tuple[TimerModeFlagsPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # PWM Tier 2/3/4 (add-pwm-tier-2-3-4-data).
-    pwm_deadtime_options: tuple[object, ...] = field(
+    pwm_deadtime_options: tuple[PwmDeadtimeOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    pwm_alignment_options: tuple[object, ...] = field(
+    pwm_alignment_options: tuple[PwmAlignmentOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    pwm_break_inputs: tuple[object, ...] = field(
+    pwm_break_inputs: tuple[PwmBreakInputPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    pwm_mode_flags: tuple[object, ...] = field(
+    pwm_mode_flags: tuple[PwmModeFlagsPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # Per-peripheral input-clock ceiling (added by ``add-kernel-clock-traits``).
-    peripheral_max_clock_hz: tuple[object, ...] = field(
+    peripheral_max_clock_hz: tuple[PeripheralMaxClockPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # Board overlays (add-board-support-package-emitter).
@@ -1349,13 +1378,13 @@ class CanonicalDeviceIR:
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # I2C Tier 2/3/4 (added by ``add-i2c-tier-2-3-4-data``).
-    i2c_speed_options: tuple[object, ...] = field(
+    i2c_speed_options: tuple[I2cSpeedOptionPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    i2c_timing_presets: tuple[object, ...] = field(
+    i2c_timing_presets: tuple[I2cTimingPresetPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
-    i2c_mode_flags: tuple[object, ...] = field(
+    i2c_mode_flags: tuple[I2cModeFlagsPatch, ...] = field(
         default_factory=tuple, metadata={"omit_if_empty": True}
     )
     # Multi-core topology + APP_CPU control plane (added by

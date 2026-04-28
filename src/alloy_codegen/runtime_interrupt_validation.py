@@ -78,13 +78,17 @@ def emit_runtime_interrupt_validation_header(
         peripheral_ref = f"PeripheralId::{_enum_identifier(binding.peripheral)}"
         slot = binding.vector_slot
         line = binding.line
-        symbol = binding.symbol_name or binding.interrupt
+        # ``kSymbolName`` was deliberately dropped after the
+        # eliminate-runtime-strings-from-cpp-contract guarantee —
+        # the gate forbids string literals in the emitted runtime
+        # contract.  The numeric ``kIrqLine`` is enough for typed
+        # consumers; the symbol name lives only in source-side
+        # documentation.
         specialisation_lines.extend(
             [
                 "template<>",
                 f"struct InterruptSlotValid<{peripheral_ref}, {slot}u> : std::true_type {{",
                 f"  static constexpr std::uint16_t kIrqLine = {line}u;",
-                f'  static constexpr char const* kSymbolName = "{symbol}";',
                 "};",
                 "",
             ]

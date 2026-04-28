@@ -33,7 +33,7 @@ def test_cli_fetch_json_output(
     assert payload["scope"]["family"] == "stm32g0"
     assert payload["scope"]["device"] == "stm32g071rb"
     assert payload["payload"]["source_manifest"]["sources"][0]["upstream_path"].endswith(
-        "STM32G071.svd"
+        "stm32g071rb.yml"
     )
 
 

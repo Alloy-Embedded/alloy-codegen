@@ -10,7 +10,6 @@ from alloy_codegen.stages.common import StageResult
 from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.fetch import run as run_fetch
 from alloy_codegen.stages.normalize import run as run_normalize
-from alloy_codegen.stages.patch import run as run_patch
 from alloy_codegen.stages.publish import run as run_publish
 from alloy_codegen.stages.validate import run as run_validate
 
@@ -27,7 +26,6 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     execution_context = context or ExecutionContext.default()
     results = (
         run_fetch(scope, execution_context),
-        run_patch(scope, execution_context),
         run_normalize(scope, execution_context),
         run_validate(scope, execution_context),
         run_emit(scope, execution_context),

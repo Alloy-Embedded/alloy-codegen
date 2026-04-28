@@ -23,7 +23,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-from alloy_codegen.bootstrap import merged_device_registry
+from alloy_codegen.bootstrap import device_registry
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.errors import AlloyCodegenError
 from alloy_codegen.scope import PipelineScope
@@ -105,7 +105,7 @@ def admit_devices(
 
 
 def _resolve_triples(*, vendor: str | None, family: str | None) -> Iterable[tuple[str, str, str]]:
-    registry = merged_device_registry()
+    registry = device_registry()
     for (rv, rf), devices in sorted(registry.items()):
         if vendor is not None and rv != vendor:
             continue

@@ -18,7 +18,7 @@ if str(SRC) not in sys.path:
 from alloy_codegen.bootstrap import (  # noqa: E402
     DEVICE_REGISTRY,
     discovered_device_registry,
-    merged_device_registry,
+    device_registry,
 )
 from alloy_codegen.bulk_admit import (  # noqa: E402
     BulkAdmitOutcome,
@@ -54,7 +54,7 @@ def test_discovered_registry_has_at_least_the_admitted_set() -> None:
 def test_merged_registry_unions_hand_curated_with_discovered() -> None:
     """Spec scenario: merged registry contains the union of both
     sources."""
-    merged = merged_device_registry()
+    merged = device_registry()
     # Hand-curated entries persist.
     assert ("st", "stm32g0") in merged
     assert "stm32g071rb" in merged[("st", "stm32g0")]

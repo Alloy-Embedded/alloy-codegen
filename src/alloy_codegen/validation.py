@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from collections import Counter
 
-from alloy_codegen.bootstrap import source_bundle_for
+# consume-alloy-devices-yml-as-canonical-input: every admitted
+# device's only upstream source is the alloy-devices-yml YAML.
+_CANONICAL_SOURCE_IDS: tuple[str, ...] = ("alloy-devices-yml",)
 from alloy_codegen.connector_model import (
     canonical_peripheral_class,
     canonical_signal_role,
@@ -250,17 +252,7 @@ def _validate_source_manifest(source_manifest: SourceManifest) -> tuple[Validati
         }
         for target in source_manifest.targets
     }
-    scope = next((source.scope for source in source_manifest.sources), None)
-    expected_source_ids = (
-        set(
-            source_bundle_for(
-                str(scope["vendor"]),
-                str(scope["family"]),
-            )
-        )
-        if scope is not None
-        else set()
-    )
+    expected_source_ids = set(_CANONICAL_SOURCE_IDS)
     return (
         _rule(
             rule_id="source-records-cover-targets",

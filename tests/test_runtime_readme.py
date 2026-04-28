@@ -38,44 +38,13 @@ def test_devices_readme_lists_every_device() -> None:
             assert device in content, f"missing device entry: {device}"
 
 
-def test_devices_readme_caveats_pulled_from_family_patches() -> None:
-    """Families that declare `__readme_caveat` show up under Coverage caveats;
-    families that don't are absent from that section."""
+def test_devices_readme_omits_caveats_section() -> None:
+    """``consume-alloy-devices-yml-as-canonical-input`` removed the
+    family-level ``__readme_caveat`` field — the README no longer
+    carries a 'Coverage caveats' section."""
     ctx = ExecutionContext.default()
     content = render_devices_readme(ctx, alloy_codegen_revision="test")
-    # Caveats section header is present iff at least one family has a caveat.
-    assert "## Coverage caveats" in content
-    # Known caveat-bearing families (set in Phase 1.5 of the change).
-    for vendor, family in (
-        ("espressif", "esp32"),
-        ("espressif", "esp32s3"),
-        ("microchip", "avr-da"),
-        ("raspberrypi", "rp2040"),
-    ):
-        assert f"**{vendor}/{family}**" in content, (
-            f"expected coverage caveat for {vendor}/{family}"
-        )
-
-
-def test_devices_readme_omits_families_without_caveat_from_caveats_section() -> None:
-    """A family with no `__readme_caveat` MUST NOT appear in the caveats section.
-
-    `microchip/same70` and the STM32 / NXP families currently have no caveat
-    declared.  They appear in the table (above) but not in the caveats list.
-    """
-    ctx = ExecutionContext.default()
-    content = render_devices_readme(ctx, alloy_codegen_revision="test")
-    caveats_section = content.split("## Coverage caveats", maxsplit=1)[1]
-    # Sanity: STM32 and NXP families should NOT be cited in the caveats list.
-    for vendor, family in (
-        ("microchip", "same70"),
-        ("nxp", "imxrt1060"),
-        ("st", "stm32g0"),
-        ("st", "stm32f4"),
-    ):
-        assert f"**{vendor}/{family}**" not in caveats_section, (
-            f"family without caveat leaked into caveats section: {vendor}/{family}"
-        )
+    assert "## Coverage caveats" not in content
 
 
 def test_devices_readme_emit_is_deterministic() -> None:

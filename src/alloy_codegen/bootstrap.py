@@ -1,4 +1,10 @@
-"""Supported target configuration and device registry."""
+"""Supported target configuration and device registry.
+
+After ``consume-alloy-devices-yml-as-canonical-input`` Phase 5 the
+registry is filesystem-derived from the ``alloy-devices-yml``
+submodule mounted at ``data/devices/vendors/``.  Adding a chip is
+"commit a YAML to alloy-devices-yml" — no edit to this file.
+"""
 
 from __future__ import annotations
 
@@ -16,57 +22,27 @@ PUBLICATION_TARGET_REPOSITORY = "alloy-devices"
 ARTIFACT_LAYOUT_VERSION = "alloy-devices-v1"
 CPP_CONTRACT_VERSION = "alloy-cpp-bootstrap-v1"
 
-# Registry of all supported (vendor, family) → device names.
-DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = {
-    ("espressif", "esp32"): ("esp32", "esp32-wroom32"),
-    ("espressif", "esp32c3"): ("esp32c3",),
-    ("espressif", "esp32s3"): ("esp32s3",),
-    ("st", "stm32g0"): ("stm32g030f6", "stm32g071rb", "stm32g0b1re"),
-    ("st", "stm32f4"): ("stm32f401re", "stm32f405rg"),
-    ("microchip", "same70"): ("atsame70n21b", "atsame70q21b"),
-    ("microchip", "avr-da"): ("avr128da32",),
-    ("nxp", "imxrt1060"): ("mimxrt1062", "mimxrt1064"),
-    ("raspberrypi", "rp2040"): ("pico", "rp2040"),
-    # ingest-zephyr-dts-as-source: Nordic nRF52 admitted via the
-    # cross-vendor Zephyr-DTS adapter.  Same plumbing will unlock
-    # Renesas / TI / Infineon / Ambiq in follow-up changes.
-    ("nordic", "nrf52"): ("nrf52840",),
-}
-
-SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
-    ("espressif", "esp32"): ("espressif-svd",),
-    ("espressif", "esp32c3"): ("espressif-svd",),
-    ("espressif", "esp32s3"): ("espressif-svd",),
-    ("st", "stm32g0"): ("cmsis-svd-data", "stm32-open-pin-data"),
-    ("st", "stm32f4"): ("cmsis-svd-data", "stm32-open-pin-data"),
-    ("microchip", "same70"): ("microchip-dfp-pack", "microchip-dfp-extract"),
-    ("microchip", "avr-da"): ("microchip-dfp-pack", "microchip-dfp-extract"),
-    ("nxp", "imxrt1060"): ("nxp-mcux-soc-svd", "nxp-mcux-sdk"),
-    ("raspberrypi", "rp2040"): ("pico-sdk",),
-    ("nordic", "nrf52"): ("zephyr-dts",),
-}
-
-# bulk-admit-from-alloy-devices-yml: filesystem-derived registry.
-# Walks ``data/devices/vendors/<v>/<f>/devices/*.yml`` and unions
-# the results into the in-memory registry.  Adding a chip becomes
-# "commit a YAML to alloy-devices-yml" — no edit to this file.
-
 _DATA_DEVICES_ROOT = Path(__file__).resolve().parents[2] / "data" / "devices"
 
 
 @lru_cache(maxsize=1)
-def discovered_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
-    """Return ``(vendor, family) -> tuple[device_names]`` discovered
-    from the ``alloy-devices-yml`` submodule.
+def _discover_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
+    """Walk ``data/devices/vendors/<v>/<f>/devices/*.yml`` and
+    union the discovered devices into ``(vendor, family) ->
+    tuple[device_names]``.
 
-    Empty when the submodule is not initialised.  Cached for the
-    process lifetime — bumping the submodule mid-process is not
-    supported (just restart the process).
+    Raises if the submodule is uninitialised — admission requires
+    the data repo to be present.  Cached for the process lifetime
+    (bumping the submodule mid-process is not supported; restart
+    the process if the data repo changed).
     """
     registry: dict[tuple[str, str], list[str]] = {}
     vendors_root = _DATA_DEVICES_ROOT / "vendors"
     if not vendors_root.exists():
-        return {}
+        raise UnsupportedScopeError(
+            "data/devices/ submodule is not initialised — run "
+            "`git submodule update --init` to mount alloy-devices-yml."
+        )
     for vendor_dir in sorted(vendors_root.iterdir()):
         if not vendor_dir.is_dir():
             continue
@@ -79,33 +55,42 @@ def discovered_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
             yamls = sorted(p.stem for p in devices_dir.glob("*.yml"))
             if yamls:
                 registry[(vendor_dir.name, family_dir.name)] = yamls
+    if not registry:
+        raise UnsupportedScopeError(
+            "alloy-devices-yml submodule contains no admitted devices "
+            "(walked data/devices/vendors/<vendor>/<family>/devices/)."
+        )
     return {key: tuple(devices) for key, devices in registry.items()}
 
 
-def merged_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
-    """Hand-curated ``DEVICE_REGISTRY`` ∪ filesystem-discovered.
-    Discovered entries win on conflict — alloy-devices-yml is the
-    source of truth once the YAML lands."""
-    merged: dict[tuple[str, str], tuple[str, ...]] = dict(DEVICE_REGISTRY)
-    for key, devices in discovered_device_registry().items():
-        existing = merged.get(key, ())
-        # Union, discovered first (source of truth).
-        seen: set[str] = set()
-        unioned: list[str] = []
-        for d in (*devices, *existing):
-            if d not in seen:
-                unioned.append(d)
-                seen.add(d)
-        merged[key] = tuple(unioned)
-    return merged
+def device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
+    """Return ``(vendor, family) -> tuple[device_names]`` mapping
+    derived from the canonical YAMLs in
+    ``data/devices/vendors/``.  Drop-in replacement for the legacy
+    hand-curated ``DEVICE_REGISTRY`` mapping."""
+    return dict(_discover_device_registry())
 
 
-# Flat reverse map for auto-resolving family from device name.
-_DEVICE_TO_FAMILY: dict[str, tuple[str, str]] = {
-    device: (vendor, family)
-    for (vendor, family), devices in DEVICE_REGISTRY.items()
-    for device in devices
-}
+def discovered_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
+    """Backwards-compat alias for ``device_registry()`` — kept for
+    callers that imported the pre-Phase-5 name.  Returns the cached
+    filesystem-derived mapping; identity-stable across repeated
+    calls in the same process."""
+    return _discover_device_registry()
+
+
+# Backwards-compat alias — many callers import ``DEVICE_REGISTRY``
+# directly.  After Phase 5 it is the filesystem-derived mapping;
+# resolved once at module-import time.
+DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = device_registry()
+
+
+def _device_to_family() -> dict[str, tuple[str, str]]:
+    return {
+        device: (vendor, family)
+        for (vendor, family), devices in _discover_device_registry().items()
+        for device in devices
+    }
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,7 +100,6 @@ class SupportedFamily:
     vendor: str
     family: str
     devices: tuple[str, ...]
-    source_bundles: tuple[str, ...]
     is_default: bool = False
 
     def to_dict(self) -> dict[str, object]:
@@ -124,14 +108,13 @@ class SupportedFamily:
             "vendor": self.vendor,
             "family": self.family,
             "devices": list(self.devices),
-            "source_bundles": list(self.source_bundles),
             "is_default": self.is_default,
         }
 
 
 def registered_family_keys() -> tuple[tuple[str, str], ...]:
     """Return supported vendor/family keys in stable order."""
-    return tuple(sorted(DEVICE_REGISTRY))
+    return tuple(sorted(_discover_device_registry()))
 
 
 def supported_families(
@@ -154,7 +137,6 @@ def supported_families(
                 vendor=key_vendor,
                 family=key_family,
                 devices=registered_device_names(key_vendor, key_family),
-                source_bundles=source_bundle_for(key_vendor, key_family),
                 is_default=(key_vendor, key_family) == (BOOTSTRAP_VENDOR, BOOTSTRAP_FAMILY),
             )
         )
@@ -174,19 +156,20 @@ def supported_families(
 def registered_device_names(vendor: str, family: str) -> tuple[str, ...]:
     """Return supported device names for the given vendor/family in stable order."""
     key = (vendor.lower(), family.lower())
-    if key not in DEVICE_REGISTRY:
+    registry = _discover_device_registry()
+    if key not in registry:
         raise UnsupportedScopeError(
             f"Unsupported vendor/family '{vendor}/{family}'. "
-            f"Supported: {', '.join(f'{v}/{f}' for v, f in sorted(DEVICE_REGISTRY))}."
+            f"Supported: {', '.join(f'{v}/{f}' for v, f in sorted(registry))}."
         )
-    return tuple(sorted(DEVICE_REGISTRY[key]))
+    return tuple(sorted(registry[key]))
 
 
 def resolve_device_family(device_name: str) -> tuple[str, str]:
     """Return (vendor, family) for a registered device name."""
-    entry = _DEVICE_TO_FAMILY.get(device_name.lower())
+    entry = _device_to_family().get(device_name.lower())
     if entry is None:
-        supported = ", ".join(sorted(_DEVICE_TO_FAMILY))
+        supported = ", ".join(sorted(_device_to_family()))
         raise UnsupportedScopeError(f"Unsupported device '{device_name}'. Supported: {supported}.")
     return entry
 
@@ -194,14 +177,3 @@ def resolve_device_family(device_name: str) -> tuple[str, str]:
 def bootstrap_device_names() -> tuple[str, ...]:
     """Return bootstrap family device names (compatibility shim)."""
     return registered_device_names(BOOTSTRAP_VENDOR, BOOTSTRAP_FAMILY)
-
-
-def source_bundle_for(vendor: str, family: str) -> tuple[str, ...]:
-    """Return the logical source bundle declared for a supported family."""
-    key = (vendor.lower(), family.lower())
-    if key not in SOURCE_BUNDLES:
-        raise UnsupportedScopeError(
-            f"Unsupported vendor/family '{vendor}/{family}'. "
-            f"Supported: {', '.join(f'{v}/{f}' for v, f in sorted(SOURCE_BUNDLES))}."
-        )
-    return SOURCE_BUNDLES[key]
