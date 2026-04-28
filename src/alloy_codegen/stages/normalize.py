@@ -2274,6 +2274,91 @@ def _build_nxp_package_pads(
     )
 
 
+_IMXRT_GPIO_PERIPHERAL_PATTERN = re.compile(r"^GPIO(\d+)$")
+_IMXRT_GPIO_SIGNAL_PATTERN = re.compile(r"^IO(\d+)$")
+
+
+def _build_imxrt_gpio_pins(
+    *,
+    pins: tuple[PinDefinition, ...],
+    provenance: Provenance,
+) -> tuple[GpioPinDescriptor, ...]:
+    """Derive `GpioPinDescriptor` entries for the NXP i.MX RT family.
+
+    Added by ``populate-imxrt-iomux-gpio-pins``.
+
+    Each iMXRT pad routes through IOMUX to a specific
+    ``GPIO<N>.IO<XX>`` controller bit (encoded as a signal entry on
+    the pin, typically at ``mux_mode == 5``).  We extract that
+    bit to populate ``port`` (``"GPIO1"`` … ``"GPIO5"``) and
+    ``pin_index`` (the ``IO<XX>`` digits); every *other* signal on
+    the pad becomes an alternate-function entry the GPIO-semantics
+    emitter consumes.
+
+    Pads with no GPIO signal (e.g. dedicated USB / JTAG pads on
+    some packages) are silently skipped — they're not user-visible
+    GPIO and the generic ``connection_candidates`` machinery
+    already records them.
+    """
+    if not pins:
+        return ()
+    descriptors: list[GpioPinDescriptor] = []
+    for pin in pins:
+        if not pin.signals:
+            continue
+        gpio_match: tuple[int, int] | None = None
+        for signal in pin.signals:
+            if signal.peripheral is None or signal.signal is None:
+                continue
+            periph_match = _IMXRT_GPIO_PERIPHERAL_PATTERN.match(signal.peripheral.upper())
+            sig_match = _IMXRT_GPIO_SIGNAL_PATTERN.match(signal.signal.upper())
+            if periph_match is None or sig_match is None:
+                continue
+            gpio_match = (int(periph_match.group(1)), int(sig_match.group(1)))
+            break
+        if gpio_match is None:
+            continue
+        gpio_instance, pin_index = gpio_match
+        port_name = f"GPIO{gpio_instance}"
+
+        seen: dict[tuple[int, str], AltFunctionDescriptor] = {}
+        for signal in pin.signals:
+            if signal.af_number is None or signal.peripheral is None:
+                continue
+            signal_name = signal.signal or signal.function
+            if signal_name is None:
+                continue
+            # Skip the GPIO entry itself — it is the pin's identity,
+            # not an alternate.
+            if _IMXRT_GPIO_PERIPHERAL_PATTERN.match(
+                signal.peripheral.upper()
+            ) and _IMXRT_GPIO_SIGNAL_PATTERN.match(signal_name.upper()):
+                continue
+            key = (signal.af_number, signal_name)
+            seen.setdefault(
+                key,
+                AltFunctionDescriptor(
+                    af_number=signal.af_number,
+                    signal_name=signal_name,
+                    peripheral=signal.peripheral,
+                ),
+            )
+        alt_functions = tuple(sorted(seen.values(), key=lambda af: (af.af_number, af.signal_name)))
+        descriptors.append(
+            GpioPinDescriptor(
+                pin_id=pin.name,
+                port=port_name,
+                pin_index=pin_index,
+                port_offset=(gpio_instance - 1)
+                * 0x4000,  # iMXRT GPIOn at 0x401B8000 + (n-1)*0x4000
+                alt_functions=alt_functions,
+                is_input_only=False,
+                provenance=provenance,
+            )
+        )
+    return tuple(descriptors)
+
+
 def build_nxp_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -2441,6 +2526,12 @@ def build_nxp_canonical_ir(
                 for peripheral in raw_peripherals
             ),
         ),
+        # populate-imxrt-iomux-gpio-pins: derive GpioPinDescriptor
+        # entries (port=GPIO<N>, pin_index=<XX>, alt_functions per
+        # IOMUX mux mode) so the gpio-semantics emitter has the
+        # iMXRT pad → GPIO instance mapping the rest of the
+        # families already get.
+        gpio_pins=_build_imxrt_gpio_pins(pins=pins, provenance=sdk_provenance),
     )
 
 
