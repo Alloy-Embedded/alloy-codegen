@@ -50,7 +50,9 @@ from alloy_codegen.runtime_clock_config import (
     emit_runtime_clock_profiles_header,
 )
 from alloy_codegen.runtime_clock_graph import emit_runtime_clock_graph_header
+from alloy_codegen.runtime_clock_validation import emit_runtime_clock_validation_header
 from alloy_codegen.runtime_connectors import emit_runtime_connectors_header
+from alloy_codegen.runtime_dma_validation import emit_runtime_dma_validation_header
 from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_adc_semantics_header,
     emit_runtime_driver_can_semantics_header,
@@ -72,7 +74,13 @@ from alloy_codegen.runtime_driver_semantics import (
     emit_runtime_driver_watchdog_semantics_header,
 )
 from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
+from alloy_codegen.runtime_i2c_speed_validation import (
+    emit_runtime_i2c_speed_validation_header,
+)
 from alloy_codegen.runtime_interrupt_stubs import emit_runtime_interrupt_stubs_header
+from alloy_codegen.runtime_interrupt_validation import (
+    emit_runtime_interrupt_validation_header,
+)
 from alloy_codegen.runtime_interrupts import emit_runtime_interrupts_header
 from alloy_codegen.runtime_linker_script import emit_runtime_linker_script
 from alloy_codegen.runtime_lite_emission import (
@@ -350,6 +358,19 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         pin_validation = emit_runtime_pin_validation_header(family_dir=family_dir, device=device)
         if pin_validation is not None:
             artifacts.append(pin_validation)
+        # add-additional-validity-concepts: per-device C++20-concept
+        # projections for DMA bindings, peripheral clock sources,
+        # interrupt-vector slots, and I2C bus speeds.  Each emitter
+        # no-ops when its source IR data is empty so devices without
+        # the underlying facts stay byte-stable.
+        for additional_validator in (
+            emit_runtime_dma_validation_header(family_dir=family_dir, device=device),
+            emit_runtime_clock_validation_header(family_dir=family_dir, device=device),
+            emit_runtime_interrupt_validation_header(family_dir=family_dir, device=device),
+            emit_runtime_i2c_speed_validation_header(family_dir=family_dir, device=device),
+        ):
+            if additional_validator is not None:
+                artifacts.append(additional_validator)
         # define-canonical-device-yaml-schema: per-device canonical YAML
         # artifact — foundation of the alloy-devices-yml data-repo split.
         artifacts.append(emit_canonical_device_yaml(family_dir=family_dir, device=device))
