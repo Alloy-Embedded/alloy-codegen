@@ -36,15 +36,57 @@ Determinism contract:
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 import yaml
 from jsonschema import Draft202012Validator
 
+from alloy_codegen.bootstrap import IR_SCHEMA_VERSION
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.serialization import from_primitive, to_primitive
+
+_SEMVER_RE = re.compile(r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)$")
+
+
+class IRSchemaVersionMismatchError(StageExecutionError):
+    """Raised when a YAML's `schema_version` major component does
+    not match the codegen's pinned `IR_SCHEMA_VERSION` major.
+
+    `lock-canonical-yaml-schema-v1` invariant: codegen refuses
+    to load a YAML whose major version differs from its pinned
+    major — major bumps are coordinated, not silent.
+    """
+
+
+def _semver_major(version: str) -> int:
+    match = _SEMVER_RE.match(version)
+    if match is None:
+        raise StageExecutionError(f"`schema_version` is not valid semver: {version!r}")
+    return int(match.group("major"))
+
+
+def _enforce_schema_version_major(payload: dict[str, Any]) -> None:
+    declared = payload.get("schema_version")
+    if not declared:
+        raise IRSchemaVersionMismatchError(
+            "canonical YAML missing required field `schema_version`; "
+            f"codegen pinned at {IR_SCHEMA_VERSION!r}."
+        )
+    if not isinstance(declared, str):
+        raise IRSchemaVersionMismatchError(
+            f"`schema_version` must be a string; got {type(declared).__name__}"
+        )
+    payload_major = _semver_major(declared)
+    bundled_major = _semver_major(IR_SCHEMA_VERSION)
+    if payload_major != bundled_major:
+        raise IRSchemaVersionMismatchError(
+            "canonical YAML `schema_version` major mismatch — "
+            f"YAML declares {declared!r}, codegen pinned at {IR_SCHEMA_VERSION!r}. "
+            "Major bumps require coordinated changes in extractor + codegen + alloy-devices-yml."
+        )
 
 # Resolve the schema directory shipped at repo-root ``schema/``.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -155,6 +197,10 @@ def serialize_device(ir: CanonicalDeviceIR) -> str:
 def parse_device(text: str) -> CanonicalDeviceIR:
     """Parse YAML text back into a :class:`CanonicalDeviceIR`.
 
+    `lock-canonical-yaml-schema-v1` invariant: refuses YAML
+    whose `schema_version` major differs from
+    `IR_SCHEMA_VERSION`.
+
     See module docstring for the round-trip contract — fields the
     IR types as ``object`` round-trip as ``dict``, not as their
     original Patch dataclass instance.
@@ -165,6 +211,7 @@ def parse_device(text: str) -> CanonicalDeviceIR:
             "Canonical device YAML must be a mapping at the top level; "
             f"got {type(payload).__name__}"
         )
+    _enforce_schema_version_major(payload)
     return from_primitive(CanonicalDeviceIR, payload)
 
 
@@ -190,6 +237,7 @@ def validate_device(text: str) -> None:
 __all__ = [
     "DEVICE_SCHEMA_PATH",
     "FAMILY_SCHEMA_PATH",
+    "IRSchemaVersionMismatchError",
     "SCHEMA_DIR",
     "VENDOR_SCHEMA_PATH",
     "parse_device",
