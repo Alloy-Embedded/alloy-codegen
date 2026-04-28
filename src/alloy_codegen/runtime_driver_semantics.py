@@ -21,6 +21,12 @@ from alloy_codegen.ir.model import (
     RegisterDescriptor,
     RegisterFieldDescriptor,
 )
+from alloy_codegen.peripheral_traits import (
+    PeripheralTemplate,
+    load_all_templates,
+    resolve_template,
+    template_provenance_tag,
+)
 from alloy_codegen.reporting import EmittedArtifact
 
 from .connector_model import canonical_peripheral_class
@@ -223,6 +229,12 @@ class UartSemanticRow:
     kernel_clock_source_options: tuple[KernelClockSourceOption, ...] = ()
     max_clock_hz: int = 0
     clock_gate_field: RuntimeFieldRef | None = None
+    # Provenance tag pinned by the peripheral-trait template library when
+    # a ``(ip_name, ip_version)`` template was applied during the trait
+    # build.  ``None`` means no template matched and the row was built
+    # from device-patch values alone.  Added by
+    # ``migrate-uart-emitter-to-template-library``.
+    template_provenance: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -2868,6 +2880,7 @@ def _microchip_uart_row(
     peripheral_name: str,
     schema_id: str,
     usart_prefix: str = "",
+    template: PeripheralTemplate | None = None,
 ) -> UartSemanticRow:
     prefix = usart_prefix
 
@@ -2965,7 +2978,7 @@ def _microchip_uart_row(
         us_txempty_field=field("US_CSR_LIN_MODE", "TXEMPTY", 0x14, 9) if is_usart else empty_field,
         us_txchr_field=field("US_THR", "TXCHR", 0x1C, 0, 9) if is_usart else empty_field,
         us_rxchr_field=field("US_RHR", "RXCHR", 0x18, 0, 9) if is_usart else empty_field,
-        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name, template=template),
     )
 
 
@@ -2975,6 +2988,7 @@ def _st_uart_row(
     peripheral_name: str,
     schema_id: str,
     f4_layout: bool,
+    template: PeripheralTemplate | None = None,
 ) -> UartSemanticRow:
     base = context.peripheral_by_name[peripheral_name].base_address
 
@@ -3075,7 +3089,7 @@ def _st_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
-        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name, template=template),
     )
 
 
@@ -3084,6 +3098,7 @@ def _nxp_uart_row(
     *,
     peripheral_name: str,
     schema_id: str,
+    template: PeripheralTemplate | None = None,
 ) -> UartSemanticRow:
     base = context.peripheral_by_name[peripheral_name].base_address
 
@@ -3182,7 +3197,96 @@ def _nxp_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
-        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name),
+        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name, template=template),
+    )
+
+
+def _uart_template_mode_flags(template: PeripheralTemplate) -> UartModeFlags | None:
+    """Project a template's ``mode_flags = [...]`` list into a
+    :class:`UartModeFlags` block.  Added by
+    ``migrate-uart-emitter-to-template-library``.
+
+    Names recognised: ``has_lin``, ``has_irda``, ``has_smartcard``,
+    ``has_auto_baud``, ``has_half_duplex``, ``has_synchronous``,
+    ``has_wake_from_stop``.  Other tokens (``has_fifo`` / ``has_dma`` /
+    ``has_modbus``) are accepted but do not project — they are
+    surfaced via separate IR fields.
+    """
+    flags = template.values.get("mode_flags")
+    if not flags:
+        return None
+    flag_set = set(flags) if isinstance(flags, (list, tuple, set)) else set()
+    return UartModeFlags(
+        supports_lin="has_lin" in flag_set,
+        supports_irda="has_irda" in flag_set,
+        supports_smartcard="has_smartcard" in flag_set,
+        supports_half_duplex="has_half_duplex" in flag_set,
+        supports_synchronous="has_synchronous" in flag_set,
+        supports_auto_baud="has_auto_baud" in flag_set,
+        supports_wake_from_stop="has_wake_from_stop" in flag_set,
+        valid=True,
+    )
+
+
+def _uart_template_data_bits(template: PeripheralTemplate) -> tuple[UartDataBitsOption, ...]:
+    raw = template.values.get("data_bits_options") or ()
+    return tuple(UartDataBitsOption(bits=int(b), m0_value=0, m1_value=0) for b in raw)
+
+
+_UART_PARITY_PCE_PS = {
+    "none": (0, 0),
+    "even": (1, 0),
+    "odd": (1, 1),
+    "mark": (1, 0),
+    "space": (1, 1),
+}
+
+
+def _uart_template_parity(template: PeripheralTemplate) -> tuple[UartParityOption, ...]:
+    raw = template.values.get("parity_options") or ()
+    out: list[UartParityOption] = []
+    for token in raw:
+        name = str(token).lower()
+        pce, ps = _UART_PARITY_PCE_PS.get(name, (0, 0))
+        out.append(UartParityOption(parity=name, pce_value=pce, ps_value=ps))
+    return tuple(out)
+
+
+_UART_STOP_BITS_Q8: dict[str, int] = {
+    "0.5": 4,
+    "1": 8,
+    "1.5": 12,
+    "2": 16,
+}
+
+
+def _uart_template_stop_bits(template: PeripheralTemplate) -> tuple[UartStopBitsOption, ...]:
+    raw = template.values.get("stop_bits_options") or ()
+    out: list[UartStopBitsOption] = []
+    for token in raw:
+        key = str(token)
+        q8 = _UART_STOP_BITS_Q8.get(key, 0)
+        if q8 == 0:
+            continue
+        out.append(UartStopBitsOption(stop_bits_q8=q8, field_value=0))
+    return tuple(out)
+
+
+def _uart_template_oversampling(
+    template: PeripheralTemplate,
+) -> tuple[UartBaudOversamplingOption, ...]:
+    raw = template.values.get("oversampling_options") or ()
+    return tuple(UartBaudOversamplingOption(ratio=int(r), field_value=0) for r in raw)
+
+
+def _uart_template_fifo_triggers(
+    template: PeripheralTemplate,
+) -> tuple[UartFifoTriggerOption, ...]:
+    raw = template.values.get("fifo_trigger_options") or ()
+    # Template integers are field values; fraction_q8 left as 0
+    # placeholder unless a device patch supplies the q8 measurement.
+    return tuple(
+        UartFifoTriggerOption(fraction_q8=0, field_value=int(v)) for v in raw
     )
 
 
@@ -3190,6 +3294,7 @@ def _uart_extension_for_peripheral(
     context: _SemanticContext,
     *,
     peripheral_name: str,
+    template: PeripheralTemplate | None = None,
 ) -> dict[str, object]:
     """Build the Tier 2/3/4 kwargs for ``UartSemanticRow``.
 
@@ -3258,6 +3363,31 @@ def _uart_extension_for_peripheral(
         ),
         0,
     )
+    max_baud_hz = device.uart_max_baud_hz
+    # Template fallback layer (added by
+    # ``migrate-uart-emitter-to-template-library``).  Merge order is
+    # ``template ← device-patch``: the patch always wins; the template
+    # fills only fields the patch left empty so admitted goldens stay
+    # byte-stable when their patches already populate every Tier
+    # 2/3/4 field, but devices with empty patches inherit the IP-level
+    # defaults instead of emitting empty arrays.
+    if template is not None:
+        if not data_bits_options:
+            data_bits_options = _uart_template_data_bits(template)
+        if not parity_options:
+            parity_options = _uart_template_parity(template)
+        if not stop_bits_options:
+            stop_bits_options = _uart_template_stop_bits(template)
+        if not baud_oversampling_options:
+            baud_oversampling_options = _uart_template_oversampling(template)
+        if not fifo_trigger_options:
+            fifo_trigger_options = _uart_template_fifo_triggers(template)
+        if mode_flags is None:
+            mode_flags = _uart_template_mode_flags(template)
+        if not max_baud_hz:
+            template_baud = template.values.get("max_baud_hz")
+            if isinstance(template_baud, int):
+                max_baud_hz = template_baud
     return {
         "baud_clock_sources": baud_clock_sources,
         "baud_oversampling_options": baud_oversampling_options,
@@ -3266,7 +3396,7 @@ def _uart_extension_for_peripheral(
         "parity_options": parity_options,
         "stop_bits_options": stop_bits_options,
         "mode_flags": mode_flags,
-        "max_baud_hz": device.uart_max_baud_hz,
+        "max_baud_hz": max_baud_hz,
         "dma_bindings": dma_bindings,
         "irq_numbers": irq_numbers,
         **kernel_clock,
@@ -3392,6 +3522,19 @@ def _i2c_extension_for_peripheral(
     }
 
 
+def _with_template_provenance(
+    row: UartSemanticRow, provenance: str | None
+) -> UartSemanticRow:
+    """Stamp ``template_provenance`` onto a freshly-built UART row.
+    Frozen-dataclass copy added by
+    ``migrate-uart-emitter-to-template-library``."""
+    if provenance is None:
+        return row
+    from dataclasses import replace
+
+    return replace(row, template_provenance=provenance)
+
+
 def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
     # Hardware-feature lookup added by ``fill-espressif-semantic-gaps``: a
     # stub row whose peripheral has a ``UartPeripheralDescriptor`` is
@@ -3420,6 +3563,19 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
             return True
         return False
 
+    # Load the peripheral-trait template catalog once and resolve a
+    # template per UART instance via ``(ip_name, ip_version)``.  Added
+    # by ``migrate-uart-emitter-to-template-library``.
+    _trait_catalog = load_all_templates()
+
+    def _template_for(peripheral: PeripheralInstance) -> PeripheralTemplate | None:
+        return resolve_template(
+            _trait_catalog,
+            peripheral_class="uart",
+            ip_name=peripheral.ip_name or "",
+            ip_version=peripheral.ip_version,
+        )
+
     rows: list[UartSemanticRow] = []
     candidate_peripherals = list(context.candidate_peripherals_by_class.get("uart", ()))
     candidate_names = {p.name for p in candidate_peripherals}
@@ -3430,32 +3586,42 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
         schema_id = peripheral.backend_schema_id
         if schema_id is None:
             continue
+        template = _template_for(peripheral)
+        provenance = template_provenance_tag(template) if template is not None else None
         if schema_id.startswith("alloy.uart.st-"):
-            rows.append(
-                _st_uart_row(
-                    context,
-                    peripheral_name=peripheral.name,
-                    schema_id=schema_id,
-                    f4_layout=_st_uart_uses_f4_layout(peripheral),
-                )
+            row = _st_uart_row(
+                context,
+                peripheral_name=peripheral.name,
+                schema_id=schema_id,
+                f4_layout=_st_uart_uses_f4_layout(peripheral),
+                template=template,
             )
+            rows.append(_with_template_provenance(row, provenance))
         elif schema_id == "alloy.uart.microchip-uart-r":
-            rows.append(
-                _microchip_uart_row(context, peripheral_name=peripheral.name, schema_id=schema_id)
+            row = _microchip_uart_row(
+                context,
+                peripheral_name=peripheral.name,
+                schema_id=schema_id,
+                template=template,
             )
+            rows.append(_with_template_provenance(row, provenance))
         elif schema_id == "alloy.uart.microchip-usart-zw":
-            rows.append(
-                _microchip_uart_row(
-                    context,
-                    peripheral_name=peripheral.name,
-                    schema_id=schema_id,
-                    usart_prefix="US_",
-                )
+            row = _microchip_uart_row(
+                context,
+                peripheral_name=peripheral.name,
+                schema_id=schema_id,
+                usart_prefix="US_",
+                template=template,
             )
+            rows.append(_with_template_provenance(row, provenance))
         elif schema_id == "alloy.uart.nxp-lpuart-v1":
-            rows.append(
-                _nxp_uart_row(context, peripheral_name=peripheral.name, schema_id=schema_id)
+            row = _nxp_uart_row(
+                context,
+                peripheral_name=peripheral.name,
+                schema_id=schema_id,
+                template=template,
             )
+            rows.append(_with_template_provenance(row, provenance))
         else:
             # Emit a fully-invalid stub row so that the artifact contract
             # (UartSemanticTraits<PeripheralId::) is satisfied for devices whose
@@ -3533,7 +3699,10 @@ def _build_uart_rows(context: _SemanticContext) -> tuple[UartSemanticRow, ...]:
                     us_txchr_field=invalid_field,
                     us_rxchr_field=invalid_field,
                     is_stub=peripheral.name not in uart_hw_ids,
-                    **_uart_extension_for_peripheral(context, peripheral_name=peripheral.name),
+                    template_provenance=provenance,
+                    **_uart_extension_for_peripheral(
+                        context, peripheral_name=peripheral.name, template=template
+                    ),
                 )
             )
     return tuple(rows)
@@ -12362,6 +12531,15 @@ def _uart_specialization_builder(context: _SemanticContext):
             *_dma_binding_ref_array_lines(row.dma_bindings),
         ]
 
+    def _provenance_lines(row: UartSemanticRow) -> list[str]:
+        # Per-peripheral template provenance comment (added by
+        # ``migrate-uart-emitter-to-template-library``).  Reviewers
+        # see at a glance which template revision the device pinned
+        # against.  Empty when no template matched.
+        if row.template_provenance:
+            return [f"  // {row.template_provenance}"]
+        return []
+
     def _build(row: UartSemanticRow) -> list[str]:
         if row.is_stub:
             # Peripheral is present on hardware but schema not yet implemented.
@@ -12372,6 +12550,7 @@ def _uart_specialization_builder(context: _SemanticContext):
             # without the register-level schema.
             kpresent = "true" if row.peripheral_name in uart_hw_by_id else "false"
             return [
+                *_provenance_lines(row),
                 f"  static constexpr bool kPresent = {kpresent};",
                 f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
                 *_hw_lines(row),
@@ -12450,6 +12629,7 @@ def _uart_specialization_builder(context: _SemanticContext):
                 ),
             ]
         return [
+            *_provenance_lines(row),
             "  static constexpr bool kPresent = true;",
             f"  static constexpr BackendSchemaId kSchemaId = {_schema_ref_expr(context, row.schema_id)};",
             *_hw_lines(row),
