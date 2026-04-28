@@ -42,16 +42,7 @@ from alloy_codegen.vendors import resolve_vendor_adapter  # noqa: E402
 # Phase-1 migrations remove an entry from this set when they
 # regenerate that vendor's YAMLs.  An empty set means every
 # admitted device is byte-equal between paths.
-_KNOWN_DRIFT: frozenset[tuple[str, str, str]] = frozenset(
-    {
-        # Resolved by `migrate-nxp-mcux-extractor` (Phase 1.3).
-        ("nxp", "imxrt1060", "mimxrt1062"),
-        ("nxp", "imxrt1060", "mimxrt1064"),
-        # Resolved by `migrate-rp2040-pico-sdk-extractor` (Phase 1.5).
-        ("raspberrypi", "rp2040", "pico"),
-        ("raspberrypi", "rp2040", "rp2040"),
-    }
-)
+_KNOWN_DRIFT: frozenset[tuple[str, str, str]] = frozenset()
 
 
 def _admitted_devices() -> list[tuple[str, str, str]]:
