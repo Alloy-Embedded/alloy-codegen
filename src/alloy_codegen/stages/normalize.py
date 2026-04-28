@@ -3338,10 +3338,23 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     # ``alloy_codegen.vendors`` is imported lazily here to avoid the
     # circular dependency that would arise if the registry imports
     # `_build_*_device_ir` from this module at registration time.
+    # extract-alloy-devices-data-repo: short-circuit through the
+    # alloy-devices-yml submodule when the device's canonical YAML
+    # is committed there — we read the IR back from YAML directly,
+    # bypassing the legacy vendor source + patch path.  Devices
+    # without a YAML fall through to the registry-resolved adapter.
+    from alloy_codegen.sources import alloy_devices_yml as _adyml
     from alloy_codegen.vendors import resolve_vendor_adapter
 
     adapter = resolve_vendor_adapter(vendor, family)
     for device_name in patch_result.scope.resolved_device_names():
+        if _adyml.is_available(vendor=vendor, family=family, device=device_name):
+            devices.append(
+                _adyml.load_canonical_device(
+                    vendor=vendor, family=family, device=device_name
+                )
+            )
+            continue
         devices.append(
             adapter.normalize(
                 execution_context=execution_context,
