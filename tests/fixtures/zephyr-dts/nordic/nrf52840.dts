@@ -84,5 +84,59 @@
             interrupts = <0 1>;
             status = "okay";
         };
+
+        /*
+         * Pinctrl groups for Zephyr peripherals.
+         *
+         * `psels` cells are NRF_PSEL macro-expanded values:
+         *   ((NRF_FUN_<fun> << 16) | (port << 5) | pin)
+         *
+         * Examples in this fixture:
+         *   UART0 TX on P0_06: NRF_FUN_UART_TX(0) << 16 | 0<<5 | 6 = 0x06
+         *   UART0 RX on P0_08: NRF_FUN_UART_RX(1) << 16 | 0<<5 | 8 = 0x10008
+         *   SPI0 SCK on P0_19: NRF_FUN_SPIM_SCK(4) << 16 | 0<<5 | 19 = 0x40013
+         *   SPI0 MOSI on P0_20: 5 << 16 | 0<<5 | 20 = 0x50014
+         *   SPI0 MISO on P0_21: 6 << 16 | 0<<5 | 21 = 0x60015
+         *   I2C0 SCL on P0_27: 11 << 16 | 0<<5 | 27 = 0xb001b
+         *   I2C0 SDA on P0_26: 12 << 16 | 0<<5 | 26 = 0xc001a
+         */
+        pinctrl: pinctrl@50000700 {
+            compatible = "nordic,nrf-pinctrl";
+            reg = <0x50000700 0x100>;
+
+            uart0_default: uart0_default {
+                group1 {
+                    psels = <0x06>, <0x10008>;
+                };
+            };
+
+            spi0_default: spi0_default {
+                group1 {
+                    psels = <0x40013>, <0x50014>, <0x60015>;
+                };
+            };
+
+            i2c0_default: i2c0_default {
+                group1 {
+                    psels = <0xb001b>, <0xc001a>;
+                };
+            };
+        };
     };
+};
+
+/* Phandle wiring: associate each peripheral with its pinctrl group. */
+&uart0 {
+    pinctrl-0 = <&uart0_default>;
+    pinctrl-names = "default";
+};
+
+&spi0 {
+    pinctrl-0 = <&spi0_default>;
+    pinctrl-names = "default";
+};
+
+&i2c0 {
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-names = "default";
 };

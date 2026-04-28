@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 from alloy_codegen.bootstrap import BOOTSTRAP_FAMILY, BOOTSTRAP_VENDOR, supported_families
 from alloy_codegen.config_cli import (
@@ -140,6 +141,44 @@ def build_parser() -> argparse.ArgumentParser:
     diff_parser.add_argument("--from", dest="from_device", required=True, help="Baseline device.")
     diff_parser.add_argument("--to", dest="to_device", required=True, help="Target device.")
     add_context_args(diff_parser)
+
+    # bulk-admit-from-alloy-devices-yml: walk the merged registry
+    # (hand-curated ∪ alloy-devices-yml YAMLs) and run the full
+    # pipeline per device.  Reports per-device pass/fail.
+    bulk_parser = subparsers.add_parser(
+        "bulk-admit",
+        help=(
+            "Run the full pipeline against every admitted device "
+            "(hand-curated registry + alloy-devices-yml YAMLs)."
+        ),
+    )
+    bulk_parser.add_argument("--vendor", default=None, help="Optional vendor filter.")
+    bulk_parser.add_argument("--family", default=None, help="Optional family filter.")
+    bulk_parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Stop after N devices (useful for previews).",
+    )
+    bulk_parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Stop after normalize stage (no emit cost).  Faster.",
+    )
+    bulk_parser.add_argument(
+        "--report",
+        type=str,
+        default=None,
+        help=(
+            "Write a machine-readable JSON report to this path "
+            "(in addition to the Markdown summary on stdout)."
+        ),
+    )
+    bulk_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit only JSON to stdout (suppresses the Markdown summary).",
+    )
 
     config_schema_parser = subparsers.add_parser(
         "config-schema",
@@ -312,6 +351,47 @@ def main(argv: Sequence[str] | None = None) -> int:
             for vendor, family in affected.families:
                 print(f"{vendor}/{family}")
         return 0
+
+    if args.stage == "bulk-admit":
+        from alloy_codegen.bulk_admit import (
+            admit_devices,
+            render_markdown,
+            write_report_json,
+        )
+
+        report = admit_devices(
+            vendor=args.vendor,
+            family=args.family,
+            limit=args.limit,
+            dry_run=bool(args.dry_run),
+        )
+        if args.report:
+            write_report_json(report, Path(args.report))
+        if args.json:
+            payload = {
+                "started_utc": report.started_utc,
+                "finished_utc": report.finished_utc,
+                "duration_seconds": round(report.duration_seconds, 3),
+                "total": report.total,
+                "passes": report.passes,
+                "failures": report.failures,
+                "devices": [
+                    {
+                        "vendor": o.vendor,
+                        "family": o.family,
+                        "device": o.device,
+                        "status": o.status,
+                        "duration_seconds": round(o.duration_seconds, 3),
+                        "artifact_count": o.artifact_count,
+                        "error": o.error,
+                    }
+                    for o in report.devices
+                ],
+            }
+            print(json.dumps(payload, indent=2, ensure_ascii=False))
+        else:
+            print(render_markdown(report))
+        return 0 if report.failures == 0 else 1
 
     source_overrides = parse_source_overrides(args.source)
     context = ExecutionContext.default().with_overrides(

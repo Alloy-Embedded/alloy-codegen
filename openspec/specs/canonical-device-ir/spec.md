@@ -1046,3 +1046,183 @@ template; redundant fields SHALL fail validation.
   per-peripheral provenance so reviewers can tell which template
   revision a device pinned against
 
+### Requirement: The pipeline SHALL emit a canonical YAML representation per admitted device
+
+The pipeline SHALL emit one schema-validated YAML file per
+admitted device at
+`<vendor>/<family>/generated/devices/<device>.yml` capturing
+the full `CanonicalDeviceIR` (identity, memories, peripherals,
+interrupts, registers, register fields, enumerated values,
+clock tree, pinmux, DMA, capabilities, Tier 2/3/4 facts,
+provenance).  The YAML MUST validate against the JSON Schema
+shipped at `schema/canonical_device/device.schema.json` and
+MUST round-trip back to a byte-identical IR via
+`alloy_codegen.canonical_device_yaml.parse_device(...)`.
+Serialisation MUST be deterministic — re-emitting on the same
+IR produces byte-identical output.
+
+#### Scenario: stm32g071rb emits a schema-validated canonical YAML
+
+- **WHEN** the pipeline emits artifacts for stm32g071rb
+- **THEN** the artifact set SHALL include
+  `st/stm32g0/generated/devices/stm32g071rb.yml`
+- **AND** that file SHALL pass
+  `validate_device(...)` against
+  `schema/canonical_device/device.schema.json`
+
+#### Scenario: Round-trip preserves the IR exactly
+
+- **WHEN** the canonical YAML for any admitted device is
+  parsed back via `parse_device(text)`
+- **THEN** the resulting `CanonicalDeviceIR` SHALL be equal
+  (per dataclass `__eq__`) to the IR that produced the YAML
+- **AND** re-serialising the parsed IR SHALL produce a string
+  byte-identical to the input
+
+#### Scenario: Determinism across runs
+
+- **WHEN** the pipeline emits canonical YAML twice for the
+  same device with the same source inputs
+- **THEN** both emissions SHALL produce byte-identical text
+- **AND** key order, list sorting, and whitespace SHALL match
+  the contract documented in
+  `docs/canonical-device-yaml.md`
+
+### Requirement: iMXRT IR SHALL include source-derived gpio_pins and connection_candidates
+
+The pipeline SHALL parse the iMXRT MCUXpresso `fsl_iomuxc.h`
+header to extract every IOMUXC pin/mode combination
+(peripheral, signal, selector index, daisy register/value) and
+project the records into the canonical IR's `gpio_pins` tuple
+and `connection_candidates` tuple.  Every admitted iMXRT device
+SHALL therefore emit a non-empty `pin_validation.hpp` carrying
+real `PinAssignmentValid<...>` specialisations — the same
+compile-time pinmux validation contract STM32 admits today.
+The `route_kind` for every IOMUXC-derived candidate SHALL be
+`"iomuxc-mux"` (already an admitted route-kind in the
+pipeline).
+
+#### Scenario: mimxrt1062 emits non-empty gpio_pins from IOMUX
+
+- **WHEN** the pipeline normalizes mimxrt1062
+- **THEN** the resulting IR's `gpio_pins` tuple SHALL be
+  non-empty and SHALL include at least the pins
+  `GPIO_AD_B0_03`, `GPIO_AD_B0_06`, `GPIO_AD_B0_07`
+- **AND** every entry SHALL carry the alternate-function
+  records sourced from `MIMXRT1062/drivers/fsl_iomuxc.h`
+
+#### Scenario: pin_validation.hpp emitted with real specialisations
+
+- **WHEN** the pipeline emits artifacts for mimxrt1062
+- **THEN** `nxp/imxrt1060/generated/runtime/devices/mimxrt1062/pin_validation.hpp`
+  SHALL exist
+- **AND** it SHALL contain at least one
+  `PinAssignmentValid<PinId::GPIO_AD_B0_06,
+  PeripheralSignal::LPUART1_TX> : std::true_type`
+  specialisation
+- **AND** the `kRouteKind` member SHALL be
+  `RouteKind::iomuxc_mux`
+
+#### Scenario: Daisy chain register/value attached when present
+
+- **WHEN** an IOMUXC entry carries a daisy register reference
+  (e.g. `IOMUXC_LPUART1_RX_SELECT_INPUT`)
+- **THEN** the corresponding `ConnectionCandidate` SHALL
+  reference a `RouteOperation` that records the daisy register
+  address and the value to write
+- **AND** the runtime layer SHALL be able to consume it without
+  consulting the source header
+
+### Requirement: STM32 normalize SHALL merge modm-devices clock-tree edges into the IR
+
+The STM32 normalize builder SHALL load every clock-tree edge
+parsed by `alloy_codegen.sources.modm_devices` for the device's
+family and project them into the IR's `clock_nodes` and
+`clock_selectors` tuples *before* applying family-patch and
+device-patch overrides.  The merge order MUST be
+`baseline ← modm-devices ← family-patch ← device-patch` so
+hand-curated patches continue to override modm when they
+disagree (today's contract is preserved).  Every node
+contributed by modm SHALL carry
+`provenance.source_id = "modm-devices"` so reviewers can audit
+which edges flowed in automatically vs. which still require
+hand work.
+
+#### Scenario: STM32G0 stm32g071rb merges modm clock edges
+
+- **WHEN** the pipeline normalizes stm32g071rb against the
+  fixture modm-devices snapshot
+- **THEN** the resulting IR's `clock_nodes` tuple SHALL contain
+  at least 5 entries whose `provenance.source_id` is
+  `"modm-devices"`
+- **AND** the existing patch-derived nodes SHALL still be
+  present (no loss of hand-curated data)
+
+#### Scenario: Patches override modm on conflict
+
+- **WHEN** a family patch declares a `clock_node` whose
+  `(name, parent)` pair also appears in modm with a different
+  divider value
+- **THEN** the resolved IR SHALL carry the patch value, not
+  modm's
+- **AND** the per-node provenance SHALL identify
+  `bootstrap-patch` as the contributing source
+
+#### Scenario: Goldens stay byte-identical when patches cover the modm surface
+
+- **WHEN** a device patch already declares every clock node
+  modm would supply, with values that match
+- **THEN** the resolved IR SHALL be byte-identical to today's
+  patch-only output
+- **AND** every emitted artifact SHALL match its existing
+  golden fixture exactly
+
+### Requirement: The UART trait emitter SHALL consume the peripheral-trait template library
+
+The UART trait emitter SHALL look up each
+peripheral instance's template (via
+`peripheral_traits.resolve_template(...)`) keyed on
+`(peripheral.ip_name, peripheral.ip_version)` and apply
+`merge_chain(baseline, template.values, family_overrides,
+device_overrides)` to compute the effective Tier 2/3/4 trait
+values that flow into `uart.hpp`.  When no template is
+registered for an `(ip_name, ip_version)` pair, the emitter
+SHALL fall back to today's device-patch-only path, preserving
+the existing behaviour.  Every emitted UART trait struct that
+inherited from a template SHALL include a comment header
+identifying the template revision tag
+(`peripheral_traits/uart/<ip_name>__<ip_version>@rev<N>`) so
+reviewers can audit which revision the device pinned against.
+
+#### Scenario: Two USART_v2 instances inherit identical merged defaults
+
+- **WHEN** the pipeline emits `uart.hpp` for STM32G0 stm32g071rb
+  and STM32F4 stm32f401re — both peripherals are
+  `(ip_name=usart, ip_version=v2)`
+- **THEN** the resolved trait values for `parity_options`,
+  `data_bits_options`, `stop_bits_options`, `oversampling_options`,
+  `fifo_trigger_options`, and `mode_flags` SHALL be identical
+  across the two devices, sourced from
+  `data/peripheral_traits/uart/usart_v2.toml`
+- **AND** both emitted headers SHALL carry the comment header
+  `// peripheral_traits/uart/usart__v2@rev<N>`
+
+#### Scenario: Device-patch fields override template values
+
+- **WHEN** an STM32G0 device patch explicitly sets
+  `uart_max_baud_hz` to a value that differs from the template
+- **THEN** the emitted `kMaxBaudHz` constexpr SHALL match the
+  device-patch value, not the template value
+- **AND** other UART trait fields not overridden by the patch
+  SHALL still come from the template
+
+#### Scenario: Unmapped ip_version falls back to today's path
+
+- **WHEN** the pipeline emits `uart.hpp` for a device whose
+  UART instance carries an `ip_version` that has no matching
+  template under `data/peripheral_traits/uart/`
+- **THEN** the emitter SHALL produce the same output as before
+  this change
+- **AND** no provenance comment SHALL be emitted for that
+  trait struct
+

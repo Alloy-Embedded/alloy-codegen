@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 
 from alloy_codegen.errors import UnsupportedScopeError
 
@@ -43,6 +45,60 @@ SOURCE_BUNDLES: dict[tuple[str, str], tuple[str, ...]] = {
     ("raspberrypi", "rp2040"): ("pico-sdk",),
     ("nordic", "nrf52"): ("zephyr-dts",),
 }
+
+# bulk-admit-from-alloy-devices-yml: filesystem-derived registry.
+# Walks ``data/devices/vendors/<v>/<f>/devices/*.yml`` and unions
+# the results into the in-memory registry.  Adding a chip becomes
+# "commit a YAML to alloy-devices-yml" — no edit to this file.
+
+_DATA_DEVICES_ROOT = Path(__file__).resolve().parents[2] / "data" / "devices"
+
+
+@lru_cache(maxsize=1)
+def discovered_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
+    """Return ``(vendor, family) -> tuple[device_names]`` discovered
+    from the ``alloy-devices-yml`` submodule.
+
+    Empty when the submodule is not initialised.  Cached for the
+    process lifetime — bumping the submodule mid-process is not
+    supported (just restart the process).
+    """
+    registry: dict[tuple[str, str], list[str]] = {}
+    vendors_root = _DATA_DEVICES_ROOT / "vendors"
+    if not vendors_root.exists():
+        return {}
+    for vendor_dir in sorted(vendors_root.iterdir()):
+        if not vendor_dir.is_dir():
+            continue
+        for family_dir in sorted(vendor_dir.iterdir()):
+            if not family_dir.is_dir():
+                continue
+            devices_dir = family_dir / "devices"
+            if not devices_dir.exists():
+                continue
+            yamls = sorted(p.stem for p in devices_dir.glob("*.yml"))
+            if yamls:
+                registry[(vendor_dir.name, family_dir.name)] = yamls
+    return {key: tuple(devices) for key, devices in registry.items()}
+
+
+def merged_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
+    """Hand-curated ``DEVICE_REGISTRY`` ∪ filesystem-discovered.
+    Discovered entries win on conflict — alloy-devices-yml is the
+    source of truth once the YAML lands."""
+    merged: dict[tuple[str, str], tuple[str, ...]] = dict(DEVICE_REGISTRY)
+    for key, devices in discovered_device_registry().items():
+        existing = merged.get(key, ())
+        # Union, discovered first (source of truth).
+        seen: set[str] = set()
+        unioned: list[str] = []
+        for d in (*devices, *existing):
+            if d not in seen:
+                unioned.append(d)
+                seen.add(d)
+        merged[key] = tuple(unioned)
+    return merged
+
 
 # Flat reverse map for auto-resolving family from device name.
 _DEVICE_TO_FAMILY: dict[str, tuple[str, str]] = {

@@ -589,6 +589,195 @@ specific modm-devices checkout SHA recorded in
 - **AND** the failure SHALL be overridable with an explicit
   `--accept-stale-sources` flag for review workflows
 
+### Requirement: alloy-codegen SHALL consume canonical device data from a separate alloy-devices-yml repository
+
+The repository SHALL ship a git submodule at `data/devices/`
+pointing at the standalone `alloy-devices-yml` repository at a
+pinned SHA recorded in `.gitmodules`.  The pipeline SHALL
+short-circuit the normalize stage when a device's canonical
+YAML exists in the submodule: the YAML is parsed via
+`alloy_codegen.sources.alloy_devices_yml.load_canonical_device(...)`
+and the resulting `CanonicalDeviceIR` flows directly into
+validation + emission, bypassing the legacy SVD + patch path.
+When the YAML is absent the legacy path SHALL still run, so
+families that have not yet been migrated continue working
+unchanged.  The emitted artifacts MUST be byte-identical
+regardless of which path produced the IR.
+
+#### Scenario: Admitted devices resolve via the submodule when YAML is present
+
+- **WHEN** the pipeline runs for any of the 17 admitted
+  devices after this change lands
+- **AND** `data/devices/vendors/<vendor>/<family>/devices/<device>.yml`
+  exists in the submodule
+- **THEN** the normalize stage SHALL load the IR from that
+  file
+- **AND** the emitted artifacts SHALL be byte-identical to
+  the artifacts produced by the legacy SVD + patch path
+
+#### Scenario: Devices without YAML fall through to the legacy path
+
+- **WHEN** the pipeline runs for a device whose canonical
+  YAML is not yet committed to the submodule
+- **THEN** the legacy adapter (CMSIS-SVD, ATDF, Zephyr DTS,
+  …) SHALL be used as today
+- **AND** the resulting IR + artifacts SHALL be unchanged
+  from before this change
+
+#### Scenario: Submodule bumps run the parity gate
+
+- **WHEN** `tools/bump_devices_yml.py` updates the submodule
+  to a new SHA
+- **THEN** the tool SHALL rerun `pytest -q` and
+  `pytest --runtime-cpp-smoke`
+- **AND** SHALL report any per-device IR drift between the
+  pre-bump and post-bump emissions
+- **AND** SHALL refuse to commit the bump if the drift would
+  produce non-trivial C++ artifact changes without explicit
+  reviewer override
+
+### Requirement: Vendor extraction logic SHALL live in a separate alloy-data-extractor repository
+
+The repository ecosystem SHALL split vendor source extraction
+into a standalone `alloy-data-extractor` repository — every
+vendor parser (CMSIS-SVD, ATDF, MCUXpresso, ESP-IDF, Zephyr
+DTS, modm-data, Pico SDK, datasheet PDF scraping, …) lives
+there rather than inside alloy-codegen.  alloy-codegen SHALL
+consume the canonical YAML
+output produced by the extractor (via `alloy-devices-yml`)
+rather than parsing vendor sources directly.  Adding a new
+vendor SHALL be a one-PR change in alloy-data-extractor — a
+new extractor module under
+`src/alloy_data_extractor/extractors/<vendor>.py` plus an
+entry in the source-pins manifest — with no edits required to
+alloy-codegen.  The two repos communicate exclusively through
+the schema-validated YAML format defined by
+`define-canonical-device-yaml-schema`.
+
+#### Scenario: alloy-codegen no longer imports vendor-specific source parsers
+
+- **WHEN** alloy-codegen is built and tested after this change
+  lands
+- **THEN** `src/alloy_codegen/sources/` SHALL no longer contain
+  bespoke vendor parsers (cmsis-svd, atdf, mcuxpresso, …)
+- **AND** the only `sources/` module SHALL be
+  `alloy_devices_yml.py` (the YAML consumer)
+
+#### Scenario: Adding a new vendor is a single-repo change
+
+- **WHEN** a contributor adds support for a new vendor (e.g.
+  GigaDevice GD32)
+- **THEN** the contribution SHALL touch only
+  alloy-data-extractor: one new
+  `extractors/gd32.py` + a `data/source_pins.toml` entry
+- **AND** the extractor's CI SHALL produce YAML files that
+  alloy-codegen consumes without further changes
+- **AND** alloy-codegen SHALL emit C++ artifacts for the new
+  vendor as soon as it bumps its `alloy-devices-yml`
+  submodule pin
+
+#### Scenario: Cross-language consumers reuse the same data
+
+- **WHEN** a future `alloy-codegen-rust` or similar
+  language-specific generator is added
+- **THEN** it SHALL consume the same alloy-devices-yml data
+- **AND** SHALL NOT need to ship its own vendor extractors
+- **AND** SHALL pin to the same alloy-devices-yml SHA model
+  alloy-codegen uses
+
+### Requirement: alloy-codegen SHALL admit devices from alloy-devices-yml without per-device bootstrap entries
+
+The pipeline SHALL discover admittable devices by walking
+`data/devices/vendors/<vendor>/<family>/devices/*.yml` and SHALL
+treat every schema-valid YAML as an admitted device without
+requiring a hand-curated entry in
+`bootstrap.DEVICE_REGISTRY`.  The legacy hand-curated registry
+SHALL remain as a fallback only for devices whose YAMLs have
+not yet been generated; on conflict the data-repo entry wins.
+A `bulk-admit` CLI SHALL run the full pipeline against every
+device in a requested `(vendor, family)` scope and produce a
+machine-readable per-device pass/fail report.
+
+#### Scenario: New chips appear in the registry the moment a YAML is committed
+
+- **WHEN** a new YAML for `gigadevice/gd32f407vet6` is
+  committed to alloy-devices-yml
+- **AND** alloy-codegen bumps its submodule pin
+- **THEN** `bootstrap.DEVICE_REGISTRY[("gigadevice", "gd32f4")]`
+  SHALL include `gd32f407vet6` without any edit to
+  `src/alloy_codegen/bootstrap.py`
+- **AND** `alloy-codegen bulk-admit --vendor gigadevice
+  --family gd32f4` SHALL produce C++ artifacts for the new
+  device
+
+#### Scenario: bulk-admit summary identifies failure modes per device
+
+- **WHEN** `alloy-codegen bulk-admit --vendor st
+  --family stm32g0` is run
+- **THEN** the CLI SHALL emit a Markdown summary listing each
+  device with one of the statuses: PASS, SCHEMA_INVALID,
+  IR_BUILD_FAILED, EMIT_FAILED, SMOKE_COMPILE_FAILED,
+  FOOTPRINT_EXCEEDED
+- **AND** a machine-readable
+  `reports/bulk-admit-<timestamp>.json` SHALL carry the same
+  data plus per-device timing
+
+#### Scenario: 8000-device sharded CI run completes within 30 minutes
+
+- **WHEN** the data repo holds 8,000 devices and CI shards the
+  bulk admission across 8 parallel jobs (1,000 devices each)
+- **THEN** the wall clock for the full bulk run SHALL be
+  under 30 minutes
+- **AND** the per-shard variance SHALL be at most 20% (no
+  shard takes >36 min while another finishes in <20)
+
+### Requirement: The Zephyr DTS adapter SHALL decode pinctrl groups into connection_candidates
+
+The Zephyr DTS adapter SHALL decode `pinctrl-0` / `pinctrl-names`
+references on peripheral nodes and the corresponding pin-state
+groups (`<vendor>,pinctrl` compatibles) into the IR's
+`connection_candidates` tuple.  The adapter SHALL ship per-vendor
+decoders for at least Nordic (`NRF_PSEL` macro encoding) and
+STM32 (`STM32_PINMUX` cell encoding); other-vendor decoders MAY
+be added in follow-up changes through a `PINCTRL_DECODERS`
+registry that mirrors the existing `COMPATIBLE_MAPS` shape.
+
+#### Scenario: Nordic nRF52840 admission emits pin_validation.hpp
+
+- **WHEN** the pipeline normalizes the Nordic nRF52840 fixture
+  whose DTS now carries a UART0 pinctrl group with
+  `NRF_PSEL(UART_TX, 0, 6)`
+- **THEN** the resulting IR SHALL have at least one
+  `ConnectionCandidate(pin="P0_06", peripheral="UART0",
+  signal="TX", route_kind="alternate-function", ...)` entry
+- **AND** `emit-pinmux-validator-concepts` SHALL emit
+  `pin_validation.hpp` containing a
+  `PinAssignmentValid<PinId::P0_06,
+  PeripheralSignal::UART0_TX> : std::true_type` specialisation
+- **AND** the runtime-cpp-smoke gate SHALL still compile cleanly
+
+#### Scenario: STM32 pinctrl cells decode to the same shape
+
+- **WHEN** the decoder receives an `<STM32_PINMUX 'PA9',
+  AF7_USART1>` cell
+- **THEN** it SHALL emit
+  `PinctrlAssignment(pin="PA9", peripheral="USART1",
+  signal="TX", af_number=7,
+  route_kind="alternate-function")`
+- **AND** the same record shape SHALL be used regardless of
+  vendor so the downstream
+  `connection_candidates` projection is uniform
+
+#### Scenario: Unsupported pinctrl encodings skip without crashing
+
+- **WHEN** the decoder encounters a pinctrl group whose vendor
+  is not in `PINCTRL_DECODERS` (e.g. NXP IOMUX cells before the
+  follow-up change lands)
+- **THEN** the decoder SHALL log the skip and return an empty
+  tuple of assignments
+- **AND** the rest of the IR construction (peripherals,
+  interrupts, memories) SHALL proceed unaffected
+
 ### Requirement: The Zephyr DTS adapter SHALL ship compatible-string maps for every Zephyr-supported vendor in scope
 
 The pipeline's Zephyr DTS adapter (`src/alloy_codegen/sources/zephyr_dts.py`) SHALL register a curated `compatible` → IP-name map for each of the additional vendors `renesas`, `ti`, `atmel`, `ambiq`, `infineon`, `silabs`, and `espressif`, in addition to the existing Nordic map.  Each map SHALL cover at minimum the peripheral classes `uart`, `spi`, `i2c`, `gpio`, and the family's primary timer or PWM binding.  All map values SHALL be non-empty alloy canonical IP names (lowercase, underscore-separated where multiword).

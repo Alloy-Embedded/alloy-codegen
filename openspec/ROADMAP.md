@@ -165,3 +165,128 @@ Order optimised for "biggest unblock first".
 - Runtime C++ output is gated by three layers: type-safety (smoke
   compile), zero overhead (no string literals — existing gate),
   bounded footprint (byte budget per artifact).
+
+---
+
+## Phase 2 Scaling Track — post-audit
+
+After landing the 10-change scaling track, an IR-completeness +
+C++-quality + patch-migration audit identified the next layer of
+work.  These are queued in priority order.
+
+### Wave 6 — Cross-vendor expansion (user-asked)
+
+| # | Change | Effect |
+|---|---|---|
+| 1 | `extend-zephyr-dts-vendor-coverage` | Renesas / TI / Infineon / Ambiq / SiLabs admissible (5 pilots, ~500 LOC each) |
+| 2 | `decode-zephyr-pinctrl-into-connection-candidates` | Nordic + STM32 pinctrl decoder; nRF52 emits real `pin_validation.hpp` |
+| 3 | `add-bulk-admission-flow` | Single CLI: catalog query → autogen → registry scaffold; admits 50 MCUs in one batch |
+| 4 | `migrate-uart-emitter-to-template-library` | First emitter consumer — proves the template chain end-to-end |
+
+### Wave 7 — IR-completeness wins (audit findings)
+
+| # | Change | Effect |
+|---|---|---|
+| 5 | `populate-imxrt-iomux-gpio-pins` | iMXRT goes from zero `gpio_pins` to hundreds; `pin_validation.hpp` emitted for NXP for the first time |
+| 6 | `consume-modm-clock-tree-edges` | modm STM32 clock graph already parsed but ignored — wire it into `clock_nodes` |
+| 7 | (deferred) `extract-svd-enumerated-values` | Bitfield enums + register-array `<dim>` from SVD |
+| 8 | (deferred) `query-probe-rs-catalog-from-pipeline` | Make `data/known_devices.toml` actually consulted |
+
+### Wave 8 — C++ quality wins
+
+| # | Change | Effect |
+|---|---|---|
+| 9 | `add-additional-validity-concepts` | `ValidDmaBinding` + `ValidClockSource` + `ValidInterruptSlot` + `ValidI2cSpeed` — 4 more compile-time moats over modm |
+| 10 | `reduce-cpp-header-bloat-via-shared-luts` | iMXRT pwm.hpp 52 KB → 35 KB via shared LUTs; pairs with footprint-budget gate |
+
+### Wave 9 — Existing MCUs migration
+
+| # | Change | Effect |
+|---|---|---|
+| 11 | `migrate-existing-mcus-to-template-and-diff-format` | 14k → ~3.5k LOC across all admitted patches.  5 sub-waves: pilots, STM32, Espressif, iMXRT, ATDF (gated on a prereq) |
+| 12 | (prereq for ATDF wave) `extend-autogen-to-atdf-and-mcuxpresso` | Autogen reads ATDF + MCUXpresso headers, not just SVD |
+
+### What lands at the end
+
+- 11+ admitted vendors (vs. 6 today), 50+ pilot MCUs from each
+  Zephyr-supported vendor admitted via one CLI command.
+- iMXRT emits real compile-time pinmux validation (parity with
+  STM32 — first non-ST vendor to get the structural moat).
+- 5 compile-time validity concepts (vs. 1 today): ValidPin,
+  ValidDma, ValidClock, ValidIrq, ValidI2cSpeed.
+- 75% reduction in patch LOC (~14k → ~3.5k), enabling 1000+ MCU
+  admission as mechanical work.
+- Header bloat down ~30% on the worst offenders (iMXRT PWM,
+  TIMER, capabilities) — locked in by the footprint-budget gate.
+
+---
+
+## Architectural Pivot — Three-Repo Split
+
+After Phase-2 was drafted, an architectural rethink concluded
+that the alloy-codegen monolith should split into three repos
+(matching what modm-data/modm-devices and Embassy's
+stm32-data-gen/stm32-data did, plus extending coverage to PIC
+and other categories no OSS framework reaches).
+
+### The four foundational changes
+
+| Order | Change | Effect |
+|---|---|---|
+| 1 | `define-canonical-device-yaml-schema` | Stable text form for `CanonicalDeviceIR` — JSON Schema + round-trip contract.  Foundation of everything below. |
+| 2 | `extract-alloy-devices-data-repo` | Spin out `alloy-devices-yml` (data only).  alloy-codegen consumes via git submodule.  Existing 17 admitted devices migrate first. |
+| 3 | `add-alloy-data-extractor-repo` | Spin out `alloy-data-extractor` — Python ETL for every vendor source (CMSIS-SVD, ATDF/PIC/AVR, MCUXpresso, ESP-IDF, Zephyr DTS, STM32 CubeMX, modm-data PDF, Pico SDK, datasheet scraping).  Generates YAML into the data repo. |
+| 4 | `bulk-admit-from-alloy-devices-yml` | alloy-codegen's `DEVICE_REGISTRY` becomes filesystem-derived from `data/devices/`.  Adding a chip = committing a YAML.  Sharded CI matrix runs over thousands of devices. |
+
+### What this supersedes
+
+- ❌ **`add-bulk-admission-flow`** (deleted) — the original flow
+  assumed data lived in alloy-codegen.  Replaced by
+  `bulk-admit-from-alloy-devices-yml` which is simpler because
+  data already canonical.
+- ❌ **`migrate-existing-mcus-to-template-and-diff-format`**
+  (deleted) — the migration of existing patches IS the YAML
+  emission step in `extract-alloy-devices-data-repo`.
+
+### What stays from Phase-2
+
+These remain valid as codegen-side changes (or as extractor-side
+changes after the split — the `WHAT` doesn't move, only the
+`WHERE`):
+
+- `extend-zephyr-dts-vendor-coverage` (extractor side)
+- `decode-zephyr-pinctrl-into-connection-candidates` (extractor side)
+- `migrate-uart-emitter-to-template-library` (codegen side)
+- `populate-imxrt-iomux-gpio-pins` (extractor side)
+- `consume-modm-clock-tree-edges` (extractor side)
+- `add-additional-validity-concepts` (codegen side)
+- `reduce-cpp-header-bloat-via-shared-luts` (codegen side)
+
+### What lands at the end of the architectural pivot
+
+```
+alloy-data-extractor    (Python ETL, multi-source, multi-vendor)
+       │ generates YAML
+       ▼
+alloy-devices-yml       (~8000 device YAMLs; data only, no code)
+       │ consumed by
+       ▼
+alloy-codegen           (C++ emitter, this repo, slimmed down)
+alloy-codegen-rust      (future)
+alloy-codegen-zig       (future)
+alloy-codegen-docs      (future)
+```
+
+- 8,000 admitted MCUs across ARM Cortex-M (~5,000), AVR/SAM
+  (~2,000 incl. **PIC8/16/18/24/32 + dsPIC33** — ~2,150 chips
+  no OSS HAL covers), iMXRT/Kinetis/LPC/MCX (~400), Espressif
+  (~15), RP2040 (~2), Zephyr-covered cross-vendor
+  (Renesas/TI/Infineon/Ambiq/SiLabs/…).
+- Adding a vendor = one PR in alloy-data-extractor.
+  Adding a chip = one YAML in alloy-devices-yml.
+- Adding a target language = a new sibling generator
+  alongside alloy-codegen.
+
+This is the move that takes alloy from "promising codegen with 9
+admitted families" to **the broadest multi-vendor, multi-arch HAL
+data foundation in OSS**, period.

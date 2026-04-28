@@ -20,6 +20,7 @@ from alloy_codegen.ir.model import (
     ClockGateDescriptor,
     ClockNodeLite,
     ClockSelectorLite,
+    ConnectionCandidate,
     DeviceIdentity,
     DmaChannelDescriptor,
     DmaControllerDescriptor,
@@ -2273,6 +2274,91 @@ def _build_nxp_package_pads(
     )
 
 
+_IMXRT_GPIO_PERIPHERAL_PATTERN = re.compile(r"^GPIO(\d+)$")
+_IMXRT_GPIO_SIGNAL_PATTERN = re.compile(r"^IO(\d+)$")
+
+
+def _build_imxrt_gpio_pins(
+    *,
+    pins: tuple[PinDefinition, ...],
+    provenance: Provenance,
+) -> tuple[GpioPinDescriptor, ...]:
+    """Derive `GpioPinDescriptor` entries for the NXP i.MX RT family.
+
+    Added by ``populate-imxrt-iomux-gpio-pins``.
+
+    Each iMXRT pad routes through IOMUX to a specific
+    ``GPIO<N>.IO<XX>`` controller bit (encoded as a signal entry on
+    the pin, typically at ``mux_mode == 5``).  We extract that
+    bit to populate ``port`` (``"GPIO1"`` … ``"GPIO5"``) and
+    ``pin_index`` (the ``IO<XX>`` digits); every *other* signal on
+    the pad becomes an alternate-function entry the GPIO-semantics
+    emitter consumes.
+
+    Pads with no GPIO signal (e.g. dedicated USB / JTAG pads on
+    some packages) are silently skipped — they're not user-visible
+    GPIO and the generic ``connection_candidates`` machinery
+    already records them.
+    """
+    if not pins:
+        return ()
+    descriptors: list[GpioPinDescriptor] = []
+    for pin in pins:
+        if not pin.signals:
+            continue
+        gpio_match: tuple[int, int] | None = None
+        for signal in pin.signals:
+            if signal.peripheral is None or signal.signal is None:
+                continue
+            periph_match = _IMXRT_GPIO_PERIPHERAL_PATTERN.match(signal.peripheral.upper())
+            sig_match = _IMXRT_GPIO_SIGNAL_PATTERN.match(signal.signal.upper())
+            if periph_match is None or sig_match is None:
+                continue
+            gpio_match = (int(periph_match.group(1)), int(sig_match.group(1)))
+            break
+        if gpio_match is None:
+            continue
+        gpio_instance, pin_index = gpio_match
+        port_name = f"GPIO{gpio_instance}"
+
+        seen: dict[tuple[int, str], AltFunctionDescriptor] = {}
+        for signal in pin.signals:
+            if signal.af_number is None or signal.peripheral is None:
+                continue
+            signal_name = signal.signal or signal.function
+            if signal_name is None:
+                continue
+            # Skip the GPIO entry itself — it is the pin's identity,
+            # not an alternate.
+            if _IMXRT_GPIO_PERIPHERAL_PATTERN.match(
+                signal.peripheral.upper()
+            ) and _IMXRT_GPIO_SIGNAL_PATTERN.match(signal_name.upper()):
+                continue
+            key = (signal.af_number, signal_name)
+            seen.setdefault(
+                key,
+                AltFunctionDescriptor(
+                    af_number=signal.af_number,
+                    signal_name=signal_name,
+                    peripheral=signal.peripheral,
+                ),
+            )
+        alt_functions = tuple(sorted(seen.values(), key=lambda af: (af.af_number, af.signal_name)))
+        descriptors.append(
+            GpioPinDescriptor(
+                pin_id=pin.name,
+                port=port_name,
+                pin_index=pin_index,
+                port_offset=(gpio_instance - 1)
+                * 0x4000,  # iMXRT GPIOn at 0x401B8000 + (n-1)*0x4000
+                alt_functions=alt_functions,
+                is_input_only=False,
+                provenance=provenance,
+            )
+        )
+    return tuple(descriptors)
+
+
 def build_nxp_canonical_ir(
     raw: RawDeviceDocument,
     patch: DevicePatch,
@@ -2440,6 +2526,12 @@ def build_nxp_canonical_ir(
                 for peripheral in raw_peripherals
             ),
         ),
+        # populate-imxrt-iomux-gpio-pins: derive GpioPinDescriptor
+        # entries (port=GPIO<N>, pin_index=<XX>, alt_functions per
+        # IOMUX mux mode) so the gpio-semantics emitter has the
+        # iMXRT pad → GPIO instance mapping the rest of the
+        # families already get.
+        gpio_pins=_build_imxrt_gpio_pins(pins=pins, provenance=sdk_provenance),
     )
 
 
@@ -2733,18 +2825,24 @@ def _build_zephyr_dts_device_ir(
     / Ambiq behind the same call by widening the compatible-map in
     ``alloy_codegen.sources.zephyr_dts.COMPATIBLE_MAPS``.
 
-    Scope (v1):
+    Scope:
       * identity, memories, packages from the device + family patches
       * peripherals + interrupts extracted from the resolved
         ``.dts`` and filtered to the patch's peripheral allowlist
-      * empty registers / register_fields / connection_candidates
-        / clock_nodes / dma — these land in follow-up changes
-        (pinctrl decoder, clock-tree edges)
+      * pins + connection_candidates extracted from pinctrl groups
+        via ``alloy_codegen.sources.zephyr_pinctrl`` (added by
+        ``decode-zephyr-pinctrl-into-connection-candidates``).
+      * empty registers / register_fields / clock_nodes / dma —
+        these land in follow-up changes
     """
     from alloy_codegen.sources.zephyr_dts import (
         compatible_map_for_vendor,
         parse_zephyr_device_document,
         resolve_dts_path,
+    )
+    from alloy_codegen.sources.zephyr_pinctrl import (
+        decode_pinctrl_for_node,
+        decoder_for_vendor,
     )
 
     patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
@@ -2827,6 +2925,91 @@ def _build_zephyr_dts_device_ir(
         else ()
     )
 
+    # ------------------------------------------------------------------
+    # decode-zephyr-pinctrl-into-connection-candidates: walk every
+    # peripheral node's ``pinctrl-0`` phandle, decode the group via
+    # the per-vendor decoder, and project each assignment into a
+    # ConnectionCandidate.  Empty when the vendor has no decoder
+    # registered (NXP) or the DTS carries no pinctrl groups.
+    # ------------------------------------------------------------------
+    pin_assignments: list = []
+    if decoder_for_vendor(vendor) is not None:
+        from devicetree import dtlib
+
+        try:
+            dt_full = dtlib.DT(str(dts_path))
+        except dtlib.DTError:
+            dt_full = None  # type: ignore[assignment]
+        if dt_full is not None:
+            soc = dt_full.root.nodes.get("soc")
+            soc_children = soc.nodes.values() if soc is not None else ()
+            for periph_node in soc_children:
+                if not periph_node.labels:
+                    continue
+                periph_label = periph_node.labels[0].upper()
+                if allowed_peripheral_names and periph_label not in allowed_peripheral_names:
+                    continue
+                pinctrl_prop = periph_node.props.get("pinctrl-0")
+                if pinctrl_prop is None:
+                    continue
+                try:
+                    target_nodes = pinctrl_prop.to_nodes()
+                except dtlib.DTError:
+                    continue
+                for pinctrl_target in target_nodes:
+                    pin_assignments.extend(
+                        decode_pinctrl_for_node(
+                            peripheral_node=periph_node,
+                            peripheral_label=periph_label,
+                            pinctrl_node=pinctrl_target,
+                            vendor=vendor,
+                        )
+                    )
+
+    # Project assignments into PinDefinition + ConnectionCandidate IR.
+    pins_by_name: dict[str, list[PinSignal]] = {}
+    candidates: list[ConnectionCandidate] = []
+    for index, assignment in enumerate(pin_assignments):
+        # Skip unallowed peripherals (already filtered above, but
+        # guard in case decoder produced something else).
+        if allowed_peripheral_names and assignment.peripheral not in allowed_peripheral_names:
+            continue
+        pin_signal = PinSignal(
+            function=f"{assignment.peripheral.lower()}_{assignment.signal.lower()}",
+            peripheral=assignment.peripheral,
+            signal=assignment.signal,
+            af_number=assignment.af_number,
+            provenance=dts_provenance,
+        )
+        pins_by_name.setdefault(assignment.pin, []).append(pin_signal)
+        candidates.append(
+            ConnectionCandidate(
+                candidate_id=f"candidate-{index:04d}-{assignment.pin}-"
+                f"{assignment.peripheral}-{assignment.signal}".lower(),
+                pin=assignment.pin,
+                peripheral=assignment.peripheral,
+                signal=assignment.signal.lower(),
+                route_kind=assignment.route_kind,
+                route_selector=f"selector:{assignment.af_number}",
+                route_group_id=None,
+                requirement_ids=(),
+                operation_ids=(),
+                capability_ids=(),
+                provenance=dts_provenance,
+            )
+        )
+
+    pins_tuple: tuple[PinDefinition, ...] = tuple(
+        PinDefinition(
+            name=pin_name,
+            port=pin_name[1] if len(pin_name) > 1 else None,
+            number=int(pin_name.rsplit("_", 1)[-1]) if "_" in pin_name else 0,
+            signals=tuple(signals),
+            provenance=dts_provenance,
+        )
+        for pin_name, signals in sorted(pins_by_name.items())
+    )
+
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -2839,10 +3022,11 @@ def _build_zephyr_dts_device_ir(
         ),
         memories=tuple(_memory_to_ir(memory, patch_provenance) for memory in patch.memories),
         packages=packages,
-        pins=(),
+        pins=pins_tuple,
         peripherals=tuple(peripherals),
         interrupts=interrupts,
         dma_requests=(),
+        connection_candidates=tuple(candidates),
         provenance=dts_provenance,
     )
 
@@ -3338,10 +3522,21 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     # ``alloy_codegen.vendors`` is imported lazily here to avoid the
     # circular dependency that would arise if the registry imports
     # `_build_*_device_ir` from this module at registration time.
+    # extract-alloy-devices-data-repo: short-circuit through the
+    # alloy-devices-yml submodule when the device's canonical YAML
+    # is committed there — we read the IR back from YAML directly,
+    # bypassing the legacy vendor source + patch path.  Devices
+    # without a YAML fall through to the registry-resolved adapter.
+    from alloy_codegen.sources import alloy_devices_yml as _adyml
     from alloy_codegen.vendors import resolve_vendor_adapter
 
     adapter = resolve_vendor_adapter(vendor, family)
     for device_name in patch_result.scope.resolved_device_names():
+        if _adyml.is_available(vendor=vendor, family=family, device=device_name):
+            devices.append(
+                _adyml.load_canonical_device(vendor=vendor, family=family, device=device_name)
+            )
+            continue
         devices.append(
             adapter.normalize(
                 execution_context=execution_context,

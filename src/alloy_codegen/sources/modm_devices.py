@@ -308,15 +308,26 @@ def apply_modm_enrichment(device: object, enrichment: ModmEnrichment | None) -> 
     import dataclasses
 
     from alloy_codegen.ir.model import (
+        ClockNodeLite,
+        ClockSelectorLite,
         DmaRequestDefinition,
         Provenance,
     )
 
-    existing_keys = {
+    modm_provenance = Provenance(
+        source_id="modm-devices",
+        source_path=None,
+        patch_ids=("modm-devices@" + (enrichment.provenance_sha or "unpinned"),),
+    )
+
+    # ------------------------------------------------------------------
+    # DMA request gap-fill (existing behaviour).
+    # ------------------------------------------------------------------
+    existing_dma_keys = {
         (dr.controller, dr.request_line, dr.peripheral or "", dr.signal or "")
         for dr in getattr(device, "dma_requests", ())
     }
-    additions: list[DmaRequestDefinition] = []
+    dma_additions: list[DmaRequestDefinition] = []
     for req in enrichment.dma_requests:
         # modm doesn't carry an explicit controller name for STM32
         # DMAMUX-class chips (every request lands on the single DMA
@@ -325,31 +336,96 @@ def apply_modm_enrichment(device: object, enrichment: ModmEnrichment | None) -> 
         controller = "DMA1"
         request_line = f"DMAMUX_REQ_{req.request_value:03d}"
         key = (controller, request_line, req.peripheral, req.signal or "")
-        if key in existing_keys:
+        if key in existing_dma_keys:
             continue
-        provenance = Provenance(
-            source_id="modm-devices",
-            source_path=None,
-            patch_ids=("modm-devices@" + (enrichment.provenance_sha or "unpinned"),),
-        )
-        additions.append(
+        dma_additions.append(
             DmaRequestDefinition(
                 controller=controller,
                 request_line=request_line,
                 peripheral=req.peripheral,
                 signal=req.signal or None,
-                provenance=provenance,
+                provenance=modm_provenance,
                 channel_index=None,
                 request_value=req.request_value,
                 channel_selector=None,
             )
         )
-    if not additions:
+
+    # ------------------------------------------------------------------
+    # consume-modm-clock-tree-edges: project ModmClockEdge records
+    # into ClockNodeLite + ClockSelectorLite gap-fills.
+    #
+    # Precedence: cmsis-svd < modm-devices < family-patch < device-patch.
+    # We sit *below* the patches — only nodes/selectors absent from
+    # the existing IR are added.  Patch-supplied values are never
+    # overwritten.
+    # ------------------------------------------------------------------
+    existing_clock_node_ids = {node.node_id for node in getattr(device, "clock_nodes", ())}
+    existing_selector_ids = {sel.selector_id for sel in getattr(device, "clock_selectors", ())}
+    # Group edges by target — each target node has one or more
+    # parent options (a selector when N>1, a single parent when N=1).
+    parents_by_target: dict[str, list[ModmClockEdge]] = {}
+    for edge in enrichment.clock_edges:
+        parents_by_target.setdefault(edge.target, []).append(edge)
+
+    clock_node_additions: list[ClockNodeLite] = []
+    clock_selector_additions: list[ClockSelectorLite] = []
+    for target, edges in parents_by_target.items():
+        if target in existing_clock_node_ids:
+            continue
+        if len(edges) == 1:
+            edge = edges[0]
+            kind = (
+                "fixed"
+                if edge.multiplier is None and edge.divisor is None
+                else ("multiplier" if edge.multiplier is not None else "divider")
+            )
+            clock_node_additions.append(
+                ClockNodeLite(
+                    node_id=target,
+                    kind=kind,
+                    parent=edge.source,
+                    selector=None,
+                    provenance=modm_provenance,
+                )
+            )
+        else:
+            selector_id = f"selector:{target}"
+            if selector_id not in existing_selector_ids:
+                clock_selector_additions.append(
+                    ClockSelectorLite(
+                        selector_id=selector_id,
+                        parent_options=tuple(edge.source for edge in edges),
+                        register_target=None,
+                        provenance=modm_provenance,
+                    )
+                )
+            clock_node_additions.append(
+                ClockNodeLite(
+                    node_id=target,
+                    kind="mux",
+                    parent=None,
+                    selector=selector_id,
+                    provenance=modm_provenance,
+                )
+            )
+
+    if not (dma_additions or clock_node_additions or clock_selector_additions):
         return device
-    return dataclasses.replace(
-        device,
-        dma_requests=tuple(getattr(device, "dma_requests", ())) + tuple(additions),
-    )
+    replacements: dict[str, object] = {}
+    if dma_additions:
+        replacements["dma_requests"] = tuple(getattr(device, "dma_requests", ())) + tuple(
+            dma_additions
+        )
+    if clock_node_additions:
+        replacements["clock_nodes"] = tuple(getattr(device, "clock_nodes", ())) + tuple(
+            clock_node_additions
+        )
+    if clock_selector_additions:
+        replacements["clock_selectors"] = tuple(getattr(device, "clock_selectors", ())) + tuple(
+            clock_selector_additions
+        )
+    return dataclasses.replace(device, **replacements)
 
 
 def fetch_records(context: ExecutionContext, scope: PipelineScope) -> tuple[dict[str, str], ...]:
