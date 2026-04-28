@@ -17,6 +17,11 @@ dependencies = [
     # ``alloy_codegen.sources.zephyr_dts``.  ``devicetree>=0.0.2`` ships
     # ``dtlib`` (low-level structural parser) and ``edtlib`` (binding-aware).
     "devicetree>=0.0.2",
+    # define-canonical-device-yaml-schema: emit + parse + validate
+    # the canonical per-device YAML (foundation of the alloy-devices-yml
+    # data-repo split).
+    "PyYAML>=6.0",
+    "jsonschema>=4.0",
 ]
 
 [project.scripts]

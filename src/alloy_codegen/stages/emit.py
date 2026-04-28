@@ -9,6 +9,7 @@ from alloy_codegen.bootstrap import (
     PIPELINE_NAME,
     PUBLICATION_TARGET_REPOSITORY,
 )
+from alloy_codegen.canonical_device_yaml_emitter import emit_canonical_device_yaml
 from alloy_codegen.cmake_emission import (
     emit_cmake_device_module,
     emit_cmake_meta_package,
@@ -349,6 +350,9 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         pin_validation = emit_runtime_pin_validation_header(family_dir=family_dir, device=device)
         if pin_validation is not None:
             artifacts.append(pin_validation)
+        # define-canonical-device-yaml-schema: per-device canonical YAML
+        # artifact — foundation of the alloy-devices-yml data-repo split.
+        artifacts.append(emit_canonical_device_yaml(family_dir=family_dir, device=device))
         # add-board-support-package-emitter: per-board BSP headers.
         for board in device.boards:
             artifacts.append(
