@@ -18,6 +18,11 @@ calls them out as best-effort and deferred).
 Initial admission target: ``nordic/nrf52``.  Other Zephyr-covered
 families plug in by registering a vendor adapter and providing a
 small compatible→ip-name mapping override.
+
+Currently registered compatible maps: ``nordic``, ``renesas``,
+``ti``, ``atmel``, ``ambiq``, ``infineon``, ``silabs``,
+``espressif``.  These are *vocabulary* — admitting a device
+still requires a registered :class:`VendorAdapter` and goldens.
 """
 
 from __future__ import annotations
@@ -48,6 +53,21 @@ SOURCE_ID = "zephyr-dts"
 # **skipped** (the adapter logs and continues — DTS is intentionally
 # permissive about new compatibles, and silent-skip is safer than
 # fail-on-unknown for a source that grows weekly upstream).
+# Cross-vendor generic compatibles.  Every vendor map merges with
+# this so ARM-core bindings (NVIC, SysTick) don't have to be
+# redeclared per vendor.  Keep this short and only put compatibles
+# here whose semantics are identical across every Zephyr vendor.
+_GENERIC_COMPATIBLE_MAP: dict[str, str] = {
+    "arm,armv6m-nvic": "nvic",
+    "arm,armv7m-nvic": "nvic",
+    "arm,armv8m-nvic": "nvic",
+    "arm,armv8.1m-nvic": "nvic",
+    "arm,v6m-systick": "systick",
+    "arm,v7m-systick": "systick",
+    "arm,v8m-systick": "systick",
+}
+
+
 NORDIC_COMPATIBLE_MAP: dict[str, str] = {
     "nordic,nrf-uart": "uart",
     "nordic,nrf-uarte": "uart",
@@ -73,10 +93,149 @@ NORDIC_COMPATIBLE_MAP: dict[str, str] = {
     "nordic,nrf-radio": "radio",
 }
 
+# Renesas RA family (Cortex-M4 / M33 SoCs).  Bindings live under
+# Zephyr's ``dts/arm/renesas/ra*/``.
+RENESAS_RA_COMPATIBLE_MAP: dict[str, str] = {
+    "renesas,ra-sci-uart": "uart",
+    "renesas,ra-uart-sci-b": "uart",
+    "renesas,ra-sci-i2c": "i2c",
+    "renesas,ra-iic": "i2c",
+    "renesas,ra-spi": "spi",
+    "renesas,ra-spi-b": "spi",
+    "renesas,ra-adc": "adc",
+    "renesas,ra-gpt-pwm": "pwm",
+    "renesas,ra-gpt-timer": "timer",
+    "renesas,ra-agt-timer": "timer",
+    "renesas,ra-ioport": "gpio",
+    "renesas,ra-wdt": "watchdog",
+    "renesas,ra-iwdt": "watchdog",
+    "renesas,ra-cgc": "clock",
+    "renesas,ra-dac": "dac",
+    "renesas,ra-canfd": "can",
+}
+
+# TI tiva-c, CC13xx, CC26xx (Cortex-M3 / M4F SoCs).
+TI_COMPATIBLE_MAP: dict[str, str] = {
+    "ti,cc13xx-cc26xx-uart": "uart",
+    "ti,cc32xx-uart": "uart",
+    "ti,stellaris-uart": "uart",
+    "ti,cc13xx-cc26xx-spi": "spi",
+    "ti,cc32xx-spi": "spi",
+    "ti,cc13xx-cc26xx-i2c": "i2c",
+    "ti,cc32xx-i2c": "i2c",
+    "ti,cc13xx-cc26xx-adc": "adc",
+    "ti,cc13xx-cc26xx-timer": "timer",
+    "ti,cc13xx-cc26xx-timer-pwm": "pwm",
+    "ti,cc13xx-cc26xx-gpio": "gpio",
+    "ti,cc32xx-gpio": "gpio",
+    "ti,cc13xx-cc26xx-watchdog": "watchdog",
+    "ti,cc13xx-cc26xx-pinctrl": "pinctrl",
+}
+
+# Atmel SAMD/SAML series (Cortex-M0+ / M4F).  Note these are the
+# Microchip-acquired Atmel SoCs; Zephyr keeps the ``atmel,`` prefix
+# for historical reasons.
+ATMEL_COMPATIBLE_MAP: dict[str, str] = {
+    "atmel,sam0-uart": "uart",
+    "atmel,sam0-spi": "spi",
+    "atmel,sam0-i2c": "i2c",
+    "atmel,sam0-adc": "adc",
+    "atmel,sam0-tcc-pwm": "pwm",
+    "atmel,sam0-tc32": "timer",
+    "atmel,sam0-gpio": "gpio",
+    "atmel,sam0-wdt": "watchdog",
+    "atmel,sam0-rtc": "rtc",
+    "atmel,sam0-dac": "dac",
+    "atmel,sam0-trng": "rng",
+    "atmel,sam0-can": "can",
+}
+
+# Ambiq Apollo series (Apollo3 / Apollo4 — Cortex-M4F).  Apollo's
+# IOM peripheral is a unified SPI/I2C controller; map to ``i2c``
+# by default since DTS instances pick a mode at the binding layer.
+AMBIQ_COMPATIBLE_MAP: dict[str, str] = {
+    "ambiq,uart": "uart",
+    "ambiq,iom": "i2c",
+    "ambiq,spid": "spi",
+    "ambiq,adc": "adc",
+    "ambiq,ctimer": "timer",
+    "ambiq,stimer": "timer",
+    "ambiq,gpio": "gpio",
+    "ambiq,wdt": "watchdog",
+    "ambiq,mspi": "spi",
+    "ambiq,rtc": "rtc",
+}
+
+# Infineon XMC4xxx + PSoC6 (cat1) families.
+INFINEON_COMPATIBLE_MAP: dict[str, str] = {
+    "infineon,xmc4xxx-uart": "uart",
+    "infineon,xmc4xxx-spi": "spi",
+    "infineon,xmc4xxx-i2c": "i2c",
+    "infineon,xmc4xxx-vadc": "adc",
+    "infineon,xmc4xxx-ccu4-pwm": "pwm",
+    "infineon,xmc4xxx-ccu4-timer": "timer",
+    "infineon,xmc4xxx-gpio": "gpio",
+    "infineon,xmc4xxx-wdt": "watchdog",
+    "infineon,cat1-uart": "uart",
+    "infineon,cat1-spi": "spi",
+    "infineon,cat1-i2c": "i2c",
+    "infineon,cat1-adc": "adc",
+    "infineon,cat1-counter": "timer",
+    "infineon,cat1-gpio": "gpio",
+    "infineon,cat1-watchdog": "watchdog",
+}
+
+# SiLabs gecko series (EFR32 / EFM32 — Cortex-M0+/M4F/M33).
+SILABS_COMPATIBLE_MAP: dict[str, str] = {
+    "silabs,gecko-usart": "uart",
+    "silabs,gecko-eusart": "uart",
+    "silabs,gecko-leuart": "uart",
+    "silabs,gecko-i2c": "i2c",
+    "silabs,gecko-spi-usart": "spi",
+    "silabs,gecko-iadc": "adc",
+    "silabs,gecko-adc": "adc",
+    "silabs,gecko-timer": "timer",
+    "silabs,gecko-letimer": "timer",
+    "silabs,gecko-pwm": "pwm",
+    "silabs,gecko-gpio": "gpio",
+    "silabs,gecko-wdog": "watchdog",
+    "silabs,gecko-rtcc": "rtc",
+    "silabs,gecko-trng": "rng",
+}
+
+# Espressif ESP32 series (Xtensa LX6/LX7, RISC-V on C-series).
+ESPRESSIF_COMPATIBLE_MAP: dict[str, str] = {
+    "espressif,esp32-uart": "uart",
+    "espressif,esp32-usb-serial": "uart",
+    "espressif,esp32-spi": "spi",
+    "espressif,esp32-i2c": "i2c",
+    "espressif,esp32-adc": "adc",
+    "espressif,esp32-mcpwm": "pwm",
+    "espressif,esp32-ledc": "pwm",
+    "espressif,esp32-timer": "timer",
+    "espressif,esp32-rtc-timer": "timer",
+    "espressif,esp32-gpio": "gpio",
+    "espressif,esp32-watchdog": "watchdog",
+    "espressif,esp32-rmt": "rmt",
+    "espressif,esp32-twai": "can",
+    "espressif,esp32-dac": "dac",
+}
+
+
 # Per-vendor registry.  When extending Zephyr DTS support to a new
-# vendor (Renesas, TI, Infineon, Ambiq, …), append a mapping here.
+# vendor, append a mapping here.  ``compatible_map_for_vendor``
+# returns the union of ``_GENERIC_COMPATIBLE_MAP`` and the entry
+# below, so ARM-core bindings (NVIC, SysTick) do not have to be
+# redeclared per vendor.
 COMPATIBLE_MAPS: dict[str, dict[str, str]] = {
     "nordic": NORDIC_COMPATIBLE_MAP,
+    "renesas": RENESAS_RA_COMPATIBLE_MAP,
+    "ti": TI_COMPATIBLE_MAP,
+    "atmel": ATMEL_COMPATIBLE_MAP,
+    "ambiq": AMBIQ_COMPATIBLE_MAP,
+    "infineon": INFINEON_COMPATIBLE_MAP,
+    "silabs": SILABS_COMPATIBLE_MAP,
+    "espressif": ESPRESSIF_COMPATIBLE_MAP,
 }
 
 
@@ -406,20 +565,32 @@ def fetch_records(
 
 
 def compatible_map_for_vendor(vendor: str) -> dict[str, str]:
-    """Return the compatible→ip-name map for a vendor."""
+    """Return the compatible→ip-name map for a vendor.
+
+    The result is the union of :data:`_GENERIC_COMPATIBLE_MAP`
+    (cross-vendor ARM-core bindings) and the per-vendor map
+    registered in :data:`COMPATIBLE_MAPS`.
+    """
     mapping = COMPATIBLE_MAPS.get(vendor)
     if mapping is None:
         raise StageExecutionError(
             f"No Zephyr compatible map registered for vendor {vendor!r}.  "
             f"Known vendors: {sorted(COMPATIBLE_MAPS)}"
         )
-    return mapping
+    return {**_GENERIC_COMPATIBLE_MAP, **mapping}
 
 
 __all__ = [
+    "AMBIQ_COMPATIBLE_MAP",
+    "ATMEL_COMPATIBLE_MAP",
     "COMPATIBLE_MAPS",
+    "ESPRESSIF_COMPATIBLE_MAP",
+    "INFINEON_COMPATIBLE_MAP",
     "NORDIC_COMPATIBLE_MAP",
+    "RENESAS_RA_COMPATIBLE_MAP",
+    "SILABS_COMPATIBLE_MAP",
     "SOURCE_ID",
+    "TI_COMPATIBLE_MAP",
     "ZEPHYR_REMOTE",
     "ZephyrDeviceDocument",
     "ZephyrDtsMemoryRegion",
