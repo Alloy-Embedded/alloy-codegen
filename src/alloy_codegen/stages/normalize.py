@@ -20,6 +20,7 @@ from alloy_codegen.ir.model import (
     ClockGateDescriptor,
     ClockNodeLite,
     ClockSelectorLite,
+    ConnectionCandidate,
     DeviceIdentity,
     DmaChannelDescriptor,
     DmaControllerDescriptor,
@@ -2733,18 +2734,24 @@ def _build_zephyr_dts_device_ir(
     / Ambiq behind the same call by widening the compatible-map in
     ``alloy_codegen.sources.zephyr_dts.COMPATIBLE_MAPS``.
 
-    Scope (v1):
+    Scope:
       * identity, memories, packages from the device + family patches
       * peripherals + interrupts extracted from the resolved
         ``.dts`` and filtered to the patch's peripheral allowlist
-      * empty registers / register_fields / connection_candidates
-        / clock_nodes / dma — these land in follow-up changes
-        (pinctrl decoder, clock-tree edges)
+      * pins + connection_candidates extracted from pinctrl groups
+        via ``alloy_codegen.sources.zephyr_pinctrl`` (added by
+        ``decode-zephyr-pinctrl-into-connection-candidates``).
+      * empty registers / register_fields / clock_nodes / dma —
+        these land in follow-up changes
     """
     from alloy_codegen.sources.zephyr_dts import (
         compatible_map_for_vendor,
         parse_zephyr_device_document,
         resolve_dts_path,
+    )
+    from alloy_codegen.sources.zephyr_pinctrl import (
+        decode_pinctrl_for_node,
+        decoder_for_vendor,
     )
 
     patch = load_device_patch(execution_context, device_name, vendor=vendor, family=family)
@@ -2827,6 +2834,91 @@ def _build_zephyr_dts_device_ir(
         else ()
     )
 
+    # ------------------------------------------------------------------
+    # decode-zephyr-pinctrl-into-connection-candidates: walk every
+    # peripheral node's ``pinctrl-0`` phandle, decode the group via
+    # the per-vendor decoder, and project each assignment into a
+    # ConnectionCandidate.  Empty when the vendor has no decoder
+    # registered (NXP) or the DTS carries no pinctrl groups.
+    # ------------------------------------------------------------------
+    pin_assignments: list = []
+    if decoder_for_vendor(vendor) is not None:
+        from devicetree import dtlib
+
+        try:
+            dt_full = dtlib.DT(str(dts_path))
+        except dtlib.DTError:
+            dt_full = None  # type: ignore[assignment]
+        if dt_full is not None:
+            soc = dt_full.root.nodes.get("soc")
+            soc_children = soc.nodes.values() if soc is not None else ()
+            for periph_node in soc_children:
+                if not periph_node.labels:
+                    continue
+                periph_label = periph_node.labels[0].upper()
+                if allowed_peripheral_names and periph_label not in allowed_peripheral_names:
+                    continue
+                pinctrl_prop = periph_node.props.get("pinctrl-0")
+                if pinctrl_prop is None:
+                    continue
+                try:
+                    target_nodes = pinctrl_prop.to_nodes()
+                except dtlib.DTError:
+                    continue
+                for pinctrl_target in target_nodes:
+                    pin_assignments.extend(
+                        decode_pinctrl_for_node(
+                            peripheral_node=periph_node,
+                            peripheral_label=periph_label,
+                            pinctrl_node=pinctrl_target,
+                            vendor=vendor,
+                        )
+                    )
+
+    # Project assignments into PinDefinition + ConnectionCandidate IR.
+    pins_by_name: dict[str, list[PinSignal]] = {}
+    candidates: list[ConnectionCandidate] = []
+    for index, assignment in enumerate(pin_assignments):
+        # Skip unallowed peripherals (already filtered above, but
+        # guard in case decoder produced something else).
+        if allowed_peripheral_names and assignment.peripheral not in allowed_peripheral_names:
+            continue
+        pin_signal = PinSignal(
+            function=f"{assignment.peripheral.lower()}_{assignment.signal.lower()}",
+            peripheral=assignment.peripheral,
+            signal=assignment.signal,
+            af_number=assignment.af_number,
+            provenance=dts_provenance,
+        )
+        pins_by_name.setdefault(assignment.pin, []).append(pin_signal)
+        candidates.append(
+            ConnectionCandidate(
+                candidate_id=f"candidate-{index:04d}-{assignment.pin}-"
+                f"{assignment.peripheral}-{assignment.signal}".lower(),
+                pin=assignment.pin,
+                peripheral=assignment.peripheral,
+                signal=assignment.signal.lower(),
+                route_kind=assignment.route_kind,
+                route_selector=f"selector:{assignment.af_number}",
+                route_group_id=None,
+                requirement_ids=(),
+                operation_ids=(),
+                capability_ids=(),
+                provenance=dts_provenance,
+            )
+        )
+
+    pins_tuple: tuple[PinDefinition, ...] = tuple(
+        PinDefinition(
+            name=pin_name,
+            port=pin_name[1] if len(pin_name) > 1 else None,
+            number=int(pin_name.rsplit("_", 1)[-1]) if "_" in pin_name else 0,
+            signals=tuple(signals),
+            provenance=dts_provenance,
+        )
+        for pin_name, signals in sorted(pins_by_name.items())
+    )
+
     return CanonicalDeviceIR(
         schema_version=IR_SCHEMA_VERSION,
         identity=DeviceIdentity(
@@ -2839,10 +2931,11 @@ def _build_zephyr_dts_device_ir(
         ),
         memories=tuple(_memory_to_ir(memory, patch_provenance) for memory in patch.memories),
         packages=packages,
-        pins=(),
+        pins=pins_tuple,
         peripherals=tuple(peripherals),
         interrupts=interrupts,
         dma_requests=(),
+        connection_candidates=tuple(candidates),
         provenance=dts_provenance,
     )
 
@@ -3350,9 +3443,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     for device_name in patch_result.scope.resolved_device_names():
         if _adyml.is_available(vendor=vendor, family=family, device=device_name):
             devices.append(
-                _adyml.load_canonical_device(
-                    vendor=vendor, family=family, device=device_name
-                )
+                _adyml.load_canonical_device(vendor=vendor, family=family, device=device_name)
             )
             continue
         devices.append(
