@@ -48,6 +48,7 @@ from ..emission import (
 from ..runtime_lite_emission import (
     _device_runtime_generated_path,
     _runtime_device_namespace_components,
+    _runtime_lite_dma_bindings,
     runtime_lite_peripheral_class_name,
 )
 
@@ -95,6 +96,42 @@ class RuntimeIndexedFieldRef:
     bit_width: int
     bit_stride_bits: int
     valid: bool
+
+
+@dataclass(frozen=True, slots=True)
+class UartDmaBindingRow:
+    """One DMA route for UART data.  Derived from ``device.dma_requests``.
+
+    Added by ``add-uart-spi-tier-2-3-4-data``.  ``signal`` is "TX" or "RX".
+    ``transfer_width_bits`` is always 8 on every admitted family — even
+    9-bit data on STM32 uses an 8-bit DMA stride from the data register's
+    low byte; 16-bit register access is a CPU concern, not DMA.
+    """
+
+    controller_peripheral: str
+    controller_id: str
+    binding_id: str
+    request_value: int
+    signal: str  # "TX" | "RX"
+    transfer_width_bits: int = 8
+
+
+@dataclass(frozen=True, slots=True)
+class KernelClockSourceOption:
+    """One kernel-clock source option for a peripheral.  Added by
+    ``add-kernel-clock-traits``.
+
+    ``source`` is a normalised classifier string ("pclk1", "sysclk",
+    "hsi16", "lse", "xtal", "apb", "peri_clk", "clk_per", ...) mapped
+    to the ``KernelClockSource`` enum at emit time.  ``field_value`` is
+    the bit-pattern the consumer writes into the RCC mux; on chips where
+    the source is hard-wired or the IR doesn't yet carry an explicit
+    enumeration, ``field_value`` falls back to the option's positional
+    index in the parent-options list.
+    """
+
+    source: str
+    field_value: int
 
 
 # ---------------------------------------------------------------------------
@@ -528,6 +565,142 @@ def _line_index_from_candidate(
 
 
 # ---------------------------------------------------------------------------
+# DMA / IRQ / kernel-clock helpers (shared across multiple driver classes)
+# ---------------------------------------------------------------------------
+
+
+def _peripheral_has_dma_binding(context: _SemanticContext, peripheral_name: str) -> bool:
+    return any(
+        binding.peripheral == peripheral_name
+        for binding in _runtime_lite_dma_bindings(context.device)
+    )
+
+
+def _generic_dma_bindings_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+    transfer_width_bits: int = 8,
+) -> tuple[UartDmaBindingRow, ...]:
+    """Generic DMA-binding helper used by I2C/TIMER/DAC/SDMMC/QSPI/ETH.
+
+    Mirrors the UART/SPI helper shape but does not filter by signal —
+    every binding admitted for the peripheral is surfaced.  ``signal``
+    falls back to an empty string when the IR carries ``None`` so the
+    typed ``DmaBindingDirection`` enum maps to ``::none`` (the
+    direction is meaningful for UART/SPI; for the other peripherals it
+    is informational).
+    """
+    bindings: list[UartDmaBindingRow] = []
+    for binding in _runtime_lite_dma_bindings(context.device):
+        if binding.peripheral != peripheral_name:
+            continue
+        bindings.append(
+            UartDmaBindingRow(
+                controller_peripheral=binding.controller,
+                controller_id=_enum_identifier(binding.controller),
+                binding_id=_enum_identifier(binding.binding_id),
+                request_value=int(binding.request_value or 0),
+                signal=(binding.signal or "").upper(),
+                transfer_width_bits=transfer_width_bits,
+            )
+        )
+    return tuple(bindings)
+
+
+def _enrich_with_dma_bindings(
+    context: _SemanticContext,
+    rows: tuple[Any, ...],
+    *,
+    transfer_width_bits: int = 8,
+) -> tuple[Any, ...]:
+    """Thread `dma_bindings` onto each row that exposes a
+    `peripheral_name` and `dma_bindings` attribute.  Used by the
+    I2C/TIMER/DAC/SDMMC/QSPI/ETH builders so consumer headers see
+    the populated `kDmaBindings` array on every specialisation."""
+    import dataclasses as _dc
+
+    enriched: list[Any] = []
+    for row in rows:
+        if not hasattr(row, "peripheral_name") or not hasattr(row, "dma_bindings"):
+            enriched.append(row)
+            continue
+        bindings = _generic_dma_bindings_for_peripheral(
+            context,
+            peripheral_name=row.peripheral_name,
+            transfer_width_bits=transfer_width_bits,
+        )
+        if not bindings:
+            enriched.append(row)
+            continue
+        enriched.append(_dc.replace(row, dma_bindings=bindings))
+    return tuple(enriched)
+
+
+def _irq_numbers_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> tuple[int, ...]:
+    """Return NVIC vector lines bound to ``peripheral_name``, sorted.
+
+    Walks ``device.interrupt_bindings`` filtered by exact peripheral
+    match.  De-duplicates lines (a peripheral that shares a vector with
+    another peripheral still surfaces the line once) and yields them in
+    ascending numerical order so goldens stay deterministic across runs.
+    Added by ``add-irq-vector-traits``.
+    """
+    seen: set[int] = set()
+    for binding in context.device.interrupt_bindings:
+        if binding.peripheral != peripheral_name:
+            continue
+        seen.add(int(binding.line))
+    return tuple(sorted(seen))
+
+
+def _kernel_clock_lines(
+    *,
+    selector_field: RuntimeFieldRef | None,
+    options: tuple[KernelClockSourceOption, ...],
+    max_clock_hz: int,
+    gate_field: RuntimeFieldRef | None,
+) -> list[str]:
+    """Render the four kernel-clock constexprs for a peripheral
+    specialisation.  Added by ``add-kernel-clock-traits``.
+
+    ``None`` field-refs render as ``kInvalidFieldRef``.  Empty option
+    tuple renders as ``std::array<KernelClockSourceOption, 0>{}``.
+    """
+    selector = selector_field if selector_field is not None else _invalid_field_ref()
+    gate = gate_field if gate_field is not None else _invalid_field_ref()
+    n = len(options)
+    if n == 0:
+        options_line = (
+            "  static constexpr std::array<KernelClockSourceOption, 0> "
+            "kKernelClockSourceOptions = {};"
+        )
+    else:
+        items = ", ".join(
+            f"{{KernelClockSource::{opt.source}, {opt.field_value}u, true}}" for opt in options
+        )
+        options_line = (
+            f"  static constexpr std::array<KernelClockSourceOption, {n}> "
+            f"kKernelClockSourceOptions = {{{{{items}}}}};"
+        )
+    return [
+        f"  static constexpr RuntimeFieldRef kKernelClockSelectorField = "
+        f"{_field_ref_expr(selector)};",
+        options_line,
+        # Renamed from ``kMaxClockHz`` to avoid colliding with the SPI
+        # ``kMaxClockHz`` constexpr already added by
+        # ``fill-espressif-semantic-gaps`` (which describes the SPI's *own*
+        # max output frequency, not its kernel-clock input).
+        f"  static constexpr std::uint32_t kKernelMaxClockHz = {int(max_clock_hz)}u;",
+        f"  static constexpr RuntimeFieldRef kClockGateField = {_field_ref_expr(gate)};",
+    ]
+
+
+# ---------------------------------------------------------------------------
 # DMA binding ref helpers (shared across UART / SPI / I2C / Timer / etc.)
 # ---------------------------------------------------------------------------
 
@@ -682,16 +855,23 @@ def _emit_peripheral_semantics_header(
 
 __all__ = [
     "_IO_SIGNAL_PATTERN",
+    "KernelClockSourceOption",
     "RuntimeFieldRef",
     "RuntimeIndexedFieldRef",
     "RuntimeRegisterRef",
+    "UartDmaBindingRow",
     "_SemanticContext",
     "_context",
     "_dma_binding_direction_token",
     "_dma_binding_ref_array_lines",
     "_dma_binding_ref_expr",
     "_emit_peripheral_semantics_header",
+    "_enrich_with_dma_bindings",
     "_field_ref_expr",
+    "_generic_dma_bindings_for_peripheral",
+    "_irq_numbers_for_peripheral",
+    "_kernel_clock_lines",
+    "_peripheral_has_dma_binding",
     "_indexed_field_ref",
     "_indexed_field_ref_expr",
     "_invalid_field_ref",
