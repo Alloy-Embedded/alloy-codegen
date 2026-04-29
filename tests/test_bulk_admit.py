@@ -17,8 +17,8 @@ if str(SRC) not in sys.path:
 
 from alloy_codegen.bootstrap import (  # noqa: E402
     DEVICE_REGISTRY,
-    discovered_device_registry,
     device_registry,
+    discovered_device_registry,
 )
 from alloy_codegen.bulk_admit import (  # noqa: E402
     BulkAdmitOutcome,

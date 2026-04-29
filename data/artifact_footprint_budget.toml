@@ -51,9 +51,10 @@ warn = 524288    # 512 KiB
 fail = 1048576
 
 [artifact."capabilities.hpp"]
-# SAME70 worst-case: 347 KB.
-warn = 524288    # 512 KiB
-fail = 1048576
+# SAME70 worst-case after reduce-cpp-header-bloat-via-shared-luts:
+# 240 KB (was 347 KB pre-migration).  Budget capped at 1.5×.
+warn = 262144    # 256 KiB
+fail = 393216    # 384 KiB
 
 [artifact."gpio.hpp"]
 # SAME70 worst-case: 261 KB.
@@ -72,13 +73,16 @@ warn = 131072    # 128 KiB
 fail = 262144
 
 [artifact."timer.hpp"]
-# Largest current: 54 KB.
-warn = 81920
-fail = 163840
+# SAME70 worst-case after reduce-cpp-header-bloat-via-shared-luts:
+# 38 KB.  Budget capped at 1.5×.
+warn = 49152     # 48 KiB
+fail = 65536     # 64 KiB
 
 [artifact."pwm.hpp"]
-warn = 81920
-fail = 163840
+# iMXRT1062 worst-case after reduce-cpp-header-bloat-via-shared-luts:
+# 38 KB (was 53 KB pre-migration).  Budget capped at 1.5×.
+warn = 49152     # 48 KiB
+fail = 65536     # 64 KiB
 
 [artifact."i2c.hpp"]
 warn = 49152     # 48 KiB

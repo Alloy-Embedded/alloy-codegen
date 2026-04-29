@@ -437,7 +437,8 @@ def emit_runtime_capabilities_header(
                 "  static constexpr auto& kFacts = kCapabilityHardwareLut[Index];",
                 "  static constexpr bool kPresent = true;",
                 "  static constexpr CapabilityScopeId kScopeId = kFacts.scope_id;",
-                "  static constexpr PeripheralClassId kPeripheralClassId = kFacts.peripheral_class_id;",
+                "  static constexpr PeripheralClassId kPeripheralClassId = "
+                "kFacts.peripheral_class_id;",
                 "  static constexpr CapabilityNameId kNameId = kFacts.name_id;",
                 "  static constexpr CapabilityValueId kValueId = kFacts.value_id;",
                 "  static constexpr PeripheralId kPeripheralId = kFacts.peripheral_id;",

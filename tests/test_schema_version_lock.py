@@ -90,6 +90,9 @@ def test_minor_or_patch_bump_within_pinned_major_is_accepted() -> None:
     try:
         parse_device(text)
     except IRSchemaVersionMismatchError:
-        pytest.fail("minor/patch bump within pinned major must not raise IRSchemaVersionMismatchError")
+        pytest.fail(
+            "minor/patch bump within pinned major must not raise "
+            "IRSchemaVersionMismatchError"
+        )
     except Exception:
         pass

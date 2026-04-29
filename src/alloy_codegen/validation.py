@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from collections import Counter
 
-# consume-alloy-devices-yml-as-canonical-input: every admitted
-# device's only upstream source is the alloy-devices-yml YAML.
-_CANONICAL_SOURCE_IDS: tuple[str, ...] = ("alloy-devices-yml",)
 from alloy_codegen.connector_model import (
     canonical_peripheral_class,
     canonical_signal_role,
@@ -21,6 +18,10 @@ from alloy_codegen.reporting import (
     ValidationRuleResult,
 )
 from alloy_codegen.scope import PipelineScope
+
+# consume-alloy-devices-yml-as-canonical-input: every admitted
+# device's only upstream source is the alloy-devices-yml YAML.
+_CANONICAL_SOURCE_IDS: tuple[str, ...] = ("alloy-devices-yml",)
 
 
 def _required_system_vector_slots(core: str) -> frozenset[int]:
