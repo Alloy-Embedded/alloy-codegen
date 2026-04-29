@@ -565,6 +565,99 @@ def _line_index_from_candidate(
 
 
 # ---------------------------------------------------------------------------
+# Generic rendering helpers (typed-option enum blocks, array lines)
+# ---------------------------------------------------------------------------
+
+
+def _render_typed_option_enum_block(
+    *,
+    template_name: str,
+    alias_name: str,
+    peripheral_entries: tuple[tuple[str, tuple[tuple[str, int], ...]], ...],
+    leading_comment: str | None = None,
+) -> list[str]:
+    """Render a per-peripheral typed-option ``enum class`` block.
+
+    Mirrors the ``AdcChannelOf<P>`` pattern established by
+    ``add-adc-channel-typed-enum`` and lifted out by
+    ``add-typed-peripheral-enums-everywhere``: emits a primary
+    template ``struct <template_name>`` carrying an empty ``enum
+    class type : std::uint8_t {};``, plus one specialisation per
+    populated peripheral with named ``(enumerator, field_value)``
+    pairs.  Trails with a ``using <alias_name> = typename ...::type;``
+    convenience alias.
+
+    ``peripheral_entries`` is a tuple of
+    ``(peripheral_id_enum, ((name, field_value), ...))`` pairs.
+    Peripherals carrying no entries are skipped — consumers reach
+    for the alias via ``if constexpr (kPresent)`` gates and the
+    primary template's empty enum keeps that branch compilable.
+    """
+    lines: list[str] = []
+    if leading_comment:
+        lines.append(f"// {leading_comment}")
+    lines.extend(
+        [
+            "template<PeripheralId Id>",
+            f"struct {template_name} {{",
+            "  enum class type : std::uint8_t {};",
+            "};",
+            "",
+        ]
+    )
+    for peripheral_id, entries in peripheral_entries:
+        if not entries:
+            continue
+        lines.extend(
+            [
+                "template<>",
+                f"struct {template_name}<PeripheralId::{peripheral_id}> {{",
+                "  enum class type : std::uint8_t {",
+            ]
+        )
+        for name, field_value in entries:
+            lines.append(f"    {name} = {field_value}u,")
+        lines.extend(
+            [
+                "  };",
+                "};",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "template<PeripheralId Id>",
+            f"using {alias_name} = typename {template_name}<Id>::type;",
+            "",
+        ]
+    )
+    return lines
+
+
+def _render_array_lines(
+    *,
+    cpp_type: str,
+    array_name: str,
+    count_name: str,
+    items: tuple[object, ...],
+    expr_fn,  # type: ignore[no-untyped-def]
+) -> list[str]:
+    """Render a paired ``static constexpr std::uint32_t kCount`` +
+    ``static constexpr std::array<T, N> kArray = { ... };`` declaration."""
+    lines: list[str] = [
+        f"  static constexpr std::uint32_t {count_name} = {len(items)}u;",
+    ]
+    if not items:
+        lines.append(f"  static constexpr std::array<{cpp_type}, 0> {array_name} = {{}};")
+        return lines
+    item_lines = [f"    {expr_fn(item)}," for item in items]
+    lines.append(f"  static constexpr std::array<{cpp_type}, {len(items)}> {array_name} = {{{{")
+    lines.extend(item_lines)
+    lines.append("  }};")
+    return lines
+
+
+# ---------------------------------------------------------------------------
 # DMA / IRQ / kernel-clock helpers (shared across multiple driver classes)
 # ---------------------------------------------------------------------------
 
@@ -656,6 +749,115 @@ def _irq_numbers_for_peripheral(
             continue
         seen.add(int(binding.line))
     return tuple(sorted(seen))
+
+
+def _classify_kernel_clock_source(node_id: str) -> str:
+    """Map a clock-tree node ID (e.g. ``clock-node:rcc-apbenr2``,
+    ``clock-node:hsi16``) to a ``KernelClockSource`` enum identifier.
+
+    Returns ``"none"`` for unrecognised IDs so the emitter still
+    surfaces the option (with the positional field value) without
+    crashing.
+    """
+    nid = node_id.lower()
+    if nid.startswith("clock-node:"):
+        nid = nid[len("clock-node:") :]
+    # Order matters: more specific suffixes first.
+    if "lse" in nid:
+        return "lse"
+    if "lsi" in nid:
+        return "lsi"
+    if "hsi16" in nid:
+        return "hsi16"
+    if nid == "hsi" or nid.endswith("-hsi"):
+        return "hsi"
+    if "hse" in nid:
+        return "hse"
+    if "sysclk" in nid:
+        return "sysclk"
+    if "pclk1" in nid or "rcc-apbenr1" in nid or "apb1" in nid:
+        return "pclk1"
+    if "pclk2" in nid or "rcc-apbenr2" in nid or "apb2" in nid:
+        return "pclk2"
+    if "pclk" in nid or "rcc-apbenr" in nid:
+        return "pclk"
+    if "hclk" in nid:
+        return "hclk"
+    if nid == "xtal" or "xtal" in nid:
+        return "xtal"
+    if "rc_fast" in nid or "rcfast" in nid:
+        return "rc_fast"
+    if "ref_tick" in nid or "reftick" in nid:
+        return "ref_tick"
+    if nid == "apb" or nid.endswith("-apb"):
+        return "apb"
+    if "peri" in nid:
+        return "peri_clk"
+    if "clk_per" in nid or nid == "clk_per":
+        return "clk_per"
+    if "lpuart_clk_root" in nid or "lpuartclk" in nid:
+        return "lpuart_clk_root"
+    return "none"
+
+
+def _kernel_clock_for_peripheral(
+    context: _SemanticContext,
+    *,
+    peripheral_name: str,
+) -> dict[str, Any]:
+    """Return the kernel-clock kwargs for a UART/SPI/I2C/QSPI/SDMMC row.
+
+    Walks ``device.peripheral_clock_bindings`` for the named peripheral,
+    follows the ``selector_id`` (when present) into ``clock_selectors``
+    to pull the parent-options list, and resolves the ``register_field_id``
+    on both the selector and the gate to typed ``RuntimeFieldRef``
+    records.  Empty options + ``kInvalidFieldRef`` when the IR doesn't
+    surface the data (e.g. peripherals on SoCs whose clock-tree
+    normalizer hasn't been wired yet).  Added by
+    ``add-kernel-clock-traits``.
+    """
+    device = context.device
+    invalid_field = _invalid_field_ref()
+    selector_field = invalid_field
+    gate_field = invalid_field
+    options: tuple[KernelClockSourceOption, ...] = ()
+
+    binding = next(
+        (b for b in device.peripheral_clock_bindings if b.peripheral == peripheral_name),
+        None,
+    )
+    if binding is not None:
+        # Selector → kKernelClockSourceOptions.
+        if binding.selector_id is not None:
+            selector = next(
+                (s for s in device.clock_selectors if s.selector_id == binding.selector_id),
+                None,
+            )
+            if selector is not None:
+                options = tuple(
+                    KernelClockSourceOption(
+                        source=_classify_kernel_clock_source(opt),
+                        field_value=index,
+                    )
+                    for index, opt in enumerate(selector.parent_options)
+                )
+                selector_field = _resolve_field_ref_by_id(
+                    context, field_id=selector.register_field_id
+                )
+        # Gate → kClockGateField.
+        if binding.clock_gate_id is not None:
+            gate = next(
+                (g for g in device.clock_gates if g.gate_id == binding.clock_gate_id),
+                None,
+            )
+            if gate is not None:
+                gate_field = _resolve_field_ref_by_id(context, field_id=gate.register_field_id)
+
+    return {
+        "kernel_clock_selector_field": selector_field,
+        "kernel_clock_source_options": options,
+        "clock_gate_field": gate_field,
+    }
 
 
 def _kernel_clock_lines(
@@ -872,6 +1074,10 @@ __all__ = [
     "_irq_numbers_for_peripheral",
     "_kernel_clock_lines",
     "_peripheral_has_dma_binding",
+    "_classify_kernel_clock_source",
+    "_kernel_clock_for_peripheral",
+    "_render_array_lines",
+    "_render_typed_option_enum_block",
     "_indexed_field_ref",
     "_indexed_field_ref_expr",
     "_invalid_field_ref",
