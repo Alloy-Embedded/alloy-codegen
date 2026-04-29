@@ -56,15 +56,20 @@ The migration pattern is proven by the PIO POC (commit
    in-process regen + diff).  Zero drift is the merge gate.
 7. Commit.
 
-- [ ] 2.1 Migrate GPIO → `runtime_driver/gpio.py`.
-- [ ] 2.2 Migrate UART → `runtime_driver/uart.py`.
-- [ ] 2.3 Migrate SPI → `runtime_driver/spi.py`.
-- [ ] 2.4 Migrate I2C → `runtime_driver/i2c.py`.
-- [ ] 2.5 Migrate ADC → `runtime_driver/adc.py`.
+- [x] 2.1 Migrate GPIO → `runtime_driver/gpio.py`.
+- [x] 2.2 Migrate UART → `runtime_driver/uart.py`.
+- [x] 2.3 Migrate SPI → `runtime_driver/spi.py`.
+- [x] 2.4 Migrate I2C → `runtime_driver/i2c.py`.
+- [x] 2.5 Migrate ADC → `runtime_driver/adc.py`.
 - [x] 2.6 Migrate DAC → `runtime_driver/dac.py`.
-- [ ] 2.7 Migrate DMA → `runtime_driver/dma.py`.
-- [ ] 2.8 Migrate Timer → `runtime_driver/timer.py`.
-- [ ] 2.9 Migrate PWM → `runtime_driver/pwm.py`.
+- [x] 2.7 Migrate DMA → `runtime_driver/dma.py`.
+- [x] 2.8 Migrate Timer → `runtime_driver/timer.py` (also owns
+      ``_stm_timer_pwm_traits_block`` / ``_st_timer_counter_bits``
+      shared with PWM).
+- [x] 2.9 Migrate PWM → `runtime_driver/pwm.py` (imports
+      ``_stm_timer_pwm_traits_block`` and
+      ``_st_timer_counter_bits`` from
+      ``runtime_driver.timer``).
 - [x] 2.10 Migrate PIO → `runtime_driver/pio.py`.  **(POC —
       cleanest case; no row dataclass, no shared-helper imports
       beyond `emission` / `runtime_lite_emission`; 144
@@ -74,8 +79,9 @@ The migration pattern is proven by the PIO POC (commit
       `tests/fixtures/emitted/` before/after) — gate enforced on
       every class migration commit via in-process hash diff
       against `/tmp/baseline_driver_semantics_hashes.json`.
-- [ ] 2.12 Per migration: full test suite green
-      (`pytest tests/`).
+- [x] 2.12 Per migration: full test suite green
+      (`pytest tests/`) — driver_semantics goldens stay
+      byte-stable across all 18 migrations.
 
 ## Phase 3: Migrate stub-tier classes
 
