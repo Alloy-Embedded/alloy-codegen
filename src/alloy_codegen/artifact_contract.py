@@ -912,25 +912,10 @@ def find_runtime_lite_contract_violations(
                 f"{device_runtime_paths['dma_semantics']} does not publish DMA semantic rows"
             )
 
-        if device.identity.vendor == "st" and device.identity.family == "stm32g0":
-            for binding in runtime_dma_bindings:
-                if binding.channel_index is None or binding.request_value is None:
-                    violations.append(
-                        f"{device.identity.device} DMA binding {binding.binding_id} "
-                        "is missing channel_index/request_value"
-                    )
-        if device.identity.vendor == "st" and device.identity.family == "stm32f4":
-            for binding in runtime_dma_bindings:
-                if binding.channel_index is None or binding.channel_selector is None:
-                    violations.append(
-                        f"{device.identity.device} DMA binding {binding.binding_id} "
-                        "is missing channel_index/channel_selector"
-                    )
-        if device.identity.vendor == "microchip" and device.identity.family == "same70":
-            for binding in runtime_dma_bindings:
-                if binding.request_value is None:
-                    violations.append(
-                        f"{device.identity.device} DMA binding {binding.binding_id} "
-                        "is missing request_value"
-                    )
+        # consume-alloy-devices-yml-as-canonical-input: per-vendor
+        # ``channel_index`` / ``request_value`` shape assertions used
+        # to live here as a "did the SVD parser populate the field"
+        # safety net.  The data extractor now owns shape — consumers
+        # already check for ``None`` at emit time — so the runtime
+        # contract no longer needs to gate on these fields.
     return tuple(violations)

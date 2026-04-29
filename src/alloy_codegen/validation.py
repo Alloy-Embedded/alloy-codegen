@@ -292,23 +292,21 @@ def _validate_patch_manifest(
     patch_manifest: PatchManifest,
     source_manifest: SourceManifest,
 ) -> tuple[ValidationRuleResult, ...]:
-    target_count = len(source_manifest.targets)
-    patch_count = len(patch_manifest.applied_patches)
-    patch_ids = [patch.patch_id for patch in patch_manifest.applied_patches]
+    """The patch manifest is a no-op marker after
+    ``consume-alloy-devices-yml-as-canonical-input`` Phase 3 —
+    every IR field that used to flow through patches is now baked
+    into the canonical YAML.  The two surviving rules just keep
+    the manifest_kind tag stable and assert that ``applied_patches``
+    is empty (the legacy non-empty case is gone).
+    """
+    del source_manifest  # unused — patch records dropped
     return (
         _rule(
-            rule_id="patch-target-count-match",
+            rule_id="patch-manifest-is-empty",
             category="schema",
             severity="error",
-            passed=target_count == patch_count,
-            message=f"Found {patch_count} patch record(s) for {target_count} target(s).",
-        ),
-        _rule(
-            rule_id="patch-ids-unique",
-            category="schema",
-            severity="error",
-            passed=len(patch_ids) == len(set(patch_ids)),
-            message="Patch identifiers are unique within the requested scope.",
+            passed=len(patch_manifest.applied_patches) == 0,
+            message="Patch manifest carries no records (YAML-only admission).",
         ),
     )
 
