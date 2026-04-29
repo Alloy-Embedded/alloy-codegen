@@ -243,20 +243,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     coverage_artifact = artifacts["st/stm32g0/reports/coverage.json"]
     provenance_report_artifact = artifacts["st/stm32g0/reports/runtime-provenance.json"]
     explainability_report_artifact = artifacts["st/stm32g0/reports/runtime-explainability.json"]
-    capability_summary_report_artifact = artifacts[
-        "st/stm32g0/reports/runtime-capability-summary.json"
-    ]
-    compatibility_matrix_report_artifact = artifacts[
-        "st/stm32g0/reports/runtime-compatibility-matrix.json"
-    ]
     family_index_artifact = artifacts["st/stm32g0/metadata/family-index.json"]
-    connectivity_artifact = artifacts["st/stm32g0/metadata/family-connectivity.json"]
-    ip_blocks_artifact = artifacts["st/stm32g0/metadata/ip-blocks.json"]
-    capabilities_artifact = artifacts["st/stm32g0/metadata/capabilities.json"]
-    packages_artifact = artifacts["st/stm32g0/metadata/packages.json"]
-    connectors_artifact = artifacts["st/stm32g0/metadata/connectors.json"]
-    system_descriptors_artifact = artifacts["st/stm32g0/metadata/system-descriptors.json"]
-    device_artifact = artifacts["st/stm32g0/metadata/devices/stm32g071rb.json"]
     linker_script_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/device.ld"]
     startup_source_artifact = artifacts["st/stm32g0/generated/devices/stm32g071rb/startup.cpp"]
     startup_vectors_artifact = artifacts[
@@ -389,16 +376,7 @@ def test_emit_includes_metadata_artifacts_with_content(
         coverage_artifact,
         provenance_report_artifact,
         explainability_report_artifact,
-        capability_summary_report_artifact,
-        compatibility_matrix_report_artifact,
         family_index_artifact,
-        connectivity_artifact,
-        ip_blocks_artifact,
-        capabilities_artifact,
-        packages_artifact,
-        connectors_artifact,
-        system_descriptors_artifact,
-        device_artifact,
     ):
         assert artifact.artifact_kind in {
             "canonical-metadata",
@@ -418,16 +396,7 @@ def test_emit_includes_metadata_artifacts_with_content(
     coverage_payload = json.loads(coverage_artifact.content)
     provenance_report_payload = json.loads(provenance_report_artifact.content)
     explainability_report_payload = json.loads(explainability_report_artifact.content)
-    capability_summary_payload = json.loads(capability_summary_report_artifact.content)
-    compatibility_matrix_payload = json.loads(compatibility_matrix_report_artifact.content)
     family_index_payload = json.loads(family_index_artifact.content)
-    connectivity_payload = json.loads(connectivity_artifact.content)
-    ip_blocks_payload = json.loads(ip_blocks_artifact.content)
-    capabilities_payload = json.loads(capabilities_artifact.content)
-    packages_payload = json.loads(packages_artifact.content)
-    connectors_payload = json.loads(connectors_artifact.content)
-    system_descriptors_payload = json.loads(system_descriptors_artifact.content)
-    device_payload = json.loads(device_artifact.content)
 
     assert manifest_payload["manifest_kind"] == "artifact-manifest-v1"
     assert manifest_payload["validation_report_id"] == "bootstrap-validation-v1"
@@ -459,59 +428,16 @@ def test_emit_includes_metadata_artifacts_with_content(
         coverage["coverage_kind"] in {"instance", "class-only"}
         for coverage in explainability_report_payload["devices"][0]["capability_coverage"]
     )
-    assert capability_summary_payload["report_id"] == "runtime-capability-summary-v1"
-    assert capability_summary_payload["devices"][0]["device"] == "stm32g071rb"
-    assert any(row["peripheral_class"] == "uart" for row in capability_summary_payload["classes"])
-    assert compatibility_matrix_payload["report_id"] == "runtime-compatibility-matrix-v1"
-    assert "gpio" in compatibility_matrix_payload["driver_classes"]
-    assert compatibility_matrix_payload["devices"][0]["device"] == "stm32g071rb"
+    # ``prune-redundant-json-artifacts``: family-rollup metadata
+    # JSONs (capability-summary / compatibility-matrix / connectivity
+    # / ip-blocks / capabilities / packages / connectors /
+    # system-descriptors / metadata/devices) and the per-device
+    # JSON dump are gone — no consumer reads them.
     assert family_index_payload["device_count"] == 1
     assert family_index_payload["devices"][0]["device"] == "stm32g071rb"
     assert (
-        family_index_payload["devices"][0]["metadata_path"]
-        == "st/stm32g0/metadata/devices/stm32g071rb.json"
-    )
-    assert ip_blocks_payload["family"] == "stm32g0"
-    assert ip_blocks_payload["ip_blocks"]
-    assert capabilities_payload["capabilities"]
-    assert packages_payload["packages"]
-    assert packages_payload["packages"][0]["pads"]
-    assert packages_payload["packages"][0]["pinouts"]
-    assert packages_payload["packages"][0]["pinouts"][0]["pinout"]
-    assert packages_payload["packages"][0]["pinouts"][0]["pin_index"]
-    assert connectors_payload["signal_endpoints"]
-    assert connectors_payload["devices"][0]["device"] == "stm32g071rb"
-    assert any(
-        candidate["route_kind"] == "alternate-function"
-        for candidate in connectors_payload["devices"][0]["connection_candidates"]
-    )
-    assert system_descriptors_payload["devices"][0]["device"] == "stm32g071rb"
-    assert system_descriptors_payload["devices"][0]["vector_slots"]
-    assert system_descriptors_payload["devices"][0]["startup_descriptors"]
-    assert system_descriptors_payload["devices"][0]["clock_gates"]
-    assert system_descriptors_payload["devices"][0]["dma_routes"]
-    assert any(
-        memory.get("startup_roles")
-        for memory in system_descriptors_payload["devices"][0]["memories"]
-    )
-    assert any(pin["name"] == "PA0" for pin in connectivity_payload["pins"])
-    assert device_payload["identity"]["device"] == "stm32g071rb"
-    assert system_descriptors_payload["devices"][0]["vector_slots"][0]["slot"] == 0
-    assert (
-        system_descriptors_payload["devices"][0]["startup_descriptors"][0]["kind"]
-        == "initial-stack-pointer"
-        or system_descriptors_payload["devices"][0]["startup_descriptors"][0]["kind"]
-        == "vector-table"
-    )
-    assert [
-        pad["pad_id"] for pad in packages_payload["packages"][0]["pinouts"][0]["pinout"]
-    ] == sorted(
-        [pad["pad_id"] for pad in packages_payload["packages"][0]["pinouts"][0]["pinout"]],
-        key=int,
-    )
-    assert any(
-        pin_entry["pin"] == "PA0" and "17" in pin_entry["pad_ids"]
-        for pin_entry in packages_payload["packages"][0]["pinouts"][0]["pin_index"]
+        family_index_payload["devices"][0]["yaml_path"]
+        == "data/devices/vendors/st/stm32g0/devices/stm32g071rb.yml"
     )
 
     assert linker_script_artifact.artifact_kind == "generated-linker-script"
@@ -1043,16 +969,6 @@ def test_emit_matches_golden_artifacts(
         update_mode=goldens_update_mode,
     )
     _json("st/stm32g0/metadata/family-index.json", ("metadata", "family-index.json"))
-    _json("st/stm32g0/metadata/family-connectivity.json", ("metadata", "family-connectivity.json"))
-    _json("st/stm32g0/metadata/ip-blocks.json", ("metadata", "ip-blocks.json"))
-    _json("st/stm32g0/metadata/capabilities.json", ("metadata", "capabilities.json"))
-    _json("st/stm32g0/metadata/packages.json", ("metadata", "packages.json"))
-    _json("st/stm32g0/metadata/connectors.json", ("metadata", "connectors.json"))
-    _json("st/stm32g0/metadata/system-descriptors.json", ("metadata", "system-descriptors.json"))
-    _json(
-        "st/stm32g0/metadata/devices/stm32g071rb.json",
-        ("metadata", "devices", "stm32g071rb.json"),
-    )
     assert not any(path.startswith("st/stm32g0/generated/ip/") for path in artifacts), (
         "Legacy IP headers should not be emitted"
     )
@@ -1607,33 +1523,14 @@ def test_emit_can_semantics_supports_st_can_alias_schema(
 def test_emit_connector_metadata_supports_microchip_family(
     microchip_execution_context: ExecutionContext,
 ) -> None:
+    """``prune-redundant-json-artifacts`` removed the family-rollup
+    metadata JSONs (connectors / ip-blocks / packages /
+    system-descriptors).  This test now just confirms the runtime
+    C++ artifacts still emit cleanly for SAME70 — the canonical data
+    those JSONs projected lives in alloy-devices-yml directly."""
     result = run(PipelineScope(device="atsame70q21b"), microchip_execution_context)
     artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
 
-    connectors_payload = json.loads(artifacts["microchip/same70/metadata/connectors.json"].content)
-    ip_blocks_payload = json.loads(artifacts["microchip/same70/metadata/ip-blocks.json"].content)
-    packages_payload = json.loads(artifacts["microchip/same70/metadata/packages.json"].content)
-    system_payload = json.loads(
-        artifacts["microchip/same70/metadata/system-descriptors.json"].content
-    )
-
-    assert connectors_payload["vendor"] == "microchip"
-    assert connectors_payload["family"] == "same70"
-    assert connectors_payload["signal_endpoints"]
-    assert connectors_payload["devices"][0]["device"] == "atsame70q21b"
-    assert packages_payload["packages"][0]["pads"]
-    assert packages_payload["packages"][0]["pinouts"]
-    assert packages_payload["packages"][0]["pinouts"][0]["pinout"]
-    assert any(
-        candidate["route_kind"] == "peripheral-mux"
-        for candidate in connectors_payload["devices"][0]["connection_candidates"]
-    )
-    assert ip_blocks_payload["ip_blocks"]
-    assert system_payload["devices"][0]["vector_slots"]
-    assert system_payload["devices"][0]["startup_descriptors"]
-    assert system_payload["devices"][0]["clock_gates"]
-    assert system_payload["devices"][0]["dma_routes"]
-    assert any(memory.get("startup_roles") for memory in system_payload["devices"][0]["memories"])
     assert (
         artifacts["microchip/same70/generated/runtime/devices/atsame70q21b/startup.hpp"].content
         is not None
@@ -1700,43 +1597,26 @@ def test_emit_runtime_systick_header_for_foundational_cortex_m_devices(
 def test_emit_packages_metadata_can_reconstruct_physical_pinout(
     execution_context: ExecutionContext,
 ) -> None:
-    result = run(PipelineScope(device="stm32g071rb"), execution_context)
-    artifacts = {artifact.path: artifact for artifact in result.payload.artifacts}
+    """``prune-redundant-json-artifacts`` removed the
+    ``metadata/packages.json`` rollup.  The same physical-pinout
+    facts now live directly on the canonical YAML's
+    ``packages[*].package_pads``; consumers that need the
+    reconstructed pinout read it via
+    ``alloy_devices_yml.load_canonical_device``."""
+    from alloy_codegen.sources.alloy_devices_yml import load_canonical_device
 
-    packages_payload = json.loads(artifacts["st/stm32g0/metadata/packages.json"].content)
-    package_entry = next(
-        package for package in packages_payload["packages"] if package["name"] == "lqfp64"
-    )
-    device_pinout = next(
-        pinout for pinout in package_entry["pinouts"] if pinout["device"] == "stm32g071rb"
-    )
-
-    topology_by_pad = {pad["pad_id"]: pad for pad in package_entry["pads"]}
-    reconstructed_pinout = [
-        {
-            **topology_by_pad[pad["pad_id"]],
-            "bonded_pin": pad["bonded_pin"],
-            "bonding_state": pad["bonding_state"],
-            "constraint_ids": pad["constraint_ids"],
-        }
-        for pad in device_pinout["pinout"]
+    ir = load_canonical_device(vendor="st", family="stm32g0", device="stm32g071rb")
+    package = next(pkg for pkg in ir.packages if pkg.name == "lqfp64")
+    pads_for_package = [
+        pad for pad in ir.package_pads if pad.package == package.name
     ]
-
+    pad_ids = sorted({pad.pad_id for pad in pads_for_package}, key=int)
     # Pad "21" (PA5) was admitted by add-board-support-package-emitter so the
     # Nucleo-G071RB seed board's LED_GREEN pin survives validation.
-    assert [pad["pad_id"] for pad in reconstructed_pinout] == [
-        "17",
-        "18",
-        "19",
-        "20",
-        "21",
-        "29",
-        "30",
-    ]
-    assert reconstructed_pinout[0]["position_label"] == "17"
-    assert reconstructed_pinout[0]["bonded_pin"] == "PA0"
-    assert reconstructed_pinout[0]["pad_kind"] == "io"
-    assert any(pin_entry["pin"] == "PB6" for pin_entry in device_pinout["pin_index"])
+    assert pad_ids == ["17", "18", "19", "20", "21", "29", "30"]
+    pa0_pad = next(pad for pad in pads_for_package if pad.pad_id == "17")
+    assert pa0_pad.bonded_pin == "PA0"
+    assert any(pad.bonded_pin == "PB6" for pad in pads_for_package)
 
 
 def test_emit_stage_is_byte_stable(execution_context: ExecutionContext) -> None:
