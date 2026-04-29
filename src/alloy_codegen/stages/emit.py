@@ -18,17 +18,10 @@ from alloy_codegen.cmake_emission import (
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.emission import (
     emit_artifact_manifest,
-    emit_capabilities_metadata,
-    emit_connectors_metadata,
     emit_coverage_report,
-    emit_device_metadata,
-    emit_family_connectivity,
     emit_family_index,
-    emit_ip_blocks_metadata,
-    emit_packages_metadata,
     emit_startup_source,
     emit_startup_vectors_source,
-    emit_system_descriptors_metadata,
     emit_validation_report,
     emit_validation_summary,
     materialize_artifacts,
@@ -96,8 +89,6 @@ from alloy_codegen.runtime_lite_emission import (
 from alloy_codegen.runtime_low_power import emit_runtime_low_power_header
 from alloy_codegen.runtime_pin_validation import emit_runtime_pin_validation_header
 from alloy_codegen.runtime_reports import (
-    emit_runtime_capability_summary_report,
-    emit_runtime_compatibility_matrix_report,
     emit_runtime_explainability_report,
     emit_runtime_provenance_report,
 )
@@ -163,20 +154,11 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
         ),
         emit_runtime_provenance_report(family_dir=family_dir, devices=devices),
         emit_runtime_explainability_report(family_dir=family_dir, devices=devices),
-        emit_runtime_capability_summary_report(family_dir=family_dir, devices=devices),
-        emit_runtime_compatibility_matrix_report(family_dir=family_dir, devices=devices),
         emit_family_index(family_dir=family_dir, devices=devices),
-        emit_family_connectivity(family_dir=family_dir, devices=devices),
-        emit_ip_blocks_metadata(family_dir=family_dir, devices=devices),
-        emit_capabilities_metadata(family_dir=family_dir, devices=devices),
-        emit_packages_metadata(family_dir=family_dir, devices=devices),
-        emit_connectors_metadata(family_dir=family_dir, devices=devices),
-        emit_system_descriptors_metadata(family_dir=family_dir, devices=devices),
     ]
     for device in devices:
         artifacts.extend(
             (
-                emit_device_metadata(family_dir=family_dir, device=device),
                 emit_runtime_linker_script(family_dir=family_dir, device=device),
                 emit_cmake_device_module(family_dir=family_dir, device=device),
                 (

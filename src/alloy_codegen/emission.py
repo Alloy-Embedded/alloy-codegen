@@ -155,8 +155,17 @@ def _family_report_path(family_dir: str, name: str) -> str:
     return f"{family_dir}/reports/{name}"
 
 
-def _device_metadata_path(family_dir: str, device_name: str) -> str:
-    return f"{family_dir}/metadata/devices/{device_name}.json"
+def _canonical_yaml_path(device: CanonicalDeviceIR) -> str:
+    """Path to the device's canonical YAML in the
+    ``alloy-devices-yml`` data repo.  ``family-index.json`` uses
+    this to point consumers at the YAML they should load — there
+    is no per-device JSON dump after
+    ``prune-redundant-json-artifacts``."""
+    identity = device.identity
+    return (
+        f"data/devices/vendors/{identity.vendor}/{identity.family}"
+        f"/devices/{identity.device}.yml"
+    )
 
 
 def _device_generated_path(family_dir: str, device_name: str, name: str) -> str:
@@ -1195,14 +1204,6 @@ def emit_artifact_manifest(
         path=_family_manifest_path(family_dir),
         artifact_kind="canonical-metadata",
         payload=artifact_manifest.to_dict(),
-    )
-
-
-def emit_device_metadata(*, family_dir: str, device: CanonicalDeviceIR) -> EmittedArtifact:
-    return _text_artifact(
-        path=_device_metadata_path(family_dir, device.identity.device),
-        artifact_kind="canonical-metadata",
-        payload=device.to_dict(),
     )
 
 
@@ -2329,38 +2330,13 @@ def emit_family_index(
                 "package": device.identity.package,
                 "core": device.identity.core,
                 "summary": device.identity.summary,
-                "metadata_path": _device_metadata_path(family_dir, device.identity.device),
+                "yaml_path": _canonical_yaml_path(device),
             }
             for device in sorted(devices, key=lambda item: item.identity.device)
         ],
     }
     return _text_artifact(
         path=_family_metadata_path(family_dir, "family-index.json"),
-        artifact_kind="canonical-metadata",
-        payload=payload,
-    )
-
-
-def emit_family_connectivity(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("Family connectivity emission requires at least one device.")
-    first_device = devices[0]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "packages": _unique_packages(devices),
-        "peripherals": _unique_peripherals(devices),
-        "pins": _build_pin_catalog(devices),
-        "interrupts": _unique_interrupts(devices),
-        "dma_requests": _unique_dma_requests(devices),
-    }
-    return _text_artifact(
-        path=_family_metadata_path(family_dir, "family-connectivity.json"),
         artifact_kind="canonical-metadata",
         payload=payload,
     )
@@ -2514,133 +2490,6 @@ def emit_ip_block_header(
     return _cpp_artifact(
         path=f"{family_dir}/generated/ip/{filename}",
         content=content,
-    )
-
-
-def emit_ip_blocks_metadata(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("IP block emission requires at least one device.")
-    first_device = devices[0]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "ip_blocks": _unique_ip_blocks(devices),
-        "device_usage": [
-            {
-                "device": device.identity.device,
-                "peripherals": [
-                    {
-                        "name": peripheral.name,
-                        "ip_name": peripheral.ip_name,
-                        "ip_version": peripheral.ip_version,
-                        "base_address": peripheral.base_address,
-                    }
-                    for peripheral in sorted(device.peripherals, key=lambda item: item.name)
-                ],
-            }
-            for device in sorted(devices, key=lambda item: item.identity.device)
-        ],
-    }
-    return _text_artifact(
-        path=_family_metadata_path(family_dir, "ip-blocks.json"),
-        artifact_kind="canonical-metadata",
-        payload=payload,
-    )
-
-
-def emit_capabilities_metadata(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("Capability emission requires at least one device.")
-    first_device = devices[0]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "capabilities": _unique_capabilities(devices),
-    }
-    return _text_artifact(
-        path=_family_metadata_path(family_dir, "capabilities.json"),
-        artifact_kind="canonical-metadata",
-        payload=payload,
-    )
-
-
-def emit_packages_metadata(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("Package emission requires at least one device.")
-    first_device = devices[0]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "packages": _build_package_metadata(devices),
-    }
-    return _text_artifact(
-        path=_family_metadata_path(family_dir, "packages.json"),
-        artifact_kind="canonical-metadata",
-        payload=payload,
-    )
-
-
-def emit_connectors_metadata(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("Connector emission requires at least one device.")
-    first_device = devices[0]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "signal_endpoints": _unique_signal_endpoints(devices),
-        "devices": [
-            _device_connector_payload(device)
-            for device in sorted(devices, key=lambda item: item.identity.device)
-        ],
-    }
-    return _text_artifact(
-        path=_family_metadata_path(family_dir, "connectors.json"),
-        artifact_kind="canonical-metadata",
-        payload=payload,
-    )
-
-
-def emit_system_descriptors_metadata(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    if not devices:
-        raise ValueError("System descriptor emission requires at least one device.")
-    first_device = devices[0]
-    payload = {
-        "schema_version": first_device.schema_version,
-        "vendor": first_device.identity.vendor,
-        "family": first_device.identity.family,
-        "devices": [
-            _device_system_descriptor_payload(device)
-            for device in sorted(devices, key=lambda item: item.identity.device)
-        ],
-    }
-    return _text_artifact(
-        path=_family_metadata_path(family_dir, "system-descriptors.json"),
-        artifact_kind="canonical-metadata",
-        payload=payload,
     )
 
 

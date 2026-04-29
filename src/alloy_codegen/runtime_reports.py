@@ -967,37 +967,11 @@ def emit_runtime_explainability_report(
     )
 
 
-def emit_runtime_capability_summary_report(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    return _text_artifact(
-        path=_family_report_path(family_dir, RUNTIME_CAPABILITY_SUMMARY_REPORT),
-        artifact_kind="runtime-report",
-        payload=build_runtime_capability_summary_payload(family_dir=family_dir, devices=devices),
-    )
-
-
-def emit_runtime_compatibility_matrix_report(
-    *,
-    family_dir: str,
-    devices: tuple[CanonicalDeviceIR, ...],
-) -> EmittedArtifact:
-    return _text_artifact(
-        path=_family_report_path(family_dir, RUNTIME_COMPATIBILITY_MATRIX_REPORT),
-        artifact_kind="runtime-report",
-        payload=build_runtime_compatibility_matrix_payload(family_dir=family_dir, devices=devices),
-    )
-
-
 __all__ = [
     "build_runtime_capability_summary_payload",
     "build_runtime_compatibility_matrix_payload",
     "build_runtime_explainability_payload",
     "build_runtime_provenance_payload",
-    "emit_runtime_capability_summary_report",
-    "emit_runtime_compatibility_matrix_report",
     "emit_runtime_explainability_report",
     "emit_runtime_provenance_report",
     "find_runtime_report_violations",
