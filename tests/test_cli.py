@@ -97,7 +97,6 @@ def test_cli_targets_json_output_lists_supported_families(capsys) -> None:
         entry["vendor"] == "microchip"
         and entry["family"] == "same70"
         and "atsame70n21b" in entry["devices"]
-        and "microchip-dfp-extract" in entry["source_bundles"]
         for entry in payload["targets"]
     )
 

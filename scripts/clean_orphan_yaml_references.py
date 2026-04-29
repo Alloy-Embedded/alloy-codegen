@@ -93,12 +93,20 @@ def _clean(ir: CanonicalDeviceIR) -> CanonicalDeviceIR:
     # keep the channel-style entry (it carries ``channel_index``).
     # Iteration order is preserved so the emitted ``kDmaBindings[]``
     # ordering remains stable.
+    # Drop bindings with ``signal=None`` — these are ADC-style
+    # single-stream bindings that don't fit the
+    # ``(peripheral, signal)`` consumer-facing trait model and trip
+    # the runtime-lite smoke compile (which spot-checks that
+    # ``kDmaSemanticPeripherals[0]`` has a specialisation for the
+    # first binding's signal_id).  ADC DMA goes through a separate
+    # HAL concept anyway.
     candidates = [
         binding
         for binding in ir.dma_bindings
         if _peripheral_known(binding.peripheral)
         and _controller_known(binding.controller)
         and binding.route_id in surviving_route_ids
+        and binding.signal is not None
     ]
     # First pass: pick the preferred binding per ``(peripheral, signal,
     # controller)`` key — channel-style entries (``channel_index`` set)
@@ -125,6 +133,23 @@ def _clean(ir: CanonicalDeviceIR) -> CanonicalDeviceIR:
         seen_binding_keys.add(key)
         cleaned_binding_list.append(binding)
     cleaned_dma_bindings = tuple(cleaned_binding_list)
+    # Drop routes that no surviving binding points at — without a
+    # binding, the route is invisible to consumers and trips the
+    # ``<device>-dma-bindings-cover-routes`` validation rule.
+    bound_route_ids = {binding.route_id for binding in cleaned_dma_bindings}
+    cleaned_dma_routes = tuple(
+        route
+        for route in cleaned_dma_routes
+        if route.peripheral is None or route.route_id in bound_route_ids
+    )
+    surviving_request_keys = {
+        (route.controller, route.request_line) for route in cleaned_dma_routes
+    }
+    cleaned_dma_requests = tuple(
+        request
+        for request in cleaned_dma_requests
+        if (request.controller, request.request_line) in surviving_request_keys
+    )
     cleaned_clock_bindings = tuple(
         binding
         for binding in ir.peripheral_clock_bindings

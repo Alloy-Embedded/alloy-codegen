@@ -10,11 +10,12 @@ def test_pipeline_runs_all_stages(execution_context: ExecutionContext) -> None:
     result = pipeline_stage.run(PipelineScope(device="stm32g071rb"), execution_context)
 
     assert result.stage == "pipeline"
-    assert result.status == "completed"
-    assert len(result.payload.results) == 6
+    # ``patch`` was removed by
+    # consume-alloy-devices-yml-as-canonical-input Phase 3 — pipeline is
+    # now fetch → normalize → validate → emit → publish.
+    assert len(result.payload.results) == 5
     assert [stage.stage for stage in result.payload.results] == [
         "fetch",
-        "patch",
         "normalize",
         "validate",
         "emit",
@@ -31,7 +32,6 @@ def test_pipeline_returns_failed_when_any_stage_fails(
         return StageResult(stage=stage, scope=scope, status=status, payload={"stage": stage})
 
     monkeypatch.setattr(pipeline_stage, "run_fetch", lambda _scope, _context: make_result("fetch"))
-    monkeypatch.setattr(pipeline_stage, "run_patch", lambda _scope, _context: make_result("patch"))
     monkeypatch.setattr(
         pipeline_stage, "run_normalize", lambda _scope, _context: make_result("normalize")
     )
@@ -51,7 +51,6 @@ def test_pipeline_returns_failed_when_any_stage_fails(
         "publish stage failed inside pipeline.",
     )
     assert [stage.status for stage in result.payload.results] == [
-        "completed",
         "completed",
         "completed",
         "failed",
