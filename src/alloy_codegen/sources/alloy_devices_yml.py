@@ -55,14 +55,29 @@ def is_available(*, vendor: str, family: str, device: str) -> bool:
 
 
 def load_canonical_device(
-    *, vendor: str, family: str, device: str, validate: bool = True
+    *,
+    vendor: str,
+    family: str,
+    device: str,
+    validate: bool = True,
+    accept_low_confidence: bool = False,
 ) -> CanonicalDeviceIR:
     """Parse the device YAML into a :class:`CanonicalDeviceIR`.
 
     When ``validate`` is True (default), schema-validates the
     YAML before parsing — catches a malformed pin in the data
     repo at the boundary instead of inside normalize.
+
+    `add-modm-data-pdf-extractor` Phase 2 contract: refuses any
+    YAML whose ``provenance.confidence`` field equals ``"low"``
+    unless ``accept_low_confidence`` is set explicitly.  This
+    keeps the PDF-scraped chips out of the default codegen
+    admission flow while letting opt-in tools (a future
+    ``alloy-codegen --accept-low-confidence`` CLI flag) consume
+    them.
     """
+    import yaml as _yaml
+
     path = resolve_device_yaml(vendor=vendor, family=family, device=device)
     if path is None:
         raise StageExecutionError(
@@ -70,6 +85,26 @@ def load_canonical_device(
             f"Expected at {device_yaml_path(vendor=vendor, family=family, device=device)}"
         )
     text = path.read_text(encoding="utf-8")
+
+    # Pre-flight confidence check: cheap top-level YAML parse to
+    # peek at provenance.confidence before invoking the full
+    # schema validator + parser.
+    if not accept_low_confidence:
+        try:
+            preview = _yaml.safe_load(text)
+        except Exception:  # noqa: BLE001
+            preview = None
+        if isinstance(preview, dict):
+            confidence = (preview.get("provenance") or {}).get("confidence")
+            if confidence == "low":
+                raise StageExecutionError(
+                    f"alloy-devices-yml entry for {vendor}/{family}/{device} "
+                    f"is marked provenance.confidence=low (PDF-scraped or "
+                    f"otherwise unreliable).  Pass accept_low_confidence=True "
+                    f"to load it explicitly, or admit the chip via a higher-"
+                    f"confidence source first."
+                )
+
     if validate:
         try:
             validate_device(text)
