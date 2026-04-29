@@ -3,15 +3,26 @@
 ## Phase 1: Common substrate
 
 - [x] 1.1 Create `src/alloy_codegen/runtime_driver/__init__.py`.
-- [ ] 1.2 Move `_SemanticContext`, `_enrich`, `_invalid_register_ref`,
-      `_invalid_field_ref`, `_clock_register_lookup`,
-      `_synthetic_register`, `_synthetic_field`, dataclass row
-      types into `runtime_driver/common.py`.
-      *(Deferred — moves ~1,600 lines of helpers used by 16+
-      classes; high blast radius.  Each per-class module imports
-      from the legacy monolith via the re-export shim until
-      common.py lands as part of a focused follow-up commit.)*
-- [ ] 1.3 Add `__all__` listing every public helper so
+- [x] 1.2 Move shared substrate into `runtime_driver/common.py`:
+      `_SemanticContext`, `_context`, `_invalid_register_ref`,
+      `_invalid_field_ref`, `_invalid_indexed_field_ref`,
+      `_indexed_field_ref`, `_resolve_register_ref`,
+      `_resolve_field_ref`, `_resolve_register_ref_any`,
+      `_resolve_field_ref_any`, `_manual_field_ref`,
+      `_resolve_field_ref_by_id`, `_field_ref_expr`,
+      `_indexed_field_ref_expr`, `_register_ref_expr`,
+      `_irq_numbers_lines`, `_irq_numbers_for_peripheral`,
+      `_schema_ref_expr`, `_peripheral_ref`, `_pin_ref`,
+      `_line_index_from_candidate`, `_dma_binding_*` (3 helpers),
+      `_emit_peripheral_semantics_header`,
+      `_peripheral_has_dma_binding`,
+      `_generic_dma_bindings_for_peripheral`,
+      `_enrich_with_dma_bindings`, `_kernel_clock_lines`, plus
+      the foundational dataclasses (`RuntimeRegisterRef`,
+      `RuntimeFieldRef`, `RuntimeIndexedFieldRef`,
+      `UartDmaBindingRow`, `KernelClockSourceOption`).  Total
+      common.py: 892 lines.
+- [x] 1.3 Add `__all__` listing every public helper so
       per-class modules can import cleanly.
 
 ## Phase 2: Migrate full-tier classes (low risk, well-tested)
@@ -50,7 +61,7 @@ The migration pattern is proven by the PIO POC (commit
 - [ ] 2.3 Migrate SPI → `runtime_driver/spi.py`.
 - [ ] 2.4 Migrate I2C → `runtime_driver/i2c.py`.
 - [ ] 2.5 Migrate ADC → `runtime_driver/adc.py`.
-- [ ] 2.6 Migrate DAC → `runtime_driver/dac.py`.
+- [x] 2.6 Migrate DAC → `runtime_driver/dac.py`.
 - [ ] 2.7 Migrate DMA → `runtime_driver/dma.py`.
 - [ ] 2.8 Migrate Timer → `runtime_driver/timer.py`.
 - [ ] 2.9 Migrate PWM → `runtime_driver/pwm.py`.
@@ -59,21 +70,23 @@ The migration pattern is proven by the PIO POC (commit
       beyond `emission` / `runtime_lite_emission`; 144
       `driver_semantics` artifacts hash-stable across 8 admitted
       devices.)**
-- [ ] 2.11 Per migration: golden-byte-stability check (compare
-      `tests/fixtures/emitted/` before/after).
+- [x] 2.11 Per migration: golden-byte-stability check (compare
+      `tests/fixtures/emitted/` before/after) — gate enforced on
+      every class migration commit via in-process hash diff
+      against `/tmp/baseline_driver_semantics_hashes.json`.
 - [ ] 2.12 Per migration: full test suite green
       (`pytest tests/`).
 
 ## Phase 3: Migrate stub-tier classes
 
-- [ ] 3.1 Migrate CAN → `runtime_driver/can.py`.
-- [ ] 3.2 Migrate USB → `runtime_driver/usb.py`.
-- [ ] 3.3 Migrate ETH → `runtime_driver/eth.py`.
-- [ ] 3.4 Migrate RTC → `runtime_driver/rtc.py`.
-- [ ] 3.5 Migrate Watchdog → `runtime_driver/watchdog.py`.
-- [ ] 3.6 Migrate QSPI → `runtime_driver/qspi.py`.
-- [ ] 3.7 Migrate SDMMC → `runtime_driver/sdmmc.py`.
-- [ ] 3.8 Per migration: golden-byte-stability + tests.
+- [x] 3.1 Migrate CAN → `runtime_driver/can.py`.
+- [x] 3.2 Migrate USB → `runtime_driver/usb.py`.
+- [x] 3.3 Migrate ETH → `runtime_driver/eth.py`.
+- [x] 3.4 Migrate RTC → `runtime_driver/rtc.py`.
+- [x] 3.5 Migrate Watchdog → `runtime_driver/watchdog.py`.
+- [x] 3.6 Migrate QSPI → `runtime_driver/qspi.py`.
+- [x] 3.7 Migrate SDMMC → `runtime_driver/sdmmc.py`.
+- [x] 3.8 Per migration: golden-byte-stability + tests.
 
 ## Phase 4: Cleanup
 
