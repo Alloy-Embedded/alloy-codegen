@@ -33,12 +33,23 @@ from alloy_codegen.ir.model import (
     RegisterFieldDescriptor,
 )
 
+from typing import Any
+
+from alloy_codegen.reporting import EmittedArtifact
+
 from ..emission import (
     _collect_runtime_semantics_catalog,
+    _cpp_artifact,
+    _cpp_namespace_block,
     _enum_identifier,
     _semantic_enum_ref,
+    _std_array_lines,
 )
-from ..runtime_lite_emission import runtime_lite_peripheral_class_name
+from ..runtime_lite_emission import (
+    _device_runtime_generated_path,
+    _runtime_device_namespace_components,
+    runtime_lite_peripheral_class_name,
+)
 
 # ---------------------------------------------------------------------------
 # Patterns
@@ -516,6 +527,159 @@ def _line_index_from_candidate(
     return None
 
 
+# ---------------------------------------------------------------------------
+# DMA binding ref helpers (shared across UART / SPI / I2C / Timer / etc.)
+# ---------------------------------------------------------------------------
+
+
+def _dma_binding_direction_token(signal: str) -> str:
+    """Map a UART/SPI/etc. ``signal`` field to the typed
+    ``DmaBindingDirection`` enum used by the shared ``DmaBindingRef``
+    record (add-peripheral-dma-cross-references)."""
+    upper = signal.upper()
+    if upper == "TX":
+        return "DmaBindingDirection::Tx"
+    if upper == "RX":
+        return "DmaBindingDirection::Rx"
+    return "DmaBindingDirection::none"
+
+
+def _dma_binding_ref_expr(
+    *,
+    controller_id: str,
+    binding_id: str,
+    request_value: int,
+    signal: str,
+    transfer_width_bits: int,
+) -> str:
+    return (
+        "DmaBindingRef{"
+        f"DmaControllerId::{controller_id}, "
+        f"DmaBindingId::{binding_id}, "
+        f"{request_value}u, "
+        f"{_dma_binding_direction_token(signal)}, "
+        f"{transfer_width_bits}u, true}}"
+    )
+
+
+def _dma_binding_ref_array_lines(bindings: tuple[Any, ...]) -> list[str]:
+    """Render `kDmaBindings` as a `std::array<DmaBindingRef, N>`.
+
+    UartDmaBindingRow and SpiDmaBindingRow expose the same field
+    names (`controller_id`, `binding_id`, `request_value`, `signal`,
+    `transfer_width_bits`) so a single duck-typed helper covers them.
+    """
+    if not bindings:
+        return ["  static constexpr std::array<DmaBindingRef, 0> kDmaBindings = {};"]
+    item_lines = [
+        "    "
+        + _dma_binding_ref_expr(
+            controller_id=binding.controller_id,
+            binding_id=binding.binding_id,
+            request_value=binding.request_value,
+            signal=binding.signal,
+            transfer_width_bits=binding.transfer_width_bits,
+        )
+        + ","
+        for binding in bindings
+    ]
+    return [
+        f"  static constexpr std::array<DmaBindingRef, {len(bindings)}> kDmaBindings = {{{{",
+        *item_lines,
+        "  }};",
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Common emitter — used by UART / I2C / SPI / ADC / DAC / RTC / Watchdog /
+# CAN / ETH / USB / QSPI / SDMMC.  Per-class row type is duck-typed via
+# ``Any`` so this module avoids importing the per-class row dataclasses.
+# ---------------------------------------------------------------------------
+
+
+def _emit_peripheral_semantics_header(
+    *,
+    family_dir: str,
+    device: CanonicalDeviceIR,
+    header_name: str,
+    trait_name: str,
+    array_name: str,
+    rows: tuple[Any, ...],
+    default_lines: list[str],
+    specialization_builder,
+    extra_body_lines: list[str] | None = None,
+) -> EmittedArtifact:
+    trait_lines = [
+        "template<PeripheralId Id>",
+        f"struct {trait_name} {{",
+        *default_lines,
+        "};",
+        "",
+    ]
+    peripheral_rows: list[str] = []
+    for row in rows:
+        peripheral_id = _enum_identifier(row.peripheral_name)
+        # add-peripheral-dma-cross-references: append kDmaBindings to every
+        # specialisation that exposes a `dma_bindings` tuple.  UART/SPI/ADC
+        # already emit this inline via their tier 2/3/4 helpers; the other
+        # peripherals (I2C/TIMER/DAC/SDMMC/QSPI/ETH) get it appended here
+        # so the unspecialised primary template's `kDmaBindings` field is
+        # always shadowed by a real array in each specialisation.
+        row_lines = list(specialization_builder(row))
+        bindings = getattr(row, "dma_bindings", None)
+        if bindings is not None and not any("kDmaBindings = " in line for line in row_lines):
+            row_lines.extend(_dma_binding_ref_array_lines(bindings))
+        trait_lines.extend(
+            [
+                "template<>",
+                f"struct {trait_name}<PeripheralId::{peripheral_id}> {{",
+                *row_lines,
+                "};",
+                "",
+            ]
+        )
+        if not getattr(row, "is_stub", False):
+            peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
+    body_parts: list[str] = [
+        *trait_lines,
+        *_std_array_lines(
+            type_name="PeripheralId",
+            variable_name=array_name,
+            row_lines=peripheral_rows,
+        ),
+    ]
+    if extra_body_lines:
+        body_parts.append("")
+        body_parts.extend(extra_body_lines)
+    body = "\n".join(body_parts)
+    namespace_block = _cpp_namespace_block(
+        (*_runtime_device_namespace_components(device), "driver_semantics"),
+        body,
+    )
+    content = "\n".join(
+        [
+            "#pragma once",
+            "",
+            "#include <array>",
+            "#include <cstdint>",
+            '#include "common.hpp"',
+            # ``../pins.hpp`` provides the typed ``PinId`` enum referenced by
+            # USB ``kDmPin`` / ``kDpPin`` traits (added by
+            # ``add-usb-semantic-traits``).  Other driver semantics headers
+            # never use ``PinId`` so the include is a harmless extra but is
+            # uniformly available across this layer.
+            '#include "../pins.hpp"',
+            "",
+            namespace_block,
+            "",
+        ]
+    )
+    return _cpp_artifact(
+        path=_device_runtime_generated_path(family_dir, device.identity.device, header_name),
+        content=content,
+    )
+
+
 __all__ = [
     "_IO_SIGNAL_PATTERN",
     "RuntimeFieldRef",
@@ -523,6 +687,10 @@ __all__ = [
     "RuntimeRegisterRef",
     "_SemanticContext",
     "_context",
+    "_dma_binding_direction_token",
+    "_dma_binding_ref_array_lines",
+    "_dma_binding_ref_expr",
+    "_emit_peripheral_semantics_header",
     "_field_ref_expr",
     "_indexed_field_ref",
     "_indexed_field_ref_expr",
