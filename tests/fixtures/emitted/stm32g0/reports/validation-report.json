@@ -4,15 +4,14 @@
     {
       "blocking": false,
       "gate_id": "gate-a",
-      "message": "gate-a passed with 6 rule(s).",
+      "message": "gate-a passed with 5 rule(s).",
       "passed": true,
       "rule_ids": [
         "source-records-cover-targets",
         "source-records-provide-required-upstreams",
         "source-records-have-revisions",
         "source-records-have-local-paths",
-        "patch-target-count-match",
-        "patch-ids-unique"
+        "patch-manifest-is-empty"
       ]
     },
     {
@@ -155,16 +154,9 @@
     },
     {
       "category": "schema",
-      "message": "Found 1 patch record(s) for 1 target(s).",
+      "message": "Patch manifest carries no records (YAML-only admission).",
       "passed": true,
-      "rule_id": "patch-target-count-match",
-      "severity": "error"
-    },
-    {
-      "category": "schema",
-      "message": "Patch identifiers are unique within the requested scope.",
-      "passed": true,
-      "rule_id": "patch-ids-unique",
+      "rule_id": "patch-manifest-is-empty",
       "severity": "error"
     },
     {

@@ -31,6 +31,34 @@
       "request_line": "DMA1_CH2",
       "request_value": 51,
       "signal": "TX"
+    },
+    {
+      "controller": "DMA1",
+      "peripheral": "SPI1",
+      "provenance": {
+        "patch_ids": [
+          "modm-devices@unpinned"
+        ],
+        "source_id": "modm-devices",
+        "source_path": null
+      },
+      "request_line": "DMAMUX_REQ_016",
+      "request_value": 16,
+      "signal": "RX"
+    },
+    {
+      "controller": "DMA1",
+      "peripheral": "SPI1",
+      "provenance": {
+        "patch_ids": [
+          "modm-devices@unpinned"
+        ],
+        "source_id": "modm-devices",
+        "source_path": null
+      },
+      "request_line": "DMAMUX_REQ_017",
+      "request_value": 17,
+      "signal": "TX"
     }
   ],
   "family": "stm32g0",

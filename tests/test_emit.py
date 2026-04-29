@@ -890,7 +890,7 @@ def test_emit_runtime_lite_clock_bindings_are_executable_for_foundational_edges(
     assert "PeripheralId::HSMCI" in same70_dma_semantics
     assert "PeripheralId::TWIHS0" in same70_dma_semantics
     assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
-    assert "kHasEncoder = true;" in same70_timer_semantics
+    assert "kHasEncoder = kFacts.has_encoder;" in same70_timer_semantics  # noqa: E501  — LUT-style after reduce-cpp-header-bloat-via-shared-luts
     assert "kEncoderEnableField" in same70_timer_semantics
     assert "kDirectionField" in same70_timer_semantics
     assert "TimerChannelSemanticTraits<PeripheralId::TC0, 0u>" in same70_timer_semantics
@@ -1204,12 +1204,12 @@ def test_emit_timer_advanced_semantics_cover_wave1_vendors(
     ).content
 
     assert "TimerSemanticTraits<PeripheralId::TIM1>" in st_timer_semantics
-    assert "kHasEncoder = true;" in st_timer_semantics
+    assert "kHasEncoder = kFacts.has_encoder;" in st_timer_semantics  # noqa: E501  — LUT-style after reduce-cpp-header-bloat-via-shared-luts
     assert "kEncoderModeField" in st_timer_semantics
     assert "kDirectionField" in st_timer_semantics
     assert "TimerChannelSemanticTraits<PeripheralId::TIM1, 0u>" in st_timer_semantics
     assert "TimerChannelSemanticTraits<PeripheralId::TIM1, 1u>" in st_timer_semantics
-    assert "kSupportsEncoderInput = true;" in st_timer_semantics
+    assert "kSupportsEncoderInput = kFacts.supports_encoder_input;" in st_timer_semantics
 
     same70_result = run(PipelineScope(device="atsame70q21b"), microchip_execution_context)
     same70_artifacts = {artifact.path: artifact for artifact in same70_result.payload.artifacts}
@@ -1218,7 +1218,7 @@ def test_emit_timer_advanced_semantics_cover_wave1_vendors(
     ].content
 
     assert "TimerSemanticTraits<PeripheralId::TC0>" in same70_timer_semantics
-    assert "kHasEncoder = true;" in same70_timer_semantics
+    assert "kHasEncoder = kFacts.has_encoder;" in same70_timer_semantics  # noqa: E501  — LUT-style after reduce-cpp-header-bloat-via-shared-luts
     assert "kEncoderEnableField" in same70_timer_semantics
     assert "kEncoderPositionEnableField" in same70_timer_semantics
     assert "kEncoderSpeedEnableField" in same70_timer_semantics

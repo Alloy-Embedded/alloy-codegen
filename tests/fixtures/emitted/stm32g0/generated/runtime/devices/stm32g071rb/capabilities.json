@@ -81,6 +81,22 @@
       "value": "true"
     },
     {
+      "capability_id": "runtime-dma:SPI1:DMA1:DMAMUX_REQ_016:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:SPI1:DMA1:DMAMUX_REQ_017:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
       "capability_id": "capability-instance:spi1:lqfp64:sck",
       "name": "available-signal",
       "peripheral": "SPI1",

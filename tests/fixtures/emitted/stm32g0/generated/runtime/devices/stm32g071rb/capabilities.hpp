@@ -22,6 +22,8 @@ enum class CapabilityId : std::uint16_t {
   runtime_support_i2c,
   runtime_support_rtc,
   runtime_support_spi,
+  runtime_dma_SPI1_DMA1_DMAMUX_REQ_016_RX,
+  runtime_dma_SPI1_DMA1_DMAMUX_REQ_017_TX,
   capability_instance_spi1_lqfp64_sck,
   runtime_support_timer,
   capability_usart_usart_v3_1_rx,
@@ -73,7 +75,7 @@ struct CapabilityDescriptor {
   CapabilityValueId value_id;
   PeripheralId peripheral_id;
 };
-inline constexpr std::array<CapabilityDescriptor, 20> kCapabilities = {{
+inline constexpr std::array<CapabilityDescriptor, 22> kCapabilities = {{
   {CapabilityId::runtime_support_adc, CapabilityScopeId::runtime_contract, PeripheralClassId::class_adc, CapabilityNameId::runtime_supported, CapabilityValueId::true_value, PeripheralId::none},
   {CapabilityId::runtime_support_dac, CapabilityScopeId::runtime_contract, PeripheralClassId::class_dac, CapabilityNameId::runtime_supported, CapabilityValueId::true_value, PeripheralId::none},
   {CapabilityId::device_core_count, CapabilityScopeId::device, PeripheralClassId::class_device, CapabilityNameId::core_count, CapabilityValueId::_1, PeripheralId::none},
@@ -84,6 +86,8 @@ inline constexpr std::array<CapabilityDescriptor, 20> kCapabilities = {{
   {CapabilityId::runtime_support_i2c, CapabilityScopeId::runtime_contract, PeripheralClassId::class_i2c, CapabilityNameId::runtime_supported, CapabilityValueId::true_value, PeripheralId::none},
   {CapabilityId::runtime_support_rtc, CapabilityScopeId::runtime_contract, PeripheralClassId::class_rtc, CapabilityNameId::runtime_supported, CapabilityValueId::true_value, PeripheralId::none},
   {CapabilityId::runtime_support_spi, CapabilityScopeId::runtime_contract, PeripheralClassId::class_spi, CapabilityNameId::runtime_supported, CapabilityValueId::true_value, PeripheralId::none},
+  {CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_016_RX, CapabilityScopeId::dma_binding, PeripheralClassId::class_spi, CapabilityNameId::dma_compatible_signal, CapabilityValueId::RX, PeripheralId::SPI1},
+  {CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_017_TX, CapabilityScopeId::dma_binding, PeripheralClassId::class_spi, CapabilityNameId::dma_compatible_signal, CapabilityValueId::TX, PeripheralId::SPI1},
   {CapabilityId::capability_instance_spi1_lqfp64_sck, CapabilityScopeId::instance_overlay, PeripheralClassId::class_spi, CapabilityNameId::available_signal, CapabilityValueId::sck, PeripheralId::SPI1},
   {CapabilityId::runtime_support_timer, CapabilityScopeId::runtime_contract, PeripheralClassId::class_timer, CapabilityNameId::runtime_supported, CapabilityValueId::true_value, PeripheralId::none},
   {CapabilityId::capability_usart_usart_v3_1_rx, CapabilityScopeId::ip_block, PeripheralClassId::class_uart, CapabilityNameId::signal_role, CapabilityValueId::rx, PeripheralId::none},
@@ -204,6 +208,26 @@ struct CapabilityTraits<CapabilityId::runtime_support_spi> {
   static constexpr CapabilityNameId kNameId = CapabilityNameId::runtime_supported;
   static constexpr CapabilityValueId kValueId = CapabilityValueId::true_value;
   static constexpr PeripheralId kPeripheralId = PeripheralId::none;
+};
+
+template<>
+struct CapabilityTraits<CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_016_RX> {
+  static constexpr bool kPresent = true;
+  static constexpr CapabilityScopeId kScopeId = CapabilityScopeId::dma_binding;
+  static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_spi;
+  static constexpr CapabilityNameId kNameId = CapabilityNameId::dma_compatible_signal;
+  static constexpr CapabilityValueId kValueId = CapabilityValueId::RX;
+  static constexpr PeripheralId kPeripheralId = PeripheralId::SPI1;
+};
+
+template<>
+struct CapabilityTraits<CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_017_TX> {
+  static constexpr bool kPresent = true;
+  static constexpr CapabilityScopeId kScopeId = CapabilityScopeId::dma_binding;
+  static constexpr PeripheralClassId kPeripheralClassId = PeripheralClassId::class_spi;
+  static constexpr CapabilityNameId kNameId = CapabilityNameId::dma_compatible_signal;
+  static constexpr CapabilityValueId kValueId = CapabilityValueId::TX;
+  static constexpr PeripheralId kPeripheralId = PeripheralId::SPI1;
 };
 
 template<>
@@ -371,8 +395,10 @@ struct PeripheralClassCapabilityTraits<PeripheralClassId::class_rtc> {
 template<>
 struct PeripheralClassCapabilityTraits<PeripheralClassId::class_spi> {
   static constexpr bool kPresent = true;
-  inline static constexpr std::array<CapabilityId, 2> kCapabilityIds = {{
+  inline static constexpr std::array<CapabilityId, 4> kCapabilityIds = {{
     CapabilityId::runtime_support_spi,
+    CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_016_RX,
+    CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_017_TX,
     CapabilityId::capability_instance_spi1_lqfp64_sck,
   }};
 };
@@ -486,7 +512,9 @@ struct PeripheralCapabilityTraits<PeripheralId::RTC> {
 template<>
 struct PeripheralCapabilityTraits<PeripheralId::SPI1> {
   static constexpr bool kPresent = true;
-  inline static constexpr std::array<CapabilityId, 1> kCapabilityIds = {{
+  inline static constexpr std::array<CapabilityId, 3> kCapabilityIds = {{
+    CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_016_RX,
+    CapabilityId::runtime_dma_SPI1_DMA1_DMAMUX_REQ_017_TX,
     CapabilityId::capability_instance_spi1_lqfp64_sck,
   }};
 };

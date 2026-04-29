@@ -396,23 +396,61 @@ def emit_runtime_capabilities_header(
         "};",
         "",
     ]
-    for row in rows:
+    if rows:
+        # ``reduce-cpp-header-bloat-via-shared-luts``: every
+        # ``CapabilityTraits<...>`` specialisation has the same
+        # six fixed-size scalar fields.  Pull them into a single
+        # ``inline constexpr std::array<CapabilityHardwareLut, N>``
+        # at namespace scope and project per-id specialisations as
+        # a one-line inheritance from a shared
+        # ``CapabilityTraitsBase<Index>``.
         capability_trait_lines.extend(
             [
-                "template<>",
-                f"struct CapabilityTraits<{_capability_id_ref(row.capability_id)}> {{",
+                "struct CapabilityHardwareLut {",
+                "  CapabilityScopeId scope_id;",
+                "  PeripheralClassId peripheral_class_id;",
+                "  CapabilityNameId name_id;",
+                "  CapabilityValueId value_id;",
+                "  PeripheralId peripheral_id;",
+                "};",
+                "",
+                f"inline constexpr std::array<CapabilityHardwareLut, {len(rows)}> "
+                "kCapabilityHardwareLut = {{",
+            ]
+        )
+        for row in rows:
+            capability_trait_lines.append(
+                "  {"
+                f"{_scope_ref(row.scope)}, "
+                f"{_class_ref(row.peripheral_class)}, "
+                f"{_name_ref(row.name)}, "
+                f"{_value_ref(row.value)}, "
+                f"{_peripheral_ref(row.peripheral)}"
+                "},"
+            )
+        capability_trait_lines.append("}};")
+        capability_trait_lines.append("")
+        capability_trait_lines.extend(
+            [
+                "template<std::size_t Index>",
+                "struct CapabilityTraitsBase {",
+                "  static constexpr auto& kFacts = kCapabilityHardwareLut[Index];",
                 "  static constexpr bool kPresent = true;",
-                f"  static constexpr CapabilityScopeId kScopeId = {_scope_ref(row.scope)};",
-                "  static constexpr PeripheralClassId kPeripheralClassId = "
-                f"{_class_ref(row.peripheral_class)};",
-                f"  static constexpr CapabilityNameId kNameId = {_name_ref(row.name)};",
-                f"  static constexpr CapabilityValueId kValueId = {_value_ref(row.value)};",
-                "  static constexpr PeripheralId kPeripheralId = "
-                f"{_peripheral_ref(row.peripheral)};",
+                "  static constexpr CapabilityScopeId kScopeId = kFacts.scope_id;",
+                "  static constexpr PeripheralClassId kPeripheralClassId = kFacts.peripheral_class_id;",
+                "  static constexpr CapabilityNameId kNameId = kFacts.name_id;",
+                "  static constexpr CapabilityValueId kValueId = kFacts.value_id;",
+                "  static constexpr PeripheralId kPeripheralId = kFacts.peripheral_id;",
                 "};",
                 "",
             ]
         )
+        for index, row in enumerate(rows):
+            capability_trait_lines.append(
+                f"template<> struct CapabilityTraits<{_capability_id_ref(row.capability_id)}> "
+                f": CapabilityTraitsBase<{index}> {{}};"
+            )
+        capability_trait_lines.append("")
 
     class_rows: dict[str, list[RuntimeCapabilityRow]] = defaultdict(list)
     peripheral_rows: dict[str, list[RuntimeCapabilityRow]] = defaultdict(list)

@@ -14153,59 +14153,105 @@ def _timer_channel_specialization_lines(
         "};",
         "",
     ]
+    if not channel_rows:
+        return lines
+
+    lines.extend(
+        [
+            "struct TimerChannelHardwareLut {",
+            "  bool supports_compare;",
+            "  bool supports_capture;",
+            "  bool supports_encoder_input;",
+            "  bool supports_pwm;",
+            "  bool supports_complementary_output;",
+            "  RuntimeRegisterRef control_register;",
+            "  RuntimeRegisterRef status_register;",
+            "  RuntimeRegisterRef compare_register;",
+            "  RuntimeRegisterRef secondary_compare_register;",
+            "  RuntimeRegisterRef period_register;",
+            "  RuntimeRegisterRef counter_register;",
+            "  RuntimeRegisterRef capture_register;",
+            "  RuntimeFieldRef enable_field;",
+            "  RuntimeFieldRef interrupt_enable_field;",
+            "  RuntimeFieldRef interrupt_flag_field;",
+            "  RuntimeFieldRef mode_field;",
+            "  RuntimeFieldRef preload_field;",
+            "  RuntimeFieldRef output_enable_field;",
+            "  RuntimeFieldRef output_polarity_field;",
+            "  RuntimeFieldRef complementary_output_enable_field;",
+            "  RuntimeFieldRef capture_select_field;",
+            "};",
+            "",
+            f"inline constexpr std::array<TimerChannelHardwareLut, {len(channel_rows)}> "
+            "kTimerChannelHardwareLut = {{",
+        ]
+    )
     for row in channel_rows:
+        lines.append(
+            "  {"
+            f"{'true' if row.supports_compare else 'false'}, "
+            f"{'true' if row.supports_capture else 'false'}, "
+            f"{'true' if row.supports_encoder_input else 'false'}, "
+            f"{'true' if row.supports_pwm else 'false'}, "
+            f"{'true' if row.supports_complementary_output else 'false'}, "
+            f"{_register_ref_expr(row.control_reg)}, "
+            f"{_register_ref_expr(row.status_reg)}, "
+            f"{_register_ref_expr(row.compare_reg)}, "
+            f"{_register_ref_expr(row.secondary_compare_reg)}, "
+            f"{_register_ref_expr(row.period_reg)}, "
+            f"{_register_ref_expr(row.counter_reg)}, "
+            f"{_register_ref_expr(row.capture_reg)}, "
+            f"{_field_ref_expr(row.enable_field)}, "
+            f"{_field_ref_expr(row.interrupt_enable_field)}, "
+            f"{_field_ref_expr(row.interrupt_flag_field)}, "
+            f"{_field_ref_expr(row.mode_field)}, "
+            f"{_field_ref_expr(row.preload_field)}, "
+            f"{_field_ref_expr(row.output_enable_field)}, "
+            f"{_field_ref_expr(row.output_polarity_field)}, "
+            f"{_field_ref_expr(row.complementary_output_enable_field)}, "
+            f"{_field_ref_expr(row.capture_select_field)}"
+            "},"
+        )
+    lines.append("}};")
+    lines.append("")
+    lines.extend(
+        [
+            "template<std::size_t Index>",
+            "struct TimerChannelTraitsBase {",
+            "  static constexpr auto& kFacts = kTimerChannelHardwareLut[Index];",
+            "  static constexpr bool kPresent = true;",
+            "  static constexpr bool kSupportsCompare = kFacts.supports_compare;",
+            "  static constexpr bool kSupportsCapture = kFacts.supports_capture;",
+            "  static constexpr bool kSupportsEncoderInput = kFacts.supports_encoder_input;",
+            "  static constexpr bool kSupportsPwm = kFacts.supports_pwm;",
+            "  static constexpr bool kSupportsComplementaryOutput = kFacts.supports_complementary_output;",
+            "  static constexpr RuntimeRegisterRef kControlRegister = kFacts.control_register;",
+            "  static constexpr RuntimeRegisterRef kStatusRegister = kFacts.status_register;",
+            "  static constexpr RuntimeRegisterRef kCompareRegister = kFacts.compare_register;",
+            "  static constexpr RuntimeRegisterRef kSecondaryCompareRegister = kFacts.secondary_compare_register;",
+            "  static constexpr RuntimeRegisterRef kPeriodRegister = kFacts.period_register;",
+            "  static constexpr RuntimeRegisterRef kCounterRegister = kFacts.counter_register;",
+            "  static constexpr RuntimeRegisterRef kCaptureRegister = kFacts.capture_register;",
+            "  static constexpr RuntimeFieldRef kEnableField = kFacts.enable_field;",
+            "  static constexpr RuntimeFieldRef kInterruptEnableField = kFacts.interrupt_enable_field;",
+            "  static constexpr RuntimeFieldRef kInterruptFlagField = kFacts.interrupt_flag_field;",
+            "  static constexpr RuntimeFieldRef kModeField = kFacts.mode_field;",
+            "  static constexpr RuntimeFieldRef kPreloadField = kFacts.preload_field;",
+            "  static constexpr RuntimeFieldRef kOutputEnableField = kFacts.output_enable_field;",
+            "  static constexpr RuntimeFieldRef kOutputPolarityField = kFacts.output_polarity_field;",
+            "  static constexpr RuntimeFieldRef kComplementaryOutputEnableField = kFacts.complementary_output_enable_field;",
+            "  static constexpr RuntimeFieldRef kCaptureSelectField = kFacts.capture_select_field;",
+            "};",
+            "",
+        ]
+    )
+    for index, row in enumerate(channel_rows):
         peripheral_id = _enum_identifier(row.peripheral_name)
-        register_members = {
-            "kControlRegister": row.control_reg,
-            "kStatusRegister": row.status_reg,
-            "kCompareRegister": row.compare_reg,
-            "kSecondaryCompareRegister": row.secondary_compare_reg,
-            "kPeriodRegister": row.period_reg,
-            "kCounterRegister": row.counter_reg,
-            "kCaptureRegister": row.capture_reg,
-        }
-        field_members = {
-            "kEnableField": row.enable_field,
-            "kInterruptEnableField": row.interrupt_enable_field,
-            "kInterruptFlagField": row.interrupt_flag_field,
-            "kModeField": row.mode_field,
-            "kPreloadField": row.preload_field,
-            "kOutputEnableField": row.output_enable_field,
-            "kOutputPolarityField": row.output_polarity_field,
-            "kComplementaryOutputEnableField": row.complementary_output_enable_field,
-            "kCaptureSelectField": row.capture_select_field,
-        }
-        lines.extend(
-            [
-                "template<>",
-                f"struct TimerChannelSemanticTraits<PeripheralId::{peripheral_id}, {row.channel_index}u> {{",
-                "  static constexpr bool kPresent = true;",
-                "  static constexpr bool kSupportsCompare = "
-                + ("true" if row.supports_compare else "false")
-                + ";",
-                "  static constexpr bool kSupportsCapture = "
-                + ("true" if row.supports_capture else "false")
-                + ";",
-                "  static constexpr bool kSupportsEncoderInput = "
-                + ("true" if row.supports_encoder_input else "false")
-                + ";",
-                "  static constexpr bool kSupportsPwm = "
-                + ("true" if row.supports_pwm else "false")
-                + ";",
-                "  static constexpr bool kSupportsComplementaryOutput = "
-                + ("true" if row.supports_complementary_output else "false")
-                + ";",
-            ]
+        lines.append(
+            f"template<> struct TimerChannelSemanticTraits<PeripheralId::{peripheral_id}, "
+            f"{row.channel_index}u> : TimerChannelTraitsBase<{index}> {{}};"
         )
-        lines.extend(
-            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
-            for name, value in register_members.items()
-        )
-        lines.extend(
-            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
-            for name, value in field_members.items()
-        )
-        lines.extend(["};", ""])
+    lines.append("")
     return lines
 
 
@@ -14281,6 +14327,367 @@ def _pwm_specialization_builder(context: _SemanticContext):
     return _build
 
 
+def _timer_lut_struct_lines() -> list[str]:
+    return [
+        "struct TimerHardwareLut {",
+        "  BackendSchemaId schema_id;",
+        "  std::uint32_t counter_bits;",
+        "  std::uint32_t channel_count;",
+        "  bool has_compare;",
+        "  bool has_capture;",
+        "  bool has_encoder;",
+        "  bool has_pwm;",
+        "  bool has_one_pulse;",
+        "  bool has_center_aligned;",
+        "  bool has_complementary_outputs;",
+        "  bool has_deadtime;",
+        "  bool has_break_input;",
+        "  RuntimeRegisterRef control_register;",
+        "  RuntimeRegisterRef status_register;",
+        "  RuntimeRegisterRef event_register;",
+        "  RuntimeRegisterRef counter_register;",
+        "  RuntimeRegisterRef prescaler_register;",
+        "  RuntimeRegisterRef period_register;",
+        "  RuntimeFieldRef enable_field;",
+        "  RuntimeFieldRef disable_field;",
+        "  RuntimeFieldRef module_disable_field;",
+        "  RuntimeFieldRef software_reset_field;",
+        "  RuntimeFieldRef start_field;",
+        "  RuntimeFieldRef stop_field;",
+        "  RuntimeFieldRef update_interrupt_enable_field;",
+        "  RuntimeFieldRef update_flag_field;",
+        "  RuntimeFieldRef update_generation_field;",
+        "  RuntimeFieldRef prescaler_field;",
+        "  RuntimeFieldRef period_field;",
+        "  RuntimeFieldRef one_pulse_field;",
+        "  RuntimeFieldRef center_aligned_field;",
+        "  RuntimeFieldRef auto_reload_preload_field;",
+        "  RuntimeFieldRef clock_source_field;",
+        "  RuntimeFieldRef encoder_mode_field;",
+        "  RuntimeFieldRef encoder_enable_field;",
+        "  RuntimeFieldRef encoder_position_enable_field;",
+        "  RuntimeFieldRef encoder_speed_enable_field;",
+        "  RuntimeFieldRef encoder_phase_edge_field;",
+        "  RuntimeFieldRef direction_field;",
+        "  std::uint32_t update_irq_number;",
+        "  std::uint32_t capture_irq_number;",
+        "  std::uint32_t break_irq_number;",
+        "  std::uint32_t trigger_irq_number;",
+        "  std::uint32_t max_prescaler;",
+        "  std::uint32_t max_auto_reload;",
+        "  bool supports_dma_burst;",
+        "  bool supports_repetition_counter;",
+        "  bool supports_xor_input;",
+        "};",
+        "",
+    ]
+
+
+def _timer_lut_table_lines(
+    context: _SemanticContext,
+    rows: list[TimerSemanticRow],
+) -> list[str]:
+    def _opt_irq(value: int | None) -> str:
+        return f"{value}u" if value is not None else "0xFFFFFFFFu"
+
+    lines = [
+        f"inline constexpr std::array<TimerHardwareLut, {len(rows)}> kTimerHardwareLut = {{{{",
+    ]
+    for row in rows:
+        lines.append(
+            "  {"
+            f"{_schema_ref_expr(context, row.schema_id)}, "
+            f"{row.counter_bits}u, {row.channel_count}u, "
+            f"{'true' if row.has_compare else 'false'}, "
+            f"{'true' if row.has_capture else 'false'}, "
+            f"{'true' if row.has_encoder else 'false'}, "
+            f"{'true' if row.has_pwm else 'false'}, "
+            f"{'true' if row.has_one_pulse else 'false'}, "
+            f"{'true' if row.has_center_aligned else 'false'}, "
+            f"{'true' if row.has_complementary_outputs else 'false'}, "
+            f"{'true' if row.has_deadtime else 'false'}, "
+            f"{'true' if row.has_break_input else 'false'}, "
+            f"{_register_ref_expr(row.control_reg)}, "
+            f"{_register_ref_expr(row.status_reg)}, "
+            f"{_register_ref_expr(row.event_reg)}, "
+            f"{_register_ref_expr(row.counter_reg)}, "
+            f"{_register_ref_expr(row.prescaler_reg)}, "
+            f"{_register_ref_expr(row.period_reg)}, "
+            f"{_field_ref_expr(row.enable_field)}, "
+            f"{_field_ref_expr(row.disable_field)}, "
+            f"{_field_ref_expr(row.module_disable_field)}, "
+            f"{_field_ref_expr(row.software_reset_field)}, "
+            f"{_field_ref_expr(row.start_field)}, "
+            f"{_field_ref_expr(row.stop_field)}, "
+            f"{_field_ref_expr(row.update_interrupt_enable_field)}, "
+            f"{_field_ref_expr(row.update_flag_field)}, "
+            f"{_field_ref_expr(row.update_generation_field)}, "
+            f"{_field_ref_expr(row.prescaler_field)}, "
+            f"{_field_ref_expr(row.period_field)}, "
+            f"{_field_ref_expr(row.one_pulse_field)}, "
+            f"{_field_ref_expr(row.center_aligned_field)}, "
+            f"{_field_ref_expr(row.auto_reload_preload_field)}, "
+            f"{_field_ref_expr(row.clock_source_field)}, "
+            f"{_field_ref_expr(row.encoder_mode_field)}, "
+            f"{_field_ref_expr(row.encoder_enable_field)}, "
+            f"{_field_ref_expr(row.encoder_position_enable_field)}, "
+            f"{_field_ref_expr(row.encoder_speed_enable_field)}, "
+            f"{_field_ref_expr(row.encoder_phase_edge_field)}, "
+            f"{_field_ref_expr(row.direction_field)}, "
+            f"{_opt_irq(row.update_irq_number)}, "
+            f"{_opt_irq(row.capture_irq_number)}, "
+            f"{_opt_irq(row.break_irq_number)}, "
+            f"{_opt_irq(row.trigger_irq_number)}, "
+            f"{row.max_prescaler}u, {row.max_auto_reload}u, "
+            f"{'true' if row.supports_dma_burst else 'false'}, "
+            f"{'true' if row.supports_repetition_counter else 'false'}, "
+            f"{'true' if row.supports_xor_input else 'false'}"
+            "},"
+        )
+    lines.append("}};")
+    lines.append("")
+    return lines
+
+
+def _timer_traits_base_lines() -> list[str]:
+    return [
+        "template<std::size_t Index>",
+        "struct TimerTraitsBase {",
+        "  static constexpr auto& kFacts = kTimerHardwareLut[Index];",
+        "  static constexpr bool kPresent = true;",
+        "  static constexpr BackendSchemaId kSchemaId = kFacts.schema_id;",
+        "  static constexpr std::uint32_t kCounterBits = kFacts.counter_bits;",
+        "  static constexpr std::uint32_t kChannelCount = kFacts.channel_count;",
+        "  static constexpr bool kHasCompare = kFacts.has_compare;",
+        "  static constexpr bool kHasCapture = kFacts.has_capture;",
+        "  static constexpr bool kHasEncoder = kFacts.has_encoder;",
+        "  static constexpr bool kHasPwm = kFacts.has_pwm;",
+        "  static constexpr bool kHasOnePulse = kFacts.has_one_pulse;",
+        "  static constexpr bool kHasCenterAligned = kFacts.has_center_aligned;",
+        "  static constexpr bool kHasComplementaryOutputs = kFacts.has_complementary_outputs;",
+        "  static constexpr bool kHasDeadtime = kFacts.has_deadtime;",
+        "  static constexpr bool kHasBreakInput = kFacts.has_break_input;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kFacts.control_register;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kFacts.status_register;",
+        "  static constexpr RuntimeRegisterRef kEventRegister = kFacts.event_register;",
+        "  static constexpr RuntimeRegisterRef kCounterRegister = kFacts.counter_register;",
+        "  static constexpr RuntimeRegisterRef kPrescalerRegister = kFacts.prescaler_register;",
+        "  static constexpr RuntimeRegisterRef kPeriodRegister = kFacts.period_register;",
+        "  static constexpr RuntimeFieldRef kEnableField = kFacts.enable_field;",
+        "  static constexpr RuntimeFieldRef kDisableField = kFacts.disable_field;",
+        "  static constexpr RuntimeFieldRef kModuleDisableField = kFacts.module_disable_field;",
+        "  static constexpr RuntimeFieldRef kSoftwareResetField = kFacts.software_reset_field;",
+        "  static constexpr RuntimeFieldRef kStartField = kFacts.start_field;",
+        "  static constexpr RuntimeFieldRef kStopField = kFacts.stop_field;",
+        "  static constexpr RuntimeFieldRef kUpdateInterruptEnableField = kFacts.update_interrupt_enable_field;",
+        "  static constexpr RuntimeFieldRef kUpdateFlagField = kFacts.update_flag_field;",
+        "  static constexpr RuntimeFieldRef kUpdateGenerationField = kFacts.update_generation_field;",
+        "  static constexpr RuntimeFieldRef kPrescalerField = kFacts.prescaler_field;",
+        "  static constexpr RuntimeFieldRef kPeriodField = kFacts.period_field;",
+        "  static constexpr RuntimeFieldRef kOnePulseField = kFacts.one_pulse_field;",
+        "  static constexpr RuntimeFieldRef kCenterAlignedField = kFacts.center_aligned_field;",
+        "  static constexpr RuntimeFieldRef kAutoReloadPreloadField = kFacts.auto_reload_preload_field;",
+        "  static constexpr RuntimeFieldRef kClockSourceField = kFacts.clock_source_field;",
+        "  static constexpr RuntimeFieldRef kEncoderModeField = kFacts.encoder_mode_field;",
+        "  static constexpr RuntimeFieldRef kEncoderEnableField = kFacts.encoder_enable_field;",
+        "  static constexpr RuntimeFieldRef kEncoderPositionEnableField = kFacts.encoder_position_enable_field;",
+        "  static constexpr RuntimeFieldRef kEncoderSpeedEnableField = kFacts.encoder_speed_enable_field;",
+        "  static constexpr RuntimeFieldRef kEncoderPhaseEdgeField = kFacts.encoder_phase_edge_field;",
+        "  static constexpr RuntimeFieldRef kDirectionField = kFacts.direction_field;",
+        "  static constexpr std::uint32_t kUpdateIrqNumber = kFacts.update_irq_number;",
+        "  static constexpr std::uint32_t kCaptureIrqNumber = kFacts.capture_irq_number;",
+        "  static constexpr std::uint32_t kBreakIrqNumber = kFacts.break_irq_number;",
+        "  static constexpr std::uint32_t kTriggerIrqNumber = kFacts.trigger_irq_number;",
+        "  static constexpr std::uint32_t kMaxPrescaler = kFacts.max_prescaler;",
+        "  static constexpr std::uint32_t kMaxAutoReload = kFacts.max_auto_reload;",
+        "  static constexpr bool kSupportsDmaBurst = kFacts.supports_dma_burst;",
+        "  static constexpr bool kSupportsRepetitionCounter = kFacts.supports_repetition_counter;",
+        "  static constexpr bool kSupportsXorInput = kFacts.supports_xor_input;",
+        "};",
+        "",
+    ]
+
+
+def _timer_per_instance_array_lines(row: TimerSemanticRow) -> list[str]:
+    """Variable-length tier 2/3/4 + de-duplicated IRQ-union +
+    DMA-binding arrays."""
+
+    def _u8_array(name: str, items: tuple[int, ...]) -> str:
+        if not items:
+            return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
+        values = ", ".join(f"{v}u" for v in items)
+        return (
+            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = {{{{{values}}}}};"
+        )
+
+    trigger_vals = tuple(v for _name, v in row.trigger_sources)
+    master_vals = tuple(v for _name, v in row.master_outputs)
+    union_irqs: tuple[int, ...] = tuple(
+        sorted(
+            {
+                v
+                for v in (
+                    row.update_irq_number,
+                    row.capture_irq_number,
+                    row.break_irq_number,
+                    row.trigger_irq_number,
+                )
+                if v is not None
+            }
+        )
+    )
+    lines = [
+        _u8_array("kTriggerSources", trigger_vals),
+        _u8_array("kMasterOutputModes", master_vals),
+    ]
+    lines.extend(_irq_numbers_lines(union_irqs))
+    lines.extend(_dma_binding_ref_array_lines(row.dma_bindings))
+    return lines
+
+
+def _pwm_lut_struct_lines() -> list[str]:
+    """Per-class hardware-LUT struct.  Carries every scalar +
+    register / field reference; variable-length tier 2/3/4 arrays
+    stay on the per-instance specialisation."""
+    return [
+        "struct PwmHardwareLut {",
+        "  BackendSchemaId schema_id;",
+        "  std::uint32_t counter_bits;",
+        "  std::uint32_t channel_count;",
+        "  bool has_complementary_outputs;",
+        "  bool has_deadtime;",
+        "  bool has_fault_input;",
+        "  bool has_center_aligned;",
+        "  bool has_synchronized_update;",
+        "  RuntimeRegisterRef control_register;",
+        "  RuntimeRegisterRef output_enable_register;",
+        "  RuntimeRegisterRef status_register;",
+        "  RuntimeRegisterRef clock_register;",
+        "  RuntimeRegisterRef sync_register;",
+        "  RuntimeFieldRef master_output_enable_field;",
+        "  RuntimeFieldRef load_field;",
+        "  RuntimeFieldRef clear_load_field;",
+        "  RuntimeFieldRef clock_prescaler_field;",
+        "  std::uint32_t max_prescaler;",
+        "  std::uint32_t max_period;",
+        "  bool supports_deadtime;",
+        "  bool supports_break_input;",
+        "  bool supports_complementary_outputs;",
+        "  bool supports_asymmetric_pwm;",
+        "  bool supports_combined_pwm;",
+        "};",
+        "",
+    ]
+
+
+def _pwm_lut_table_lines(
+    context: _SemanticContext,
+    rows: list[PwmSemanticRow],
+) -> list[str]:
+    """Render the ``inline constexpr std::array<PwmHardwareLut, N>``
+    table indexed by the same ordering as the per-instance
+    specialisations."""
+    lines: list[str] = [
+        f"inline constexpr std::array<PwmHardwareLut, {len(rows)}> kPwmHardwareLut = {{{{",
+    ]
+    for row in rows:
+        lines.append(
+            "  {"
+            f"{_schema_ref_expr(context, row.schema_id)}, "
+            f"{row.counter_bits}u, "
+            f"{row.channel_count}u, "
+            f"{'true' if row.has_complementary_outputs else 'false'}, "
+            f"{'true' if row.has_deadtime else 'false'}, "
+            f"{'true' if row.has_fault_input else 'false'}, "
+            f"{'true' if row.has_center_aligned else 'false'}, "
+            f"{'true' if row.has_synchronized_update else 'false'}, "
+            f"{_register_ref_expr(row.control_reg)}, "
+            f"{_register_ref_expr(row.output_enable_reg)}, "
+            f"{_register_ref_expr(row.status_reg)}, "
+            f"{_register_ref_expr(row.clock_reg)}, "
+            f"{_register_ref_expr(row.sync_reg)}, "
+            f"{_field_ref_expr(row.master_output_enable_field)}, "
+            f"{_field_ref_expr(row.load_field)}, "
+            f"{_field_ref_expr(row.clear_load_field)}, "
+            f"{_field_ref_expr(row.clock_prescaler_field)}, "
+            f"{row.max_prescaler}u, "
+            f"{row.max_period}u, "
+            f"{'true' if row.supports_deadtime else 'false'}, "
+            f"{'true' if row.supports_break_input else 'false'}, "
+            f"{'true' if row.supports_complementary_outputs else 'false'}, "
+            f"{'true' if row.supports_asymmetric_pwm else 'false'}, "
+            f"{'true' if row.supports_combined_pwm else 'false'}"
+            "},"
+        )
+    lines.append("}};")
+    lines.append("")
+    return lines
+
+
+def _pwm_traits_base_lines(row_count: int) -> list[str]:
+    """The shared base that pulls every fact from
+    ``kPwmHardwareLut[Index]``.  Per-instance specialisations
+    inherit from one of ``PwmTraitsBase<0..N-1>`` so consumers
+    keep the existing ``PwmSemanticTraits<P>::kField`` reading
+    surface."""
+    del row_count  # Single template for every index — no fanout.
+    return [
+        "template<std::size_t Index>",
+        "struct PwmTraitsBase {",
+        "  static constexpr auto& kFacts = kPwmHardwareLut[Index];",
+        "  static constexpr bool kPresent = true;",
+        "  static constexpr BackendSchemaId kSchemaId = kFacts.schema_id;",
+        "  static constexpr std::uint32_t kCounterBits = kFacts.counter_bits;",
+        "  static constexpr std::uint32_t kChannelCount = kFacts.channel_count;",
+        "  static constexpr bool kHasComplementaryOutputs = kFacts.has_complementary_outputs;",
+        "  static constexpr bool kHasDeadtime = kFacts.has_deadtime;",
+        "  static constexpr bool kHasFaultInput = kFacts.has_fault_input;",
+        "  static constexpr bool kHasCenterAligned = kFacts.has_center_aligned;",
+        "  static constexpr bool kHasSynchronizedUpdate = kFacts.has_synchronized_update;",
+        "  static constexpr RuntimeRegisterRef kControlRegister = kFacts.control_register;",
+        "  static constexpr RuntimeRegisterRef kOutputEnableRegister = kFacts.output_enable_register;",
+        "  static constexpr RuntimeRegisterRef kStatusRegister = kFacts.status_register;",
+        "  static constexpr RuntimeRegisterRef kClockRegister = kFacts.clock_register;",
+        "  static constexpr RuntimeRegisterRef kSyncRegister = kFacts.sync_register;",
+        "  static constexpr RuntimeFieldRef kMasterOutputEnableField = kFacts.master_output_enable_field;",
+        "  static constexpr RuntimeFieldRef kLoadField = kFacts.load_field;",
+        "  static constexpr RuntimeFieldRef kClearLoadField = kFacts.clear_load_field;",
+        "  static constexpr RuntimeFieldRef kClockPrescalerField = kFacts.clock_prescaler_field;",
+        "  static constexpr std::uint32_t kMaxPrescaler = kFacts.max_prescaler;",
+        "  static constexpr std::uint32_t kMaxPeriod = kFacts.max_period;",
+        "  static constexpr bool kSupportsDeadtime = kFacts.supports_deadtime;",
+        "  static constexpr bool kSupportsBreakInput = kFacts.supports_break_input;",
+        "  static constexpr bool kSupportsComplementaryOutputs = kFacts.supports_complementary_outputs;",
+        "  static constexpr bool kSupportsAsymmetricPwm = kFacts.supports_asymmetric_pwm;",
+        "  static constexpr bool kSupportsCombinedPwm = kFacts.supports_combined_pwm;",
+        "};",
+        "",
+    ]
+
+
+def _pwm_per_instance_array_lines(row: PwmSemanticRow) -> list[str]:
+    """Variable-length tier 2/3/4 arrays — these stay on the
+    per-instance specialisation since their sizes differ across
+    instances."""
+
+    def _u8_array(name: str, items: tuple[int, ...]) -> str:
+        if not items:
+            return f"  static constexpr std::array<std::uint8_t, 0> {name} = {{}};"
+        values = ", ".join(f"{v}u" for v in items)
+        return (
+            f"  static constexpr std::array<std::uint8_t, {len(items)}> {name} = {{{{{values}}}}};"
+        )
+
+    deadtime_psc = tuple(p for p, _bits, _ns in row.deadtime_options)
+    alignment_vals = tuple(v for _name, v in row.supported_alignments)
+    break_polarity = tuple(p for _id, p, _e in row.break_inputs)
+    return [
+        _u8_array("kDeadtimeOptions", deadtime_psc),
+        _u8_array("kSupportedAlignments", alignment_vals),
+        _u8_array("kBreakInputs", break_polarity),
+    ]
+
+
 def _pwm_tier234_lines(row: PwmSemanticRow) -> list[str]:
     """add-pwm-tier-2-3-4-data: max prescaler/period + deadtime / alignment /
     break-input arrays + capability flag constexprs."""
@@ -14313,6 +14720,11 @@ def _pwm_tier234_lines(row: PwmSemanticRow) -> list[str]:
 def _pwm_channel_specialization_lines(
     channel_rows: tuple[PwmChannelSemanticRow, ...],
 ) -> list[str]:
+    """Emit per-channel trait specialisations using the shared-LUT
+    pattern.  All channel facts are fixed-size scalars / register +
+    field refs, so the entire row goes into the LUT and the
+    per-channel specialisation collapses to a one-line inheritance.
+    """
     lines = [
         "template<PeripheralId Id, std::size_t ChannelIndex>",
         "struct PwmChannelSemanticTraits {",
@@ -14338,50 +14750,100 @@ def _pwm_channel_specialization_lines(
         "};",
         "",
     ]
+    if not channel_rows:
+        return lines
+
+    # Per-class LUT struct.
+    lines.extend(
+        [
+            "struct PwmChannelHardwareLut {",
+            "  bool supports_complementary_output;",
+            "  bool supports_deadtime;",
+            "  RuntimeRegisterRef control_register;",
+            "  RuntimeRegisterRef compare_register;",
+            "  RuntimeRegisterRef secondary_compare_register;",
+            "  RuntimeRegisterRef period_register;",
+            "  RuntimeRegisterRef deadtime_register;",
+            "  RuntimeFieldRef enable_field;",
+            "  RuntimeFieldRef interrupt_enable_field;",
+            "  RuntimeFieldRef interrupt_flag_field;",
+            "  RuntimeFieldRef mode_field;",
+            "  RuntimeFieldRef polarity_field;",
+            "  RuntimeFieldRef complementary_output_enable_field;",
+            "  RuntimeFieldRef center_aligned_field;",
+            "  RuntimeFieldRef period_field;",
+            "  RuntimeFieldRef duty_field;",
+            "  RuntimeFieldRef deadtime_rise_field;",
+            "  RuntimeFieldRef deadtime_fall_field;",
+            "};",
+            "",
+            f"inline constexpr std::array<PwmChannelHardwareLut, {len(channel_rows)}> "
+            "kPwmChannelHardwareLut = {{",
+        ]
+    )
     for row in channel_rows:
+        lines.append(
+            "  {"
+            f"{'true' if row.supports_complementary_output else 'false'}, "
+            f"{'true' if row.supports_deadtime else 'false'}, "
+            f"{_register_ref_expr(row.control_reg)}, "
+            f"{_register_ref_expr(row.compare_reg)}, "
+            f"{_register_ref_expr(row.secondary_compare_reg)}, "
+            f"{_register_ref_expr(row.period_reg)}, "
+            f"{_register_ref_expr(row.deadtime_reg)}, "
+            f"{_field_ref_expr(row.enable_field)}, "
+            f"{_field_ref_expr(row.interrupt_enable_field)}, "
+            f"{_field_ref_expr(row.interrupt_flag_field)}, "
+            f"{_field_ref_expr(row.mode_field)}, "
+            f"{_field_ref_expr(row.polarity_field)}, "
+            f"{_field_ref_expr(row.complementary_output_enable_field)}, "
+            f"{_field_ref_expr(row.center_aligned_field)}, "
+            f"{_field_ref_expr(row.period_field)}, "
+            f"{_field_ref_expr(row.duty_field)}, "
+            f"{_field_ref_expr(row.deadtime_rise_field)}, "
+            f"{_field_ref_expr(row.deadtime_fall_field)}"
+            "},"
+        )
+    lines.append("}};")
+    lines.append("")
+
+    # Shared base — one template, every per-channel specialisation
+    # inherits from one instance of it.
+    lines.extend(
+        [
+            "template<std::size_t Index>",
+            "struct PwmChannelTraitsBase {",
+            "  static constexpr auto& kFacts = kPwmChannelHardwareLut[Index];",
+            "  static constexpr bool kPresent = true;",
+            "  static constexpr bool kSupportsComplementaryOutput = kFacts.supports_complementary_output;",
+            "  static constexpr bool kSupportsDeadtime = kFacts.supports_deadtime;",
+            "  static constexpr RuntimeRegisterRef kControlRegister = kFacts.control_register;",
+            "  static constexpr RuntimeRegisterRef kCompareRegister = kFacts.compare_register;",
+            "  static constexpr RuntimeRegisterRef kSecondaryCompareRegister = kFacts.secondary_compare_register;",
+            "  static constexpr RuntimeRegisterRef kPeriodRegister = kFacts.period_register;",
+            "  static constexpr RuntimeRegisterRef kDeadtimeRegister = kFacts.deadtime_register;",
+            "  static constexpr RuntimeFieldRef kEnableField = kFacts.enable_field;",
+            "  static constexpr RuntimeFieldRef kInterruptEnableField = kFacts.interrupt_enable_field;",
+            "  static constexpr RuntimeFieldRef kInterruptFlagField = kFacts.interrupt_flag_field;",
+            "  static constexpr RuntimeFieldRef kModeField = kFacts.mode_field;",
+            "  static constexpr RuntimeFieldRef kPolarityField = kFacts.polarity_field;",
+            "  static constexpr RuntimeFieldRef kComplementaryOutputEnableField = kFacts.complementary_output_enable_field;",
+            "  static constexpr RuntimeFieldRef kCenterAlignedField = kFacts.center_aligned_field;",
+            "  static constexpr RuntimeFieldRef kPeriodField = kFacts.period_field;",
+            "  static constexpr RuntimeFieldRef kDutyField = kFacts.duty_field;",
+            "  static constexpr RuntimeFieldRef kDeadtimeRiseField = kFacts.deadtime_rise_field;",
+            "  static constexpr RuntimeFieldRef kDeadtimeFallField = kFacts.deadtime_fall_field;",
+            "};",
+            "",
+        ]
+    )
+    for index, row in enumerate(channel_rows):
         peripheral_id = _enum_identifier(row.peripheral_name)
-        register_members = {
-            "kControlRegister": row.control_reg,
-            "kCompareRegister": row.compare_reg,
-            "kSecondaryCompareRegister": row.secondary_compare_reg,
-            "kPeriodRegister": row.period_reg,
-            "kDeadtimeRegister": row.deadtime_reg,
-        }
-        field_members = {
-            "kEnableField": row.enable_field,
-            "kInterruptEnableField": row.interrupt_enable_field,
-            "kInterruptFlagField": row.interrupt_flag_field,
-            "kModeField": row.mode_field,
-            "kPolarityField": row.polarity_field,
-            "kComplementaryOutputEnableField": row.complementary_output_enable_field,
-            "kCenterAlignedField": row.center_aligned_field,
-            "kPeriodField": row.period_field,
-            "kDutyField": row.duty_field,
-            "kDeadtimeRiseField": row.deadtime_rise_field,
-            "kDeadtimeFallField": row.deadtime_fall_field,
-        }
-        lines.extend(
-            [
-                "template<>",
-                f"struct PwmChannelSemanticTraits<PeripheralId::{peripheral_id}, {row.channel_index}u> {{",
-                "  static constexpr bool kPresent = true;",
-                "  static constexpr bool kSupportsComplementaryOutput = "
-                + ("true" if row.supports_complementary_output else "false")
-                + ";",
-                "  static constexpr bool kSupportsDeadtime = "
-                + ("true" if row.supports_deadtime else "false")
-                + ";",
-            ]
+        lines.append(
+            f"template<> struct PwmChannelSemanticTraits<PeripheralId::{peripheral_id}, "
+            f"{row.channel_index}u> : PwmChannelTraitsBase<{index}> {{}};"
         )
-        lines.extend(
-            f"  static constexpr RuntimeRegisterRef {name} = {_register_ref_expr(value)};"
-            for name, value in register_members.items()
-        )
-        lines.extend(
-            f"  static constexpr RuntimeFieldRef {name} = {_field_ref_expr(value)};"
-            for name, value in field_members.items()
-        )
-        lines.extend(["};", ""])
+    lines.append("")
     return lines
 
 
@@ -16402,9 +16864,30 @@ def emit_runtime_driver_timer_semantics_header(
         "};",
         "",
     ]
-    timer_peripheral_rows: list[str] = []
+    real_rows = [row for row in timer_rows if not row.is_stub]
+    stub_rows = [row for row in timer_rows if row.is_stub]
+    timer_peripheral_rows: list[str] = [
+        f"  PeripheralId::{_enum_identifier(row.peripheral_name)},"
+        for row in real_rows
+    ]
+    if real_rows:
+        trait_lines.extend(_timer_lut_struct_lines())
+        trait_lines.extend(_timer_lut_table_lines(context, real_rows))
+        trait_lines.extend(_timer_traits_base_lines())
+        for index, row in enumerate(real_rows):
+            peripheral_id = _enum_identifier(row.peripheral_name)
+            trait_lines.extend(
+                [
+                    "template<>",
+                    f"struct TimerSemanticTraits<PeripheralId::{peripheral_id}> "
+                    f": TimerTraitsBase<{index}> {{",
+                    *_timer_per_instance_array_lines(row),
+                    "};",
+                    "",
+                ]
+            )
     specialization_builder = _timer_specialization_builder(context)
-    for row in timer_rows:
+    for row in stub_rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
         row_lines = list(specialization_builder(row))
         bindings = getattr(row, "dma_bindings", None)
@@ -16419,8 +16902,6 @@ def emit_runtime_driver_timer_semantics_header(
                 "",
             ]
         )
-        if not row.is_stub:
-            timer_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
     typed_blocks = _build_timer_typed_enum_blocks(timer_rows)
     body = "\n".join(
         [
@@ -16469,6 +16950,18 @@ def emit_runtime_driver_pwm_semantics_header(
     family_dir: str,
     device: CanonicalDeviceIR,
 ) -> EmittedArtifact:
+    """Emit ``pwm.hpp`` using the shared-LUT pattern introduced by
+    ``reduce-cpp-header-bloat-via-shared-luts``.
+
+    The per-instance trait specialisation now extends a shared
+    ``PwmTraitsBase<N>`` template that pulls every scalar /
+    register / field fact from a single
+    ``inline constexpr std::array<PwmHardwareLut, N>`` table.
+    The remaining per-instance body carries only the
+    variable-length tier 2/3/4 arrays.  Public reading API
+    (``PwmSemanticTraits<P>::kField``) stays byte-compatible
+    with consumers thanks to template inheritance.
+    """
     context = _context(device)
     pwm_rows, channel_rows = _build_pwm_rows(context)
     trait_lines = [
@@ -16506,9 +16999,33 @@ def emit_runtime_driver_pwm_semantics_header(
         "};",
         "",
     ]
-    pwm_peripheral_rows: list[str] = []
+    # Real (non-stub) rows go through the LUT path; stubs keep
+    # their bespoke kPresent=false specialisation since they
+    # don't carry meaningful facts.
+    real_rows = [row for row in pwm_rows if not row.is_stub]
+    stub_rows = [row for row in pwm_rows if row.is_stub]
+    pwm_peripheral_rows: list[str] = [
+        f"  PeripheralId::{_enum_identifier(row.peripheral_name)},"
+        for row in real_rows
+    ]
+    if real_rows:
+        trait_lines.extend(_pwm_lut_struct_lines())
+        trait_lines.extend(_pwm_lut_table_lines(context, real_rows))
+        trait_lines.extend(_pwm_traits_base_lines(len(real_rows)))
+        for index, row in enumerate(real_rows):
+            peripheral_id = _enum_identifier(row.peripheral_name)
+            trait_lines.extend(
+                [
+                    "template<>",
+                    f"struct PwmSemanticTraits<PeripheralId::{peripheral_id}> "
+                    f": PwmTraitsBase<{index}> {{",
+                    *_pwm_per_instance_array_lines(row),
+                    "};",
+                    "",
+                ]
+            )
     specialization_builder = _pwm_specialization_builder(context)
-    for row in pwm_rows:
+    for row in stub_rows:
         peripheral_id = _enum_identifier(row.peripheral_name)
         trait_lines.extend(
             [
@@ -16519,8 +17036,6 @@ def emit_runtime_driver_pwm_semantics_header(
                 "",
             ]
         )
-        if not row.is_stub:
-            pwm_peripheral_rows.append(f"  PeripheralId::{peripheral_id},")
     pwm_typed_blocks = _build_pwm_typed_enum_blocks(pwm_rows)
     body = "\n".join(
         [

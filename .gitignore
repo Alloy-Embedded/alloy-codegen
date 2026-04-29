@@ -10,3 +10,4 @@ build/
 .cache/
 .artifacts/
 .tmp-artifacts/
+.claude/worktrees/

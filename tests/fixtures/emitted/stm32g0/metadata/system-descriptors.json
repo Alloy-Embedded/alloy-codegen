@@ -338,7 +338,7 @@
             "source_id": "bootstrap-patch",
             "source_path": "patches/st/stm32g0/devices/stm32g071rb.json"
           },
-          "request_count": 2,
+          "request_count": 4,
           "version": "bdma_v1_0"
         }
       ],
@@ -377,6 +377,38 @@
           "request_line": "DMA1_CH2",
           "request_value": 51,
           "route_id": "dma-route:dma1:dma1-ch2:usart1:tx",
+          "signal": "TX"
+        },
+        {
+          "conflict_group": null,
+          "controller": "DMA1",
+          "peripheral": "SPI1",
+          "provenance": {
+            "patch_ids": [
+              "modm-devices@unpinned"
+            ],
+            "source_id": "modm-devices",
+            "source_path": null
+          },
+          "request_line": "DMAMUX_REQ_016",
+          "request_value": 16,
+          "route_id": "dma-route:dma1:dmamux-req-016:spi1:rx",
+          "signal": "RX"
+        },
+        {
+          "conflict_group": null,
+          "controller": "DMA1",
+          "peripheral": "SPI1",
+          "provenance": {
+            "patch_ids": [
+              "modm-devices@unpinned"
+            ],
+            "source_id": "modm-devices",
+            "source_path": null
+          },
+          "request_line": "DMAMUX_REQ_017",
+          "request_value": 17,
+          "route_id": "dma-route:dma1:dmamux-req-017:spi1:tx",
           "signal": "TX"
         }
       ],
