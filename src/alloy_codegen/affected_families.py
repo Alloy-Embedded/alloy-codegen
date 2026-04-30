@@ -101,8 +101,86 @@ def compute_diff_paths(*, base_ref: str = "HEAD~1") -> tuple[str, ...] | None:
     return tuple(line.strip() for line in result.stdout.splitlines() if line.strip())
 
 
+def compute_affected_from_git(
+    *,
+    since: str,
+    head: str = "HEAD",
+    force_all: bool = False,
+) -> AffectedSet:
+    """End-to-end git-driven entry point used by the
+    ``alloy-codegen affected-families`` CLI subcommand.
+
+    Args:
+        since: Git ref to diff against (e.g. ``HEAD~1``,
+            ``origin/main``, the SHA the publish workflow was
+            triggered against).
+        head: Git ref representing the new tip — defaults to
+            ``HEAD`` so single-ref invocations Just Work.
+        force_all: When True (the workflow's
+            ``workflow_dispatch.inputs.force_all`` opt-out), skip
+            diff resolution entirely and return the full admitted
+            set.  Useful for periodic full-publish rebuilds.
+
+    Returns:
+        :class:`AffectedSet` describing which ``(vendor, family)``
+        pairs the publish workflow should target.  Conservative
+        fallback (``all_families=True``) when the diff resolution
+        fails for any reason — better to over-publish than to miss a
+        genuinely affected family on a flaky git invocation.
+    """
+    if force_all:
+        return _all_families_set()
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", f"{since}...{head}"],
+            cwd=Path(__file__).resolve().parents[2],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return _all_families_set()
+    paths = tuple(line.strip() for line in result.stdout.splitlines() if line.strip())
+    if not paths:
+        # Empty diff means nothing materially changed; signal "no
+        # publish needed" via the empty set + ``all_families=False``.
+        return AffectedSet(all_families=False, families=())
+    return compute_affected(paths)
+
+
+def serialize_affected_set(
+    affected: AffectedSet,
+    *,
+    since: str,
+    head: str = "HEAD",
+) -> dict[str, object]:
+    """Serialise ``affected`` into the JSON payload the publish
+    workflow's ``Compute affected families`` step consumes.
+
+    The schema is::
+
+        {
+          "since":          "<git ref>",
+          "head":           "<git ref>",
+          "should_publish": <bool>,        # False ⇒ skip the matrix
+          "all_families":   <bool>,        # True ⇒ full admitted set
+          "matrix":         [{vendor, family}, ...]   # for fromJson()
+        }
+    """
+    matrix = affected.to_workflow_matrix()
+    return {
+        "since": since,
+        "head": head,
+        "should_publish": bool(matrix),
+        "all_families": affected.all_families,
+        "matrix": matrix,
+    }
+
+
 __all__ = [
     "AffectedSet",
     "compute_affected",
+    "compute_affected_from_git",
     "compute_diff_paths",
+    "serialize_affected_set",
 ]
