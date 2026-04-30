@@ -21,7 +21,6 @@ from .common import (
     RuntimeFieldRef,
     RuntimeIndexedFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _field_ref_expr,
@@ -37,6 +36,7 @@ from .common import (
     _resolve_register_ref,
     _resolve_register_ref_any,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 CAN_DRIVER_HEADER = "driver_semantics/can.hpp"

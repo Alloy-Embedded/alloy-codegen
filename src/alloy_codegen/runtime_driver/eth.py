@@ -17,7 +17,6 @@ from .common import (
     RuntimeFieldRef,
     RuntimeRegisterRef,
     UartDmaBindingRow,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _enrich_with_dma_bindings,
@@ -29,6 +28,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 ETH_DRIVER_HEADER = "driver_semantics/eth.hpp"

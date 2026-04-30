@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from alloy_codegen.ir.model import CanonicalDeviceIR
+from alloy_codegen.ir.model import CanonicalDeviceIR, PeripheralInstance
+from alloy_codegen.peripheral_traits import (
+    PeripheralTemplate,
+    load_all_templates,
+    resolve_template,
+    template_provenance_tag,
+)
 from alloy_codegen.reporting import EmittedArtifact
 
 from ..emission import (
@@ -19,20 +25,11 @@ from ..emission import (
 from ..runtime_lite_emission import (
     _runtime_lite_dma_bindings,
 )
-
-from alloy_codegen.peripheral_traits import (
-    PeripheralTemplate,
-    load_all_templates,
-    resolve_template,
-    template_provenance_tag,
-)
-
 from .common import (
     KernelClockSourceOption,
     RuntimeFieldRef,
     RuntimeRegisterRef,
     UartDmaBindingRow,
-    _SemanticContext,
     _context,
     _dma_binding_ref_array_lines,
     _emit_peripheral_semantics_header,
@@ -48,6 +45,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 UART_DRIVER_HEADER = "driver_semantics/uart.hpp"

@@ -26,12 +26,10 @@ from ..runtime_lite_emission import (
     _device_runtime_generated_path,
     _runtime_device_namespace_components,
 )
-
 from .common import (
     RuntimeFieldRef,
     RuntimeRegisterRef,
     UartDmaBindingRow,
-    _SemanticContext,
     _context,
     _dma_binding_ref_array_lines,
     _enrich_with_dma_bindings,
@@ -44,6 +42,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 TIMER_DRIVER_HEADER = "driver_semantics/timer.hpp"

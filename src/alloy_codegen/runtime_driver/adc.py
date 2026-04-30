@@ -19,13 +19,10 @@ from ..emission import (
 from ..runtime_lite_emission import (
     _runtime_lite_dma_bindings,
 )
-
 from .common import (
     RuntimeFieldRef,
     RuntimeIndexedFieldRef,
     RuntimeRegisterRef,
-    UartDmaBindingRow,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _field_ref_expr,
@@ -35,15 +32,13 @@ from .common import (
     _invalid_indexed_field_ref,
     _invalid_register_ref,
     _irq_numbers_lines,
-    _line_index_from_candidate,
     _peripheral_has_dma_binding,
-    _peripheral_ref,
-    _pin_ref,
     _register_ref_expr,
     _render_array_lines,
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 ADC_DRIVER_HEADER = "driver_semantics/adc.hpp"

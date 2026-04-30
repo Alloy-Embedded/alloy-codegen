@@ -17,11 +17,8 @@ from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
 
 from ..emission import (
-    _collect_runtime_semantics_catalog,
     _cpp_artifact,
     _cpp_namespace_block,
-    _enum_identifier,
-    _semantic_enum_ref,
 )
 from ..runtime_lite_emission import (
     _device_runtime_generated_path,

@@ -16,12 +16,10 @@ from alloy_codegen.reporting import EmittedArtifact
 from ..runtime_lite_emission import (
     _runtime_lite_dma_bindings,
 )
-
 from .common import (
     KernelClockSourceOption,
     RuntimeFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _enrich_with_dma_bindings,
@@ -32,6 +30,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 SDMMC_DRIVER_HEADER = "driver_semantics/sdmmc.hpp"

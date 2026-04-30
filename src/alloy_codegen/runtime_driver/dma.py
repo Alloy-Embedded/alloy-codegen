@@ -26,18 +26,14 @@ from ..runtime_lite_emission import (
     _runtime_lite_dma_bindings,
     runtime_lite_peripheral_class_name,
 )
-
 from .common import (
     RuntimeIndexedFieldRef,
-    _SemanticContext,
     _context,
-    _enrich_with_dma_bindings,
-    _generic_dma_bindings_for_peripheral,
     _indexed_field_ref,
     _indexed_field_ref_expr,
     _invalid_indexed_field_ref,
-    _peripheral_has_dma_binding,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 DMA_DRIVER_HEADER = "driver_semantics/dma.hpp"

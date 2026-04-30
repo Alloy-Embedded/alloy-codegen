@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from alloy_codegen.ir.model import CanonicalDeviceIR
+from alloy_codegen.ir.model import CanonicalDeviceIR, GpioPinDescriptor
 from alloy_codegen.reporting import EmittedArtifact
 
 from ..emission import (
@@ -23,18 +23,16 @@ from ..runtime_lite_emission import (
     _device_runtime_generated_path,
     _runtime_device_namespace_components,
 )
-
 from .common import (
     RuntimeFieldRef,
-    _SemanticContext,
     _context,
-    _emit_peripheral_semantics_header,
     _field_ref_expr,
     _invalid_field_ref,
     _line_index_from_candidate,
     _peripheral_ref,
     _resolve_field_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 GPIO_DRIVER_HEADER = "driver_semantics/gpio.hpp"

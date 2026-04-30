@@ -16,11 +16,9 @@ from alloy_codegen.reporting import EmittedArtifact
 from ..emission import (
     _enum_identifier,
 )
-
 from .common import (
     RuntimeFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _field_ref_expr,
@@ -33,6 +31,7 @@ from .common import (
     _resolve_register_ref,
     _resolve_register_ref_any,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 USB_DRIVER_HEADER = "driver_semantics/usb.hpp"

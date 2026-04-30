@@ -21,7 +21,6 @@ from alloy_codegen.reporting import EmittedArtifact
 from .common import (
     RuntimeFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _field_ref_expr,
@@ -32,6 +31,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 WATCHDOG_DRIVER_HEADER = "driver_semantics/watchdog.hpp"

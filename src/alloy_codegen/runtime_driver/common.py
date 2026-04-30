@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from alloy_codegen.ir.model import (
     CanonicalDeviceIR,
@@ -32,9 +33,6 @@ from alloy_codegen.ir.model import (
     RegisterDescriptor,
     RegisterFieldDescriptor,
 )
-
-from typing import Any
-
 from alloy_codegen.reporting import EmittedArtifact
 
 from ..emission import (

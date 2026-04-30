@@ -26,12 +26,9 @@ from ..runtime_lite_emission import (
     _device_runtime_generated_path,
     _runtime_device_namespace_components,
 )
-from .timer import _st_timer_counter_bits, _stm_timer_pwm_traits_block
-
 from .common import (
     RuntimeFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _field_ref_expr,
     _invalid_field_ref,
@@ -42,7 +39,9 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
+from .timer import _st_timer_counter_bits, _stm_timer_pwm_traits_block
 
 PWM_DRIVER_HEADER = "driver_semantics/pwm.hpp"
 
@@ -1665,28 +1664,6 @@ def emit_runtime_driver_pwm_semantics_header(
 
 # PIO emitter migrated to ``runtime_driver/pio.py`` —
 # see top-of-file ``from .runtime_driver.pio import …`` re-export.
-
-__all__ = [
-    "emit_runtime_driver_adc_semantics_header",
-    "emit_runtime_driver_can_semantics_header",
-    "emit_runtime_driver_dac_semantics_header",
-    "emit_runtime_driver_dma_semantics_header",
-    "emit_runtime_driver_eth_semantics_header",
-    "emit_runtime_driver_gpio_semantics_header",
-    "emit_runtime_driver_i2c_semantics_header",
-    "emit_runtime_driver_pio_semantics_header",
-    "emit_runtime_driver_qspi_semantics_header",
-    "emit_runtime_driver_sdmmc_semantics_header",
-    "emit_runtime_driver_usb_semantics_header",
-    "emit_runtime_driver_rtc_semantics_header",
-    "emit_runtime_driver_semantics_common_header",
-    "emit_runtime_driver_spi_semantics_header",
-    "emit_runtime_driver_timer_semantics_header",
-    "emit_runtime_driver_uart_semantics_header",
-    "emit_runtime_driver_pwm_semantics_header",
-    "emit_runtime_driver_watchdog_semantics_header",
-    "runtime_driver_semantics_required_paths",
-]
 
 
 __all__ = [

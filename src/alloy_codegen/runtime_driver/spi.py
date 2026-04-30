@@ -19,12 +19,10 @@ from ..emission import (
 from ..runtime_lite_emission import (
     _runtime_lite_dma_bindings,
 )
-
 from .common import (
     KernelClockSourceOption,
     RuntimeFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _dma_binding_ref_array_lines,
     _emit_peripheral_semantics_header,
@@ -40,6 +38,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 SPI_DRIVER_HEADER = "driver_semantics/spi.hpp"

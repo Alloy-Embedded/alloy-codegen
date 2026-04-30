@@ -13,19 +13,16 @@ from dataclasses import dataclass
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
 
-from ..emission import (
-    _enum_identifier,
-)
-
 from ..connector_model import (
     canonical_peripheral_class,
 )
-
+from ..emission import (
+    _enum_identifier,
+)
 from .common import (
     KernelClockSourceOption,
     RuntimeFieldRef,
     RuntimeRegisterRef,
-    _SemanticContext,
     _context,
     _emit_peripheral_semantics_header,
     _enrich_with_dma_bindings,
@@ -39,6 +36,7 @@ from .common import (
     _resolve_field_ref,
     _resolve_register_ref,
     _schema_ref_expr,
+    _SemanticContext,
 )
 
 I2C_DRIVER_HEADER = "driver_semantics/i2c.hpp"
