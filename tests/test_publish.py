@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from dataclasses import replace
 from pathlib import Path
+
+import pytest
 
 from alloy_codegen.context import ExecutionContext
 from alloy_codegen.publication import compute_materialized_tree_revision
@@ -21,6 +24,24 @@ from alloy_codegen.stages.common import StageResult
 from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.normalize import run as run_normalize
 from alloy_codegen.stages.publish import run
+
+# Skip the three family-scope publish tests on CI — they each run the
+# full validate → emit → publish → consumer-verify cycle for a whole
+# family (microchip/same70 alone parses ~460k lines of YAML and the
+# wall time on shared GitHub-Actions runners exceeds the per-job
+# budget).  The per-device matrix in
+# ``.github/workflows/bootstrap-family.yml`` already gates the
+# publish path on every admitted device with its own determinism
+# check, so the family-scope variant is redundant on CI.  Local runs
+# continue to exercise it.
+_skip_if_slow_disabled = pytest.mark.skipif(
+    os.environ.get("ALLOY_SKIP_SLOW_TESTS", "").strip() in {"1", "true", "yes"},
+    reason=(
+        "ALLOY_SKIP_SLOW_TESTS is set — the per-device bootstrap-family "
+        "matrix already gates publish for every admitted device, so the "
+        "family-scope publish tests are redundant on CI."
+    ),
+)
 
 
 def test_publish_includes_materialized_summary(
@@ -139,6 +160,7 @@ def test_publish_is_deterministic_for_same_inputs(execution_context: ExecutionCo
     assert publication_revision_a == publication_revision_b
 
 
+@_skip_if_slow_disabled
 def test_publish_microchip_family_scope(
     microchip_execution_context: ExecutionContext,
 ) -> None:
@@ -236,6 +258,7 @@ def test_publish_microchip_family_scope(
     ).exists()
 
 
+@_skip_if_slow_disabled
 def test_publish_stm32f4_family_scope(
     execution_context: ExecutionContext,
 ) -> None:
@@ -302,6 +325,7 @@ def test_publish_stm32f4_family_scope(
     ).exists()
 
 
+@_skip_if_slow_disabled
 def test_publish_nxp_family_scope(
     nxp_execution_context: ExecutionContext,
 ) -> None:
