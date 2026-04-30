@@ -99,10 +99,7 @@ def _row_for_family(
         raise StageExecutionError(
             f"DEVICE_REGISTRY lists no devices for {vendor}/{family}; cannot render README row."
         )
-    irs = [
-        load_canonical_device(vendor=vendor, family=family, device=device)
-        for device in devices
-    ]
+    irs = [load_canonical_device(vendor=vendor, family=family, device=device) for device in devices]
     isa = _isa_label(irs[0].identity.core)
     packages = tuple(sorted({pkg.name for ir in irs for pkg in ir.packages}))
     peripherals = tuple(

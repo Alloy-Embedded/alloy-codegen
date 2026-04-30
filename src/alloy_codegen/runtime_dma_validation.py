@@ -91,9 +91,10 @@ def emit_runtime_dma_validation_header(
     table_rows: list[str] = []
     for binding in bindings:
         peripheral_ref = f"PeripheralId::{_enum_identifier(binding.peripheral)}"
-        channel_ref = "DmaChannelId::" + _enum_identifier(
-            f"{binding.controller}_{binding.request_line}"
-        ).upper()
+        channel_ref = (
+            "DmaChannelId::"
+            + _enum_identifier(f"{binding.controller}_{binding.request_line}").upper()
+        )
         channel_index = binding.channel_index if binding.channel_index is not None else 0
         request_value = binding.request_value if binding.request_value is not None else 0
         specialisation_lines.extend(

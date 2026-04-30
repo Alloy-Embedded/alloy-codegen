@@ -740,8 +740,6 @@ def emit_runtime_driver_usb_semantics_header(
     )
 
 
-
-
 __all__ = [
     "USB_DRIVER_HEADER",
     "UsbSemanticRow",

@@ -465,7 +465,9 @@ def _microchip_uart_row(
         us_txempty_field=field("US_CSR_LIN_MODE", "TXEMPTY", 0x14, 9) if is_usart else empty_field,
         us_txchr_field=field("US_THR", "TXCHR", 0x1C, 0, 9) if is_usart else empty_field,
         us_rxchr_field=field("US_RHR", "RXCHR", 0x18, 0, 9) if is_usart else empty_field,
-        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name, template=template),
+        **_uart_extension_for_peripheral(
+            context, peripheral_name=peripheral_name, template=template
+        ),
     )
 
 
@@ -576,7 +578,9 @@ def _st_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
-        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name, template=template),
+        **_uart_extension_for_peripheral(
+            context, peripheral_name=peripheral_name, template=template
+        ),
     )
 
 
@@ -684,7 +688,9 @@ def _nxp_uart_row(
         us_txempty_field=empty_field,
         us_txchr_field=empty_field,
         us_rxchr_field=empty_field,
-        **_uart_extension_for_peripheral(context, peripheral_name=peripheral_name, template=template),
+        **_uart_extension_for_peripheral(
+            context, peripheral_name=peripheral_name, template=template
+        ),
     )
 
 
@@ -772,9 +778,7 @@ def _uart_template_fifo_triggers(
     raw = template.values.get("fifo_trigger_options") or ()
     # Template integers are field values; fraction_q8 left as 0
     # placeholder unless a device patch supplies the q8 measurement.
-    return tuple(
-        UartFifoTriggerOption(fraction_q8=0, field_value=int(v)) for v in raw
-    )
+    return tuple(UartFifoTriggerOption(fraction_q8=0, field_value=int(v)) for v in raw)
 
 
 def _uart_extension_for_peripheral(
@@ -1617,10 +1621,7 @@ def emit_runtime_driver_uart_semantics_header(
 # emit_runtime_driver_spi_semantics_header → runtime_driver/spi.py
 
 
-
-def _with_template_provenance(
-    row: UartSemanticRow, provenance: str | None
-) -> UartSemanticRow:
+def _with_template_provenance(row: UartSemanticRow, provenance: str | None) -> UartSemanticRow:
     """Stamp ``template_provenance`` onto a freshly-built UART row.
     Frozen-dataclass copy added by
     ``migrate-uart-emitter-to-template-library``."""
@@ -1632,8 +1633,6 @@ def _with_template_provenance(
 
 
 # _build_uart_rows → runtime_driver/uart.py
-
-
 
 
 __all__ = [

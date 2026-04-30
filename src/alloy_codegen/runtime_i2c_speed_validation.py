@@ -123,8 +123,7 @@ def emit_runtime_i2c_speed_validation_header(
         "  std::uint32_t speed_hz;",
         "};",
         "",
-        f"inline constexpr std::array<I2cSpeedEntry, {len(table_rows)}> "
-        "kI2cSpeeds = {{",
+        f"inline constexpr std::array<I2cSpeedEntry, {len(table_rows)}> kI2cSpeeds = {{{{",
         *table_rows,
         "}};",
     ]

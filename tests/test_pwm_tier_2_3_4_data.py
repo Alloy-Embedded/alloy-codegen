@@ -69,9 +69,7 @@ def _lut_row_for(content: str, peripheral: str) -> str:
     # field refs, so the lines start at column 0+2 spaces with
     # ``{`` and end with ``},``.
     rows = [line.strip() for line in lut.group(1).splitlines() if line.strip().startswith("{")]
-    assert index < len(rows), (
-        f"{peripheral} index {index} out of range for {len(rows)}-row LUT"
-    )
+    assert index < len(rows), f"{peripheral} index {index} out of range for {len(rows)}-row LUT"
     return rows[index]
 
 
@@ -94,9 +92,7 @@ def test_stm32g0_tim1_advertises_deadtime_break_alignment(
     # We only assert that the supports_* flags resolve to true —
     # that's the coverage point — without depending on the exact
     # column index.
-    assert lut_row.count("true") >= 3, (
-        f"TIM1 LUT row should carry ≥3 true flags; got: {lut_row}"
-    )
+    assert lut_row.count("true") >= 3, f"TIM1 LUT row should carry ≥3 true flags; got: {lut_row}"
     # Max prescaler is a positional u32; 65535u must appear.
     assert "65535u" in lut_row
     # 4 deadtime DTPSC choices.

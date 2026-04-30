@@ -43,9 +43,7 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
     devices: list[CanonicalDeviceIR] = []
     for device_name in fetch_result.scope.resolved_device_names():
         if not _adyml.is_available(vendor=vendor, family=family, device=device_name):
-            yaml_path = _adyml.device_yaml_path(
-                vendor=vendor, family=family, device=device_name
-            )
+            yaml_path = _adyml.device_yaml_path(vendor=vendor, family=family, device=device_name)
             raise StageExecutionError(
                 f"canonical device YAML missing at {yaml_path}.  "
                 "Admit the device by committing its YAML to the "

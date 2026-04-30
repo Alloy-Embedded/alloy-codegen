@@ -708,8 +708,6 @@ def emit_runtime_driver_dac_semantics_header(
     )
 
 
-
-
 __all__ = [
     "DAC_DRIVER_HEADER",
     "DacChannelSemanticRow",

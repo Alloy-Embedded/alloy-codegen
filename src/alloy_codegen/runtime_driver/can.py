@@ -1188,8 +1188,6 @@ def emit_runtime_driver_can_semantics_header(
     )
 
 
-
-
 __all__ = [
     "CAN_DRIVER_HEADER",
     "CanSemanticRow",

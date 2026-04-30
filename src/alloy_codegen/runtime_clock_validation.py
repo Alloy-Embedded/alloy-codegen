@@ -112,8 +112,7 @@ def emit_runtime_clock_validation_header(
         "  ClockSelectorId selector;",
         "};",
         "",
-        f"inline constexpr std::array<ClockSourceEntry, {len(table_rows)}> "
-        "kClockSources = {{",
+        f"inline constexpr std::array<ClockSourceEntry, {len(table_rows)}> kClockSources = {{{{",
         *table_rows,
         "}};",
         "",

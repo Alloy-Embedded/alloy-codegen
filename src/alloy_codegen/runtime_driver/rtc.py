@@ -785,8 +785,6 @@ def emit_runtime_driver_rtc_semantics_header(
 # emit_runtime_driver_can_semantics_header → runtime_driver/can.py
 
 
-
-
 __all__ = [
     "RTC_DRIVER_HEADER",
     "RtcSemanticRow",

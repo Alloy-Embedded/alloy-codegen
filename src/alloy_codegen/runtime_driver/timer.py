@@ -1827,8 +1827,7 @@ def emit_runtime_driver_timer_semantics_header(
     real_rows = [row for row in timer_rows if not row.is_stub]
     stub_rows = [row for row in timer_rows if row.is_stub]
     timer_peripheral_rows: list[str] = [
-        f"  PeripheralId::{_enum_identifier(row.peripheral_name)},"
-        for row in real_rows
+        f"  PeripheralId::{_enum_identifier(row.peripheral_name)}," for row in real_rows
     ]
     if real_rows:
         trait_lines.extend(_timer_lut_struct_lines())
@@ -1903,8 +1902,6 @@ def emit_runtime_driver_timer_semantics_header(
         ),
         content=content,
     )
-
-
 
 
 __all__ = [

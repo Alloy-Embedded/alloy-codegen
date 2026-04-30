@@ -49,9 +49,7 @@ class AffectedSet:
         return [{"vendor": vendor, "family": family} for vendor, family in self.families]
 
 
-_DEVICE_YAML_PATTERN = re.compile(
-    r"^data/devices/vendors/(?P<vendor>[^/]+)/(?P<family>[^/]+)/.+"
-)
+_DEVICE_YAML_PATTERN = re.compile(r"^data/devices/vendors/(?P<vendor>[^/]+)/(?P<family>[^/]+)/.+")
 
 
 def _all_families_set() -> AffectedSet:

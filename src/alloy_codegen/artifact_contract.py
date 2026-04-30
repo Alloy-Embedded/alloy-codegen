@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+from pathlib import Path
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
@@ -61,6 +63,140 @@ def find_runtime_cpp_string_violations(
                 violations.append(
                     f"{artifact.path}:{lineno} contains a string literal in runtime C++ output"
                 )
+    return tuple(violations)
+
+
+# enforce-strict-typing-and-golden-coverage Phase 3: forbidden-pattern
+# gate.  Each entry pairs a human-readable keyword with the regex that
+# matches its forbidden form.  Rationale per pattern:
+#
+# * ``dynamic_cast`` / ``typeid`` — RTTI features.  Emit per-type
+#   metadata, defeat dead-code elimination, and contradict the alloy
+#   contract that all type discrimination happens at compile time via
+#   concept / typed-enum gates.
+# * ``new <Type>`` / ``delete <expr>`` — raw heap allocation.  The
+#   alloy runtime is freestanding / nostdlib and any heap usage in
+#   the generated layer would silently pull in a libc allocator.
+#   Static / inline / constexpr storage is the only admissible form.
+#
+# Word-boundary regex prevents false positives on identifiers that
+# end in (or contain) the forbidden token.
+
+_FORBIDDEN_CPP_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("dynamic_cast", re.compile(r"\bdynamic_cast\b")),
+    ("typeid", re.compile(r"\btypeid\b")),
+    # Match ``new`` followed by whitespace + an identifier (raw heap
+    # allocation of a named type).  Excludes placement-new (``new(``)
+    # and ``operator new`` overrides, neither of which the emitter
+    # would currently produce.
+    ("raw new", re.compile(r"\bnew\s+[A-Za-z_]")),
+    # Match ``delete`` followed by whitespace + identifier or ``[]``
+    # (raw heap deallocation).  Excludes ``= delete`` defaulted-method
+    # deletion which is part of normal C++ class design.
+    ("raw delete", re.compile(r"\bdelete\s+(?:\[\]\s+)?[A-Za-z_]")),
+)
+
+
+def find_runtime_cpp_forbidden_pattern_violations(
+    artifacts: tuple[EmittedArtifact, ...],
+) -> tuple[str, ...]:
+    """Return violations for emitted runtime C++ that uses RTTI features.
+
+    Forbidden patterns: ``dynamic_cast``, ``typeid``.  Scanned across
+    every ``generated-cpp`` artifact.  Comment lines starting with
+    ``//`` and ``/*`` are ignored — the gate cares about code, not
+    documentation that mentions the keywords.
+    """
+
+    violations: list[str] = []
+    for artifact in artifacts:
+        if artifact.artifact_kind != "generated-cpp":
+            continue
+        if "/generated/" not in f"/{artifact.path}":
+            continue
+        if artifact.content is None:
+            continue
+        for lineno, line in enumerate(artifact.content.splitlines(), start=1):
+            stripped = line.lstrip()
+            if stripped.startswith("//") or stripped.startswith("*") or stripped.startswith("/*"):
+                continue
+            for keyword, pattern in _FORBIDDEN_CPP_PATTERNS:
+                if pattern.search(line):
+                    violations.append(
+                        f"{artifact.path}:{lineno} uses forbidden RTTI feature ``{keyword}`` "
+                        "in runtime C++ output"
+                    )
+    return tuple(violations)
+
+
+# enforce-strict-typing-and-golden-coverage Phase 3: forbidden-pattern
+# gate for the emitter Python surface.  Driver-semantics emitters MUST
+# return ``EmittedArtifact | None`` and MUST NOT raise — a malformed
+# device IR is signalled via an explicit None / empty-row-set, never
+# an exception.  The gate scans ``src/alloy_codegen/runtime_driver/``
+# for bare ``raise`` statements at function scope.
+#
+# Escape hatch: any ``raise`` line ending with the trailing comment
+# ``# alloy-codegen-allow-raise: <reason>`` is exempt — used for the
+# narrow case where the emitter must signal a contradictory-IR
+# invariant (e.g. duplicated enumerator name, two memory regions
+# claiming the same address).  These cases are reviewer-visible and
+# are NOT the "this device is unsupported, give up" pattern the gate
+# targets.
+#
+# Implementation is pure-text scanning: we open each .py file and look
+# for lines whose first non-whitespace token is ``raise``.
+
+_RAISE_RE = re.compile(r"^\s*raise\b")
+_ALLOW_RAISE_TOKEN = "# alloy-codegen-allow-raise:"
+
+
+def find_emitter_python_throw_violations(emitter_root: Path) -> tuple[str, ...]:
+    """Return violations for emitter Python files containing ``raise``.
+
+    Args:
+        emitter_root: Root path under which every ``.py`` file is
+            scanned (typically ``src/alloy_codegen/runtime_driver``).
+    """
+
+    violations: list[str] = []
+    for path in sorted(emitter_root.rglob("*.py")):
+        if "__pycache__" in path.parts:
+            continue
+        try:
+            content = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        # We need to look ahead to find a multi-line ``raise`` exception
+        # constructor — the trailing-comment escape hatch may live on
+        # the closing line of a multi-line raise (the ``)`` line), not
+        # the ``raise`` line itself.
+        lines = content.splitlines()
+        for lineno, line in enumerate(lines, start=1):
+            if not _RAISE_RE.match(line):
+                continue
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            # Walk forward to the line that closes the raise statement
+            # (matching paren depth back to zero), checking for the
+            # allow marker on any of the lines spanned.
+            depth = line.count("(") - line.count(")")
+            allowed = _ALLOW_RAISE_TOKEN in line
+            cursor = lineno
+            while depth > 0 and cursor < len(lines):
+                cursor += 1
+                follow = lines[cursor - 1]
+                depth += follow.count("(") - follow.count(")")
+                if _ALLOW_RAISE_TOKEN in follow:
+                    allowed = True
+            if allowed:
+                continue
+            violations.append(
+                f"{path}:{lineno} contains ``raise`` — emitter functions "
+                "must return ``EmittedArtifact | None`` instead of raising "
+                f"(or annotate with ``{_ALLOW_RAISE_TOKEN} <reason>``)"
+            )
     return tuple(violations)
 
 

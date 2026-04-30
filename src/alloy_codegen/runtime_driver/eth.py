@@ -534,8 +534,6 @@ def emit_runtime_driver_eth_semantics_header(
     )
 
 
-
-
 __all__ = [
     "ETH_DRIVER_HEADER",
     "EthSemanticRow",

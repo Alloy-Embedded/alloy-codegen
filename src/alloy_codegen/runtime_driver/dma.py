@@ -386,8 +386,6 @@ def emit_runtime_driver_dma_semantics_header(
 # emit_runtime_driver_adc_semantics_header → runtime_driver/adc.py
 
 
-
-
 __all__ = [
     "DMA_DRIVER_HEADER",
     "DmaSemanticRow",

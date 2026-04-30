@@ -605,8 +605,6 @@ def emit_runtime_driver_qspi_semantics_header(
     )
 
 
-
-
 __all__ = [
     "QSPI_DRIVER_HEADER",
     "QspiSemanticRow",

@@ -1246,8 +1246,6 @@ def _compose_i2c_extra_body(
     return extra_body
 
 
-
-
 __all__ = [
     "I2C_DRIVER_HEADER",
     "I2cSemanticRow",

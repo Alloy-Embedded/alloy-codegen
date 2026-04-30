@@ -380,8 +380,6 @@ def emit_runtime_driver_semantics_common_header(
 # emit_runtime_driver_pwm_semantics_header → runtime_driver/pwm.py
 
 
-
-
 __all__ = [
     "COMMON_DRIVER_HEADER",
     "emit_runtime_driver_semantics_common_header",

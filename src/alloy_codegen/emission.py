@@ -163,10 +163,7 @@ def _canonical_yaml_path(device: CanonicalDeviceIR) -> str:
     is no per-device JSON dump after
     ``prune-redundant-json-artifacts``."""
     identity = device.identity
-    return (
-        f"data/devices/vendors/{identity.vendor}/{identity.family}"
-        f"/devices/{identity.device}.yml"
-    )
+    return f"data/devices/vendors/{identity.vendor}/{identity.family}/devices/{identity.device}.yml"
 
 
 def _device_generated_path(family_dir: str, device_name: str, name: str) -> str:

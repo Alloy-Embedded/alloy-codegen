@@ -596,8 +596,6 @@ def emit_runtime_driver_gpio_semantics_header(
     return _emit_gpio_semantics_header(family_dir=family_dir, device=device)
 
 
-
-
 __all__ = [
     "GPIO_DRIVER_HEADER",
     "GpioSemanticRow",

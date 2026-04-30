@@ -688,8 +688,6 @@ def emit_runtime_driver_sdmmc_semantics_header(
 # emit_runtime_driver_watchdog_semantics_header → runtime_driver/watchdog.py
 
 
-
-
 __all__ = [
     "SDMMC_DRIVER_HEADER",
     "SdmmcSemanticRow",

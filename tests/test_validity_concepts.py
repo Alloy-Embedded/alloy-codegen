@@ -33,10 +33,7 @@ def test_emit_dma_validation_header_for_stm32g071rb(
         "struct DmaBindingValid<PeripheralId::USART1, DmaChannelId::DMA1_DMA1_CH1>"
         " : std::true_type {" in content
     )
-    assert (
-        "concept ValidDmaBinding = DmaBindingValid<Peripheral, Channel>::value;"
-        in content
-    )
+    assert "concept ValidDmaBinding = DmaBindingValid<Peripheral, Channel>::value;" in content
     assert "inline constexpr std::array<DmaBindingEntry," in content
     assert "constexpr bool is_valid_dma_binding(" in content
 
@@ -60,10 +57,7 @@ def test_emit_clock_validation_header_for_stm32g071rb(
         "struct ClockSourceValid<PeripheralId::ADC1, ClockGateId::gate_adc1>"
         " : std::true_type {" in content
     )
-    assert (
-        "concept ValidClockSource = ClockSourceValid<Peripheral, Source>::value;"
-        in content
-    )
+    assert "concept ValidClockSource = ClockSourceValid<Peripheral, Source>::value;" in content
 
 
 def test_emit_interrupt_validation_header_for_stm32g071rb(
@@ -82,13 +76,9 @@ def test_emit_interrupt_validation_header_for_stm32g071rb(
         "struct InterruptSlotValid : std::false_type {};" in content
     )
     # DMA1 channel 1 lives at vector slot 25 on stm32g071rb.
+    assert "struct InterruptSlotValid<PeripheralId::DMA1, 25u> : std::true_type {" in content
     assert (
-        "struct InterruptSlotValid<PeripheralId::DMA1, 25u> : std::true_type {"
-        in content
-    )
-    assert (
-        "concept ValidInterruptSlot = InterruptSlotValid<Peripheral, VectorSlot>::value;"
-        in content
+        "concept ValidInterruptSlot = InterruptSlotValid<Peripheral, VectorSlot>::value;" in content
     )
 
 
@@ -111,7 +101,5 @@ def test_emit_i2c_speed_validation_header_for_stm32g071rb(
     assert "100000u" in content
     assert "400000u" in content
     assert "1000000u" in content
-    assert (
-        "concept ValidI2cSpeed = is_valid_i2c_speed(Peripheral, SpeedHz);" in content
-    )
+    assert "concept ValidI2cSpeed = is_valid_i2c_speed(Peripheral, SpeedHz);" in content
     assert "inline constexpr std::array<I2cSpeedEntry," in content

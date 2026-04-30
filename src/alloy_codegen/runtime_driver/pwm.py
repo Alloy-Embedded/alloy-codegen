@@ -1582,8 +1582,7 @@ def emit_runtime_driver_pwm_semantics_header(
     real_rows = [row for row in pwm_rows if not row.is_stub]
     stub_rows = [row for row in pwm_rows if row.is_stub]
     pwm_peripheral_rows: list[str] = [
-        f"  PeripheralId::{_enum_identifier(row.peripheral_name)},"
-        for row in real_rows
+        f"  PeripheralId::{_enum_identifier(row.peripheral_name)}," for row in real_rows
     ]
     if real_rows:
         trait_lines.extend(_pwm_lut_struct_lines())

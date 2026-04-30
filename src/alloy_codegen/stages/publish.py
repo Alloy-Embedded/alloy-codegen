@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from alloy_codegen.artifact_contract import (
+    find_runtime_cpp_forbidden_pattern_violations,
     find_runtime_cpp_string_violations,
     find_runtime_lite_contract_violations,
 )
@@ -115,6 +116,37 @@ def run(scope: PipelineScope, context: ExecutionContext | None = None) -> StageR
             warnings=(
                 "Publication is blocked because runtime-generated C++ artifacts still contain "
                 f"semantic string literals: {sample}",
+            ),
+        )
+    # enforce-strict-typing-and-golden-coverage Phase 3: forbid RTTI
+    # features (``dynamic_cast``, ``typeid``) in the emitted runtime
+    # surface — they pull in per-type metadata, defeat dead-code
+    # elimination, and contradict the alloy contract that all type
+    # discrimination happens at compile time via concept / typed-enum
+    # gates.
+    forbidden_pattern_violations = find_runtime_cpp_forbidden_pattern_violations(
+        emit_result.payload.artifacts
+    )
+    if forbidden_pattern_violations:
+        sample = "; ".join(forbidden_pattern_violations[:3])
+        if len(forbidden_pattern_violations) > 3:
+            sample = f"{sample}; ..."
+        return StageResult(
+            stage="publish",
+            scope=emit_result.scope,
+            status="failed",
+            payload=PublicationPlan(
+                target_repository=PUBLICATION_TARGET_REPOSITORY,
+                publication_mode="blocked",
+                artifact_root=str(execution_context.artifact_root),
+                publication_root=str(execution_context.publication_root),
+                artifact_manifest=emit_result.payload.artifact_manifest,
+                artifacts=emit_result.payload.artifacts,
+                draft_system_descriptor_domains=draft_system_descriptor_domains,
+            ),
+            warnings=(
+                "Publication is blocked because runtime-generated C++ artifacts use forbidden "
+                f"RTTI features (``dynamic_cast`` / ``typeid``): {sample}",
             ),
         )
     runtime_lite_violations = find_runtime_lite_contract_violations(

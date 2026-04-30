@@ -53,9 +53,7 @@ def _lut_row_for(content: str, peripheral: str) -> str:
     lut = re.search(r"kTimerHardwareLut\s*=\s*\{\{(.*?)\}\};", content, re.DOTALL)
     assert lut is not None, "missing kTimerHardwareLut definition"
     rows = [line.strip() for line in lut.group(1).splitlines() if line.strip().startswith("{")]
-    assert index < len(rows), (
-        f"{peripheral} index {index} out of range for {len(rows)}-row LUT"
-    )
+    assert index < len(rows), f"{peripheral} index {index} out of range for {len(rows)}-row LUT"
     return rows[index]
 
 

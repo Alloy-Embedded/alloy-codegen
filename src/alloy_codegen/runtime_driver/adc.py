@@ -315,7 +315,7 @@ def _adc_channel_manifest(
             # Unknown kind — keep the ordinal member only.
             continue
         if alias in seen_names and seen_names[alias] != channel.channel_index:
-            raise ValueError(
+            raise ValueError(  # alloy-codegen-allow-raise: contradictory IR — same enumerator name maps to two different channel indices on the same peripheral; the build SHALL fail loudly rather than silently emit an ambiguous header
                 f"AdcChannelOf: duplicate enumerator name {alias!r} on "
                 f"PeripheralId::{row.peripheral_name} at indices "
                 f"{seen_names[alias]}, {channel.channel_index}"
@@ -2366,7 +2366,6 @@ def emit_runtime_driver_adc_semantics_header(
 # emit_runtime_driver_sdmmc_semantics_header → runtime_driver/sdmmc.py
 
 
-
 _ADC_INTERNAL_KIND_ENUMERATOR_NAME: dict[str, str] = {
     "temperature_sensor": "TempSensor",
     "vrefint": "Vrefint",
@@ -2377,8 +2376,6 @@ _ADC_INTERNAL_KIND_ENUMERATOR_NAME: dict[str, str] = {
 
 
 # _adc_channel_manifest → runtime_driver/adc.py
-
-
 
 
 __all__ = [

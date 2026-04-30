@@ -43,9 +43,7 @@ def _ctx() -> ExecutionContext:
 
 def _usart_v2_template() -> PeripheralTemplate:
     catalog = load_all_templates()
-    template = resolve_template(
-        catalog, peripheral_class="uart", ip_name="usart", ip_version="v2"
-    )
+    template = resolve_template(catalog, peripheral_class="uart", ip_name="usart", ip_version="v2")
     assert template is not None, "usart_v2 template must be shipped"
     return template
 

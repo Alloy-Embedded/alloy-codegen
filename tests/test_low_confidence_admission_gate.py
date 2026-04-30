@@ -89,13 +89,9 @@ def test_high_confidence_yaml_loads_without_opt_in(monkeypatch, tmp_path: Path) 
         repo,
     )
     try:
-        load_canonical_device(
-            vendor="synth", family="synthfam", device="synthdev", validate=False
-        )
+        load_canonical_device(vendor="synth", family="synthfam", device="synthdev", validate=False)
     except Exception as exc:  # noqa: BLE001
-        assert "confidence=low" not in str(exc), (
-            "high-confidence YAMLs must not trip the gate"
-        )
+        assert "confidence=low" not in str(exc), "high-confidence YAMLs must not trip the gate"
 
 
 def test_yaml_without_confidence_field_loads(monkeypatch, tmp_path: Path) -> None:
@@ -108,9 +104,7 @@ def test_yaml_without_confidence_field_loads(monkeypatch, tmp_path: Path) -> Non
         repo,
     )
     try:
-        load_canonical_device(
-            vendor="synth", family="synthfam", device="synthdev", validate=False
-        )
+        load_canonical_device(vendor="synth", family="synthfam", device="synthdev", validate=False)
     except Exception as exc:  # noqa: BLE001
         assert "confidence=low" not in str(exc)
 
@@ -129,6 +123,5 @@ def test_admitted_devices_carry_no_confidence_marker() -> None:
         if "confidence: low" in text:
             offenders.append(path)
     assert not offenders, (
-        "codegen-admitted YAMLs must not carry confidence=low: "
-        f"{[str(p) for p in offenders[:5]]}"
+        f"codegen-admitted YAMLs must not carry confidence=low: {[str(p) for p in offenders[:5]]}"
     )

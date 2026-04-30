@@ -1008,8 +1008,6 @@ def emit_runtime_driver_spi_semantics_header(
     )
 
 
-
-
 __all__ = [
     "SPI_DRIVER_HEADER",
     "SpiDmaBindingRow",
