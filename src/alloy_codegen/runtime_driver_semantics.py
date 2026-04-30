@@ -20,6 +20,7 @@ from __future__ import annotations
 from alloy_codegen.ir.model import CanonicalDeviceIR
 
 from .runtime_driver.adc import (  # noqa: F401
+    _ADC_INTERNAL_KIND_ENUMERATOR_NAME,
     ADC_DRIVER_HEADER,
     AdcCalibrationContext,
     AdcCalibrationDataPoint,
@@ -31,7 +32,6 @@ from .runtime_driver.adc import (  # noqa: F401
     AdcResolutionOption,
     AdcSampleTimeOption,
     AdcSemanticRow,
-    _ADC_INTERNAL_KIND_ENUMERATOR_NAME,
     emit_runtime_driver_adc_semantics_header,
 )
 from .runtime_driver.can import (  # noqa: F401
