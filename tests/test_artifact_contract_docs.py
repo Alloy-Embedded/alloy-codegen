@@ -97,16 +97,13 @@ def test_codegen_alloy_boundary_doc_matches_active_contract() -> None:
 def test_artifact_layout_doc_matches_active_contract() -> None:
     content = _read_doc("artifact-layout.md")
 
+    # ``prune-redundant-json-artifacts`` (archived 2026-04) removed 8 of the
+    # historical family-scoped metadata / report JSONs in favour of the
+    # canonical YAML at ``data/devices/.../<device>.yml``.  Adjust the
+    # required token list to match the post-prune contract.
     required_tokens = (
         "<vendor>/<family>/artifact-manifest.json",
         "<vendor>/<family>/metadata/family-index.json",
-        "<vendor>/<family>/metadata/family-connectivity.json",
-        "<vendor>/<family>/metadata/ip-blocks.json",
-        "<vendor>/<family>/metadata/capabilities.json",
-        "<vendor>/<family>/metadata/packages.json",
-        "<vendor>/<family>/metadata/connectors.json",
-        "<vendor>/<family>/metadata/system-descriptors.json",
-        "<vendor>/<family>/metadata/devices/<device>.json",
         "<vendor>/<family>/generated/runtime/types.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/peripheral_instances.hpp",
         "<vendor>/<family>/generated/runtime/devices/<device>/pins.hpp",

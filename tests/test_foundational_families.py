@@ -37,22 +37,18 @@ def _family_contexts(
 
 
 def _common_family_artifact_paths(family_dir: str) -> tuple[str, ...]:
+    # ``prune-redundant-json-artifacts`` (archived 2026-04) removed 8 of the
+    # historical family-scoped metadata / report JSONs in favour of the
+    # canonical YAML at ``data/devices/.../<device>.yml``.  The artifacts
+    # listed below are the ones that remain in the emit pipeline today.
     return (
         f"{family_dir}/artifact-manifest.json",
         f"{family_dir}/metadata/family-index.json",
-        f"{family_dir}/metadata/family-connectivity.json",
-        f"{family_dir}/metadata/ip-blocks.json",
-        f"{family_dir}/metadata/capabilities.json",
-        f"{family_dir}/metadata/packages.json",
-        f"{family_dir}/metadata/connectors.json",
-        f"{family_dir}/metadata/system-descriptors.json",
         f"{family_dir}/reports/validation-report.json",
         f"{family_dir}/reports/validation-summary.json",
         f"{family_dir}/reports/coverage.json",
         f"{family_dir}/reports/runtime-provenance.json",
         f"{family_dir}/reports/runtime-explainability.json",
-        f"{family_dir}/reports/runtime-capability-summary.json",
-        f"{family_dir}/reports/runtime-compatibility-matrix.json",
         f"{family_dir}/generated/runtime/types.hpp",
     )
 
@@ -63,9 +59,12 @@ def _device_artifact_paths(
 ) -> tuple[str, ...]:
     paths: list[str] = []
     for device_name in device_names:
+        # ``prune-redundant-json-artifacts`` (archived 2026-04) removed the
+        # per-device ``metadata/devices/<device>.json`` rollup; the canonical
+        # YAML at ``data/devices/.../<device>.yml`` is now the single source
+        # of truth for that information.
         paths.extend(
             (
-                f"{family_dir}/metadata/devices/{device_name}.json",
                 f"{family_dir}/generated/devices/{device_name}/device.ld",
                 f"{family_dir}/generated/devices/{device_name}/startup.cpp",
                 f"{family_dir}/generated/devices/{device_name}/startup_vectors.cpp",
