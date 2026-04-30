@@ -41,6 +41,12 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from jsonschema import Draft202012Validator
+
+from alloy_codegen.bootstrap import IR_SCHEMA_VERSION
+from alloy_codegen.errors import StageExecutionError
+from alloy_codegen.ir.model import CanonicalDeviceIR
+from alloy_codegen.serialization import from_primitive, to_primitive
 
 # Use the C-accelerated SafeLoader when libyaml is built — 5-10×
 # faster than the pure-Python SafeLoader for canonical YAMLs that
@@ -55,12 +61,7 @@ except ImportError:  # pragma: no cover — only on no-libyaml installs
 def _safe_load(text: str) -> Any:
     """`yaml.safe_load` using the fastest available SafeLoader."""
     return yaml.load(text, Loader=_SafeLoader)
-from jsonschema import Draft202012Validator
 
-from alloy_codegen.bootstrap import IR_SCHEMA_VERSION
-from alloy_codegen.errors import StageExecutionError
-from alloy_codegen.ir.model import CanonicalDeviceIR
-from alloy_codegen.serialization import from_primitive, to_primitive
 
 _SEMVER_RE = re.compile(r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)$")
 
@@ -101,6 +102,7 @@ def _enforce_schema_version_major(payload: dict[str, Any]) -> None:
             f"YAML declares {declared!r}, codegen pinned at {IR_SCHEMA_VERSION!r}. "
             "Major bumps require coordinated changes in extractor + codegen + alloy-devices-yml."
         )
+
 
 # Resolve the schema directory shipped at repo-root ``schema/``.
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -239,8 +241,7 @@ def parse_device_payload(payload: dict[str, Any]) -> CanonicalDeviceIR:
     """
     if not isinstance(payload, dict):
         raise StageExecutionError(
-            "Canonical device YAML payload must be a mapping; "
-            f"got {type(payload).__name__}"
+            f"Canonical device YAML payload must be a mapping; got {type(payload).__name__}"
         )
     _enforce_schema_version_major(payload)
     return from_primitive(CanonicalDeviceIR, payload)

@@ -6,7 +6,6 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-
 from golden_helpers import (  # noqa: E402  — added by auto-update-goldens
     assert_matches_json_golden,
     assert_matches_text_golden,
