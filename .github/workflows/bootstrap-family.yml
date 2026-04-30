@@ -114,6 +114,7 @@ jobs:
           # openspec/changes/archive/2026-04-22-add-raspberrypi-rp2040-target),
           # espressif (admitted via openspec/changes/add-espressif-esp32-target).
           # Any other vendor directory in patches/ requires a completed vendor-admission proposal.
+          shopt -s nullglob  # make ``patches/*/`` expand to nothing (not the literal ``*``) when patches/ has no subdirs
           ADMITTED_VENDORS="espressif st microchip nxp raspberrypi"
           UNKNOWN=()
           for vendor_dir in patches/*/; do
