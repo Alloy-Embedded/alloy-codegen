@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Checkout alloy-codegen
         uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Checkout Alloy consumer
         uses: actions/checkout@v6
@@ -162,6 +164,8 @@ jobs:
     steps:
       - name: Checkout alloy-codegen
         uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Checkout Alloy consumer
         uses: actions/checkout@v6
@@ -349,6 +353,8 @@ jobs:
     steps:
       - name: Checkout alloy-codegen
         uses: actions/checkout@v6
+        with:
+          submodules: true
 
       - name: Checkout Alloy consumer
         uses: actions/checkout@v6
