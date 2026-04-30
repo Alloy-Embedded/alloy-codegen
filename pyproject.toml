@@ -46,4 +46,8 @@ packages = ["src/alloy_codegen"]
 dev = [
     "pytest>=9.0.3",
     "ruff>=0.15.10",
+    # Static type checker — strict on emitter / IR / stages modules,
+    # basic elsewhere (see ``pyrightconfig.json``).  Added by
+    # ``enforce-strict-typing-and-golden-coverage``.
+    "pyright>=1.1.380",
 ]

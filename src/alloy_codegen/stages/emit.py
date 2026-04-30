@@ -48,6 +48,9 @@ from alloy_codegen.runtime_connectors import emit_runtime_connectors_header
 from alloy_codegen.runtime_dma_validation import emit_runtime_dma_validation_header
 from alloy_codegen.runtime_driver.adc import emit_runtime_driver_adc_semantics_header
 from alloy_codegen.runtime_driver.can import emit_runtime_driver_can_semantics_header
+from alloy_codegen.runtime_driver.common_header import (
+    emit_runtime_driver_semantics_common_header,
+)
 from alloy_codegen.runtime_driver.dac import emit_runtime_driver_dac_semantics_header
 from alloy_codegen.runtime_driver.dma import emit_runtime_driver_dma_semantics_header
 from alloy_codegen.runtime_driver.eth import emit_runtime_driver_eth_semantics_header
@@ -63,10 +66,6 @@ from alloy_codegen.runtime_driver.timer import emit_runtime_driver_timer_semanti
 from alloy_codegen.runtime_driver.uart import emit_runtime_driver_uart_semantics_header
 from alloy_codegen.runtime_driver.usb import emit_runtime_driver_usb_semantics_header
 from alloy_codegen.runtime_driver.watchdog import emit_runtime_driver_watchdog_semantics_header
-
-from alloy_codegen.runtime_driver.common_header import (
-    emit_runtime_driver_semantics_common_header,
-)
 from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
 from alloy_codegen.runtime_i2c_speed_validation import (
     emit_runtime_i2c_speed_validation_header,

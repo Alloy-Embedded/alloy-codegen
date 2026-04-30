@@ -12,6 +12,7 @@ Carved out from ``runtime_driver_semantics.py`` under
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
@@ -821,7 +822,7 @@ def _enrich_pwm_tier234(
         if peripheral is None:
             enriched.append(row)
             continue
-        kw: dict[str, object] = {}
+        kw: dict[str, Any] = {}
         psc = psc_by_peripheral.get(peripheral)
         if psc is not None:
             kw["max_prescaler"] = int(getattr(psc, "max_prescaler", 0))
@@ -845,7 +846,10 @@ def _enrich_pwm_tier234(
         if not kw:
             enriched.append(row)
             continue
-        enriched.append(_dc.replace(row, **kw))
+        # pyright: ignore[reportArgumentType] — row is duck-typed via the
+        # `tuple[Any, ...]` parameter from _emit_peripheral_semantics_header;
+        # at runtime it is always a PwmSemanticRow dataclass instance.
+        enriched.append(_dc.replace(row, **kw))  # pyright: ignore[reportArgumentType]
     return tuple(enriched)
 
 

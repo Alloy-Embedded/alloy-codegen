@@ -9,6 +9,7 @@ Carved out from ``runtime_driver_semantics.py`` under
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
@@ -217,7 +218,7 @@ def _spi_extension_for_peripheral(
     context: _SemanticContext,
     *,
     peripheral_name: str,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Build the Tier 2/3/4 kwargs for ``SpiSemanticRow``."""
     device = context.device
     baud_prescaler_options = tuple(

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from alloy_codegen.connector_model import canonical_peripheral_class
 from alloy_codegen.ir.model import (
@@ -280,7 +281,7 @@ def _runtime_signal_role_values(devices: tuple[CanonicalDeviceIR, ...]) -> set[s
     }
 
 
-def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict[str, object]:
+def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict[str, Any]:
     ip_block_id_values = {
         f"{ip_block.ip_name}@{ip_block.ip_version}"
         for device in devices
@@ -489,7 +490,7 @@ def _collect_runtime_semantics_catalog(devices: tuple[CanonicalDeviceIR, ...]) -
     }
 
 
-def _collect_runtime_ref_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict[str, object]:
+def _collect_runtime_ref_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> dict[str, Any]:
     device_rows = sorted({device.identity.device for device in devices})
     peripheral_rows = sorted(
         {
@@ -695,7 +696,7 @@ def _runtime_ref_index(
     device_name: str,
     ref_kind: str | None,
     ref_id: str | None,
-    ref_catalog: dict[str, object],
+    ref_catalog: dict[str, Any],
     clock_gate_index_map: dict[tuple[str, str], int] | None = None,
     reset_index_map: dict[tuple[str, str], int] | None = None,
 ) -> int:
@@ -741,7 +742,7 @@ def _runtime_ref_index_expr(
     device_name: str,
     ref_kind: str | None,
     ref_id: str | None,
-    ref_catalog: dict[str, object],
+    ref_catalog: dict[str, Any],
     clock_gate_index_map: dict[tuple[str, str], int] | None = None,
     reset_index_map: dict[tuple[str, str], int] | None = None,
 ) -> str:
@@ -769,7 +770,7 @@ def _ridx(
     device_name: str,
     ref_kind: str | None,
     ref_id: str | None,
-    ref_catalog: dict[str, object],
+    ref_catalog: dict[str, Any],
     clock_gate_index_map: dict[tuple[str, str], int] | None = None,
     reset_index_map: dict[tuple[str, str], int] | None = None,
 ) -> str:
@@ -787,7 +788,7 @@ def _runtime_ref_literal(
     device_name: str,
     ref_kind: str | None,
     ref_id: str | None,
-    ref_catalog: dict[str, object],
+    ref_catalog: dict[str, Any],
     clock_gate_index_map: dict[tuple[str, str], int] | None = None,
     reset_index_map: dict[tuple[str, str], int] | None = None,
 ) -> str:
@@ -802,15 +803,15 @@ def _runtime_ref_literal(
     return f"{{{_runtime_ref_kind_enum(ref_kind)}, {ref_index}}}"
 
 
-def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    packages: dict[str, dict[str, object]] = {}
+def _unique_packages(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    packages: dict[str, dict[str, Any]] = {}
     for device in devices:
         for package in device.packages:
             packages.setdefault(package.name, to_primitive(package))
     return [packages[name] for name in sorted(packages)]
 
 
-def _package_pad_sort_key(pad: dict[str, object]) -> tuple[int, str, str]:
+def _package_pad_sort_key(pad: dict[str, Any]) -> tuple[int, str, str]:
     physical_index = pad["physical_index"]
     return (
         -1 if physical_index is None else int(physical_index),
@@ -819,21 +820,21 @@ def _package_pad_sort_key(pad: dict[str, object]) -> tuple[int, str, str]:
     )
 
 
-def _constraint_sort_key(constraint: dict[str, object]) -> tuple[str, str, str]:
+def _constraint_sort_key(constraint: dict[str, Any]) -> tuple[str, str, str]:
     value = "" if constraint["value"] is None else str(constraint["value"])
     return (str(constraint["pin"]), str(constraint["kind"]), value)
 
 
-def _build_package_metadata(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    packages: dict[str, dict[str, object]] = {}
+def _build_package_metadata(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    packages: dict[str, dict[str, Any]] = {}
     for device in devices:
-        constraints_by_pin: dict[str, list[dict[str, object]]] = {}
+        constraints_by_pin: dict[str, list[dict[str, Any]]] = {}
         for constraint in device.pin_constraints:
             constraint_payload = to_primitive(constraint)
             constraints_by_pin.setdefault(constraint.pin, []).append(constraint_payload)
 
-        device_pinout: list[dict[str, object]] = []
-        pin_index: dict[str, dict[str, object]] = {}
+        device_pinout: list[dict[str, Any]] = []
+        pin_index: dict[str, dict[str, Any]] = {}
         for package_pad in sorted(
             (to_primitive(pad) for pad in device.package_pads),
             key=_package_pad_sort_key,
@@ -943,8 +944,8 @@ def _build_package_metadata(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict
     ]
 
 
-def _unique_peripherals(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    peripherals: dict[str, dict[str, object]] = {}
+def _unique_peripherals(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    peripherals: dict[str, dict[str, Any]] = {}
     for device in devices:
         for peripheral in device.peripherals:
             peripherals.setdefault(peripheral.name, to_primitive(peripheral))
@@ -966,7 +967,7 @@ def _pin_key(pin: PinDefinition) -> tuple[str, str | None, int]:
     return (pin.name, pin.port, pin.number)
 
 
-def _pin_signal_key(signal: dict[str, object]) -> tuple[str, str | None, str | None, int | None]:
+def _pin_signal_key(signal: dict[str, Any]) -> tuple[str, str | None, str | None, int | None]:
     return (
         str(signal["function"]),
         None if signal["peripheral"] is None else str(signal["peripheral"]),
@@ -975,8 +976,8 @@ def _pin_signal_key(signal: dict[str, object]) -> tuple[str, str | None, str | N
     )
 
 
-def _build_pin_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    grouped: dict[tuple[str, str | None, int], dict[str, object]] = {}
+def _build_pin_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    grouped: dict[tuple[str, str | None, int], dict[str, Any]] = {}
     for device in devices:
         for pin in device.pins:
             key = _pin_key(pin)
@@ -997,7 +998,7 @@ def _build_pin_catalog(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str,
                 signal_payload = to_primitive(signal)
                 entry["signals"].setdefault(_pin_signal_key(signal_payload), signal_payload)
 
-    results: list[dict[str, object]] = []
+    results: list[dict[str, Any]] = []
     for key in sorted(grouped):
         entry = grouped[key]
         results.append(
@@ -1024,16 +1025,16 @@ def _dma_key(request: DmaRequestDefinition) -> tuple[str, str, str | None, str |
     )
 
 
-def _unique_dma_requests(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    requests: dict[tuple[str, str, str | None, str | None], dict[str, object]] = {}
+def _unique_dma_requests(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    requests: dict[tuple[str, str, str | None, str | None], dict[str, Any]] = {}
     for device in devices:
         for request in device.dma_requests:
             requests.setdefault(_dma_key(request), to_primitive(request))
     return [requests[key] for key in sorted(requests)]
 
 
-def _unique_interrupts(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    interrupts: dict[tuple[str, int, str | None], dict[str, object]] = {}
+def _unique_interrupts(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    interrupts: dict[tuple[str, int, str | None], dict[str, Any]] = {}
     for device in devices:
         for interrupt in device.interrupts:
             key = (interrupt.name, interrupt.line, interrupt.peripheral)
@@ -1041,8 +1042,8 @@ def _unique_interrupts(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str,
     return [interrupts[key] for key in sorted(interrupts)]
 
 
-def _unique_ip_blocks(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    ip_blocks: dict[tuple[str, str], dict[str, object]] = {}
+def _unique_ip_blocks(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    ip_blocks: dict[tuple[str, str], dict[str, Any]] = {}
     for device in devices:
         for ip_block in device.ip_blocks:
             key = (ip_block.ip_name, ip_block.ip_version)
@@ -1050,23 +1051,23 @@ def _unique_ip_blocks(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, 
     return [ip_blocks[key] for key in sorted(ip_blocks)]
 
 
-def _unique_capabilities(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    capabilities: dict[str, dict[str, object]] = {}
+def _unique_capabilities(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    capabilities: dict[str, dict[str, Any]] = {}
     for device in devices:
         for capability in device.capabilities:
             capabilities.setdefault(capability.capability_id, to_primitive(capability))
     return [capabilities[key] for key in sorted(capabilities)]
 
 
-def _unique_signal_endpoints(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, object]]:
-    endpoints: dict[str, dict[str, object]] = {}
+def _unique_signal_endpoints(devices: tuple[CanonicalDeviceIR, ...]) -> list[dict[str, Any]]:
+    endpoints: dict[str, dict[str, Any]] = {}
     for device in devices:
         for endpoint in device.signal_endpoints:
             endpoints.setdefault(endpoint.endpoint_id, to_primitive(endpoint))
     return [endpoints[key] for key in sorted(endpoints)]
 
 
-def _device_connector_payload(device: CanonicalDeviceIR) -> dict[str, object]:
+def _device_connector_payload(device: CanonicalDeviceIR) -> dict[str, Any]:
     return {
         "device": device.identity.device,
         "package": device.identity.package,
@@ -1077,7 +1078,7 @@ def _device_connector_payload(device: CanonicalDeviceIR) -> dict[str, object]:
     }
 
 
-def _device_system_descriptor_payload(device: CanonicalDeviceIR) -> dict[str, object]:
+def _device_system_descriptor_payload(device: CanonicalDeviceIR) -> dict[str, Any]:
     return {
         "device": device.identity.device,
         "package": device.identity.package,
@@ -1099,7 +1100,7 @@ def _device_system_descriptor_payload(device: CanonicalDeviceIR) -> dict[str, ob
     }
 
 
-def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
+def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, Any]:
     dma_domain_applicable = (
         bool(device.dma_controllers)
         or bool(device.dma_requests)
@@ -1164,7 +1165,7 @@ def _device_descriptor_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
     }
 
 
-def build_device_coverage(device: CanonicalDeviceIR) -> dict[str, object]:
+def build_device_coverage(device: CanonicalDeviceIR) -> dict[str, Any]:
     """Build the machine-readable coverage payload for one device."""
     return _device_descriptor_coverage(device)
 
@@ -1173,7 +1174,7 @@ def build_coverage_payload(
     *,
     devices: tuple[CanonicalDeviceIR, ...],
     report: ValidationReport,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Build the family coverage payload shared by emit and publish."""
     if not devices:
         raise ValueError("Coverage payload generation requires at least one device.")
@@ -1264,7 +1265,7 @@ def emit_coverage_report(
     )
 
 
-def _binding_by_peripheral(device: CanonicalDeviceIR) -> dict[str, object]:
+def _binding_by_peripheral(device: CanonicalDeviceIR) -> dict[str, Any]:
     return {
         binding.peripheral: binding
         for binding in sorted(device.peripheral_clock_bindings, key=lambda item: item.peripheral)

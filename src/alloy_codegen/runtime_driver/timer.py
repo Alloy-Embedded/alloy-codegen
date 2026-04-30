@@ -12,6 +12,7 @@ Carved out from ``runtime_driver_semantics.py`` under
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from alloy_codegen.ir.model import CanonicalDeviceIR
 from alloy_codegen.reporting import EmittedArtifact
@@ -1099,7 +1100,7 @@ def _enrich_timer_tier234(
             continue
         psc = prescalers.get(peripheral)
         flg = flags.get(peripheral)
-        kw: dict[str, object] = {}
+        kw: dict[str, Any] = {}
         if psc is not None:
             kw["max_prescaler"] = int(getattr(psc, "max_prescaler", 0))
             ar = int(getattr(psc, "max_auto_reload", 0))
@@ -1117,7 +1118,10 @@ def _enrich_timer_tier234(
         if not kw:
             enriched.append(row)
             continue
-        enriched.append(_dc.replace(row, **kw))
+        # pyright: ignore[reportArgumentType] — row is duck-typed via the
+        # `tuple[Any, ...]` parameter from _emit_peripheral_semantics_header;
+        # at runtime it is always a TimerSemanticRow dataclass instance.
+        enriched.append(_dc.replace(row, **kw))  # pyright: ignore[reportArgumentType]
     return tuple(enriched)
 
 

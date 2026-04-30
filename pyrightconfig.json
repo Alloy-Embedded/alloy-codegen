@@ -1,0 +1,69 @@
+{
+  "$comment": "Phase 1 of enforce-strict-typing-and-golden-coverage. Per-path strict rule activation.  Strict-equivalent on emitter / IR / stages; basic for the rest.",
+  "include": [
+    "src/alloy_codegen",
+    "tests"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/.pytest_cache",
+    "data",
+    "tests/fixtures"
+  ],
+  "venvPath": ".",
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingTypeStubs": false,
+  "executionEnvironments": [
+    {
+      "$comment": "Emitter / IR / stages — strict rules enabled, but reportPrivateUsage stays off because the per-class modules deliberately import _foo helpers from runtime_driver/common.",
+      "root": "src/alloy_codegen/runtime_driver",
+      "reportArgumentType": "error",
+      "reportAttributeAccessIssue": "error",
+      "reportCallIssue": "error",
+      "reportGeneralTypeIssues": "error",
+      "reportIncompatibleMethodOverride": "error",
+      "reportInvalidTypeForm": "error",
+      "reportOperatorIssue": "error",
+      "reportOptionalIterable": "error",
+      "reportOptionalMemberAccess": "error",
+      "reportPossiblyUnboundVariable": "error",
+      "reportReturnType": "error",
+      "reportUnboundVariable": "error",
+      "reportUndefinedVariable": "error"
+    },
+    {
+      "root": "src/alloy_codegen/ir",
+      "reportArgumentType": "error",
+      "reportAttributeAccessIssue": "error",
+      "reportCallIssue": "error",
+      "reportGeneralTypeIssues": "error",
+      "reportIncompatibleMethodOverride": "error",
+      "reportInvalidTypeForm": "error",
+      "reportOperatorIssue": "error",
+      "reportOptionalIterable": "error",
+      "reportOptionalMemberAccess": "error",
+      "reportPossiblyUnboundVariable": "error",
+      "reportReturnType": "error",
+      "reportUnboundVariable": "error",
+      "reportUndefinedVariable": "error"
+    },
+    {
+      "root": "src/alloy_codegen/stages",
+      "reportArgumentType": "error",
+      "reportAttributeAccessIssue": "error",
+      "reportCallIssue": "error",
+      "reportGeneralTypeIssues": "error",
+      "reportIncompatibleMethodOverride": "error",
+      "reportInvalidTypeForm": "error",
+      "reportOperatorIssue": "error",
+      "reportOptionalIterable": "error",
+      "reportOptionalMemberAccess": "error",
+      "reportPossiblyUnboundVariable": "error",
+      "reportReturnType": "error",
+      "reportUnboundVariable": "error",
+      "reportUndefinedVariable": "error"
+    }
+  ]
+}

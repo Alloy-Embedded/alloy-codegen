@@ -9,6 +9,7 @@ Carved out from ``runtime_driver_semantics.py`` under
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from alloy_codegen.ir.model import CanonicalDeviceIR, PeripheralInstance
 from alloy_codegen.peripheral_traits import (
@@ -781,7 +782,7 @@ def _uart_extension_for_peripheral(
     *,
     peripheral_name: str,
     template: PeripheralTemplate | None = None,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Build the Tier 2/3/4 kwargs for ``UartSemanticRow``.
 
     Reads the device IR's UART patch tuples (forwarded by
