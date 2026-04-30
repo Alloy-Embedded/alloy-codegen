@@ -6,7 +6,24 @@ import hashlib
 import json
 import types as _types
 from dataclasses import MISSING, fields, is_dataclass
+from functools import lru_cache
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
+
+
+@lru_cache(maxsize=None)
+def _cached_type_hints(cls: type) -> dict[str, Any]:
+    """Cache `typing.get_type_hints()` per dataclass.
+
+    Without this cache, `from_primitive` re-resolves annotations
+    on every dataclass instantiation — for a canonical YAML
+    carrying 4,000+ register_fields, that's 4,000 redundant
+    `get_type_hints` calls (each walks the class hierarchy +
+    re-imports any forward-ref modules).  Caching reduces the
+    cost from O(N × M) to O(K) where K is the number of distinct
+    dataclasses (a small constant ≈ 40 across the canonical IR
+    surface).
+    """
+    return get_type_hints(cls)
 
 
 def _is_empty_optional(value: Any) -> bool:
@@ -120,7 +137,7 @@ def from_primitive(annotation: Any, value: Any) -> Any:
             raise TypeError(
                 f"expected dict for dataclass {annotation.__name__}, got {type(value).__name__}"
             )
-        hints = get_type_hints(annotation)
+        hints = _cached_type_hints(annotation)
         kwargs: dict[str, Any] = {}
         for f in fields(annotation):
             field_type = hints.get(f.name, Any)

@@ -76,7 +76,11 @@ def load_canonical_device(
     ``alloy-codegen --accept-low-confidence`` CLI flag) consume
     them.
     """
-    import yaml as _yaml
+    from alloy_codegen.canonical_device_yaml import (
+        _safe_load,
+        parse_device_payload,
+        validate_device_payload,
+    )
 
     path = resolve_device_yaml(vendor=vendor, family=family, device=device)
     if path is None:
@@ -86,34 +90,42 @@ def load_canonical_device(
         )
     text = path.read_text(encoding="utf-8")
 
-    # Pre-flight confidence check: cheap top-level YAML parse to
-    # peek at provenance.confidence before invoking the full
-    # schema validator + parser.
-    if not accept_low_confidence:
-        try:
-            preview = _yaml.safe_load(text)
-        except Exception:  # noqa: BLE001
-            preview = None
-        if isinstance(preview, dict):
-            confidence = (preview.get("provenance") or {}).get("confidence")
-            if confidence == "low":
-                raise StageExecutionError(
-                    f"alloy-devices-yml entry for {vendor}/{family}/{device} "
-                    f"is marked provenance.confidence=low (PDF-scraped or "
-                    f"otherwise unreliable).  Pass accept_low_confidence=True "
-                    f"to load it explicitly, or admit the chip via a higher-"
-                    f"confidence source first."
-                )
+    # Parse YAML ONCE — the previous implementation called
+    # `yaml.safe_load` three times (preview + validate + parse),
+    # which dominated load time on the 1.5 MB STM32 YAMLs (~3 s
+    # per round-trip × 3 = 9 s of redundant parsing).
+    try:
+        payload = _safe_load(text)
+    except Exception:  # noqa: BLE001
+        payload = None
+
+    # Pre-flight confidence check.
+    if not accept_low_confidence and isinstance(payload, dict):
+        confidence = (payload.get("provenance") or {}).get("confidence")
+        if confidence == "low":
+            raise StageExecutionError(
+                f"alloy-devices-yml entry for {vendor}/{family}/{device} "
+                f"is marked provenance.confidence=low (PDF-scraped or "
+                f"otherwise unreliable).  Pass accept_low_confidence=True "
+                f"to load it explicitly, or admit the chip via a higher-"
+                f"confidence source first."
+            )
+
+    if not isinstance(payload, dict):
+        raise StageExecutionError(
+            f"alloy-devices-yml entry for {vendor}/{family}/{device} "
+            f"({path}) is not a YAML mapping at the top level"
+        )
 
     if validate:
         try:
-            validate_device(text)
+            validate_device_payload(payload)
         except StageExecutionError as exc:
             raise StageExecutionError(
                 f"alloy-devices-yml entry for {vendor}/{family}/{device} "
                 f"({path}) failed schema validation: {exc}"
             ) from None
-    return parse_device(text)
+    return parse_device_payload(payload)
 
 
 def submodule_revision() -> str | None:

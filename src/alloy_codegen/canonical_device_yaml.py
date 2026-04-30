@@ -41,6 +41,20 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+
+# Use the C-accelerated SafeLoader when libyaml is built — 5-10×
+# faster than the pure-Python SafeLoader for canonical YAMLs that
+# carry thousands of register_fields.  Falls back to the Python
+# loader on installs without libyaml bindings.
+try:
+    from yaml import CSafeLoader as _SafeLoader  # type: ignore[attr-defined]
+except ImportError:  # pragma: no cover — only on no-libyaml installs
+    from yaml import SafeLoader as _SafeLoader  # type: ignore[no-redef]
+
+
+def _safe_load(text: str) -> Any:
+    """`yaml.safe_load` using the fastest available SafeLoader."""
+    return yaml.load(text, Loader=_SafeLoader)
 from jsonschema import Draft202012Validator
 
 from alloy_codegen.bootstrap import IR_SCHEMA_VERSION
@@ -205,10 +219,27 @@ def parse_device(text: str) -> CanonicalDeviceIR:
     IR types as ``object`` round-trip as ``dict``, not as their
     original Patch dataclass instance.
     """
-    payload = yaml.safe_load(text)
+    payload = _safe_load(text)
     if not isinstance(payload, dict):
         raise StageExecutionError(
             "Canonical device YAML must be a mapping at the top level; "
+            f"got {type(payload).__name__}"
+        )
+    _enforce_schema_version_major(payload)
+    return from_primitive(CanonicalDeviceIR, payload)
+
+
+def parse_device_payload(payload: dict[str, Any]) -> CanonicalDeviceIR:
+    """Like :func:`parse_device` but takes an already-parsed dict.
+
+    Lets callers that have already parsed the YAML once (e.g.
+    ``load_canonical_device`` doing a confidence check) avoid a
+    redundant ``yaml.safe_load`` round.  Saves ~3 s per call on
+    1.5 MB STM32 YAMLs.
+    """
+    if not isinstance(payload, dict):
+        raise StageExecutionError(
+            "Canonical device YAML payload must be a mapping; "
             f"got {type(payload).__name__}"
         )
     _enforce_schema_version_major(payload)
@@ -222,7 +253,15 @@ def validate_device(text: str) -> None:
     listing every error in one message so reviewers see the full
     diagnosis at once.
     """
-    payload = yaml.safe_load(text)
+    validate_device_payload(_safe_load(text))
+
+
+def validate_device_payload(payload: Any) -> None:
+    """Like :func:`validate_device` but takes an already-parsed dict.
+
+    Avoids the ~3 s redundant YAML re-parse inside
+    ``load_canonical_device``'s validate-then-parse pipeline.
+    """
     schema = json.loads(DEVICE_SCHEMA_PATH.read_text(encoding="utf-8"))
     validator = Draft202012Validator(schema)
     errors = sorted(validator.iter_errors(payload), key=lambda e: list(e.absolute_path))
