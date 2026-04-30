@@ -164,16 +164,31 @@ def test_no_admitted_device_artifact_exceeds_warn_budget(
     if not emitted_root.exists():
         pytest.skip("no emit fixture tree under tests/fixtures/emitted/")
 
-    artifacts: list[_StubArtifact] = []
+    # ``enforce-strict-typing-and-golden-coverage`` Phase 2: the
+    # canonical golden layout is ``tests/fixtures/emitted/<vendor>/<family>/...``
+    # so the gate keys directly off the first two path segments.  Any
+    # legacy top-level folder (``cmake/``, ``devices-readme/``) without a
+    # ``<vendor>/<family>`` shape is skipped — it is not a per-device
+    # artifact and not subject to the per-(vendor, family) footprint
+    # gate.
+    from alloy_codegen.bootstrap import DEVICE_REGISTRY
+
+    valid_vendor_family: set[tuple[str, str]] = {(v, f) for (v, f) in DEVICE_REGISTRY}
+
+    grouped: dict[tuple[str, str], list[_StubArtifact]] = {}
     for path in emitted_root.rglob("*"):
         if not path.is_file():
             continue
         if path.name == ".DS_Store":
             continue
-        # Map ``tests/fixtures/emitted/<family>/...`` to the same path
-        # the publish stage feeds the gate (vendor/family-rooted).
         rel = path.relative_to(emitted_root)
-        artifacts.append(
+        parts = rel.parts
+        if len(parts) < 2:
+            continue
+        vendor_family = (parts[0], parts[1])
+        if vendor_family not in valid_vendor_family:
+            continue
+        grouped.setdefault(vendor_family, []).append(
             _StubArtifact(
                 path=str(rel),
                 content="",
@@ -181,22 +196,8 @@ def test_no_admitted_device_artifact_exceeds_warn_budget(
             )
         )
 
-    # Group by family-segment so we can call the gate per family.
-    # ``tests/fixtures/emitted/<family>/...`` doesn't carry the
-    # vendor in the prefix, so we resolve from the repo's
-    # DEVICE_REGISTRY.
-    from alloy_codegen.bootstrap import DEVICE_REGISTRY
-
-    family_to_vendor = {family: vendor for (vendor, family) in DEVICE_REGISTRY}
-
-    grouped: dict[str, list[_StubArtifact]] = {}
-    for art in artifacts:
-        family = art.path.split("/", 1)[0]
-        grouped.setdefault(family, []).append(art)
-
     violations: list = []
-    for family, arts in grouped.items():
-        vendor = family_to_vendor.get(family, "unknown")
+    for (vendor, family), arts in grouped.items():
         violations.extend(evaluate_artifacts(artifacts=tuple(arts), vendor=vendor, family=family))
     fail_violations = [v for v in violations if v.severity == "fail"]
     assert not fail_violations, (

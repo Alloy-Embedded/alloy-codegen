@@ -74,6 +74,7 @@ def test_rp2040_pio_traits_compile_invariants() -> None:
     source = COMPILE_TESTS_DIR / "test_rp2040_pio_traits.cpp"
     rp2040_root = (
         FIXTURES_EMITTED
+        / "raspberrypi"
         / "rp2040"
         / "generated"
         / "runtime"
@@ -108,7 +109,9 @@ def test_rp2040_peripheral_traits_compile_invariants() -> None:
     internal temperature sensor), and DMA / Timer / PWM HW topology.
     """
     source = COMPILE_TESTS_DIR / "test_rp2040_peripheral_traits.cpp"
-    rp2040_root = FIXTURES_EMITTED / "rp2040" / "generated" / "runtime" / "devices" / "rp2040"
+    rp2040_root = (
+        FIXTURES_EMITTED / "raspberrypi" / "rp2040" / "generated" / "runtime" / "devices" / "rp2040"
+    )
     driver_root = rp2040_root / "driver_semantics"
     headers = {
         "ALLOY_CODEGEN_RP2040_GPIO_HEADER": driver_root / "gpio.hpp",
@@ -140,7 +143,7 @@ def test_stm32g0_gpio_traits_compile_invariants() -> None:
     """
     source = COMPILE_TESTS_DIR / "test_stm32g0_gpio_traits.cpp"
     stm32g0_root = (
-        FIXTURES_EMITTED / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb"
+        FIXTURES_EMITTED / "st" / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb"
     )
     driver_root = stm32g0_root / "driver_semantics"
     gpio_header = driver_root / "gpio.hpp"
@@ -169,7 +172,7 @@ def test_stm32g0_pwm_traits_compile_invariants() -> None:
     """
     source = COMPILE_TESTS_DIR / "test_stm32g0_pwm_traits.cpp"
     stm32g0_root = (
-        FIXTURES_EMITTED / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb"
+        FIXTURES_EMITTED / "st" / "stm32g0" / "generated" / "runtime" / "devices" / "stm32g071rb"
     )
     driver_root = stm32g0_root / "driver_semantics"
     pwm_header = driver_root / "pwm.hpp"
@@ -196,7 +199,9 @@ def test_rp2040_i2c_traits_compile_invariants() -> None:
     documented base addresses, DREQs, and PinId pad allowlists.
     """
     source = COMPILE_TESTS_DIR / "test_rp2040_i2c_traits.cpp"
-    rp2040_root = FIXTURES_EMITTED / "rp2040" / "generated" / "runtime" / "devices" / "rp2040"
+    rp2040_root = (
+        FIXTURES_EMITTED / "raspberrypi" / "rp2040" / "generated" / "runtime" / "devices" / "rp2040"
+    )
     driver_root = rp2040_root / "driver_semantics"
     i2c_header = driver_root / "i2c.hpp"
     pins_header = rp2040_root / "pins.hpp"

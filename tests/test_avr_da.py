@@ -105,7 +105,7 @@ def test_avr128da32_runtime_routes_header_encodes_portmux_schema(
 
 
 AVR_DA_EMITTED_FIXTURE_DIR = (
-    __import__("pathlib").Path(__file__).parent / "fixtures" / "emitted" / "avr-da"
+    __import__("pathlib").Path(__file__).parent / "fixtures" / "emitted" / "microchip" / "avr-da"
 )
 
 
@@ -222,7 +222,7 @@ def test_avr128da32_emitted_runtime_goldens_match(
     microchip_avr_da_execution_context: ExecutionContext,
 ) -> None:
     """Phase 4.9: emitted runtime artifacts match the goldens committed in
-    ``tests/fixtures/emitted/avr-da/``.  Any drift in the AVR emit path
+    ``tests/fixtures/emitted/microchip/avr-da/``.  Any drift in the AVR emit path
     (startup layout, interrupts.hpp typed enums, peripheral instance traits)
     shows up here."""
     artifacts = _avr_da_emit_artifacts(microchip_avr_da_execution_context)

@@ -117,14 +117,12 @@ def test_publish_includes_materialized_summary(
         artifact["path"] == "st/stm32g0/reports/runtime-explainability.json"
         for artifact in payload["materialized_artifacts"]
     )
-    assert any(
-        artifact["path"] == "st/stm32g0/reports/runtime-capability-summary.json"
-        for artifact in payload["materialized_artifacts"]
-    )
-    assert any(
-        artifact["path"] == "st/stm32g0/reports/runtime-compatibility-matrix.json"
-        for artifact in payload["materialized_artifacts"]
-    )
+    # ``prune-redundant-json-artifacts`` (archived 2026-04) removed the
+    # ``runtime-capability-summary.json`` and
+    # ``runtime-compatibility-matrix.json`` rollups; the canonical YAML
+    # at ``data/devices/.../<device>.yml`` is now the single source of
+    # truth for that information, so the publish stage no longer
+    # materialises those two JSON files.
     assert any(
         artifact["path"] == "st/stm32g0/generated/runtime/devices/stm32g071rb/startup.hpp"
         for artifact in payload["materialized_artifacts"]
