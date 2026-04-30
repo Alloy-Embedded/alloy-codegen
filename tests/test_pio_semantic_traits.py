@@ -102,6 +102,7 @@ def test_rp2040_pio_hpp_matches_golden(
         Path(__file__).parent
         / "fixtures"
         / "emitted"
+        / "raspberrypi"
         / "rp2040"
         / "generated"
         / "runtime"
