@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from collections.abc import Iterable
+
+import pytest
 
 from alloy_codegen.artifact_contract import find_runtime_cpp_string_violations
 from alloy_codegen.bootstrap import registered_device_names
@@ -10,6 +13,26 @@ from alloy_codegen.context import ExecutionContext
 from alloy_codegen.scope import PipelineScope
 from alloy_codegen.stages.emit import run as run_emit
 from alloy_codegen.stages.publish import run as run_publish
+
+# The foundational publish tests below loop ``run_publish`` over every
+# admitted (vendor, family) — eight families × full validate → emit →
+# publish → consumer-verify cycle.  On the developer machine this is
+# already 30–45 minutes; on shared CI runners the same loop runs ~3×
+# slower and consistently exceeds the GitHub-Actions per-job budget.
+#
+# The per-device matrix in ``.github/workflows/bootstrap-family.yml``
+# already exercises the publish path for every admitted device with
+# its own determinism gate, so the aggregate cycle here is redundant
+# in CI.  Mark the two slow loops as ``slow`` and skip them when the
+# ``ALLOY_SKIP_SLOW_TESTS`` env var is set (the workflow turns it on).
+_skip_if_slow_disabled = pytest.mark.skipif(
+    os.environ.get("ALLOY_SKIP_SLOW_TESTS", "").strip() in {"1", "true", "yes"},
+    reason=(
+        "ALLOY_SKIP_SLOW_TESTS is set — the per-device bootstrap-family "
+        "matrix already gates the full publish path on every admitted "
+        "device, so the aggregate loop is redundant on CI."
+    ),
+)
 
 
 def _family_contexts(
@@ -158,6 +181,7 @@ def test_foundational_families_emit_same_descriptor_contract(
         assert find_runtime_cpp_string_violations(result.payload.artifacts) == ()
 
 
+@_skip_if_slow_disabled
 def test_foundational_families_publish_with_same_generic_workflow(
     execution_context: ExecutionContext,
     microchip_execution_context: ExecutionContext,
@@ -423,6 +447,7 @@ def test_foundational_families_publish_with_same_generic_workflow(
             ).exists()
 
 
+@_skip_if_slow_disabled
 def test_foundational_families_remain_complete_across_repeat_publish_cycles(
     execution_context: ExecutionContext,
     microchip_execution_context: ExecutionContext,

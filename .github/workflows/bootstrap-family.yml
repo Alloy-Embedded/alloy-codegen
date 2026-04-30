@@ -77,6 +77,15 @@ jobs:
         run: python -m pyright src/alloy_codegen/runtime_driver src/alloy_codegen/ir src/alloy_codegen/stages
 
       - name: Pytest
+        # ``ALLOY_SKIP_SLOW_TESTS=1`` skips the two aggregate
+        # foundational-families publish loops (each iterates the
+        # full validate→emit→publish→consumer-verify cycle over every
+        # admitted family — 30–60+ minutes on shared runners).  The
+        # per-device matrix below in this same workflow already gates
+        # the publish path on every admitted device with its own
+        # determinism check, so the aggregate loop is redundant on CI.
+        env:
+          ALLOY_SKIP_SLOW_TESTS: "1"
         run: python -m pytest tests
 
       - name: Ruff format
