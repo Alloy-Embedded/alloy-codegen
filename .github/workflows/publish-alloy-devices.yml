@@ -100,7 +100,27 @@ jobs:
           import os
           payload = json.loads(open("out/affected.json").read())
           matrix = payload["matrix"]
-          should_publish = "true" if payload["should_publish"] else "false"
+          # Temporarily exclude families whose canonical YAML data
+          # in alloy-devices-yml regressed when the submodule was
+          # reverted to ``9077be6`` (the safe baseline; the latest
+          # revision broke memories on all 5 ST chips).  Each one
+          # currently blocks publication with either a draft-system-
+          # descriptor warning (nordic/nrf52) or a capability
+          # regression (raspberrypi/rp2040, st/stm32f4) against the
+          # artifacts the alloy-devices repo already shipped.
+          # Re-enable by removing the entries from BLOCKED_PAIRS
+          # once alloy-devices-yml restores the missing capability /
+          # descriptor fields upstream.
+          BLOCKED_PAIRS = {
+              ("nordic", "nrf52"),
+              ("raspberrypi", "rp2040"),
+              ("st", "stm32f4"),
+          }
+          matrix = [
+              entry for entry in matrix
+              if (entry["vendor"], entry["family"]) not in BLOCKED_PAIRS
+          ]
+          should_publish = "true" if matrix else "false"
           all_families = "true" if payload["all_families"] else "false"
           out_path = os.environ["GITHUB_OUTPUT"]
           with open(out_path, "a") as fh:
