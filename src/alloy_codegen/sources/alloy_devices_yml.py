@@ -28,7 +28,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from alloy_codegen.canonical_device_yaml import parse_device, validate_device
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import CanonicalDeviceIR
 

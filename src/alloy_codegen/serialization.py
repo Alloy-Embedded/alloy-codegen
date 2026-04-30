@@ -6,11 +6,11 @@ import hashlib
 import json
 import types as _types
 from dataclasses import MISSING, fields, is_dataclass
-from functools import lru_cache
+from functools import cache
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
 
 
-@lru_cache(maxsize=None)
+@cache
 def _cached_type_hints(cls: type) -> dict[str, Any]:
     """Cache `typing.get_type_hints()` per dataclass.
 
