@@ -1,0 +1,256 @@
+{
+  "capabilities": [
+    {
+      "capability_id": "runtime-support:adc",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:APB_SARADC:DMA:ADC:DATA",
+      "name": "dma-compatible-signal",
+      "peripheral": "APB_SARADC",
+      "peripheral_class": "adc",
+      "scope": "dma_binding",
+      "value": "DATA"
+    },
+    {
+      "capability_id": "device:core-count",
+      "name": "core-count",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "1"
+    },
+    {
+      "capability_id": "device:multicore-topology",
+      "name": "multicore-topology",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "single-core"
+    },
+    {
+      "capability_id": "runtime-support:dma",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "dma",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:gpio",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "gpio",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:i2c:esp32c3-i2c-v1:scl",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "ip_block",
+      "value": "scl"
+    },
+    {
+      "capability_id": "capability:i2c:esp32c3-i2c-v1:sda",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "ip_block",
+      "value": "sda"
+    },
+    {
+      "capability_id": "runtime-support:i2c",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability-instance:i2c0:qfn32:scl",
+      "name": "available-signal",
+      "peripheral": "I2C0",
+      "peripheral_class": "i2c",
+      "scope": "instance_overlay",
+      "value": "scl"
+    },
+    {
+      "capability_id": "capability-instance:i2c0:qfn32:sda",
+      "name": "available-signal",
+      "peripheral": "I2C0",
+      "peripheral_class": "i2c",
+      "scope": "instance_overlay",
+      "value": "sda"
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:cs",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "cs"
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:miso",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "miso"
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:mosi",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "mosi"
+    },
+    {
+      "capability_id": "capability:spi:esp32c3-spi-v1:sck",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "sck"
+    },
+    {
+      "capability_id": "runtime-support:spi",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:SPI2:DMA:SPI2_RX:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI2",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:SPI2:DMA:SPI2_TX:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI2",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:cs",
+      "name": "available-signal",
+      "peripheral": "SPI2",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "cs"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:miso",
+      "name": "available-signal",
+      "peripheral": "SPI2",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "miso"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:mosi",
+      "name": "available-signal",
+      "peripheral": "SPI2",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "mosi"
+    },
+    {
+      "capability_id": "capability-instance:spi2:qfn32:sck",
+      "name": "available-signal",
+      "peripheral": "SPI2",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "sck"
+    },
+    {
+      "capability_id": "capability:uart:esp32c3-uart-v1:rx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:uart:esp32c3-uart-v1:tx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:uart",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:UART0:DMA:UART0_RX:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:UART0:DMA:UART0_TX:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:uart0:qfn32:rx",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:uart0:qfn32:tx",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "capability-instance:uart1:qfn32:rx",
+      "name": "available-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:uart1:qfn32:tx",
+      "name": "available-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    }
+  ],
+  "device": "esp32c3",
+  "family": "esp32c3",
+  "schema_version": "1.2.0",
+  "vendor": "espressif"
+}

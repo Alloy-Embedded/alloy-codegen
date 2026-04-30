@@ -1,0 +1,456 @@
+{
+  "capabilities": [
+    {
+      "capability_id": "capability:adc:rp2040-adc-v1:ch0",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "ip_block",
+      "value": "ch0"
+    },
+    {
+      "capability_id": "capability:adc:rp2040-adc-v1:ch1",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "ip_block",
+      "value": "ch1"
+    },
+    {
+      "capability_id": "capability:adc:rp2040-adc-v1:ch2",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "ip_block",
+      "value": "ch2"
+    },
+    {
+      "capability_id": "runtime-support:adc",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:ADC:DMA:ADC:FIFO",
+      "name": "dma-compatible-signal",
+      "peripheral": "ADC",
+      "peripheral_class": "adc",
+      "scope": "dma_binding",
+      "value": "FIFO"
+    },
+    {
+      "capability_id": "capability-instance:adc:pico:ch0",
+      "name": "available-signal",
+      "peripheral": "ADC",
+      "peripheral_class": "adc",
+      "scope": "instance_overlay",
+      "value": "ch0"
+    },
+    {
+      "capability_id": "capability-instance:adc:pico:ch1",
+      "name": "available-signal",
+      "peripheral": "ADC",
+      "peripheral_class": "adc",
+      "scope": "instance_overlay",
+      "value": "ch1"
+    },
+    {
+      "capability_id": "capability-instance:adc:pico:ch2",
+      "name": "available-signal",
+      "peripheral": "ADC",
+      "peripheral_class": "adc",
+      "scope": "instance_overlay",
+      "value": "ch2"
+    },
+    {
+      "capability_id": "device:core-count",
+      "name": "core-count",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "1"
+    },
+    {
+      "capability_id": "device:multicore-topology",
+      "name": "multicore-topology",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "single-core"
+    },
+    {
+      "capability_id": "runtime-support:dma",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "dma",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:i2c:rp2040-i2c-v1:scl",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "ip_block",
+      "value": "scl"
+    },
+    {
+      "capability_id": "capability:i2c:rp2040-i2c-v1:sda",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "ip_block",
+      "value": "sda"
+    },
+    {
+      "capability_id": "runtime-support:i2c",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability-instance:i2c0:pico:scl",
+      "name": "available-signal",
+      "peripheral": "I2C0",
+      "peripheral_class": "i2c",
+      "scope": "instance_overlay",
+      "value": "scl"
+    },
+    {
+      "capability_id": "capability-instance:i2c0:pico:sda",
+      "name": "available-signal",
+      "peripheral": "I2C0",
+      "peripheral_class": "i2c",
+      "scope": "instance_overlay",
+      "value": "sda"
+    },
+    {
+      "capability_id": "capability-instance:i2c1:pico:scl",
+      "name": "available-signal",
+      "peripheral": "I2C1",
+      "peripheral_class": "i2c",
+      "scope": "instance_overlay",
+      "value": "scl"
+    },
+    {
+      "capability_id": "capability-instance:i2c1:pico:sda",
+      "name": "available-signal",
+      "peripheral": "I2C1",
+      "peripheral_class": "i2c",
+      "scope": "instance_overlay",
+      "value": "sda"
+    },
+    {
+      "capability_id": "runtime-support:pwm",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "pwm",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:rtc",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "rtc",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:spi:rp2040-spi-v1:csn",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "csn"
+    },
+    {
+      "capability_id": "capability:spi:rp2040-spi-v1:rx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:spi:rp2040-spi-v1:sck",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "sck"
+    },
+    {
+      "capability_id": "capability:spi:rp2040-spi-v1:tx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "ip_block",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:spi",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:SPI0:DMA:SPI0_RX:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI0",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:SPI0:DMA:SPI0_TX:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI0",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:spi0:pico:csn",
+      "name": "available-signal",
+      "peripheral": "SPI0",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "csn"
+    },
+    {
+      "capability_id": "capability-instance:spi0:pico:rx",
+      "name": "available-signal",
+      "peripheral": "SPI0",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:spi0:pico:sck",
+      "name": "available-signal",
+      "peripheral": "SPI0",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "sck"
+    },
+    {
+      "capability_id": "capability-instance:spi0:pico:tx",
+      "name": "available-signal",
+      "peripheral": "SPI0",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-dma:SPI1:DMA:SPI1_RX:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:SPI1:DMA:SPI1_TX:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:spi1:pico:csn",
+      "name": "available-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "csn"
+    },
+    {
+      "capability_id": "capability-instance:spi1:pico:rx",
+      "name": "available-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:spi1:pico:sck",
+      "name": "available-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "sck"
+    },
+    {
+      "capability_id": "capability-instance:spi1:pico:tx",
+      "name": "available-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:timer",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "timer",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:uart:rp2040-uart-v1:cts",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "cts"
+    },
+    {
+      "capability_id": "capability:uart:rp2040-uart-v1:rts",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rts"
+    },
+    {
+      "capability_id": "capability:uart:rp2040-uart-v1:rx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:uart:rp2040-uart-v1:tx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:uart",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:UART0:DMA:UART0_RX:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:UART0:DMA:UART0_TX:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:uart0:pico:cts",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "cts"
+    },
+    {
+      "capability_id": "capability-instance:uart0:pico:rts",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rts"
+    },
+    {
+      "capability_id": "capability-instance:uart0:pico:rx",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:uart0:pico:tx",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-dma:UART1:DMA:UART1_RX:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:UART1:DMA:UART1_TX:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:uart1:pico:cts",
+      "name": "available-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "cts"
+    },
+    {
+      "capability_id": "capability-instance:uart1:pico:rts",
+      "name": "available-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rts"
+    },
+    {
+      "capability_id": "capability-instance:uart1:pico:rx",
+      "name": "available-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:uart1:pico:tx",
+      "name": "available-signal",
+      "peripheral": "UART1",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:watchdog",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "watchdog",
+      "scope": "runtime_contract",
+      "value": "true"
+    }
+  ],
+  "device": "pico",
+  "family": "rp2040",
+  "schema_version": "1.2.0",
+  "vendor": "raspberrypi"
+}

@@ -1,0 +1,104 @@
+{
+  "capabilities": [
+    {
+      "capability_id": "runtime-support:adc",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "device:core-count",
+      "name": "core-count",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "2"
+    },
+    {
+      "capability_id": "device:multicore-topology",
+      "name": "multicore-topology",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "xtensa-dual-core"
+    },
+    {
+      "capability_id": "device:secondary-core-release-register",
+      "name": "secondary-core-release-register",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "register:dport:appcpu-ctrl-b"
+    },
+    {
+      "capability_id": "runtime-support:gpio",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "gpio",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:i2c",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:spi",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:uart:esp32-uart-v1:rx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:uart:esp32-uart-v1:tx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:uart",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability-instance:uart0:qfn48:rx",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:uart0:qfn48:tx",
+      "name": "available-signal",
+      "peripheral": "UART0",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    }
+  ],
+  "device": "esp32",
+  "family": "esp32",
+  "schema_version": "1.2.0",
+  "vendor": "espressif"
+}

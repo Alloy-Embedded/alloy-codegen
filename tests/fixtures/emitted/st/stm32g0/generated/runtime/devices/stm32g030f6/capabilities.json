@@ -1,0 +1,200 @@
+{
+  "capabilities": [
+    {
+      "capability_id": "runtime-support:adc",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "adc",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "device:core-count",
+      "name": "core-count",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "1"
+    },
+    {
+      "capability_id": "device:multicore-topology",
+      "name": "multicore-topology",
+      "peripheral": null,
+      "peripheral_class": "device",
+      "scope": "device",
+      "value": "single-core"
+    },
+    {
+      "capability_id": "runtime-support:dma",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "dma",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:dma-router",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "dma-router",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:gpio",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "gpio",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:i2c",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "i2c",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:rtc",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "rtc",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-support:spi",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "spi",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability-instance:spi1:tssop20:nss",
+      "name": "available-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "nss"
+    },
+    {
+      "capability_id": "capability-instance:spi1:tssop20:sck",
+      "name": "available-signal",
+      "peripheral": "SPI1",
+      "peripheral_class": "spi",
+      "scope": "instance_overlay",
+      "value": "sck"
+    },
+    {
+      "capability_id": "runtime-support:timer",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "timer",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:cts",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "cts"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:rts",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rts"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:rx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability:usart:usart-v3-1:tx",
+      "name": "signal-role",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "ip_block",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:uart",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "uart",
+      "scope": "runtime_contract",
+      "value": "true"
+    },
+    {
+      "capability_id": "runtime-dma:USART2:DMA1:DMA1_CH2:RX",
+      "name": "dma-compatible-signal",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "RX"
+    },
+    {
+      "capability_id": "runtime-dma:USART2:DMA1:DMA1_CH1:TX",
+      "name": "dma-compatible-signal",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "scope": "dma_binding",
+      "value": "TX"
+    },
+    {
+      "capability_id": "capability-instance:usart2:tssop20:cts",
+      "name": "available-signal",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "cts"
+    },
+    {
+      "capability_id": "capability-instance:usart2:tssop20:rts",
+      "name": "available-signal",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rts"
+    },
+    {
+      "capability_id": "capability-instance:usart2:tssop20:rx",
+      "name": "available-signal",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "rx"
+    },
+    {
+      "capability_id": "capability-instance:usart2:tssop20:tx",
+      "name": "available-signal",
+      "peripheral": "USART2",
+      "peripheral_class": "uart",
+      "scope": "instance_overlay",
+      "value": "tx"
+    },
+    {
+      "capability_id": "runtime-support:watchdog",
+      "name": "runtime-supported",
+      "peripheral": null,
+      "peripheral_class": "watchdog",
+      "scope": "runtime_contract",
+      "value": "true"
+    }
+  ],
+  "device": "stm32g030f6",
+  "family": "stm32g0",
+  "schema_version": "1.2.0",
+  "vendor": "st"
+}
