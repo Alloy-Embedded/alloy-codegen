@@ -21,7 +21,7 @@ from alloy_codegen.peripheral_traits import (  # noqa: E402
     resolve_template,
     template_provenance_tag,
 )
-from alloy_codegen.runtime_driver_semantics import (  # noqa: E402
+from alloy_codegen.runtime_driver.uart import (  # noqa: E402
     _uart_template_data_bits,
     _uart_template_fifo_triggers,
     _uart_template_mode_flags,
