@@ -31,6 +31,7 @@ from .runtime_driver.adc import (  # noqa: F401
     AdcResolutionOption,
     AdcSampleTimeOption,
     AdcSemanticRow,
+    _ADC_INTERNAL_KIND_ENUMERATOR_NAME,
     emit_runtime_driver_adc_semantics_header,
 )
 from .runtime_driver.can import (  # noqa: F401
@@ -154,6 +155,7 @@ from .runtime_driver.uart import (  # noqa: F401
     UartParityOption,
     UartSemanticRow,
     UartStopBitsOption,
+    _uart_template_data_bits,
     emit_runtime_driver_uart_semantics_header,
 )
 from .runtime_driver.usb import (  # noqa: F401
