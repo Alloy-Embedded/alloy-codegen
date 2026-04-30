@@ -64,9 +64,9 @@ from alloy_codegen.runtime_driver.uart import emit_runtime_driver_uart_semantics
 from alloy_codegen.runtime_driver.usb import emit_runtime_driver_usb_semantics_header
 from alloy_codegen.runtime_driver.watchdog import emit_runtime_driver_watchdog_semantics_header
 
-# emit_runtime_driver_semantics_common_header still lives in the legacy module
-# (no class boundary — emits the shared ``driver_semantics/common.hpp``).
-from alloy_codegen.runtime_driver_semantics import emit_runtime_driver_semantics_common_header
+from alloy_codegen.runtime_driver.common_header import (
+    emit_runtime_driver_semantics_common_header,
+)
 from alloy_codegen.runtime_enable_domains import emit_runtime_enable_domains_header
 from alloy_codegen.runtime_i2c_speed_validation import (
     emit_runtime_i2c_speed_validation_header,
