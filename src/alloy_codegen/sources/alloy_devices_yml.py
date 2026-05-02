@@ -30,6 +30,8 @@ from pathlib import Path
 
 from alloy_codegen.errors import StageExecutionError
 from alloy_codegen.ir.model import CanonicalDeviceIR
+from alloy_codegen.ir.synthesised import SynthesisedDevice, build_synthesised
+from alloy_codegen.ir.v2_1 import CanonicalDevice
 
 # Submodule root resolution: this module lives at
 # ``src/alloy_codegen/sources/alloy_devices_yml.py``.
@@ -127,6 +129,48 @@ def load_canonical_device(
     return parse_device_payload(payload)
 
 
+def load_canonical_device_v2_1(
+    *,
+    vendor: str,
+    family: str,
+    device: str,
+) -> CanonicalDevice:
+    """Parse a v2.1 device YAML into the new :class:`CanonicalDevice`.
+
+    Added by ``adopt-canonical-device-v2-1`` Phase 4.  Legacy callers
+    continue to use :func:`load_canonical_device` (which targets the
+    retired v1 reader); post-cutover those callers fail-fast on
+    schema-version mismatch.  Once the emitter rewrites are in
+    (Phase 4 main), the legacy entry-point is deleted and this
+    function is renamed back to ``load_canonical_device``.
+    """
+    from alloy_codegen.canonical_device_v2_1 import parse_device
+
+    path = resolve_device_yaml(vendor=vendor, family=family, device=device)
+    if path is None:
+        raise StageExecutionError(
+            f"alloy-devices-yml has no entry for {vendor}/{family}/{device}.  "
+            f"Expected at {device_yaml_path(vendor=vendor, family=family, device=device)}"
+        )
+    return parse_device(path.read_text(encoding="utf-8"))
+
+
+def load_with_synthesis(
+    *,
+    vendor: str,
+    family: str,
+    device: str,
+) -> tuple[CanonicalDevice, SynthesisedDevice]:
+    """Convenience wrapper: load + synthesise in one call.
+
+    Returns ``(canonical, synthesised)`` ready for the v2.1 emitters.
+    """
+    canonical = load_canonical_device_v2_1(
+        vendor=vendor, family=family, device=device,
+    )
+    return canonical, build_synthesised(canonical)
+
+
 def submodule_revision() -> str | None:
     """Return the git SHA the submodule is pinned at, or None.
 
@@ -162,6 +206,8 @@ __all__ = [
     "device_yaml_path",
     "is_available",
     "load_canonical_device",
+    "load_canonical_device_v2_1",
+    "load_with_synthesis",
     "resolve_device_yaml",
     "submodule_revision",
 ]
