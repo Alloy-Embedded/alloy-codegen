@@ -1,0 +1,44 @@
+name: Tests
+
+# Pre-merge regression gate.  Replaces the legacy ``Bootstrap Family
+# CI`` workflow which validated a pipeline (``cli validate``,
+# ``cli publish``) that no longer exists post-v2.1.  alloy-codegen is
+# now consumed directly via the ``alloy-codegen`` CLI / Python
+# entrypoint that ships to PyPI; the ``alloy-devices`` repo is no
+# longer a publication target.
+#
+# Tag pushes (``v*``) skip this workflow because ``release.yml``
+# already runs the same pytest gate before publishing.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true   # data/devices carries the canonical YAML corpus
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Setup Python 3.13
+        run: uv python install 3.13
+
+      - name: Sync dev environment
+        run: uv sync --all-groups
+
+      - name: Test (pytest)
+        run: uv run pytest -q
