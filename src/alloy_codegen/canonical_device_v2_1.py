@@ -373,13 +373,33 @@ def _parse_clock_domain(node: dict[str, Any]) -> ClockDomain:
     )
 
 
+_PROFILE_PROMOTED_FIELDS = (
+    "hclk_hz", "pclk_hz", "pclk2_hz",
+    "pll_m", "pll_n", "pll_r", "pll_p", "pll_q", "pll_frac",
+    "flash_latency_hz",
+)
+
+
 def _parse_clock_profile(node: dict[str, Any]) -> ClockProfile:
-    known = {"id", "kind", "sysclk", "sysclk_source"}
+    """Lift the well-known profile fields out of the YAML's free-form
+    map onto the typed dataclass.  Anything still unrecognised lands
+    in ``extra`` so unfamiliar vendors round-trip cleanly."""
+    known = {"id", "kind", "sysclk", "sysclk_source", *_PROFILE_PROMOTED_FIELDS}
+    promoted: dict[str, int] = {}
+    for fld in _PROFILE_PROMOTED_FIELDS:
+        if fld in node:
+            value = node[fld]
+            if not isinstance(value, int):
+                raise StageExecutionError(
+                    f"clock.profiles[{node.get('id', '?')}].{fld} must be an int, got {type(value).__name__}"
+                )
+            promoted[fld] = value
     return ClockProfile(
         id=node["id"],
         kind=node["kind"],
         sysclk=node["sysclk"],
         sysclk_source=node["sysclk_source"],
+        **promoted,
         extra={k: v for k, v in node.items() if k not in known},
     )
 

@@ -13,6 +13,10 @@ Public surface:
 from __future__ import annotations
 
 from alloy_codegen.ir.synthesised.builder import build_synthesised
+from alloy_codegen.ir.synthesised.clock_program import (
+    ClockProgramStep,
+    ClockStepKind,
+)
 from alloy_codegen.ir.synthesised.device import SynthesisedDevice
 from alloy_codegen.ir.synthesised.endpoints import SignalEndpoint
 from alloy_codegen.ir.synthesised.interrupts import (
@@ -22,6 +26,8 @@ from alloy_codegen.ir.synthesised.interrupts import (
 from alloy_codegen.ir.synthesised.route_operations import RouteOperation
 
 __all__ = [
+    "ClockProgramStep",
+    "ClockStepKind",
     "InterruptBinding",
     "RouteOperation",
     "SignalEndpoint",

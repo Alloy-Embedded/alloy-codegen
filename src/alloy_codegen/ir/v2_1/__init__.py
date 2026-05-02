@@ -41,7 +41,13 @@ from alloy_codegen.ir.v2_1.clock import (
     SelectTask,
 )
 from alloy_codegen.ir.v2_1.device import CanonicalDevice
-from alloy_codegen.ir.v2_1.identity import Core, Identity, Multicore, MulticoreCore
+from alloy_codegen.ir.v2_1.identity import (
+    Core,
+    FlashLatencyEntry,
+    Identity,
+    Multicore,
+    MulticoreCore,
+)
 from alloy_codegen.ir.v2_1.interrupts import (
     InterruptMatrix,
     InterruptPeripheralSource,
@@ -83,6 +89,7 @@ __all__ = [
     "ClockProfile",
     "Core",
     "ExternalTrigger",
+    "FlashLatencyEntry",
     "I2cTimingPreset",
     "Identity",
     "InterruptMatrix",

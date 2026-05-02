@@ -106,15 +106,35 @@ class ClockProfile:
     """A named system-clock recipe.
 
     Required fields are the four codegen always asks for:
-    ``id``, ``kind``, ``sysclk``, ``sysclk_source``.  Everything else
-    is per-vendor — captured in :attr:`extra` so unfamiliar fields
-    survive the round-trip.
+    ``id``, ``kind``, ``sysclk``, ``sysclk_source``.  The other
+    *known* fields (``hclk_hz``, ``pclk_hz``, PLL coefficients,
+    optional FLASH latency override) are first-class so the
+    synthesised IR can lower them to register writes without
+    string-key lookups.  Anything else stays in :attr:`extra`.
     """
 
     id: str
     kind: ProfileKind
     sysclk: str
     sysclk_source: str
+
+    # Promoted from extra so the ClockBackend lowering layer
+    # can read them as typed attributes.  ``hclk_hz``/``pclk_hz``
+    # are integers (Hz) and authoritative for the running
+    # frequency on the AHB / APB buses.  PLL coefficients are
+    # whichever subset the family uses (STM32 G0 needs M/N/R;
+    # STM32 H7 has M/N/R/P/Q/Frac; nRF52 doesn't carry any).
+    hclk_hz: int | None = None
+    pclk_hz: int | None = None
+    pclk2_hz: int | None = None
+    pll_m: int | None = None
+    pll_n: int | None = None
+    pll_r: int | None = None
+    pll_p: int | None = None
+    pll_q: int | None = None
+    pll_frac: int | None = None
+    flash_latency_hz: int | None = None
+
     extra: dict[str, object] = field(default_factory=dict)
 
 

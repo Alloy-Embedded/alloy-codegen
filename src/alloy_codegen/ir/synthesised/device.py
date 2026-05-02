@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from alloy_codegen.ir.synthesised.clock_program import ClockProgramStep
 from alloy_codegen.ir.synthesised.endpoints import SignalEndpoint
 from alloy_codegen.ir.synthesised.interrupts import (
     InterruptBinding,
@@ -26,3 +27,11 @@ class SynthesisedDevice:
     interrupt_bindings:  tuple[InterruptBinding, ...] = field(default_factory=tuple)
     vector_slots:        tuple[VectorSlot, ...] = field(default_factory=tuple)
     signal_endpoints:    tuple[SignalEndpoint, ...] = field(default_factory=tuple)
+    clock_program_steps: dict[str, tuple[ClockProgramStep, ...]] = field(default_factory=dict)
+    """Per-profile clock program — keyed by ``ClockProfile.id``,
+    valued as the ordered tuple of vendor-agnostic
+    :class:`ClockProgramStep` rows the emitter walks to produce
+    ``alloy_clock_enter_<profile_id>()``.  Empty when no
+    :class:`ClockBackend` matches the device's vendor (the
+    runtime-init emitter then falls back to the legacy
+    forward-declaration-only output)."""

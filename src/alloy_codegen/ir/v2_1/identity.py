@@ -60,6 +60,27 @@ class Core:
 
 
 @dataclass(frozen=True, slots=True)
+class FlashLatencyEntry:
+    """One row of the FLASH wait-state table.
+
+    For Cortex-M parts, every clock-tree program needs to know
+    "at this HCLK, how many wait states do I write into FLASH.ACR
+    (or its equivalent)".  The table is family-wide — every chip
+    in stm32g0 shares the same 0/1/2 WS thresholds — so admitting
+    a new chip in an existing family is one YAML edit, not a
+    per-chip table.
+
+    ``min_hz`` is inclusive, ``max_hz`` is exclusive.  ``encoding``
+    is the value to write into the FLASH latency field.
+    """
+
+    min_hz: int
+    max_hz: int
+    ws: int
+    encoding: int
+
+
+@dataclass(frozen=True, slots=True)
 class Identity:
     """Top-level identity block."""
 
@@ -72,5 +93,14 @@ class Identity:
     flash_size: str | None = None
     ram_size: str | None = None
     description: str | None = None
+    flash_wait_states: tuple[FlashLatencyEntry, ...] = field(default_factory=tuple)
+    """FLASH wait-state table, family-wide.
+
+    Empty until the data team promotes the per-family thresholds
+    out of inline backend knowledge.  Backends that need WS
+    programming (every Cortex-M with embedded FLASH) fall back
+    to a hard-coded family table when this is empty, and warn
+    once at synthesis time so the gap is visible.
+    """
     extra: dict[str, object] = field(default_factory=dict)
     """Vendor-specific extra fields preserved through round-trip."""

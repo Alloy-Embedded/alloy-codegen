@@ -125,9 +125,10 @@ def test_runtime_init_emits_one_fn_per_clock_profile() -> None:
     device, syn = _bundle("stm32f103c8t6.yml")
     text = emit_runtime_init(device, syn)
     for profile in device.clock.profiles:
-        # Function name is sanitised — matches alloy_clock_apply_<id>.
+        # Function name is sanitised — matches alloy_clock_enter_<id>
+        # under the complete-clock-tree-runtime-init proposal.
         safe_id = profile.id.replace("-", "_")
-        assert f"alloy_clock_apply_{safe_id}" in text
+        assert f"alloy_clock_enter_{safe_id}" in text
 
 
 def test_runtime_init_handles_chips_without_route_operations() -> None:

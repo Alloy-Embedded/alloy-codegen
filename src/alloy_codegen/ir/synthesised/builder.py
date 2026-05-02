@@ -22,6 +22,7 @@ order is the same on every machine.
 
 from __future__ import annotations
 
+from alloy_codegen.ir.synthesised.clock_program import ClockProgramStep
 from alloy_codegen.ir.synthesised.device import SynthesisedDevice
 from alloy_codegen.ir.synthesised.endpoints import SignalEndpoint
 from alloy_codegen.ir.synthesised.interrupts import (
@@ -241,6 +242,35 @@ def _synth_vector_slots(
 # ---------------------------------------------------------------------------
 
 
+def _synth_clock_program_steps(
+    device: CanonicalDevice,
+) -> dict[str, tuple[ClockProgramStep, ...]]:
+    """Lower every :class:`ClockProfile` to its vendor-agnostic
+    program via the per-vendor :class:`ClockBackend`.
+
+    Returns an empty dict for any vendor without a registered
+    backend yet — the runtime-init emitter then falls back to
+    declaration-only output for those profiles.
+
+    Local import is deliberate: the clock-backend registry lives
+    under ``alloy_codegen.emit_v2_1.clock_backends`` because the
+    backends carry artifact-adjacent knowledge (FLASH WS tables,
+    barrier discipline) that conceptually belongs next to the
+    runtime_init emitter rather than the IR layer.  We pay a
+    one-time import cost to keep the synthesiser's hot path free
+    of circular imports.
+    """
+    from alloy_codegen.emit_v2_1.clock_backends import backend_for
+
+    backend = backend_for(device.identity.vendor)
+    if backend is None:
+        return {}
+    return {
+        profile.id: backend.emit_profile(profile, device)
+        for profile in device.clock.profiles
+    }
+
+
 def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
     """Walk ``device`` and produce its :class:`SynthesisedDevice`.
 
@@ -259,4 +289,5 @@ def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
         interrupt_bindings=tuple(bindings),
         vector_slots=tuple(_synth_vector_slots(device.interrupts)),
         signal_endpoints=tuple(endpoints),
+        clock_program_steps=_synth_clock_program_steps(device),
     )
