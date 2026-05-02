@@ -1,13 +1,27 @@
 """Codegen emitters that consume the v2.1 IR.
 
-This package will grow as Phase 4 rewrites land.  Today (post-Phase
-3) it ships one proof-of-life emitter: :func:`emit_linker_script`,
-which produces a GNU LD script from a :class:`CanonicalDevice`.
+Public surface (post adopt-canonical-device-v2-1 + Phase 4 main):
+
+* :func:`emit_linker_script` — GNU LD script (memory map + stack
+  symbols + Harvard / XIP annotations).
+* :func:`emit_vector_table` — C source with the ISR vector array
+  (or a runtime-router stub for matrix-style chips).
+* :func:`emit_peripheral_traits` — C++ header with per-instance
+  ``constexpr`` traits + per-template register/field maps.
+* :func:`emit_runtime_init` — C source with the synthesised
+  ``RouteOperation`` table + clock-profile dispatch shells.
 """
 
 from __future__ import annotations
 
 from alloy_codegen.emit_v2_1.linker_script import emit_linker_script
+from alloy_codegen.emit_v2_1.peripheral_traits import emit_peripheral_traits
+from alloy_codegen.emit_v2_1.runtime_init import emit_runtime_init
 from alloy_codegen.emit_v2_1.vector_table import emit_vector_table
 
-__all__ = ["emit_linker_script", "emit_vector_table"]
+__all__ = [
+    "emit_linker_script",
+    "emit_peripheral_traits",
+    "emit_runtime_init",
+    "emit_vector_table",
+]
