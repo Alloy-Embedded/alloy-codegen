@@ -16,14 +16,8 @@ from alloy_codegen.errors import UnsupportedScopeError
 
 BOOTSTRAP_VENDOR = "st"
 BOOTSTRAP_FAMILY = "stm32g0"
-# Legacy semver string still consumed by the v1 IR loader during the
-# soak window of ``adopt-canonical-device-v2-1``.  Removed in the
-# cutover commit (Phase 7).
-IR_SCHEMA_VERSION = "1.2.0"
 # v2.1 lock-string — every YAML produced or consumed by the v2.1
 # pipeline declares this exact value as its top-level ``schema:`` key.
-# Embedded into the binary IR cache filename so a future schema bump
-# implicitly invalidates every cached pickle.
 CANONICAL_SCHEMA = "alloy.device.v2.1"
 PIPELINE_NAME = "alloy-codegen"
 PUBLICATION_TARGET_REPOSITORY = "alloy-devices"
