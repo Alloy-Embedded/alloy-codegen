@@ -5,6 +5,88 @@ All notable changes to alloy-codegen are recorded in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-05-02
+
+### Cross-vendor RCC synthesis + GateModel enum + compile gate
+
+`alloy-codegen` now produces nine artifacts per device (was six) and
+synthesises clock-gate / reset / kernel-clock-mux paths for **every
+admitted vendor**:
+
+```
+out/<vendor>/<family>/<chip>/
+├── linker.ld
+├── peripheral_id.hpp        (new — typed PeripheralId enum)
+├── peripheral_traits.h      (extended — kBus, kRccEnable, kRccReset,
+│                                        kKernelClockMux, kGateModel)
+├── pin_router.h
+├── rcc_enable.hpp           (new — direct-MMIO clock-gate helpers)
+├── rcc_traits.hpp           (new — typed `enum class GateModel`)
+├── runtime_init.c
+├── system_init.c
+└── vector_table.c
+```
+
+#### Added
+
+- **Cross-vendor RCC synthesis** (`complete-rcc-synthesis-cross-vendor`):
+  - **Espressif ESP32 / C3 / S3** — DPORT (esp32), SYSTEM
+    `perip_clk_en0/1` + `cpu_peri_clk_en` (c3/s3), and PCR
+    `<peri>_conf_reg` self-contained gates.  Hand-curated alias
+    map in `vendor_tables/espressif_clock_gates.py` resolves
+    legacy naming (`uart_clk_en` → `uart0`, `crypto_aes` → `aes`,
+    `timergroup` → `timg0`, `spi01` shared between spi0+spi1).
+  - **NXP iMXRT 1060** — full CCGR PID table from RM 14-5
+    (`vendor_tables/nxp_imxrt_ccgr.py`); mimxrt1062 jumps from
+    30 → 92 mapped peripherals.
+  - **Microchip SAM family** — GCLK kernel-clock-mux indices for
+    SAMD21 (`CLKCTRL.id<N>`), SAMD51/SAML21/SAML22
+    (`PCHCTRL[N].gen`).
+  - **AVR-Dx + Nordic NRF52** — explicit `always_on` marker pass
+    for silicon without per-peripheral gates.
+- **GateModel enum on the alloy boundary** (`rcc_traits.hpp`):
+  `always_on`, `per_peri_en`, `per_peri_en_rst`, `index_based`,
+  `per_peri_pcr`.  Every peripheral's `kGateModel` constexpr line
+  drives `constexpr if` dispatch in alloy HAL drivers.
+- **Per-device compile gate** (`add-alloy-hal-compile-gate-per-device`):
+  `scripts/run_compile_gate.py` drives `clang++ -Wall -Werror
+  -Wundef` over a generated probe TU per admitted device.  CI job
+  hard-fails on five reference fixtures (one per `GateModel`)
+  and report-only on the full 587-device matrix.
+
+#### Fixed
+
+Five emitter bugs surfaced by the compile gate (latent — golden
+text equality is weaker than C++ well-formedness):
+
+- `rcc_enable.py` — primary template `= delete` declarations
+  needed `noexcept` to match specialisation signatures.
+- `peripheral_traits.py` — namespace path didn't sanitise hyphens
+  (`alloy::microchip::avr-da::…` invalid C++).  Now sanitises
+  vendor + family + device.
+- `peripheral_traits.py` — C++ reserved keywords in enum entry
+  names (e.g. `default` from AVR-Dx ATDF) now suffixed with `_`.
+- `peripheral_traits.py` — unresolved template placeholders
+  (`%s`, `<n>`) in vendor YAML register / field names now
+  skipped at emit-time.
+- `pin_router.py` — same hyphen-sanitisation bug as
+  `peripheral_traits.py`; fixed via `_safe_c_id` wrapper.
+
+#### Coverage
+
+| Family | Mapped peripherals | GateModel branch |
+|--------|-------------------|------------------|
+| STM32 (F0/F1/F3/F4/G0/G4/H7) | 39+ per chip | `per_peri_en_rst` + `per_peri_en` |
+| RP2040 | 24 | `per_peri_en` |
+| Microchip SAMD51 | 46 + 26 GCLK muxes | `per_peri_en` |
+| Microchip SAMD21 | 26 + GCLK CLKCTRL | `per_peri_en` |
+| NXP iMXRT 1062 | 92 (was 30) | `index_based` |
+| Espressif ESP32-C3 | 25 (was 4) | `per_peri_en_rst` + `per_peri_pcr` |
+| Espressif ESP32-S3 | 33 (was 7) | `per_peri_en_rst` |
+| Espressif ESP32 | 20 (was 6) | `per_peri_en_rst` |
+| Microchip AVR-Dx | 47 (all) | `always_on` |
+| Nordic NRF52 | 7 (all) | `always_on` |
+
 ## [0.2.0] — 2026-05-02
 
 ### Generator parity with canonical-device v2.1
