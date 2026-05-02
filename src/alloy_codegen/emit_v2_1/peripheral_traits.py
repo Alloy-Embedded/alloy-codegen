@@ -27,6 +27,8 @@ driver.
 
 from __future__ import annotations
 
+import re
+
 from alloy_codegen.emit_v2_1.trait_classifier import (
     InstanceTraitKind,
     TemplateTraitKind,
@@ -327,6 +329,12 @@ def _emit_i2c_instance_traits(per: PeripheralInstance) -> list[str]:
     return out
 
 
+def _instance_number(per_id: str) -> int | None:
+    """Extract trailing digit(s) from a peripheral id (e.g. 'usart1' → 1)."""
+    m = re.search(r"(\d+)$", per_id)
+    return int(m.group(1)) if m else None
+
+
 def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -> list[str]:
     safe_id = per.id.replace("-", "_")
     out = [
@@ -334,12 +342,26 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
         f"  inline constexpr const char * kName       = \"{per.id}\";",
         f"  inline constexpr const char * kTemplate   = \"{per.template}\";",
     ]
+
+    # Instance number (1 for usart1, 2 for usart2, None for singletons)
+    inst_num = _instance_number(per.id)
+    if inst_num is not None:
+        out.append(f"  inline constexpr unsigned    kInstance    = {inst_num}u;")
+
     if per.ip_version:
         out.append(f"  inline constexpr const char * kIpVersion  = \"{per.ip_version}\";")
     if per.base is not None:
         out.append(f"  inline constexpr uintptr_t   kBaseAddress = {_hex_addr(per.base)};")
-    if per.bus:
-        out.append(f"  inline constexpr const char * kBus        = \"{per.bus}\";")
+
+    # Bus domain: prefer per.bus (inline YAML), then synthesised rcc.extra["bus"]
+    bus = per.bus
+    if not bus:
+        syn_rcc = syn.per_rcc_map.get(per.id)
+        if syn_rcc:
+            bus = str(syn_rcc.extra.get("bus", "")) or None
+    if bus:
+        out.append(f"  inline constexpr const char * kBus        = \"{bus}\";")
+
     if per.clock_source:
         out.append(f"  inline constexpr const char * kClockSrc   = \"{per.clock_source}\";")
     if per.max_clock_override:
@@ -359,11 +381,16 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
         )
         out.append(f"  inline constexpr unsigned    kIrqCount    = {len(per.irq)};")
 
-    # RCC
-    if per.rcc and per.rcc.en:
-        out.append(f"  inline constexpr const char * kRccEnable  = \"{per.rcc.en}\";")
-    if per.rcc and per.rcc.rst:
-        out.append(f"  inline constexpr const char * kRccReset   = \"{per.rcc.rst}\";")
+    # RCC — prefer per.rcc (inline), fall back to synthesised rcc_map entry
+    eff_rcc = per.rcc or syn.per_rcc_map.get(per.id)
+    if eff_rcc and eff_rcc.en:
+        out.append(f"  inline constexpr const char * kRccEnable  = \"{eff_rcc.en}\";")
+    if eff_rcc and eff_rcc.rst:
+        out.append(f"  inline constexpr const char * kRccReset   = \"{eff_rcc.rst}\";")
+    if eff_rcc:
+        clock_sel = eff_rcc.extra.get("clock_sel")
+        if clock_sel:
+            out.append(f"  inline constexpr const char * kKernelClockMux = \"{clock_sel}\";")
 
     # DMA
     if per.dma and per.dma.tx:

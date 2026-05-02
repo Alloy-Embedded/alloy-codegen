@@ -18,6 +18,7 @@ from alloy_codegen.ir.synthesised.interrupts import (
 )
 from alloy_codegen.ir.synthesised.pin_routes import PinRoute
 from alloy_codegen.ir.synthesised.route_operations import RouteOperation
+from alloy_codegen.ir.v2_1.peripherals import PeripheralRcc
 
 
 @dataclass(frozen=True, slots=True)
@@ -29,6 +30,11 @@ class SynthesisedDevice:
     vector_slots:        tuple[VectorSlot, ...] = field(default_factory=tuple)
     signal_endpoints:    tuple[SignalEndpoint, ...] = field(default_factory=tuple)
     clock_program_steps: dict[str, tuple[ClockProgramStep, ...]] = field(default_factory=dict)
+    per_rcc_map:         dict[str, PeripheralRcc] = field(default_factory=dict)
+    """Per-peripheral RCC info (enable + reset paths + bus + clock_sel).
+    Populated by cross-linking the top-level 'rcc' template fields to
+    each peripheral instance.  Falls back to the peripheral's own
+    ``rcc:`` block when set directly in the YAML."""
     """Per-profile clock program — keyed by ``ClockProfile.id``,
     valued as the ordered tuple of vendor-agnostic
     :class:`ClockProgramStep` rows the emitter walks to produce

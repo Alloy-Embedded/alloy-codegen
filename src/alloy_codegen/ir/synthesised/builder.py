@@ -36,11 +36,105 @@ from alloy_codegen.ir.v2_1 import (
     InterruptMatrix,
     InterruptVector,
     PeripheralInstance,
+    PeripheralRcc,
 )
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _bus_from_reg(reg: str) -> str | None:
+    """Infer APB/AHB bus domain from an RCC register name.
+
+    Handles two STM32 naming conventions:
+      * G0 / G4 / H7 style: ``apbenr1``, ``apbrstr2``   (suffix digit)
+      * F4 / F1 style:      ``apb1enr``, ``apb2rstr``   (infix digit)
+    """
+    import re as _re
+    r = reg.lower()
+    if "ahb" in r:
+        return "AHB"
+    # F4/F1: digit immediately after "apb" — e.g. apb2enr, apb1rstr
+    m = _re.search(r"apb([12])", r)
+    if m:
+        return f"APB{m.group(1)}"
+    # G0/G4/H7: digit at the end — e.g. apbenr1, apbrstr2, apbsmenr1
+    m = _re.search(r"apb.*?([12])$", r)
+    if m:
+        return f"APB{m.group(1)}"
+    if "apb" in r:
+        return "APB"
+    if "iop" in r:          # STM32 F1 IOPx → APB2
+        return "APB2"
+    return None
+
+
+def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
+    """Cross-link the 'rcc' template fields to peripheral IDs.
+
+    Reads ``device.templates["rcc"].fields`` (e.g. G0 / F4 format) and
+    returns a map from peripheral_id → PeripheralRcc.
+
+    Field naming convention:
+      * enable:      ``{reg}.{peripheral_id}en``   (not ``smen``/``rdy``)
+      * reset:       ``{reg}.{peripheral_id}rst``
+      * clock-mux:   ``ccipr.{peripheral_id}sel``  (or equivalent)
+
+    The ``extra`` dict on each PeripheralRcc carries:
+      * ``"bus"`` — inferred bus domain string (APB1, APB2, AHB…)
+      * ``"clock_sel"`` — dotted path for kernel-clock mux field
+    """
+    rcc_template = (device.templates or {}).get("rcc")
+    if rcc_template is None:
+        return {}
+
+    per_en:  dict[str, str] = {}   # per_id → "rcc.reg.field"
+    per_rst: dict[str, str] = {}
+    per_sel: dict[str, str] = {}
+
+    for field_key in rcc_template.fields:
+        parts = field_key.split(".", 1)
+        if len(parts) != 2:
+            continue
+        reg, fld = parts
+
+        # Enable: ends with "en" — exclude sleep-mode ("smen") and
+        # ready-flag ("rdy") fields which have the same suffix.
+        if (fld.endswith("en")
+                and not fld.endswith("smen")
+                and not fld.endswith("rdy")
+                and not fld.endswith("cen")):   # "lscoen" etc. are not peri enables
+            per_id = fld[:-2]
+            per_en[per_id] = f"rcc.{field_key}"
+
+        # Reset: ends with "rst"
+        elif fld.endswith("rst"):
+            per_id = fld[:-3]
+            per_rst[per_id] = f"rcc.{field_key}"
+
+        # Kernel-clock mux: ends with "sel" on a CCIPR/CCIPR2 register
+        elif fld.endswith("sel") and "ccipr" in reg.lower():
+            per_id = fld[:-3]
+            per_sel[per_id] = f"rcc.{field_key}"
+
+    all_ids = set(per_en) | set(per_rst)
+    result: dict[str, PeripheralRcc] = {}
+    for per_id in all_ids:
+        extra: dict[str, object] = {}
+        bus_reg = per_en.get(per_id, "").split(".")[1] if per_id in per_en else ""
+        bus = _bus_from_reg(bus_reg) if bus_reg else None
+        if bus:
+            extra["bus"] = bus
+        if per_id in per_sel:
+            extra["clock_sel"] = per_sel[per_id]
+        result[per_id] = PeripheralRcc(
+            en=per_en.get(per_id),
+            rst=per_rst.get(per_id),
+            extra=extra,
+        )
+
+    return result
 
 
 def _normalize_register_path(reg_path: str | None) -> str | None:
@@ -94,17 +188,26 @@ def _normalize_field_id(reg_path: str | None) -> str | None:
 # ---------------------------------------------------------------------------
 
 
-def _synth_clock_routes(per: PeripheralInstance) -> list[RouteOperation]:
+def _synth_clock_routes(
+    per: PeripheralInstance,
+    rcc_override: PeripheralRcc | None = None,
+) -> list[RouteOperation]:
+    """Synthesise clock-enable and reset RouteOperations.
+
+    ``rcc_override`` is the RCC entry from the template cross-link table
+    used when the peripheral YAML entry has no inline ``rcc:`` block.
+    """
+    effective_rcc = per.rcc or rcc_override
     rows: list[RouteOperation] = []
-    if per.rcc and per.rcc.en:
+    if effective_rcc and effective_rcc.en:
         rows.append(
             RouteOperation(
                 operation_id=f"operation:clock-enable:{per.id}",
                 kind="set-bit",
                 target_ref_kind="clock-gate",
                 target_ref_id=f"gate:{per.id}",
-                register_id=_normalize_register_path(per.rcc.en),
-                register_field_id=_normalize_field_id(per.rcc.en),
+                register_id=_normalize_register_path(effective_rcc.en),
+                register_field_id=_normalize_field_id(effective_rcc.en),
                 value_ref_kind="int",
                 value_int=1,
                 subject_kind="peripheral",
@@ -116,7 +219,7 @@ def _synth_clock_routes(per: PeripheralInstance) -> list[RouteOperation]:
                 ),
             )
         )
-    if per.rcc and per.rcc.rst:
+    if effective_rcc and effective_rcc.rst:
         # Reset is a "pulse": set + clear.  Codegen emits one
         # set-bit followed by clear-bit; we emit both rows here so
         # the pipeline can drive each independently.
@@ -126,8 +229,8 @@ def _synth_clock_routes(per: PeripheralInstance) -> list[RouteOperation]:
                 kind="set-bit",
                 target_ref_kind="reset",
                 target_ref_id=f"reset:{per.id}",
-                register_id=_normalize_register_path(per.rcc.rst),
-                register_field_id=_normalize_field_id(per.rcc.rst),
+                register_id=_normalize_register_path(effective_rcc.rst),
+                register_field_id=_normalize_field_id(effective_rcc.rst),
                 value_ref_kind="int",
                 value_int=1,
                 subject_kind="peripheral",
@@ -140,8 +243,8 @@ def _synth_clock_routes(per: PeripheralInstance) -> list[RouteOperation]:
                 kind="clear-bit",
                 target_ref_kind="reset",
                 target_ref_id=f"reset:{per.id}",
-                register_id=_normalize_register_path(per.rcc.rst),
-                register_field_id=_normalize_field_id(per.rcc.rst),
+                register_id=_normalize_register_path(effective_rcc.rst),
+                register_field_id=_normalize_field_id(effective_rcc.rst),
                 value_ref_kind="int",
                 value_int=0,
                 subject_kind="peripheral",
@@ -316,13 +419,25 @@ def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
     Deterministic — re-running on the same input yields a structurally-
     equal result (every aggregate is built in source order).
     """
+    # Build the RCC lookup from the 'rcc' template (STM32-style YAMLs
+    # declare clock-enable/reset fields centrally, not per peripheral).
+    rcc_lookup = _build_rcc_lookup(device)
+
     route_ops: list[RouteOperation] = []
     bindings: list[InterruptBinding] = []
     endpoints: list[SignalEndpoint] = []
+    per_rcc_map: dict[str, PeripheralRcc] = {}
+
     for per in device.peripherals:
-        route_ops.extend(_synth_clock_routes(per))
+        # Prefer the peripheral's own rcc: block; fall back to the lookup.
+        rcc_override = None if per.rcc else rcc_lookup.get(per.id)
+        route_ops.extend(_synth_clock_routes(per, rcc_override))
         bindings.extend(_synth_interrupt_bindings(per))
         endpoints.extend(_synth_signal_endpoints(per))
+        effective_rcc = per.rcc or rcc_override
+        if effective_rcc:
+            per_rcc_map[per.id] = effective_rcc
+
     return SynthesisedDevice(
         route_operations=tuple(route_ops),
         interrupt_bindings=tuple(bindings),
@@ -330,4 +445,5 @@ def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
         signal_endpoints=tuple(endpoints),
         clock_program_steps=_synth_clock_program_steps(device),
         pin_routes=_synth_pin_routes(device),
+        per_rcc_map=per_rcc_map,
     )

@@ -32,6 +32,7 @@ from pathlib import Path
 from alloy_codegen.bootstrap import CANONICAL_SCHEMA
 from alloy_codegen.emit_v2_1 import (
     emit_linker_script,
+    emit_peripheral_id,
     emit_peripheral_traits,
     emit_pin_router,
     emit_runtime_init,
@@ -64,6 +65,12 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         filename="vector_table.c",
         fn=emit_vector_table,
         description="ISR vector table (or matrix-router stub).",
+    ),
+    _EmitterEntry(
+        name="peripheral_id",
+        filename="peripheral_id.hpp",
+        fn=emit_peripheral_id,
+        description="Typed PeripheralId enum — one enumerator per peripheral instance.",
     ),
     _EmitterEntry(
         name="peripheral_traits",
