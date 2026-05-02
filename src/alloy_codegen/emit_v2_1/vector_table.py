@@ -74,7 +74,7 @@ def emit_vector_table(
         f"#include <stdint.h>\n\n"
         + "\n".join(extern_decls)
         + "\n\n"
-        + f"__attribute__((section(\".isr_vector\"), used))\n"
+        + "__attribute__((section(\".isr_vector\"), used))\n"
         + f"void * const _vector_table[{max_slot + 1}] = {{\n"
         + "\n".join(table_rows)
         + "\n};\n"

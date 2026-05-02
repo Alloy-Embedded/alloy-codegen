@@ -111,14 +111,14 @@ def emit_linker_script(device: CanonicalDevice) -> str:
     """Render a GNU LD linker script for ``device``."""
     lines = [
         f"/* Linker script for {device.identity.vendor}/{device.identity.family}/{device.identity.device}",
-        f" *",
+        " *",
         f" * Core: {device.identity.core.name} ({device.identity.core.bits}-bit, "
         f"{device.identity.core.isa})",
     ]
     if device.identity.description:
         for desc_line in device.identity.description.splitlines():
             lines.append(f" * {desc_line}".rstrip())
-    lines.append(f" *")
+    lines.append(" *")
     lines.append(f" * Schema: {device.schema}")
     lines.append(f" * Provenance: {device.provenance.primary}")
     lines.append(" */")

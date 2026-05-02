@@ -27,7 +27,6 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import fields, is_dataclass
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -55,8 +54,6 @@ from alloy_codegen.ir.v2_1 import (
     Multicore,
     MulticoreCore,
     Oscillator,
-    PIN_CONSTRAINT_ALLOWED,
-    PLLConfig,
     PeripheralDma,
     PeripheralInstance,
     PeripheralIrq,
@@ -65,6 +62,7 @@ from alloy_codegen.ir.v2_1 import (
     PinOptionFixed,
     PinOptionMatrix,
     PinOptionPsel,
+    PLLConfig,
     Provenance,
     SelectRegister,
     SelectTask,
@@ -116,7 +114,7 @@ class _StringDatesLoader(_BaseSafeLoader):
     """
 
 
-def _filter_implicit(entries: list[tuple[str, "Any"]]) -> list[tuple[str, "Any"]]:
+def _filter_implicit(entries: list[tuple[str, Any]]) -> list[tuple[str, Any]]:
     out = []
     for tag, regex in entries:
         if tag == "tag:yaml.org,2002:timestamp":

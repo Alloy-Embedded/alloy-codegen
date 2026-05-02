@@ -11,7 +11,6 @@ import alloy_codegen
 from alloy_codegen.bootstrap import DEVICE_REGISTRY
 from alloy_codegen.errors import ConfigError
 
-
 # ---------------------------------------------------------------------------
 # Lightweight stand-ins for alloy_cli.core.project.{ChipRef, BoardRef}.
 # Deliberately *not* importing from alloy-cli — that would invert the

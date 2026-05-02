@@ -206,28 +206,28 @@ def emit_peripheral_traits(
     """Render the peripheral-traits header for ``device``."""
     guard = _header_guard(device)
     lines: list[str] = [
-        f"// peripheral_traits.h",
-        f"//",
+        "// peripheral_traits.h",
+        "//",
         f"// {device.identity.vendor}/{device.identity.family}/{device.identity.device}"
         f" — generated from {device.schema}",
-        f"//",
+        "//",
         f"// Provenance: {device.provenance.primary}",
         f"// Authored:   {device.provenance.authored}",
-        f"//",
-        f"// Each peripheral instance lives in its own ``namespace`` carrying",
-        f"// ``constexpr`` traits.  Each unique IP template lives in",
-        f"// ``namespace template_<ip>`` carrying register offsets + bit",
-        f"// positions of every named field.",
-        f"",
+        "//",
+        "// Each peripheral instance lives in its own ``namespace`` carrying",
+        "// ``constexpr`` traits.  Each unique IP template lives in",
+        "// ``namespace template_<ip>`` carrying register offsets + bit",
+        "// positions of every named field.",
+        "",
         f"#ifndef {guard}",
         f"#define {guard}",
-        f"",
-        f"#include <cstddef>",
-        f"#include <cstdint>",
-        f"",
+        "",
+        "#include <cstddef>",
+        "#include <cstdint>",
+        "",
         f"namespace alloy::{device.identity.vendor}::{device.identity.family}"
         f"::{device.identity.device.replace('-', '_')} {{",
-        f"",
+        "",
     ]
 
     # Sorted templates first — they're referenced by per-instance namespaces.

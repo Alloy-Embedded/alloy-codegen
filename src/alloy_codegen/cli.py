@@ -37,7 +37,7 @@ from alloy_codegen.emit_v2_1 import (
     emit_vector_table,
 )
 from alloy_codegen.errors import StageExecutionError
-from alloy_codegen.ir.synthesised import SynthesisedDevice, build_synthesised
+from alloy_codegen.ir.synthesised import SynthesisedDevice
 from alloy_codegen.ir.v2_1 import CanonicalDevice
 from alloy_codegen.sources.alloy_devices_yml import load_with_synthesis
 
@@ -114,16 +114,33 @@ def _parse_target(target: str) -> tuple[str, str, str]:
 
 
 def _list_devices() -> int:
-    from alloy_codegen.bootstrap import DEVICE_REGISTRY
+    # Lazy import — bootstrap walks ``data/devices/`` on first
+    # access.  PyPI wheels don't ship that data, so guard the
+    # ``UnsupportedScopeError`` with a friendly hint instead of a
+    # raw traceback.
+    from alloy_codegen.errors import UnsupportedScopeError
+
+    try:
+        from alloy_codegen.bootstrap import DEVICE_REGISTRY
+        registry = DEVICE_REGISTRY
+    except UnsupportedScopeError as exc:
+        print(f"alloy-codegen: device registry unavailable — {exc}", file=sys.stderr)
+        print(
+            "Hint: install from a checkout with the `alloy-devices-yml` "
+            "submodule mounted (`git submodule update --init`), or use "
+            "alloy-cli which ships its own data layer.",
+            file=sys.stderr,
+        )
+        return 2
 
     print(f"# alloy-codegen — admitted devices ({CANONICAL_SCHEMA})")
     print()
-    for (vendor, family), devices in sorted(DEVICE_REGISTRY.items()):
+    for (vendor, family), devices in sorted(registry.items()):
         print(f"## {vendor} / {family}")
         for d in devices:
             print(f"  - {vendor}/{family}/{d}")
         print()
-    print(f"Total: {sum(len(v) for v in DEVICE_REGISTRY.values())} devices")
+    print(f"Total: {sum(len(v) for v in registry.values())} devices")
     return 0
 
 

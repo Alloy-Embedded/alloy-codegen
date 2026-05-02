@@ -59,7 +59,7 @@ def test_peripheral_traits_emits_kBaseAddress_per_instance() -> None:
     # Every peripheral with a base address surfaces a kBaseAddress line.
     for per in device.peripherals:
         if per.base is not None:
-            assert f"kBaseAddress" in text
+            assert "kBaseAddress" in text
 
 
 def test_peripheral_traits_field_constants_have_bit_position() -> None:

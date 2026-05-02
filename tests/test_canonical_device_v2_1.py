@@ -28,7 +28,6 @@ from alloy_codegen.ir.v2_1 import (
     PinOptionPsel,
 )
 
-
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _HANDCRAFTED_DIR = _REPO_ROOT.parent / "alloy-data-extractor" / "proposals" / "canonical-v2-handcrafted"
 

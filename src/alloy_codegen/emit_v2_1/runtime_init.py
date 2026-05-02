@@ -120,26 +120,26 @@ def emit_runtime_init(
     osc_freq = {k: v.freq for k, v in device.clock.oscillators.items()}
 
     lines: list[str] = [
-        f"/* runtime_init.c",
-        f" *",
+        "/* runtime_init.c",
+        " *",
         f" * {device.identity.vendor}/{device.identity.family}/{device.identity.device}"
         f" — generated from {device.schema}",
-        f" *",
+        " *",
         f" * Provenance: {device.provenance.primary}",
         f" * Authored:   {device.provenance.authored}",
-        f" *",
-        f" * Generated artifacts:",
-        f" *   * kRouteOperations[] — clock-enable + reset pulse table",
-        f" *     (synthesised from peripherals[].rcc).",
-        f" *   * alloy_clock_apply_<profile>() — one fn per",
-        f" *     clock.profiles[] entry.",
-        f" *",
-        f" * Vendor shims provide:",
-        f" *   * int alloy_runtime_apply_op(const AlloyRouteOperation *);",
-        f" *   * int alloy_clock_set_<profile_id>_impl(void);",
-        f" */",
-        f"#include <stddef.h>",
-        f"#include <stdint.h>",
+        " *",
+        " * Generated artifacts:",
+        " *   * kRouteOperations[] — clock-enable + reset pulse table",
+        " *     (synthesised from peripherals[].rcc).",
+        " *   * alloy_clock_apply_<profile>() — one fn per",
+        " *     clock.profiles[] entry.",
+        " *",
+        " * Vendor shims provide:",
+        " *   * int alloy_runtime_apply_op(const AlloyRouteOperation *);",
+        " *   * int alloy_clock_set_<profile_id>_impl(void);",
+        " */",
+        "#include <stddef.h>",
+        "#include <stdint.h>",
         "",
         "typedef struct AlloyRouteOperation {",
         "    const char *operation_id;",
@@ -158,8 +158,8 @@ def emit_runtime_init(
             lines.append(_emit_route_op_row(op))
         lines.append("};")
         lines.append(
-            f"static const size_t kRouteOperationCount = "
-            f"sizeof(kRouteOperations) / sizeof(kRouteOperations[0]);"
+            "static const size_t kRouteOperationCount = "
+            "sizeof(kRouteOperations) / sizeof(kRouteOperations[0]);"
         )
     else:
         lines.append("static const AlloyRouteOperation *kRouteOperations = NULL;")
