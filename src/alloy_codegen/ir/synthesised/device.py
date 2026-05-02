@@ -16,6 +16,7 @@ from alloy_codegen.ir.synthesised.interrupts import (
     InterruptBinding,
     VectorSlot,
 )
+from alloy_codegen.ir.synthesised.pin_routes import PinRoute
 from alloy_codegen.ir.synthesised.route_operations import RouteOperation
 
 
@@ -35,3 +36,10 @@ class SynthesisedDevice:
     :class:`ClockBackend` matches the device's vendor (the
     runtime-init emitter then falls back to the legacy
     forward-declaration-only output)."""
+    pin_routes:          tuple[PinRoute, ...] = field(default_factory=tuple)
+    """Deterministically-ordered table of every
+    ``(peripheral_instance, peripheral_signal, pin)`` triple the
+    IR admits as a valid routing.  Produced by walking
+    ``device.peripherals[*].pin_options`` and delegating to a
+    :class:`PinmuxBackend` keyed by the family's pinmux schema
+    id.  Sorted by ``(peripheral_id, signal_id, pin_id)``."""

@@ -23,12 +23,14 @@ from alloy_codegen.ir.synthesised.interrupts import (
     InterruptBinding,
     VectorSlot,
 )
+from alloy_codegen.ir.synthesised.pin_routes import PinRoute
 from alloy_codegen.ir.synthesised.route_operations import RouteOperation
 
 __all__ = [
     "ClockProgramStep",
     "ClockStepKind",
     "InterruptBinding",
+    "PinRoute",
     "RouteOperation",
     "SignalEndpoint",
     "SynthesisedDevice",

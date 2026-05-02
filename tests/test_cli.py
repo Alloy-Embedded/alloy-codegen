@@ -9,10 +9,11 @@ import pytest
 from alloy_codegen.cli import _EMITTERS, _parse_target, main
 
 
-def test_emitter_registry_carries_all_four() -> None:
+def test_emitter_registry_carries_every_known_emitter() -> None:
     names = {e.name for e in _EMITTERS}
     assert names == {"linker_script", "vector_table",
-                     "peripheral_traits", "runtime_init"}
+                     "peripheral_traits", "runtime_init",
+                     "pin_router"}
 
 
 def test_parse_target_three_part() -> None:
@@ -45,12 +46,12 @@ def test_main_list_succeeds(capsys: pytest.CaptureFixture) -> None:
     assert "alloy.device.v2.1" in out
 
 
-def test_main_emits_all_four_artifacts(tmp_path: Path) -> None:
+def test_main_emits_every_artifact(tmp_path: Path) -> None:
     rc = main(["st/stm32g0/stm32g0b1re", "--out", str(tmp_path)])
     assert rc == 0
     chip_out = tmp_path / "st" / "stm32g0" / "stm32g0b1re"
     expected = {"linker.ld", "vector_table.c",
-                "peripheral_traits.h", "runtime_init.c"}
+                "peripheral_traits.h", "runtime_init.c", "pins.h"}
     actual = {p.name for p in chip_out.iterdir()}
     assert actual == expected
 

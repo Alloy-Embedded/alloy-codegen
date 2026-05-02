@@ -21,6 +21,7 @@ from typing import Any, Protocol, runtime_checkable
 from alloy_codegen.emit_v2_1 import (
     emit_linker_script,
     emit_peripheral_traits,
+    emit_pin_router,
     emit_runtime_init,
     emit_vector_table,
 )
@@ -87,6 +88,11 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         name="runtime_init",
         filename="runtime_init.c",
         fn=emit_runtime_init,
+    ),
+    _EmitterEntry(
+        name="pin_router",
+        filename="pins.h",
+        fn=emit_pin_router,
     ),
 )
 

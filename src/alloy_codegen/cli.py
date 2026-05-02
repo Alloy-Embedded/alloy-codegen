@@ -33,6 +33,7 @@ from alloy_codegen.bootstrap import CANONICAL_SCHEMA
 from alloy_codegen.emit_v2_1 import (
     emit_linker_script,
     emit_peripheral_traits,
+    emit_pin_router,
     emit_runtime_init,
     emit_vector_table,
 )
@@ -74,6 +75,12 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         filename="runtime_init.c",
         fn=emit_runtime_init,
         description="RouteOperation table + clock-profile dispatch shells.",
+    ),
+    _EmitterEntry(
+        name="pin_router",
+        filename="pins.h",
+        fn=emit_pin_router,
+        description="Typed pin id + signal-to-pad route table.",
     ),
 )
 

@@ -29,6 +29,7 @@ from alloy_codegen.ir.synthesised.interrupts import (
     InterruptBinding,
     VectorSlot,
 )
+from alloy_codegen.ir.synthesised.pin_routes import PinRoute
 from alloy_codegen.ir.synthesised.route_operations import RouteOperation
 from alloy_codegen.ir.v2_1 import (
     CanonicalDevice,
@@ -242,6 +243,44 @@ def _synth_vector_slots(
 # ---------------------------------------------------------------------------
 
 
+def _synth_pin_routes(device: CanonicalDevice) -> tuple[PinRoute, ...]:
+    """Lower every (peripheral, signal, pin_option) triple to a
+    canonical :class:`PinRoute` via the family's
+    :class:`PinmuxBackend`.
+
+    Returns an empty tuple when no backend ships for the family
+    yet — the pin-router emitter then emits a stub
+    ``ALLOY_PIN_ROUTE_COUNT == 0`` artifact and consumers compile
+    cleanly.
+
+    Sorted by ``(peripheral_id, signal_id, pin_id)`` so the
+    regenerated table is byte-stable across runs.
+
+    Local import (deferred) to keep the IR layer free of an
+    eager dependency on ``emit_v2_1`` — same pattern as
+    :func:`_synth_clock_program_steps`.
+    """
+    from alloy_codegen.emit_v2_1.pinmux_backends import backend_for
+
+    backend = backend_for(device.identity.vendor, device.identity.family)
+    if backend is None:
+        return ()
+    rows: list[PinRoute] = []
+    for per in device.peripherals:
+        for signal, options in per.pin_options.items():
+            for option in options:
+                try:
+                    rows.append(backend.encode(per, signal, option))
+                except ValueError:
+                    # Backend rejected an option type it can't handle
+                    # (e.g. STM32 backend seeing a Matrix option from
+                    # a future heterogeneous family).  Drop quietly;
+                    # the option survives in the IR for diagnostics.
+                    continue
+    rows.sort(key=lambda r: (r.peripheral_id, r.signal_id, r.pin_id))
+    return tuple(rows)
+
+
 def _synth_clock_program_steps(
     device: CanonicalDevice,
 ) -> dict[str, tuple[ClockProgramStep, ...]]:
@@ -290,4 +329,5 @@ def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
         vector_slots=tuple(_synth_vector_slots(device.interrupts)),
         signal_endpoints=tuple(endpoints),
         clock_program_steps=_synth_clock_program_steps(device),
+        pin_routes=_synth_pin_routes(device),
     )
