@@ -38,6 +38,15 @@ from alloy_codegen.ir.v2_1 import (
     PeripheralInstance,
     PeripheralRcc,
 )
+from alloy_codegen.ir.vendor_tables.espressif_clock_gates import (
+    ESPRESSIF_CHIP_GATES,
+    ESPRESSIF_PCR_FAMILIES,
+    PCR_FIELD_CLK_PATTERN,
+    PCR_FIELD_RST_PATTERN,
+    PCR_REGISTER_PATTERN,
+)
+from alloy_codegen.ir.vendor_tables.microchip_sam_gclk import SAM_GCLK_TABLES
+from alloy_codegen.ir.vendor_tables.nxp_imxrt_ccgr import IMXRT_CCGR_TABLES
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -149,6 +158,11 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
     per_en: dict[str, str] = {}  # per_id → "rcc.reg.field"
     per_rst: dict[str, str] = {}
     per_sel: dict[str, str] = {}
+    # Per-peripheral bus tag from non-STM32 vendors (DPORT / SYSTEM /
+    # PCR on Espressif, etc.).  STM32 derives bus from register name
+    # via ``_bus_from_reg`` at assembly time, so STM32 entries are
+    # absent from this map.
+    per_bus: dict[str, str] = {}
 
     # ----- STM32 'rcc' template -----------------------------------------
     rcc_template = templates.get("rcc")
@@ -364,12 +378,163 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
             if per_id in valid_per_ids:
                 per_sel[per_id] = f"ccm.{field_key}"
 
+    # ----- Microchip SAMx GCLK kernel-clock-mux ------------------------
+    # SAMD21 (CLKCTRL) and SAMD51/SAML21/SAML22 (PCHCTRL[N]) gate
+    # each peripheral's *kernel clock* through the GCLK module.  The
+    # peripheral → channel-index map is chip-specific and lives in
+    # ``alloy_codegen.ir.vendor_tables.microchip_sam_gclk``; this
+    # branch reads the right table by family and writes the
+    # ``extra["clock_sel"]`` entry every peripheral in the table.
+    if device.identity.family in SAM_GCLK_TABLES:
+        sam_id_table, sam_path_tmpl = SAM_GCLK_TABLES[device.identity.family]
+        for per_id, channel_idx in sam_id_table.items():
+            if per_id not in valid_per_ids:
+                continue
+            per_sel[per_id] = sam_path_tmpl.format(n=channel_idx)
+
+    # ----- NXP iMXRT CCGR PID table -----------------------------------
+    # CCGR0..CCGR6 carry 16 two-bit gate fields each; the (ccgr, cg)
+    # → peripheral mapping is defined by the i.MX RT 1060 RM Table
+    # 14-5 and lives in ``alloy_codegen.ir.vendor_tables.nxp_imxrt_ccgr``.
+    # The CCGR has no separate reset bits (peripherals reset via
+    # their own SOFT_RESET register), so we only populate ``en``.
+    # Bus tag: ``"CCGR"`` (a synthetic bus name used by the alloy
+    # HAL to dispatch to the index-based gate path).
+    if device.identity.family in IMXRT_CCGR_TABLES:
+        ccgr_table = IMXRT_CCGR_TABLES[device.identity.family]
+        for (ccgr_idx, cg_idx), peri_or_tuple in ccgr_table.items():
+            if peri_or_tuple is None:
+                continue  # slot doesn't map to any admitted peripheral
+            path = f"ccm.ccgr{ccgr_idx}.cg{cg_idx}"
+            if isinstance(peri_or_tuple, str):
+                candidates: tuple[str, ...] = (peri_or_tuple,)
+            else:
+                candidates = peri_or_tuple
+            for per_id in candidates:
+                if per_id not in valid_per_ids:
+                    continue
+                # Don't shadow inline ``rcc:`` blocks already on
+                # the YAML; setdefault preserves the YAML's
+                # original path while still picking up CCGR for
+                # the ~80 peripherals without inline gates.
+                per_en.setdefault(per_id, path)
+                per_bus[per_id] = "CCGR"
+
+    # ----- Espressif ESP32 / C3 / S3 (DPORT / SYSTEM / PCR) -----------
+    # Three Espressif generations, each with its own clock-gate
+    # convention.  The vendor table at
+    # ``alloy_codegen.ir.vendor_tables.espressif_clock_gates`` carries
+    # the per-chip register groups + alias maps; this branch walks
+    # them and writes the ``en`` / ``rst`` paths plus the bus tag.
+    family = device.identity.family
+    chip_id = device.identity.device
+    chip_configs = ESPRESSIF_CHIP_GATES.get((family, chip_id), ())
+    for cfg in chip_configs:
+        tmpl = templates.get(cfg.template)
+        if tmpl is None:
+            continue
+        for group in cfg.groups:
+            # Build the (register → field-id-list) index for this group.
+            for field_key in tmpl.fields:
+                parts = field_key.split(".", 1)
+                if len(parts) != 2:
+                    continue
+                reg, fld = parts
+                # Match the field to either the enable or reset
+                # register/suffix combination of this group.
+                target: dict[str, str] | None = None
+                stem: str | None = None
+                if reg == group.en_register and not group.prefix_form and fld.endswith(group.en_suffix):
+                    target = per_en
+                    stem = fld[: -len(group.en_suffix)]
+                elif reg == group.rst_register and not group.prefix_form and fld.endswith(group.rst_suffix):
+                    target = per_rst
+                    stem = fld[: -len(group.rst_suffix)]
+                elif reg == group.en_register and group.prefix_form and fld.startswith(group.en_suffix):
+                    target = per_en
+                    stem = fld[len(group.en_suffix):]
+                elif reg == group.rst_register and group.prefix_form and fld.startswith(group.rst_suffix):
+                    target = per_rst
+                    stem = fld[len(group.rst_suffix):]
+                if target is None or stem is None:
+                    continue
+                if stem in cfg.skip:
+                    continue
+                # Resolve stem → peripheral id(s) via the alias map
+                # (or default to the stem itself).
+                resolved = cfg.aliases.get(stem, stem)
+                if isinstance(resolved, str):
+                    candidates: tuple[str, ...] = (resolved,)
+                else:
+                    candidates = tuple(resolved)
+                path = f"{cfg.template}.{field_key}"
+                for per_id in candidates:
+                    if per_id not in valid_per_ids:
+                        continue
+                    if target is per_en:
+                        per_en.setdefault(per_id, path)
+                    else:
+                        per_rst.setdefault(per_id, path)
+                    per_bus[per_id] = cfg.bus
+
+    # PCR self-contained group (ESP32-C3 / S3): gates live inside the
+    # peripheral's own ``<peri>_conf{,0}_reg`` register.  Field
+    # discovery is regex-driven against the ``pcr`` template.
+    if family in ESPRESSIF_PCR_FAMILIES:
+        pcr_template = templates.get("pcr")
+        if pcr_template is not None:
+            import re as _re
+
+            for field_key in pcr_template.fields:
+                parts = field_key.split(".", 1)
+                if len(parts) != 2:
+                    continue
+                reg, fld = parts
+                reg_match = _re.match(PCR_REGISTER_PATTERN, reg)
+                if reg_match is None:
+                    continue
+                reg_peri = reg_match.group("peri")
+                # The field name carries its own ``<peri>_clk_en``
+                # / ``<peri>_rst_en`` so cross-validate that the
+                # field's peripheral matches the register's.
+                clk_match = _re.match(PCR_FIELD_CLK_PATTERN, fld)
+                rst_match = _re.match(PCR_FIELD_RST_PATTERN, fld)
+                target = None
+                fld_peri = None
+                if clk_match is not None:
+                    target = per_en
+                    fld_peri = clk_match.group("peri")
+                elif rst_match is not None:
+                    target = per_rst
+                    fld_peri = rst_match.group("peri")
+                if target is None or fld_peri is None:
+                    continue
+                # Trust the register name as the canonical id (UART
+                # uses ``uart0_conf0_reg`` so the field-side stem may
+                # carry the ``0`` while the register stem already
+                # includes it).
+                per_id = reg_peri
+                if per_id not in valid_per_ids:
+                    continue
+                path = f"pcr.{field_key}"
+                # PCR overrides any earlier SYSTEM-template gate: on
+                # ESP32-C3 / S3 the PCR ``<peri>_conf_reg`` is the
+                # per-peripheral primary clock-gate; the SYSTEM
+                # ``perip_clk_en*.<peri>_clk_en`` field is a legacy
+                # mirror.  HAL drivers MUST write PCR for run-mode
+                # gating, so the synthesised entry promotes it.
+                if target is per_en:
+                    per_en[per_id] = path
+                else:
+                    per_rst[per_id] = path
+                per_bus[per_id] = "PCR"
+
     # ----- assemble the final PeripheralRcc map ------------------------
     # Include peripherals that have ONLY a kernel-clock mux (no enable
     # or reset bit in the templates) — without ``per_sel`` in the union
     # iMXRT's sai1 / can1 etc. would lose their kKernelClockMux just
     # because the CCGR clock-gate table isn't extracted yet.
-    all_ids = set(per_en) | set(per_rst) | set(per_sel)
+    all_ids = set(per_en) | set(per_rst) | set(per_sel) | set(per_bus)
     result: dict[str, PeripheralRcc] = {}
     for per_id in all_ids:
         extra: dict[str, object] = {}
@@ -381,15 +546,89 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
             bus = _bus_from_reg(bus_reg) if bus_reg else None
             if bus:
                 extra["bus"] = bus
+        # Non-STM32 vendors set their bus tag explicitly during
+        # template-walk (DPORT / SYSTEM / PCR for Espressif, etc.).
+        if per_id in per_bus:
+            extra["bus"] = per_bus[per_id]
         if per_id in per_sel:
             extra["clock_sel"] = per_sel[per_id]
-        result[per_id] = PeripheralRcc(
-            en=per_en.get(per_id),
-            rst=per_rst.get(per_id),
-            extra=extra,
-        )
+        # Derive ``gate_model`` from the synthesised path shape.
+        # Closed five-value enum: always_on / per_peri_en /
+        # per_peri_en_rst / index_based / per_peri_pcr.  HAL drivers
+        # ``constexpr if`` on this to short-circuit the gate-write
+        # path on always-on silicon, dispatch to index-parsing for
+        # CCGR-style gates, etc.
+        en = per_en.get(per_id)
+        rst = per_rst.get(per_id)
+        gate_model = _derive_gate_model(en, rst, per_bus.get(per_id))
+        if gate_model is not None:
+            extra["gate_model"] = gate_model
+        result[per_id] = PeripheralRcc(en=en, rst=rst, extra=extra)
+
+    # ----- always-on marker pass for vendors with no per-peri gate ----
+    # AVR-Dx and Nordic NRF52 silicon have NO per-peripheral clock
+    # gate — peripherals are clocked whenever the bus is alive.  The
+    # alloy HAL needs to *know* this to short-circuit the EnableClock
+    # path; without an explicit marker, the trait surface looks
+    # identical to "synthesis missed this family" (an emitter bug).
+    if device.identity.family in {"avr-da", "nrf52"}:
+        for per in device.peripherals:
+            if per.id in result:
+                # Peripheral already carries a gate (rare on these
+                # families, but possible if YAML inline declares one).
+                # Leave the existing entry alone.
+                continue
+            result[per.id] = PeripheralRcc(
+                en=None,
+                rst=None,
+                extra={"gate_model": "always_on"},
+            )
 
     return result
+
+
+def _derive_gate_model(
+    en: str | None, rst: str | None, bus: str | None
+) -> str | None:
+    """Map a synthesised RCC path shape to one of the five
+    ``GateModel`` enumerators.
+
+    Returns ``None`` when no gate exists (the always-on pass on
+    avr-da / nrf52 fills those entries instead).  Otherwise:
+
+    * ``index_based``    — CCGR-style index path
+      (``ccm.ccgr<N>.cg<M>`` on iMXRT).
+    * ``per_peri_pcr``   — gate lives inside the peripheral's own
+      register block (ESP32-C3 / S3 ``pcr.<peri>_conf_reg.<peri>_clk_en``).
+    * ``per_peri_en_rst`` — separate enable + reset bits in
+      centralised registers (every STM32 family, Microchip SAMD51
+      with explicit rstc, etc.).
+    * ``per_peri_en``    — single bit serves as both enable and
+      reset release (RP2040 ``resets.reset.<peri>``, SAMD21 with
+      no PMC/RSTC reset path).
+    * ``always_on``      — silicon has no gate (handled by the
+      caller's vendor-family branch, not here).
+    """
+    if en is None and rst is None:
+        return None
+    # iMXRT CCGR: bus tag flagged "CCGR" by the CCGR table branch.
+    if bus == "CCGR":
+        return "index_based"
+    # ESP32-C3 / S3 PCR self-contained: bus tag "PCR" + path starts
+    # with ``pcr.``.
+    if bus == "PCR":
+        return "per_peri_pcr"
+    # Both en and rst populated → classic STM32-style separate
+    # enable/reset.
+    if en is not None and rst is not None:
+        # RP2040 "resets.reset.<peri>" mirrors the same path into
+        # both en and rst — that's a per_peri_en (one bit serves
+        # both roles), not a per_peri_en_rst.
+        if en == rst and en.startswith("resets."):
+            return "per_peri_en"
+        return "per_peri_en_rst"
+    # Only one of en/rst populated.
+    return "per_peri_en"
 
 
 def _normalize_register_path(reg_path: str | None) -> str | None:
@@ -701,6 +940,30 @@ def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
                 rst=per.rcc.rst or synthed.rst,
                 extra=merged_extra,
             )
+        # Backfill ``gate_model`` for peripherals that came in via
+        # inline ``rcc:`` only (the synthesised lookup never saw
+        # them, so ``_derive_gate_model`` ran with empty paths and
+        # never assigned an enumerator).  The inline path shape is
+        # the same shape we'd derive from a template, so the same
+        # heuristic applies.
+        if effective_rcc is not None and "gate_model" not in effective_rcc.extra:
+            _bus_val = effective_rcc.extra.get("bus")
+            _bus_str: str | None = _bus_val if isinstance(_bus_val, str) else None
+            inline_gate_model = _derive_gate_model(
+                effective_rcc.en,
+                effective_rcc.rst,
+                _bus_str,
+            )
+            if inline_gate_model is not None:
+                # Build a new dict so the frozen dataclass doesn't
+                # need mutation-in-place.
+                new_extra = dict(effective_rcc.extra)
+                new_extra["gate_model"] = inline_gate_model
+                effective_rcc = PeripheralRcc(
+                    en=effective_rcc.en,
+                    rst=effective_rcc.rst,
+                    extra=new_extra,
+                )
         # Pass the *non-inline* part as the override into route_ops so
         # the existing fallback semantics there stay intact.
         rcc_override = None if per.rcc else synthed

@@ -35,6 +35,8 @@ from alloy_codegen.emit_v2_1 import (
     emit_peripheral_id,
     emit_peripheral_traits,
     emit_pin_router,
+    emit_rcc_enable,
+    emit_rcc_traits,
     emit_runtime_init,
     emit_system_init,
     emit_vector_table,
@@ -95,6 +97,18 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         filename="system_init.c",
         fn=emit_system_init,
         description="FPU + MPU bring-up helpers + alloy_system_init() umbrella.",
+    ),
+    _EmitterEntry(
+        name="rcc_enable",
+        filename="rcc_enable.hpp",
+        fn=emit_rcc_enable,
+        description="Per-peripheral typed clock-gate / reset helpers (direct MMIO).",
+    ),
+    _EmitterEntry(
+        name="rcc_traits",
+        filename="rcc_traits.hpp",
+        fn=emit_rcc_traits,
+        description="Typed GateModel enum for HAL constexpr-if dispatch.",
     ),
 )
 

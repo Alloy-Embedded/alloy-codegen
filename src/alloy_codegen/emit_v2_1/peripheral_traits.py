@@ -386,6 +386,15 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
         clock_sel = eff_rcc.extra.get("clock_sel")
         if clock_sel:
             out.append(f'  static constexpr const char * kKernelClockMux = "{clock_sel}";')
+        # Typed gate-model enumerator — drives the alloy HAL's
+        # ``constexpr if`` dispatch on EnableClock paths
+        # (always_on short-circuit, index_based parser, etc.).
+        gate_model = eff_rcc.extra.get("gate_model")
+        if isinstance(gate_model, str):
+            out.append(
+                f"  static constexpr GateModel  kGateModel = "
+                f"GateModel::{gate_model};"
+            )
 
     # DMA
     if per.dma and per.dma.tx:
@@ -454,6 +463,8 @@ def emit_peripheral_traits(
         "",
         "#include <cstddef>",
         "#include <cstdint>",
+        "",
+        '#include "rcc_traits.hpp"',
         "",
         f"namespace alloy::{device.identity.vendor}::{device.identity.family}"
         f"::{device.identity.device.replace('-', '_')} {{",

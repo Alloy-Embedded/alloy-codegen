@@ -90,9 +90,10 @@ specific synth strategy per family is delegated to
 - **WHEN** the synthesiser builds a ``mimxrt1062`` device
 - **THEN** ``len(syn.per_rcc_map)`` SHALL be at least 80
   (previously 23 from inline-only)
-- **AND** ``per_rcc_map["lpuart1"].en`` SHALL be
-  ``"ccm.ccgr5.cg12"`` (verified against RM 14-5)
-- **AND** the inline ``rcc:`` block on ``lpuart1`` SHALL NOT be
-  shadowed by the synthesised entry — the merge step keeps
-  inline en/rst paths and layers the CCGR-derived
-  ``gate_model`` on top
+- **AND** ``per_rcc_map["pwm1"].en`` SHALL be ``"ccm.ccgr4.cg8"``
+  (CCGR-only peripheral; the synthesised entry is the source)
+- **AND** ``per_rcc_map["lpuart1"].en`` SHALL match its inline
+  ``rcc:`` block verbatim (``"CCM_CCGR5.CG12"``) — the inline
+  block is preserved by the merge step; the CCGR-derived
+  ``bus = "CCGR"`` and (Phase 4) ``gate_model = "index_based"``
+  are layered on top
