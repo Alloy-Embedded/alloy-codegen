@@ -66,7 +66,11 @@ def _bus_from_reg(reg: str) -> str | None:
         return f"APB{m.group(1)}"
     if "apb" in r:
         return "APB"
-    if "iop" in r:  # STM32 F1 IOPx → APB2
+    # G0/G4 dedicated GPIO enable register (IOPENR / IOPRSTR) is on AHB.
+    # Must be checked before the generic "iop" fallback below.
+    if "iopenr" in r or "ioprstr" in r:
+        return "AHB"
+    if "iop" in r:  # STM32 F1 legacy: IOPx gate is in APB2ENR
         return "APB2"
     return None
 
@@ -187,6 +191,24 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
                                 per_sel[per_id] = f"rcc.{field_key}"
                         break
 
+    # ----- STM32 GPIO naming alias (G0/F1/F3: iopaen → gpioa) ----------------
+    # Several STM32 families name GPIO clock-gate fields with the legacy "IOP"
+    # prefix (iopaen, iopben …) while the SVD peripheral id uses "gpio"
+    # (gpioa, gpiob …).  Build aliases before final assembly so the map can
+    # be looked up by the canonical peripheral id.
+    # Match pattern: after stripping "en"/"rst" suffix the result is "iop" +
+    # exactly one port letter → 4 chars total.
+    for _iop_id, _en_path in list(per_en.items()):
+        if len(_iop_id) == 4 and _iop_id.startswith("iop"):
+            _gpio_id = "gpio" + _iop_id[3]  # "iopa" → "gpioa"
+            if _gpio_id in valid_per_ids and _gpio_id not in per_en:
+                per_en[_gpio_id] = _en_path
+    for _iop_id, _rst_path in list(per_rst.items()):
+        if len(_iop_id) == 4 and _iop_id.startswith("iop"):
+            _gpio_id = "gpio" + _iop_id[3]
+            if _gpio_id in valid_per_ids and _gpio_id not in per_rst:
+                per_rst[_gpio_id] = _rst_path
+
     # ----- RP2040 'resets' template ------------------------------------
     # On RP2040 the only per-peripheral gate is the reset bit in
     # RESETS.RESET; releasing the bit implicitly enables the
@@ -235,8 +257,119 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
             if per_id in valid_per_ids:
                 per_sel[per_id] = f"clocks.{field_key}"
 
+    # ----- Microchip SAMx 'mclk' / 'pm' template -----------------------
+    # SAMD21 ('pm'), SAMD51 / SAML21 / SAML22 ('mclk') peripherals are
+    # gated by per-bus mask registers: ``ahbmask.<peri>_``,
+    # ``apbamask.<peri>_``, ``apbbmask.<peri>_``, ``apbcmask.<peri>_``,
+    # ``apbdmask.<peri>_``, ``apbemask.<peri>_``.  The trailing ``_``
+    # is part of the ATDF field name, not a separator.  No per-peri
+    # reset bit on this family — the peripheral's own ``CTRLA.SWRST``
+    # does software reset.
+    for sam_clock_template in ("mclk", "pm"):
+        sam_template = templates.get(sam_clock_template)
+        if sam_template is None:
+            continue
+        import re as _re
+
+        for field_key in sam_template.fields:
+            parts = field_key.split(".", 1)
+            if len(parts) != 2:
+                continue
+            reg, fld = parts
+            m = _re.match(r"^(ahb|apb[a-e])mask$", reg.lower())
+            if m is None:
+                continue
+            # ``apbamask.hpb0_`` / ``ahbmask.hpb0_`` are bus-bridge gates,
+            # not per-peripheral; skip them.  ``pac0_/pac1_/pac2_`` on
+            # SAMD21 are bridge-protection slots (not the ``pac``
+            # peripheral), filter via the valid_per_ids check below.
+            per_id = fld.rstrip("_")
+            if per_id.startswith("hpb") or per_id in {"hsram", "lpram"}:
+                continue
+            if per_id not in valid_per_ids:
+                continue
+            per_en[per_id] = f"{sam_clock_template}.{field_key}"
+
+    # ----- Microchip SAM (SAME70/SAMV71) 'pmc' template ----------------
+    # The Atmel SAM family uses the Power Management Controller's
+    # Peripheral Clock Enable Register (PCERn) to gate peripherals,
+    # but the bits are PID-indexed: ``pmc_pcer0.pid7`` enables the
+    # peripheral that occupies PID slot 7 (which the chip's interrupt
+    # vector list maps to UART0).  Cross-link by reading each
+    # peripheral's first IRQ vector number and treating it as the PID.
+    pmc_template = templates.get("pmc")
+    if pmc_template is not None:
+        # Build the set of PID fields actually present on the chip so
+        # we don't synth gates for peripherals whose PID is reserved.
+        pcer_fields: dict[int, str] = {}  # pid → "pmc.pmc_pcerN.pidP"
+        pcdr_fields: dict[int, str] = {}  # pid → "pmc.pmc_pcdrN.pidP"
+        import re as _re
+
+        for field_key in pmc_template.fields:
+            parts = field_key.split(".", 1)
+            if len(parts) != 2:
+                continue
+            reg, fld = parts
+            m = _re.match(r"^pid(\d+)$", fld)
+            if m is None:
+                continue
+            pid = int(m.group(1))
+            if reg.lower().startswith("pmc_pcer"):
+                pcer_fields[pid] = f"pmc.{field_key}"
+            elif reg.lower().startswith("pmc_pcdr"):
+                pcdr_fields[pid] = f"pmc.{field_key}"
+
+        for per in device.peripherals:
+            if not per.irq:
+                continue
+            pid = per.irq[0].num
+            if pid in pcer_fields and per.id in valid_per_ids:
+                per_en[per.id] = pcer_fields[pid]
+            # PMC has no per-peripheral *reset* register on SAM —
+            # peripherals reset via their own CTRLA.SWRST (mirror of
+            # the SAMD51/SAML21 model).  Don't synth a reset path.
+
+    # ----- NXP iMXRT 'ccm' template (named kernel-clock muxes) ---------
+    # iMXRT CCGR clock-gates are index-based (CCGR0.CG5 means "the
+    # peripheral the reference manual table maps to that bit") and
+    # require a hand-curated table — they're already populated for
+    # ~23 peripherals via the YAML's per-peripheral inline ``rcc:``
+    # block, and remain there as the source of truth for now.
+    #
+    # The kernel-clock muxes inside CCM, however, embed the peripheral
+    # name explicitly: ``cscmr1.sai1_clk_sel``, ``cscmr2.can_clk_sel``,
+    # ``cdcdr.flexio1_clk_sel`` — extractable cleanly.  Recognise
+    # ``<reg>.<peri>_clk_sel`` on cscmr*/cdcdr/cs[12]cdr and link.
+    ccm_template = templates.get("ccm")
+    if ccm_template is not None:
+        import re as _re
+
+        for field_key in ccm_template.fields:
+            parts = field_key.split(".", 1)
+            if len(parts) != 2:
+                continue
+            reg, fld = parts
+            reg_lower = reg.lower()
+            if not (
+                reg_lower.startswith("cscmr")
+                or reg_lower.startswith("cdcdr")
+                or reg_lower.startswith("cs1cdr")
+                or reg_lower.startswith("cs2cdr")
+            ):
+                continue
+            m = _re.match(r"^(\w+)_clk_sel$", fld)
+            if m is None:
+                continue
+            per_id = m.group(1)
+            if per_id in valid_per_ids:
+                per_sel[per_id] = f"ccm.{field_key}"
+
     # ----- assemble the final PeripheralRcc map ------------------------
-    all_ids = set(per_en) | set(per_rst)
+    # Include peripherals that have ONLY a kernel-clock mux (no enable
+    # or reset bit in the templates) — without ``per_sel`` in the union
+    # iMXRT's sai1 / can1 etc. would lose their kKernelClockMux just
+    # because the CCGR clock-gate table isn't extracted yet.
+    all_ids = set(per_en) | set(per_rst) | set(per_sel)
     result: dict[str, PeripheralRcc] = {}
     for per_id in all_ids:
         extra: dict[str, object] = {}
