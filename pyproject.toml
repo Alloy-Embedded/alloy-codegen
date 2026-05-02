@@ -27,6 +27,12 @@ dependencies = [
 [project.scripts]
 alloy-codegen = "alloy_codegen.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/Alloy-Embedded/alloy-codegen"
+Repository = "https://github.com/Alloy-Embedded/alloy-codegen"
+Changelog = "https://github.com/Alloy-Embedded/alloy-codegen/blob/main/CHANGELOG.md"
+Issues = "https://github.com/Alloy-Embedded/alloy-codegen/issues"
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]

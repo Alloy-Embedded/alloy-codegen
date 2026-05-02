@@ -29,7 +29,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from alloy_codegen.bootstrap import DEVICE_REGISTRY, CANONICAL_SCHEMA
+from alloy_codegen.bootstrap import CANONICAL_SCHEMA
 from alloy_codegen.emit_v2_1 import (
     emit_linker_script,
     emit_peripheral_traits,
@@ -95,7 +95,10 @@ def _parse_target(target: str) -> tuple[str, str, str]:
         return parts[0], parts[1], parts[2]
     if len(parts) == 2:
         vendor, chip = parts
-        # Look up the family by walking the registry.
+        # Lazy import — bootstrap walks data/devices on first
+        # access; we don't pay that cost on `--help`.
+        from alloy_codegen.bootstrap import DEVICE_REGISTRY
+
         for (v, f), devices in DEVICE_REGISTRY.items():
             if v == vendor and chip in devices:
                 return vendor, f, chip
@@ -111,6 +114,8 @@ def _parse_target(target: str) -> tuple[str, str, str]:
 
 
 def _list_devices() -> int:
+    from alloy_codegen.bootstrap import DEVICE_REGISTRY
+
     print(f"# alloy-codegen — admitted devices ({CANONICAL_SCHEMA})")
     print()
     for (vendor, family), devices in sorted(DEVICE_REGISTRY.items()):

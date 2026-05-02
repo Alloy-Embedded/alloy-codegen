@@ -1,0 +1,217 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    # Lets a maintainer dry-run the pipeline (or push to TestPyPI)
+    # without cutting a real tag.
+    inputs:
+      target:
+        description: "Where to publish"
+        required: true
+        default: "dryrun"
+        type: choice
+        options:
+          - dryrun     # build + smoke only (no publish, no GitHub release)
+          - testpypi   # publish to https://test.pypi.org
+          - pypi       # publish to https://pypi.org (same as a tag push)
+
+permissions:
+  contents: read
+
+# Chain test → build → publish so a broken tree never lands on
+# PyPI.  Each publish job declares its own `environment:` so PyPI
+# trusted publishing maps to the right repository.
+jobs:
+  # ---------------------------------------------------------------
+  # 1. Test — quick gate on Python 3.13.
+  # ---------------------------------------------------------------
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Setup Python 3.13
+        run: uv python install 3.13
+
+      - name: Sync dev environment
+        run: uv sync --all-groups
+
+      - name: Lint (ruff)
+        run: uv run ruff check src tests
+
+      - name: Type check (pyright)
+        run: uv run pyright src tests
+
+      - name: Test (pytest)
+        run: uv run pytest -q
+
+  # ---------------------------------------------------------------
+  # 2. Build — sdist + wheel, twine check, smoke install.
+  #    Confirms the pyproject.toml version matches the pushed tag
+  #    so a forgotten bump never lands on PyPI.
+  # ---------------------------------------------------------------
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    needs: test
+    outputs:
+      version: ${{ steps.read-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Sanity-check tag matches pyproject.toml
+        # Hardcoded versions are easy to forget; this turns the
+        # mismatch into a loud failure before we ship anything.
+        if: ${{ github.event_name == 'push' }}
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pyproject_version="$(python -c '
+          import tomllib, pathlib
+          payload = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+          print(payload["project"]["version"])
+          ')"
+          if [ "${tag}" != "${pyproject_version}" ]; then
+            echo "::error::tag ${tag} does not match pyproject.toml version ${pyproject_version}.  Bump pyproject + retag." >&2
+            exit 1
+          fi
+          echo "tag ${tag} matches pyproject.toml ${pyproject_version}"
+
+      - name: Build sdist + wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Inspect dist/
+        run: ls -la dist/
+
+      - name: Validate metadata (twine check)
+        run: |
+          python -m pip install twine
+          python -m twine check --strict dist/*
+
+      - name: Smoke-test the wheel
+        # Install into a clean venv and call the CLI entry point.
+        # A non-zero exit blocks every downstream publish job.
+        run: |
+          python -m venv .release-smoke
+          ./.release-smoke/bin/python -m pip install --upgrade pip
+          ./.release-smoke/bin/python -m pip install dist/*.whl
+          ./.release-smoke/bin/alloy-codegen --list | head
+          ./.release-smoke/bin/python -c "import alloy_codegen; print(alloy_codegen.__version__)"
+
+      - name: Read built version
+        id: read-version
+        run: |
+          version=$(./.release-smoke/bin/python -c "import alloy_codegen; print(alloy_codegen.__version__)")
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "Built version: ${version}"
+
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  # ---------------------------------------------------------------
+  # 3a. Publish to TestPyPI — workflow_dispatch with target=testpypi.
+  # ---------------------------------------------------------------
+  publish-testpypi:
+    name: Publish to TestPyPI
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi' }}
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/alloy-codegen
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          packages-dir: dist/
+          skip-existing: true
+
+  # ---------------------------------------------------------------
+  # 3b. Publish to PyPI — tag push or workflow_dispatch with
+  #     target=pypi.
+  # ---------------------------------------------------------------
+  publish-pypi:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.target == 'pypi') }}
+    environment:
+      name: pypi
+      url: https://pypi.org/p/alloy-codegen
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+  # ---------------------------------------------------------------
+  # 4. GitHub release — only on tag pushes; attaches the same
+  #    artifacts that went to PyPI.
+  # ---------------------------------------------------------------
+  github-release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    needs: publish-pypi
+    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/* \
+            --title "${GITHUB_REF_NAME}" \
+            --notes "alloy-codegen ${GITHUB_REF_NAME}.  See [CHANGELOG.md](https://github.com/${GITHUB_REPOSITORY}/blob/main/CHANGELOG.md) for the full list of changes."

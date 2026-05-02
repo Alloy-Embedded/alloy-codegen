@@ -4,6 +4,12 @@ After ``consume-alloy-devices-yml-as-canonical-input`` Phase 5 the
 registry is filesystem-derived from the ``alloy-devices-yml``
 submodule mounted at ``data/devices/vendors/``.  Adding a chip is
 "commit a YAML to alloy-devices-yml" — no edit to this file.
+
+The registry is resolved **lazily** so ``import alloy_codegen``
+never raises just because the data submodule isn't mounted (which
+would happen on every PyPI install).  Callers who actually need
+the data still get :class:`UnsupportedScopeError` on first
+access — the contract is preserved, the eager-import bug is not.
 """
 
 from __future__ import annotations
@@ -11,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from alloy_codegen.errors import UnsupportedScopeError
 
@@ -81,10 +88,18 @@ def discovered_device_registry() -> dict[tuple[str, str], tuple[str, ...]]:
     return _discover_device_registry()
 
 
-# Backwards-compat alias — many callers import ``DEVICE_REGISTRY``
-# directly.  After Phase 5 it is the filesystem-derived mapping;
-# resolved once at module-import time.
-DEVICE_REGISTRY: dict[tuple[str, str], tuple[str, ...]] = device_registry()
+# Lazy ``DEVICE_REGISTRY`` proxy — resolved on first attribute
+# access via PEP 562 ``__getattr__``.  Importing the module no
+# longer reads from disk, so a wheel install without the
+# ``alloy-devices-yml`` submodule mounted continues to import
+# cleanly; ``UnsupportedScopeError`` only fires when something
+# actually asks for the registry.
+
+
+def __getattr__(name: str) -> Any:  # noqa: ANN401 -- module-level proxy
+    if name == "DEVICE_REGISTRY":
+        return device_registry()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def _device_to_family() -> dict[str, tuple[str, str]]:

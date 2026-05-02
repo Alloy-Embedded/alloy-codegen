@@ -18,7 +18,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
-from alloy_codegen.bootstrap import DEVICE_REGISTRY
 from alloy_codegen.emit_v2_1 import (
     emit_linker_script,
     emit_peripheral_traits,
@@ -126,12 +125,27 @@ def _resolve_target(config: Any) -> tuple[str, str, str]:
 def _validate_registry(vendor: str, family: str, device: str) -> None:
     """Confirm ``(vendor, family, device)`` is in ``DEVICE_REGISTRY``.
 
-    The registry walks ``data/devices`` at import time; missing
-    entries usually mean alloy-devices-yml hasn't admitted the
-    chip yet.  We raise :class:`ConfigError` with a hint that
-    points at the closest match.
+    The registry walks ``data/devices`` lazily on first access;
+    missing entries usually mean alloy-devices-yml hasn't admitted
+    the chip yet, while a missing submodule is the wheel-install
+    case.  Either way, we raise :class:`ConfigError` (the canonical
+    pre-pipeline error) so callers don't see a stray
+    ``UnsupportedScopeError`` they can't catch.
     """
-    devices = DEVICE_REGISTRY.get((vendor, family))
+    # Lazy import — bootstrap walks the data submodule, which may
+    # not be mounted in a wheel install.  We delay until the user
+    # actually asks for the registry.  ``from … import …`` triggers
+    # the module-level ``__getattr__`` so the submodule walk runs
+    # *during* the import statement; catch the error there too.
+    from alloy_codegen.errors import UnsupportedScopeError
+
+    try:
+        from alloy_codegen.bootstrap import DEVICE_REGISTRY  # noqa: F401
+        registry = DEVICE_REGISTRY
+    except UnsupportedScopeError as exc:
+        raise ConfigError(str(exc)) from exc
+
+    devices = registry.get((vendor, family))
     if devices and device in devices:
         return
     if devices:
@@ -140,7 +154,7 @@ def _validate_registry(vendor: str, family: str, device: str) -> None:
             f"closest matches under {vendor}/{family}: "
             f"{', '.join(sorted(devices))}"
         )
-    families = sorted(f for v, f in DEVICE_REGISTRY if v == vendor)
+    families = sorted(f for v, f in registry if v == vendor)
     if families:
         raise ConfigError(
             f"family {vendor}/{family!r} is not admitted; "
