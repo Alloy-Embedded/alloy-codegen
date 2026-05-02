@@ -15,11 +15,19 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True, slots=True)
 class InterruptVector:
-    """One row in a fixed vector table."""
+    """One row in a fixed vector table.
+
+    ``priority`` is the optional pre-encoded NVIC priority (already
+    left-shifted into the upper bits of the IPR slot per the chip's
+    ``core.nvic_priority_bits``).  ``None`` means "leave at the
+    chip's reset default" — the codegen emits no row for that
+    vector in ``kNvicPrioritySetup``.
+    """
 
     num: int
     name: str
     role: str | None = None
+    priority: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

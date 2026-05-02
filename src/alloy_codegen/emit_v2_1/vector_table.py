@@ -22,6 +22,74 @@ def _slot_constant(slot: VectorSlot) -> str:
     return slot.symbol_name
 
 
+def _emit_nvic_priority_setup(device: CanonicalDevice) -> list[str]:
+    """Emit the typed ``alloy_nvic_priority_setup[]`` table + apply
+    helper.
+
+    The table carries one row per ``InterruptVector`` whose
+    ``priority`` field is set; vectors at the chip's reset default
+    (``priority is None``) are omitted entirely.  ``priority`` is
+    already pre-encoded for the device's
+    ``core.nvic_priority_bits`` (left-shifted into the upper bits
+    of ``NVIC->IPR[n]``) so the runtime helper does not need to
+    know the bit count.
+
+    For families with no `priority` data yet, the table degrades
+    to a zero-length array and ``alloy_nvic_apply_priorities()``
+    becomes a no-op — consumers can call it unconditionally.
+    """
+    interrupts = device.interrupts
+    rows: list[tuple[int, int]] = []
+    if isinstance(interrupts, tuple):
+        for v in interrupts:
+            if v.priority is not None:
+                rows.append((v.num, v.priority))
+    n = len(rows)
+    out: list[str] = [
+        "",
+        "/* ---- NVIC priority setup ----",
+        " *",
+        " * One row per InterruptVector.priority that was explicitly set",
+        " * in the canonical IR.  Vectors at reset default are omitted.",
+        " * The priority value is already shifted into the upper bits of",
+        f" * NVIC->IPR[n] for the chip's nvic_priority_bits = {device.identity.core.nvic_priority_bits}.",
+        " */",
+        "struct alloy_nvic_priority_setup_row {",
+        "    uint8_t irqn;",
+        "    uint8_t priority;",
+        "};",
+    ]
+    if n == 0:
+        out.extend([
+            "static const struct alloy_nvic_priority_setup_row * const "
+            "alloy_nvic_priority_setup = (void *)0;",
+            "static const unsigned alloy_nvic_priority_setup_count = 0;",
+        ])
+    else:
+        out.append(
+            f"static const struct alloy_nvic_priority_setup_row "
+            f"alloy_nvic_priority_setup[{n}] = {{"
+        )
+        for irqn, prio in rows:
+            out.append(f"    {{ {irqn:3}u, {prio:3}u }},")
+        out.append("};")
+        out.append(f"static const unsigned alloy_nvic_priority_setup_count = {n};")
+    out.extend([
+        "",
+        "/* Apply every entry in alloy_nvic_priority_setup[] via",
+        " * NVIC_SetPriority.  Safe to call before any IRQ is enabled. */",
+        "extern void NVIC_SetPriority(int irqn, unsigned priority);",
+        "",
+        "void alloy_nvic_apply_priorities(void) {",
+        "    for (unsigned i = 0; i < alloy_nvic_priority_setup_count; ++i) {",
+        "        NVIC_SetPriority((int)alloy_nvic_priority_setup[i].irqn,",
+        "                         alloy_nvic_priority_setup[i].priority);",
+        "    }",
+        "}",
+    ])
+    return out
+
+
 def emit_vector_table(
     device: CanonicalDevice,
     synthesised: SynthesisedDevice,
@@ -78,4 +146,7 @@ def emit_vector_table(
         + f"void * const _vector_table[{max_slot + 1}] = {{\n"
         + "\n".join(table_rows)
         + "\n};\n"
+        + "\n"
+        + "\n".join(_emit_nvic_priority_setup(device))
+        + "\n"
     )

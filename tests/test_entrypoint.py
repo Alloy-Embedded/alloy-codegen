@@ -73,6 +73,7 @@ def test_generate_with_chip_writes_four_artifacts(tmp_path: Path) -> None:
         "peripheral_traits.h",
         "runtime_init.c",
         "pins.h",
+        "system_init.c",
     }
     assert {p.name for p in written} == expected_names
     for path in written:

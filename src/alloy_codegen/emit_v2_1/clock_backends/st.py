@@ -128,39 +128,41 @@ def _is_pll_source(sysclk_source: str) -> bool:
     return sysclk_source.startswith("pll")
 
 
-def _pll_input_oscillator(sysclk_source: str, oscillators: Mapping[str, object]) -> str:
-    """Resolve ``pll_hsi16`` → ``hsi`` (the oscillator key actually
-    declared in ``clock.oscillators``).
+def _resolve_source_oscillator(
+    sysclk_source: str,
+    oscillators: Mapping[str, object],
+) -> str | None:
+    """Resolve a profile's ``sysclk_source`` to a declared
+    oscillator key, or ``None`` when the YAML's
+    ``clock.oscillators`` list does not yet declare the oscillator
+    the profile names.
 
-    ST profiles encode the PLL input by a *naming-convention suffix*
-    (``pll_hsi16``, ``pll_hse``, ``pll_msi``); the actual oscillator
-    key may be a prefix of that suffix (G0's HSI16 oscillator lives
-    under key ``hsi`` because the YAML drops the frequency tag).
-    Prefix-match against the declared oscillator keys.
+    Resolution order:
+
+    1. ``pll_<suffix>`` → ``_resolve_named_oscillator(<suffix>)``.
+    2. Bare oscillator name → direct match wins, then prefix
+       match (so ``hsi16`` resolves to ``hsi`` when only the
+       latter is declared — common on STM32 G0 where the YAML
+       drops the frequency tag).
     """
-    if not _is_pll_source(sysclk_source):
-        raise StageExecutionError(
-            f"st clock backend: not a PLL source: {sysclk_source!r}"
-        )
-    suffix = sysclk_source[len("pll_"):]
-    # Direct match wins.
-    if suffix in oscillators:
-        return suffix
-    # Prefix match: pick the longest oscillator key whose name is a
-    # prefix of the suffix (so ``hsi16`` first tries ``hsi16`` then
-    # ``hsi``, never accidentally matching ``h``).
+    name = sysclk_source[len("pll_"):] if _is_pll_source(sysclk_source) else sysclk_source
+    if name in oscillators:
+        return name
+    # Prefix match — longest first so ``hsi16`` prefers ``hsi16``
+    # over ``hsi`` when both are declared.
     candidates = sorted(
-        (k for k in oscillators if suffix.startswith(k)),
+        (k for k in oscillators if name.startswith(k)),
         key=len,
         reverse=True,
     )
-    if candidates:
-        return candidates[0]
-    raise StageExecutionError(
-        f"st clock backend: profile sysclk_source {sysclk_source!r} "
-        f"does not match any declared oscillator (have: "
-        f"{', '.join(sorted(oscillators))})"
-    )
+    return candidates[0] if candidates else None
+
+
+def _pll_input_oscillator(sysclk_source: str, oscillators: Mapping[str, object]) -> str | None:
+    """Backwards-compat alias for the older callers (kept until
+    the SAM/RP backends land and switch to
+    :func:`_resolve_source_oscillator`)."""
+    return _resolve_source_oscillator(sysclk_source, oscillators)
 
 
 # ---------------------------------------------------------------------------
@@ -224,25 +226,26 @@ class _StClockBackend:
         # and lives in clock.oscillators[k].extra in the YAML; for
         # now we emit a comment-only marker and leave the bit
         # programming to a follow-up YAML enrichment.
-        if _is_pll_source(profile.sysclk_source):
-            src_osc = _pll_input_oscillator(profile.sysclk_source, device.clock.oscillators)
-        else:
-            # Direct sysclk source — use the same prefix-match logic
-            # so naming variants like ``hsi16`` resolve to ``hsi``.
-            if profile.sysclk_source in device.clock.oscillators:
-                src_osc = profile.sysclk_source
-            else:
-                candidates = sorted(
-                    (k for k in device.clock.oscillators if profile.sysclk_source.startswith(k)),
-                    key=len, reverse=True,
-                )
-                if not candidates:
-                    raise StageExecutionError(
-                        f"st clock backend: profile {profile.id!r} sysclk_source "
+        # Resolve the source oscillator (PLL input or direct).
+        # Returns None when the YAML's clock.oscillators list
+        # doesn't yet declare the oscillator the profile names —
+        # the backend then degrades to a stub body (with comment)
+        # instead of crashing synthesis, the same way the missing-
+        # hclk_hz path does.
+        src_osc = _resolve_source_oscillator(profile.sysclk_source, device.clock.oscillators)
+        if src_osc is None:
+            return (
+                ClockProgramStep(
+                    kind="barrier_dsb",
+                    comment=(
+                        f"profile {profile.id!r} skipped — sysclk_source "
                         f"{profile.sysclk_source!r} does not match any declared "
-                        f"oscillator (have: {', '.join(sorted(device.clock.oscillators))})"
-                    )
-                src_osc = candidates[0]
+                        f"oscillator (have: "
+                        f"{', '.join(sorted(device.clock.oscillators)) or '<none>'}); "
+                        "see complete-clock-tree-runtime-init proposal §3.2"
+                    ),
+                ),
+            )
         if device.clock.oscillators[src_osc].kind == "crystal-external":
             steps.append(
                 ClockProgramStep(

@@ -671,7 +671,12 @@ def _parse_interrupts(node: Any) -> tuple[InterruptVector, ...] | InterruptMatri
         return None
     if isinstance(node, list):
         return tuple(
-            InterruptVector(num=int(e["num"]), name=e["name"], role=e.get("role"))
+            InterruptVector(
+                num=int(e["num"]),
+                name=e["name"],
+                role=e.get("role"),
+                priority=int(e["priority"]) if "priority" in e else None,
+            )
             for e in node
         )
     if isinstance(node, dict) and node.get("matrix"):

@@ -23,6 +23,7 @@ from alloy_codegen.emit_v2_1 import (
     emit_peripheral_traits,
     emit_pin_router,
     emit_runtime_init,
+    emit_system_init,
     emit_vector_table,
 )
 from alloy_codegen.errors import ConfigError
@@ -93,6 +94,11 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         name="pin_router",
         filename="pins.h",
         fn=emit_pin_router,
+    ),
+    _EmitterEntry(
+        name="system_init",
+        filename="system_init.c",
+        fn=emit_system_init,
     ),
 )
 

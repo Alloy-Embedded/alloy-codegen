@@ -20,6 +20,7 @@ from alloy_codegen.emit_v2_1.linker_script import emit_linker_script
 from alloy_codegen.emit_v2_1.peripheral_traits import emit_peripheral_traits
 from alloy_codegen.emit_v2_1.pin_router import emit_pin_router
 from alloy_codegen.emit_v2_1.runtime_init import emit_runtime_init
+from alloy_codegen.emit_v2_1.system_init import emit_system_init
 from alloy_codegen.emit_v2_1.vector_table import emit_vector_table
 
 __all__ = [
@@ -27,5 +28,6 @@ __all__ = [
     "emit_peripheral_traits",
     "emit_pin_router",
     "emit_runtime_init",
+    "emit_system_init",
     "emit_vector_table",
 ]

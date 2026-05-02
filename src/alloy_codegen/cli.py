@@ -35,6 +35,7 @@ from alloy_codegen.emit_v2_1 import (
     emit_peripheral_traits,
     emit_pin_router,
     emit_runtime_init,
+    emit_system_init,
     emit_vector_table,
 )
 from alloy_codegen.errors import StageExecutionError
@@ -81,6 +82,12 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         filename="pins.h",
         fn=emit_pin_router,
         description="Typed pin id + signal-to-pad route table.",
+    ),
+    _EmitterEntry(
+        name="system_init",
+        filename="system_init.c",
+        fn=emit_system_init,
+        description="FPU + MPU bring-up helpers + alloy_system_init() umbrella.",
     ),
 )
 
