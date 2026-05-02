@@ -204,7 +204,7 @@ def emit_pin_router(device: CanonicalDevice, synthesised: SynthesisedDevice) -> 
         "#include <array>",
         "#include <cstdint>",
         "",
-        f"namespace alloy::{device.identity.vendor}::{device.identity.family}::{_safe_c_id(device.identity.device)} {{",
+        f"namespace alloy::{_safe_c_id(device.identity.vendor)}::{_safe_c_id(device.identity.family)}::{_safe_c_id(device.identity.device)} {{",
         "",
         "namespace pin {",
     ]
@@ -224,7 +224,7 @@ def emit_pin_router(device: CanonicalDevice, synthesised: SynthesisedDevice) -> 
     lines.append(f"  inline constexpr unsigned kRouteCount = {len(routes)}u;")
     lines.append("}  // namespace pin_routes")
     lines.append("")
-    lines.append(f"}}  // namespace alloy::{device.identity.vendor}::{device.identity.family}::{_safe_c_id(device.identity.device)}")
+    lines.append(f"}}  // namespace alloy::{_safe_c_id(device.identity.vendor)}::{_safe_c_id(device.identity.family)}::{_safe_c_id(device.identity.device)}")
     lines.append("")
     lines.append(f"#endif  /* {guard} */")
     lines.append("")

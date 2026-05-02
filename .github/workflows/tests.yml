@@ -42,3 +42,47 @@ jobs:
 
       - name: Test (pytest)
         run: uv run pytest -q
+
+  compile-gate:
+    name: alloy-HAL compile gate
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Setup Python 3.13
+        run: uv python install 3.13
+
+      - name: Sync dev environment
+        run: uv sync --all-groups
+
+      - name: Install clang-18
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 libstdc++-13-dev
+
+      - name: Reference fixtures (HARD-FAIL)
+        # Compile-gate the five reference fixtures — one per
+        # GateModel enumerator (always_on, per_peri_en,
+        # per_peri_en_rst, index_based, per_peri_pcr).  Any failure
+        # here blocks the PR.
+        env:
+          CXX: clang++-18
+        run: uv run python scripts/run_compile_gate.py --reference-fixtures-only --ci
+
+      - name: Full matrix (REPORT-ONLY)
+        # Run the compile gate against every admitted device.  This
+        # stays report-only until ``complete-rcc-synthesis-cross-vendor``
+        # archives — at that point the ``--report-only`` flag drops
+        # and the full matrix becomes hard-fail.
+        env:
+          CXX: clang++-18
+        run: uv run python scripts/run_compile_gate.py --report-only --ci

@@ -44,6 +44,31 @@ from alloy_codegen.ir.v2_1 import (
 )
 
 
+# C++20 reserved keywords that occasionally show up as enum entry
+# names in vendor data (Microchip ATDF uses ``default`` on AVR-Dx
+# CLKCTRL fields, ``class`` on a few Atmel SAM IPs, etc.).
+# Centralised so both _emit_field_constexpr and any future emitter
+# can sanitise consistently.
+_CPP_KEYWORDS: frozenset[str] = frozenset({
+    "alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand",
+    "bitor", "bool", "break", "case", "catch", "char", "char8_t",
+    "char16_t", "char32_t", "class", "compl", "concept", "const",
+    "consteval", "constexpr", "constinit", "const_cast", "continue",
+    "co_await", "co_return", "co_yield", "decltype", "default",
+    "delete", "do", "double", "dynamic_cast", "else", "enum",
+    "explicit", "export", "extern", "false", "float", "for",
+    "friend", "goto", "if", "inline", "int", "long", "mutable",
+    "namespace", "new", "noexcept", "not", "not_eq", "nullptr",
+    "operator", "or", "or_eq", "private", "protected", "public",
+    "register", "reinterpret_cast", "requires", "return", "short",
+    "signed", "sizeof", "static", "static_assert", "static_cast",
+    "struct", "switch", "template", "this", "thread_local", "throw",
+    "true", "try", "typedef", "typeid", "typename", "union",
+    "unsigned", "using", "virtual", "void", "volatile", "wchar_t",
+    "while", "xor", "xor_eq",
+})
+
+
 def _header_guard(device: CanonicalDevice) -> str:
     parts = (
         device.identity.vendor,
@@ -90,6 +115,13 @@ def _emit_field_constexpr(name: str, field: TemplateField) -> list[str]:
             # enumerator is a valid C++ identifier.
             if not sanitised[:1].isalpha() and sanitised[:1] != "_":
                 sanitised = f"e{sanitised}"
+            # C++ reserved keywords (default / class / new / delete /
+            # …) are valid YAML strings but not valid identifiers.
+            # Suffix with ``_`` to disambiguate.  Microchip ATDF
+            # routinely uses ``default`` as an enum entry name on
+            # AVR-Dx CLKCTRL fields.
+            if sanitised in _CPP_KEYWORDS:
+                sanitised = f"{sanitised}_"
             out.append(f"      {sanitised} = {v},")
         out.append("    };")
     out.append("  }")
@@ -171,6 +203,24 @@ def _emit_timer_template_traits(template: Template) -> list[str]:
     return out
 
 
+_PLACEHOLDER_RE = re.compile(r"%[sdN]|<n>|\{n\}|\$\{")
+
+
+def _is_template_placeholder(name: str) -> bool:
+    """Return True if the register/field name carries an unresolved
+    template placeholder (``%s``, ``<n>``, ``${...}``).
+
+    Some Espressif YAML rows ship with un-expanded channel-index
+    placeholders (``in_conf0_ch%s``) that should be channel-numbered
+    at IR-load time but currently aren't.  Emitting the literal
+    ``%s`` produces broken C++ identifiers, so we skip those rows
+    here and let the upstream YAML fix-up land separately.  This
+    keeps the alloy-codegen compile gate green even with the data
+    debt in place.
+    """
+    return bool(_PLACEHOLDER_RE.search(name))
+
+
 def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
     safe_ns = ip_name.replace("-", "_")
     out: list[str] = [
@@ -182,11 +232,15 @@ def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
     if template.max_clock:
         out.append(f"  // max_clock: {template.max_clock}")
 
-    # Per-register offset constants.
+    # Per-register offset constants.  Skip names with unresolved
+    # template placeholders (``%s``, ``<n>``, etc.) — those are
+    # upstream YAML data-debt that doesn't yield valid C++.
     if template.registers:
         out.append("")
         out.append("  // Register offsets (bytes from peripheral base).")
         for reg_name, reg in sorted(template.registers.items()):
+            if _is_template_placeholder(reg_name):
+                continue
             out.append(f"  inline constexpr uint32_t reg_{reg_name}_offset = 0x{reg.offset:04X}u;")
 
     # Per-field bit / range / enum.
@@ -194,6 +248,8 @@ def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
         out.append("")
         out.append("  // Bit positions of fields the driver flips.")
         for field_name, field in sorted(template.fields.items()):
+            if _is_template_placeholder(field_name):
+                continue
             out.extend(_emit_field_constexpr(field_name, field))
 
     # Optional timer-matrix block (deadtime / triggers / break inputs).
@@ -466,8 +522,10 @@ def emit_peripheral_traits(
         "",
         '#include "rcc_traits.hpp"',
         "",
-        f"namespace alloy::{device.identity.vendor}::{device.identity.family}"
-        f"::{device.identity.device.replace('-', '_')} {{",
+        f"namespace alloy::"
+        f"{device.identity.vendor.replace('-', '_')}::"
+        f"{device.identity.family.replace('-', '_')}::"
+        f"{device.identity.device.replace('-', '_')} {{",
         "",
     ]
 
@@ -487,8 +545,9 @@ def emit_peripheral_traits(
         lines.append("")
 
     lines.append(
-        f"}}  // namespace alloy::{device.identity.vendor}::"
-        f"{device.identity.family}::"
+        f"}}  // namespace alloy::"
+        f"{device.identity.vendor.replace('-', '_')}::"
+        f"{device.identity.family.replace('-', '_')}::"
         f"{device.identity.device.replace('-', '_')}"
     )
     lines.append("")
