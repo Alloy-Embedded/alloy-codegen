@@ -47,26 +47,26 @@ from alloy_codegen.ir.v2_1 import CanonicalDevice, ClockProfile
 # ---------------------------------------------------------------------------
 _FLASH_WS_FALLBACK: dict[str, tuple[tuple[int, int, int, int], ...]] = {
     "stm32g0": (
-        (0,        24_000_000, 0, 0),
+        (0, 24_000_000, 0, 0),
         (24_000_001, 48_000_000, 1, 1),
         (48_000_001, 64_000_000, 2, 2),
     ),
     "stm32f0": (
-        (0,        24_000_000, 0, 0),
+        (0, 24_000_000, 0, 0),
         (24_000_001, 48_000_000, 1, 1),
     ),
     "stm32f1": (
-        (0,        24_000_000, 0, 0),
+        (0, 24_000_000, 0, 0),
         (24_000_001, 48_000_000, 1, 1),
         (48_000_001, 72_000_000, 2, 2),
     ),
     "stm32f3": (
-        (0,        24_000_000, 0, 0),
+        (0, 24_000_000, 0, 0),
         (24_000_001, 48_000_000, 1, 1),
         (48_000_001, 72_000_000, 2, 2),
     ),
     "stm32f4": (
-        (0,        30_000_000, 0, 0),
+        (0, 30_000_000, 0, 0),
         (30_000_001, 60_000_000, 1, 1),
         (60_000_001, 90_000_000, 2, 2),
         (90_000_001, 120_000_000, 3, 3),
@@ -75,14 +75,14 @@ _FLASH_WS_FALLBACK: dict[str, tuple[tuple[int, int, int, int], ...]] = {
         (168_000_001, 180_000_000, 6, 6),
     ),
     "stm32g4": (
-        (0,        34_000_000, 0, 0),
+        (0, 34_000_000, 0, 0),
         (34_000_001, 68_000_000, 1, 1),
         (68_000_001, 102_000_000, 2, 2),
         (102_000_001, 136_000_000, 3, 3),
         (136_000_001, 170_000_000, 4, 4),
     ),
     "stm32h7": (
-        (0,        70_000_000, 0, 0),
+        (0, 70_000_000, 0, 0),
         (70_000_001, 140_000_000, 1, 1),
         (140_000_001, 210_000_000, 2, 2),
         (210_000_001, 280_000_000, 3, 3),
@@ -145,7 +145,7 @@ def _resolve_source_oscillator(
        latter is declared — common on STM32 G0 where the YAML
        drops the frequency tag).
     """
-    name = sysclk_source[len("pll_"):] if _is_pll_source(sysclk_source) else sysclk_source
+    name = sysclk_source[len("pll_") :] if _is_pll_source(sysclk_source) else sysclk_source
     if name in oscillators:
         return name
     # Prefix match — longest first so ``hsi16`` prefers ``hsi16``
@@ -188,7 +188,9 @@ class _StClockBackend:
             steps.append(
                 ClockProgramStep(
                     kind="barrier_dsb",
-                    comment=f"post-reset profile {profile.id!r} is a no-op (chip already at this state)",
+                    comment=(
+                        f"post-reset profile {profile.id!r} is a no-op (chip already at this state)"
+                    ),
                 )
             )
             return tuple(steps)
@@ -388,8 +390,18 @@ def _sw_encoding(device: CanonicalDevice, sysclk_source: str) -> int:
             enc = d.select_register.encoding
             if sysclk_source in enc:
                 return enc[sysclk_source]
-    fallback = {"hsi16": 0, "hsisys": 0, "hsi": 0, "hse": 1, "pll_r_clk": 2,
-                "pll_hsi16": 2, "pll_hse": 2, "pllclk": 2, "lse": 3, "lsi": 4}
+    fallback = {
+        "hsi16": 0,
+        "hsisys": 0,
+        "hsi": 0,
+        "hse": 1,
+        "pll_r_clk": 2,
+        "pll_hsi16": 2,
+        "pll_hse": 2,
+        "pllclk": 2,
+        "lse": 3,
+        "lsi": 4,
+    }
     if sysclk_source in fallback:
         return fallback[sysclk_source]
     raise StageExecutionError(

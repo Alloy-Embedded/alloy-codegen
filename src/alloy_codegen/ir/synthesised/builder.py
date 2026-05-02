@@ -52,6 +52,7 @@ def _bus_from_reg(reg: str) -> str | None:
       * F4 / F1 style:      ``apb1enr``, ``apb2rstr``   (infix digit)
     """
     import re as _re
+
     r = reg.lower()
     if "ahb" in r:
         return "AHB"
@@ -65,30 +66,40 @@ def _bus_from_reg(reg: str) -> str | None:
         return f"APB{m.group(1)}"
     if "apb" in r:
         return "APB"
-    if "iop" in r:          # STM32 F1 IOPx → APB2
+    if "iop" in r:  # STM32 F1 IOPx → APB2
         return "APB2"
     return None
 
 
-def _expand_grouped_peri_ids(token: str) -> list[str]:
+def _expand_grouped_peri_ids(token: str, valid_per_ids: set[str]) -> list[str]:
     """Expand a kernel-clock-mux token into the list of peripheral ids
-    it covers.
+    it covers, using ``valid_per_ids`` to disambiguate single-vs-compound.
 
-    Examples:
-      * ``"lpuart1"``    → ``["lpuart1"]``
-      * ``"i2c4"``       → ``["i2c4"]``
-      * ``"adc"``        → ``["adc"]``                 (singleton)
-      * ``"i2c123"``     → ``["i2c1", "i2c2", "i2c3"]``  (compound)
-      * ``"spi45"``      → ``["spi4", "spi5"]``
+    The disambiguator is straightforward: if ``token`` itself names a
+    peripheral on this chip, treat it as a singleton.  Only otherwise
+    attempt to split it into per-instance ids of the form ``<prefix><n>``.
+
+    Examples (assuming chip has tim1, tim15, spi1, spi2, spi3, sai2, sai3):
+
+      * ``"tim15"``      → ``["tim15"]``                   (token IS valid)
+      * ``"tim1"``       → ``["tim1"]``                    (token IS valid)
+      * ``"spi123"``     → ``["spi1", "spi2", "spi3"]``    (token NOT valid, split)
+      * ``"sai23"``      → ``["sai2", "sai3"]``            (token NOT valid, split)
+      * ``"adc"``        → ``["adc"]``                     (no digit suffix)
       * ``"usart234578"``→ ``["usart2","usart3","usart4","usart5","usart7","usart8"]``
-      * ``"sai23"``      → ``["sai2", "sai3"]``
 
-    Used by the H7-style ``d2ccip1r.spi123src`` / ``d3ccipr.spi6src``
+    Used by the H7-style ``d2ccip1r.spi123src`` / ``d3ccipr.lptim345src``
     kernel-clock-mux convention where a single field controls multiple
-    peripheral instances of the same template.
+    peripheral instances of the same template.  The split-result is
+    further filtered against ``valid_per_ids`` by the caller, so a
+    grouped token on a chip missing one of the instances (e.g.
+    ``usart234578src`` on a chip with usart2/3/6 only) only links the
+    instances actually present.
     """
     import re as _re
 
+    if token in valid_per_ids:
+        return [token]
     m = _re.match(r"^([a-z]+)(\d+)$", token)
     if m is None:
         return [token]
@@ -131,7 +142,7 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
     templates = device.templates or {}
     valid_per_ids: set[str] = {per.id for per in device.peripherals}
 
-    per_en:  dict[str, str] = {}   # per_id → "rcc.reg.field"
+    per_en: dict[str, str] = {}  # per_id → "rcc.reg.field"
     per_rst: dict[str, str] = {}
     per_sel: dict[str, str] = {}
 
@@ -147,10 +158,12 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
 
             # Enable: ends with "en" — exclude sleep-mode ("smen") and
             # ready-flag ("rdy") fields which have the same suffix.
-            if (fld.endswith("en")
-                    and not fld.endswith("smen")
-                    and not fld.endswith("rdy")
-                    and not fld.endswith("cen")):   # "lscoen" etc. are not peri enables
+            if (
+                fld.endswith("en")
+                and not fld.endswith("smen")
+                and not fld.endswith("rdy")
+                and not fld.endswith("cen")
+            ):  # "lscoen" etc. are not peri enables
                 per_id = fld[:-2]
                 per_en[per_id] = f"rcc.{field_key}"
                 continue
@@ -169,7 +182,7 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
                 for suffix in ("sel", "src"):
                     if fld.endswith(suffix):
                         token = fld[: -len(suffix)]
-                        for per_id in _expand_grouped_peri_ids(token):
+                        for per_id in _expand_grouped_peri_ids(token, valid_per_ids):
                             if per_id in valid_per_ids:
                                 per_sel[per_id] = f"rcc.{field_key}"
                         break
@@ -188,7 +201,7 @@ def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
                 continue
             reg, fld = parts
             if reg.lower() != "reset":
-                continue   # ignore reset_done / wdsel mirror registers
+                continue  # ignore reset_done / wdsel mirror registers
             per_id = fld
             if per_id not in valid_per_ids:
                 continue
@@ -286,10 +299,7 @@ def _normalize_field_id(reg_path: str | None) -> str | None:
     if len(parts) == 2:
         peripheral, field = parts
         return f"field:{peripheral.lower()}:{peripheral.lower()}:{field.lower()}"
-    return (
-        f"field:{parts[0].lower()}:{parts[1].lower()}:"
-        f"{'.'.join(parts[2:]).lower()}"
-    )
+    return f"field:{parts[0].lower()}:{parts[1].lower()}:{'.'.join(parts[2:]).lower()}"
 
 
 # ---------------------------------------------------------------------------
@@ -516,10 +526,7 @@ def _synth_clock_program_steps(
     backend = backend_for(device.identity.vendor)
     if backend is None:
         return {}
-    return {
-        profile.id: backend.emit_profile(profile, device)
-        for profile in device.clock.profiles
-    }
+    return {profile.id: backend.emit_profile(profile, device) for profile in device.clock.profiles}
 
 
 def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
@@ -538,12 +545,35 @@ def build_synthesised(device: CanonicalDevice) -> SynthesisedDevice:
     per_rcc_map: dict[str, PeripheralRcc] = {}
 
     for per in device.peripherals:
-        # Prefer the peripheral's own rcc: block; fall back to the lookup.
-        rcc_override = None if per.rcc else rcc_lookup.get(per.id)
+        # Merge inline ``per.rcc`` with the template-synthesised lookup.
+        # Inline en/rst paths (when present) win because they carry
+        # vendor-specific casing/conventions the YAML author intended.
+        # The synthesised ``extra`` (bus inference + clock-sel mux) is
+        # ALWAYS layered on top — those facts come from the templates
+        # the YAML doesn't repeat per peripheral, so without merging,
+        # an inline rcc block would mask the cross-link entirely (e.g.
+        # RP2040 peripherals get reset paths inline but kernel-clock
+        # muxes only via the ``clocks`` template).
+        synthed = rcc_lookup.get(per.id)
+        if per.rcc is None:
+            effective_rcc = synthed
+        elif synthed is None:
+            effective_rcc = per.rcc
+        else:
+            merged_extra: dict[str, object] = dict(synthed.extra)
+            if per.rcc.extra:
+                merged_extra.update(per.rcc.extra)
+            effective_rcc = PeripheralRcc(
+                en=per.rcc.en or synthed.en,
+                rst=per.rcc.rst or synthed.rst,
+                extra=merged_extra,
+            )
+        # Pass the *non-inline* part as the override into route_ops so
+        # the existing fallback semantics there stay intact.
+        rcc_override = None if per.rcc else synthed
         route_ops.extend(_synth_clock_routes(per, rcc_override))
         bindings.extend(_synth_interrupt_bindings(per))
         endpoints.extend(_synth_signal_endpoints(per))
-        effective_rcc = per.rcc or rcc_override
         if effective_rcc:
             per_rcc_map[per.id] = effective_rcc
 

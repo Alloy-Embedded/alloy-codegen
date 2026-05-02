@@ -84,10 +84,7 @@ def _emit_field_constexpr(name: str, field: TemplateField) -> list[str]:
             # so the C++ enumerator name is well-formed in both cases.
             key_str = str(k)
             sanitised = (
-                key_str.replace("-", "_")
-                       .replace(".", "_")
-                       .replace("/", "_")
-                       .replace(" ", "_")
+                key_str.replace("-", "_").replace(".", "_").replace("/", "_").replace(" ", "_")
             )
             # Numeric / unit-suffix names get prefixed with `e` so the
             # enumerator is a valid C++ identifier.
@@ -181,9 +178,7 @@ def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
     ]
     if template.capabilities or template.capabilities_extra:
         caps = list(template.capabilities) + list(template.capabilities_extra)
-        out.append(
-            f"  // capabilities: {', '.join(caps)}"
-        )
+        out.append(f"  // capabilities: {', '.join(caps)}")
     if template.max_clock:
         out.append(f"  // max_clock: {template.max_clock}")
 
@@ -192,10 +187,7 @@ def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
         out.append("")
         out.append("  // Register offsets (bytes from peripheral base).")
         for reg_name, reg in sorted(template.registers.items()):
-            out.append(
-                f"  inline constexpr uint32_t reg_{reg_name}_offset = "
-                f"0x{reg.offset:04X}u;"
-            )
+            out.append(f"  inline constexpr uint32_t reg_{reg_name}_offset = 0x{reg.offset:04X}u;")
 
     # Per-field bit / range / enum.
     if template.fields:
@@ -215,6 +207,7 @@ def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
 def _emit_calibration_data_point(name: str, point: object) -> list[str]:
     """Emit one ``CalibrationDataPoint`` as a typed nested struct."""
     from alloy_codegen.ir.v2_1 import CalibrationDataPoint
+
     if not isinstance(point, CalibrationDataPoint):
         return []
     out = [f"    struct {name} {{"]
@@ -253,8 +246,7 @@ def _emit_adc_instance_traits(per: PeripheralInstance) -> list[str]:
             out.extend(_emit_calibration_data_point("ts_cal_high", cal.ts_cal_high))
         if cal.ts_slope_uv_per_c is not None:
             out.append(
-                f"    static constexpr unsigned kTsSlopeUvPerC = "
-                f"{int(cal.ts_slope_uv_per_c)};"
+                f"    static constexpr unsigned kTsSlopeUvPerC = {int(cal.ts_slope_uv_per_c)};"
             )
         out.append("  };")
 
@@ -269,16 +261,14 @@ def _emit_adc_instance_traits(per: PeripheralInstance) -> list[str]:
             out.append("        const char *source;")
             out.append("        int         extsel;    // -1 = not encoded")
             out.append("        int         jextsel;   // -1 = not encoded")
-            out.append("        const char *polarity;  // \"rising\" | \"falling\" | \"both\"")
+            out.append('        const char *polarity;  // "rising" | "falling" | "both"')
             out.append("      };")
-            out.append(f"      static constexpr row kRows[] = {{")
+            out.append("      static constexpr row kRows[] = {")
             for trig in triggers:
                 ext = trig.extsel if trig.extsel is not None else -1
                 jext = trig.jextsel if trig.jextsel is not None else -1
                 pol = trig.polarity or ""
-                out.append(
-                    f"        {{ \"{trig.source}\", {ext}, {jext}, \"{pol}\" }},"
-                )
+                out.append(f'        {{ "{trig.source}", {ext}, {jext}, "{pol}" }},')
             out.append("      };")
             out.append(f"      static constexpr unsigned kCount = {len(triggers)};")
             out.append("    };")
@@ -297,19 +287,19 @@ def _emit_i2c_instance_traits(per: PeripheralInstance) -> list[str]:
     out = ["", "  // I²C pre-computed timing presets (one per supported speed)."]
     out.append("  struct timing_presets {")
     out.append("    struct row {")
-    out.append("      const char *speed;         // e.g. \"100kHz\" / \"400kHz\" / \"1MHz\"")
-    out.append("      const char *source_clock;  // e.g. \"pclk1\"")
+    out.append('      const char *speed;         // e.g. "100kHz" / "400kHz" / "1MHz"')
+    out.append('      const char *source_clock;  // e.g. "pclk1"')
     out.append("      unsigned    timingr;       // 0 when not encoded for this row")
     out.append("      unsigned    ccr;           // 0 when not encoded for this row")
     out.append("      unsigned    trise;         // 0 when not encoded for this row")
     out.append("    };")
-    out.append(f"    static constexpr row kRows[] = {{")
+    out.append("    static constexpr row kRows[] = {")
     for tp in per.timing_presets:
         timingr = tp.timingr if tp.timingr is not None else 0
         ccr = tp.ccr if tp.ccr is not None else 0
         trise = tp.trise if tp.trise is not None else 0
         out.append(
-            f"      {{ \"{tp.speed}\", \"{tp.source_clock}\", "
+            f'      {{ "{tp.speed}", "{tp.source_clock}", '
             f"0x{timingr:08X}u, 0x{ccr:08X}u, 0x{trise:08X}u }},"
         )
     out.append("    };")
@@ -345,8 +335,8 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
     safe_id = per.id.replace("-", "_")
     out = [
         f"struct {safe_id} {{",
-        f"  static constexpr const char * kName       = \"{per.id}\";",
-        f"  static constexpr const char * kTemplate   = \"{per.template}\";",
+        f'  static constexpr const char * kName       = "{per.id}";',
+        f'  static constexpr const char * kTemplate   = "{per.template}";',
     ]
 
     # Instance number (1 for usart1, 2 for usart2, None for singletons)
@@ -355,7 +345,7 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
         out.append(f"  static constexpr unsigned    kInstance    = {inst_num}u;")
 
     if per.ip_version:
-        out.append(f"  static constexpr const char * kIpVersion  = \"{per.ip_version}\";")
+        out.append(f'  static constexpr const char * kIpVersion  = "{per.ip_version}";')
     if per.base is not None:
         out.append(f"  static constexpr uintptr_t   kBaseAddress = {_hex_addr(per.base)};")
 
@@ -366,43 +356,42 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
         if syn_rcc:
             bus = str(syn_rcc.extra.get("bus", "")) or None
     if bus:
-        out.append(f"  static constexpr const char * kBus        = \"{bus}\";")
+        out.append(f'  static constexpr const char * kBus        = "{bus}";')
 
     if per.clock_source:
-        out.append(f"  static constexpr const char * kClockSrc   = \"{per.clock_source}\";")
+        out.append(f'  static constexpr const char * kClockSrc   = "{per.clock_source}";')
     if per.max_clock_override:
-        out.append(f"  static constexpr const char * kMaxClock   = \"{per.max_clock_override}\";")
+        out.append(f'  static constexpr const char * kMaxClock   = "{per.max_clock_override}";')
 
     # IRQs
     if per.irq:
         irq_lines = [str(i.num) for i in per.irq]
-        irq_names = [f"\"{i.name}\"" for i in per.irq]
-        out.append(
-            f"  static constexpr unsigned    kIrqLines[]  = "
-            f"{{ {', '.join(irq_lines)} }};"
-        )
-        out.append(
-            f"  static constexpr const char *kIrqNames[]  = "
-            f"{{ {', '.join(irq_names)} }};"
-        )
+        irq_names = [f'"{i.name}"' for i in per.irq]
+        out.append(f"  static constexpr unsigned    kIrqLines[]  = {{ {', '.join(irq_lines)} }};")
+        out.append(f"  static constexpr const char *kIrqNames[]  = {{ {', '.join(irq_names)} }};")
         out.append(f"  static constexpr unsigned    kIrqCount    = {len(per.irq)};")
 
-    # RCC — prefer per.rcc (inline), fall back to synthesised rcc_map entry
-    eff_rcc = per.rcc or syn.per_rcc_map.get(per.id)
+    # RCC — ``syn.per_rcc_map`` is the merged source of truth (the
+    # builder layers inline ``per.rcc`` over the template-synthesised
+    # entry, so this dict carries both the YAML's en/rst paths AND the
+    # cross-linked ``extra.clock_sel`` / ``extra.bus``).  Falling back
+    # to ``per.rcc`` here covers any future code path that builds a
+    # ``SynthesisedDevice`` without going through ``build_synthesised``.
+    eff_rcc = syn.per_rcc_map.get(per.id) or per.rcc
     if eff_rcc and eff_rcc.en:
-        out.append(f"  static constexpr const char * kRccEnable  = \"{eff_rcc.en}\";")
+        out.append(f'  static constexpr const char * kRccEnable  = "{eff_rcc.en}";')
     if eff_rcc and eff_rcc.rst:
-        out.append(f"  static constexpr const char * kRccReset   = \"{eff_rcc.rst}\";")
+        out.append(f'  static constexpr const char * kRccReset   = "{eff_rcc.rst}";')
     if eff_rcc:
         clock_sel = eff_rcc.extra.get("clock_sel")
         if clock_sel:
-            out.append(f"  static constexpr const char * kKernelClockMux = \"{clock_sel}\";")
+            out.append(f'  static constexpr const char * kKernelClockMux = "{clock_sel}";')
 
     # DMA
     if per.dma and per.dma.tx:
         out.append("  // DMA TX:")
         if per.dma.tx.ctrl is not None:
-            out.append(f"  static constexpr const char * kDmaTxCtrl = \"{per.dma.tx.ctrl}\";")
+            out.append(f'  static constexpr const char * kDmaTxCtrl = "{per.dma.tx.ctrl}";')
         if per.dma.tx.channel is not None:
             out.append(f"  static constexpr unsigned    kDmaTxCh   = {per.dma.tx.channel};")
         if per.dma.tx.dreq is not None:
@@ -410,7 +399,7 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
     if per.dma and per.dma.rx:
         out.append("  // DMA RX:")
         if per.dma.rx.ctrl is not None:
-            out.append(f"  static constexpr const char * kDmaRxCtrl = \"{per.dma.rx.ctrl}\";")
+            out.append(f'  static constexpr const char * kDmaRxCtrl = "{per.dma.rx.ctrl}";')
         if per.dma.rx.channel is not None:
             out.append(f"  static constexpr unsigned    kDmaRxCh   = {per.dma.rx.channel};")
         if per.dma.rx.dreq is not None:
@@ -418,15 +407,14 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
 
     # Mutex group (Nordic shared-IRQ peripherals)
     if per.mutex_group:
-        out.append(f"  static constexpr const char * kMutexGroup = \"{per.mutex_group}\";")
+        out.append(f'  static constexpr const char * kMutexGroup = "{per.mutex_group}";')
 
     # Synthesised endpoints (signal names this peripheral exposes)
     endpoints = [e for e in syn.signal_endpoints if e.peripheral == per.id]
     if endpoints:
-        signal_names = [f"\"{e.signal}\"" for e in endpoints]
+        signal_names = [f'"{e.signal}"' for e in endpoints]
         out.append(
-            f"  static constexpr const char *kSignals[]   = "
-            f"{{ {', '.join(signal_names)} }};"
+            f"  static constexpr const char *kSignals[]   = {{ {', '.join(signal_names)} }};"
         )
         out.append(f"  static constexpr unsigned    kSignalCount = {len(endpoints)};")
 
@@ -487,9 +475,11 @@ def emit_peripheral_traits(
         lines.extend(_emit_peripheral_instance(per, synthesised))
         lines.append("")
 
-    lines.append(f"}}  // namespace alloy::{device.identity.vendor}::"
-                 f"{device.identity.family}::"
-                 f"{device.identity.device.replace('-', '_')}")
+    lines.append(
+        f"}}  // namespace alloy::{device.identity.vendor}::"
+        f"{device.identity.family}::"
+        f"{device.identity.device.replace('-', '_')}"
+    )
     lines.append("")
     lines.append(f"#endif  // {guard}")
     lines.append("")
