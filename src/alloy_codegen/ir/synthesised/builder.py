@@ -70,62 +70,171 @@ def _bus_from_reg(reg: str) -> str | None:
     return None
 
 
+def _expand_grouped_peri_ids(token: str) -> list[str]:
+    """Expand a kernel-clock-mux token into the list of peripheral ids
+    it covers.
+
+    Examples:
+      * ``"lpuart1"``    → ``["lpuart1"]``
+      * ``"i2c4"``       → ``["i2c4"]``
+      * ``"adc"``        → ``["adc"]``                 (singleton)
+      * ``"i2c123"``     → ``["i2c1", "i2c2", "i2c3"]``  (compound)
+      * ``"spi45"``      → ``["spi4", "spi5"]``
+      * ``"usart234578"``→ ``["usart2","usart3","usart4","usart5","usart7","usart8"]``
+      * ``"sai23"``      → ``["sai2", "sai3"]``
+
+    Used by the H7-style ``d2ccip1r.spi123src`` / ``d3ccipr.spi6src``
+    kernel-clock-mux convention where a single field controls multiple
+    peripheral instances of the same template.
+    """
+    import re as _re
+
+    m = _re.match(r"^([a-z]+)(\d+)$", token)
+    if m is None:
+        return [token]
+    prefix, digits = m.group(1), m.group(2)
+    if len(digits) <= 1:
+        return [token]
+    return [f"{prefix}{d}" for d in digits]
+
+
 def _build_rcc_lookup(device: CanonicalDevice) -> dict[str, PeripheralRcc]:
-    """Cross-link the 'rcc' template fields to peripheral IDs.
+    """Cross-link clock-gate / reset / kernel-clock-mux template fields
+    to peripheral IDs.
 
-    Reads ``device.templates["rcc"].fields`` (e.g. G0 / F4 format) and
-    returns a map from peripheral_id → PeripheralRcc.
+    Returns a map from peripheral_id → :class:`PeripheralRcc`.
 
-    Field naming convention:
-      * enable:      ``{reg}.{peripheral_id}en``   (not ``smen``/``rdy``)
-      * reset:       ``{reg}.{peripheral_id}rst``
-      * clock-mux:   ``ccipr.{peripheral_id}sel``  (or equivalent)
+    Two vendor conventions are handled:
+
+    **STM32 ('rcc' template)** — fields shaped like
+      * **enable:**     ``{reg}.{peripheral_id}en``   (excl. ``smen``/``rdy``)
+      * **reset:**      ``{reg}.{peripheral_id}rst``
+      * **clock-mux:**  one of
+          - ``ccipr*.{peripheral_id}sel``         (G0 / G4 style)
+          - ``*ccip*.{peripheral_id}src``         (H7 style, may be grouped:
+              ``i2c123src`` → ``i2c1``, ``i2c2``, ``i2c3``)
+          - ``dckcfgr*.{peripheral_id}sel|src``   (F4 style)
+
+    **RP2040 ('resets' + 'clocks' templates)** — fields shaped like
+      * **reset:**      ``reset.{peripheral_id}``  (also doubles as enable —
+        RP2040 has no separate clock-gate; releasing reset implicitly
+        enables the peripheral, so we mirror the same path into ``en``)
+      * **clock-mux:**  ``clk_{peripheral_id}_ctrl.auxsrc``  (only present
+        for the small set of peripherals with a dedicated kernel clock:
+        adc, peri, usb, rtc, ref, sys)
 
     The ``extra`` dict on each PeripheralRcc carries:
-      * ``"bus"`` — inferred bus domain string (APB1, APB2, AHB…)
-      * ``"clock_sel"`` — dotted path for kernel-clock mux field
+      * ``"bus"``       — inferred bus domain string (APB1, APB2, AHB…),
+                          empty for vendors without explicit bus tagging.
+      * ``"clock_sel"`` — dotted path for kernel-clock mux field.
     """
-    rcc_template = (device.templates or {}).get("rcc")
-    if rcc_template is None:
-        return {}
+    templates = device.templates or {}
+    valid_per_ids: set[str] = {per.id for per in device.peripherals}
 
     per_en:  dict[str, str] = {}   # per_id → "rcc.reg.field"
     per_rst: dict[str, str] = {}
     per_sel: dict[str, str] = {}
 
-    for field_key in rcc_template.fields:
-        parts = field_key.split(".", 1)
-        if len(parts) != 2:
-            continue
-        reg, fld = parts
+    # ----- STM32 'rcc' template -----------------------------------------
+    rcc_template = templates.get("rcc")
+    if rcc_template is not None:
+        for field_key in rcc_template.fields:
+            parts = field_key.split(".", 1)
+            if len(parts) != 2:
+                continue
+            reg, fld = parts
+            reg_lower = reg.lower()
 
-        # Enable: ends with "en" — exclude sleep-mode ("smen") and
-        # ready-flag ("rdy") fields which have the same suffix.
-        if (fld.endswith("en")
-                and not fld.endswith("smen")
-                and not fld.endswith("rdy")
-                and not fld.endswith("cen")):   # "lscoen" etc. are not peri enables
-            per_id = fld[:-2]
-            per_en[per_id] = f"rcc.{field_key}"
+            # Enable: ends with "en" — exclude sleep-mode ("smen") and
+            # ready-flag ("rdy") fields which have the same suffix.
+            if (fld.endswith("en")
+                    and not fld.endswith("smen")
+                    and not fld.endswith("rdy")
+                    and not fld.endswith("cen")):   # "lscoen" etc. are not peri enables
+                per_id = fld[:-2]
+                per_en[per_id] = f"rcc.{field_key}"
+                continue
 
-        # Reset: ends with "rst"
-        elif fld.endswith("rst"):
-            per_id = fld[:-3]
-            per_rst[per_id] = f"rcc.{field_key}"
+            # Reset: ends with "rst"
+            if fld.endswith("rst"):
+                per_id = fld[:-3]
+                per_rst[per_id] = f"rcc.{field_key}"
+                continue
 
-        # Kernel-clock mux: ends with "sel" on a CCIPR/CCIPR2 register
-        elif fld.endswith("sel") and "ccipr" in reg.lower():
-            per_id = fld[:-3]
-            per_sel[per_id] = f"rcc.{field_key}"
+            # Kernel-clock mux on a CCIPR-style register.  Two suffix
+            # conventions exist: G0/G4 use "sel", H7 uses "src".
+            # F4's DCKCFGR* uses "src" too on a non-CCIPR register.
+            is_ccipr_like = "ccip" in reg_lower or reg_lower.startswith("dckcfgr")
+            if is_ccipr_like:
+                for suffix in ("sel", "src"):
+                    if fld.endswith(suffix):
+                        token = fld[: -len(suffix)]
+                        for per_id in _expand_grouped_peri_ids(token):
+                            if per_id in valid_per_ids:
+                                per_sel[per_id] = f"rcc.{field_key}"
+                        break
 
+    # ----- RP2040 'resets' template ------------------------------------
+    # On RP2040 the only per-peripheral gate is the reset bit in
+    # RESETS.RESET; releasing the bit implicitly enables the
+    # peripheral.  We mirror the same dotted path into ``en`` so the
+    # alloy HAL can treat ``kRccEnable`` and ``kRccReset`` uniformly
+    # across vendors (the same write toggles both).
+    resets_template = templates.get("resets")
+    if resets_template is not None:
+        for field_key in resets_template.fields:
+            parts = field_key.split(".", 1)
+            if len(parts) != 2:
+                continue
+            reg, fld = parts
+            if reg.lower() != "reset":
+                continue   # ignore reset_done / wdsel mirror registers
+            per_id = fld
+            if per_id not in valid_per_ids:
+                continue
+            path = f"resets.{field_key}"
+            # Don't clobber an inline ``en`` already declared on the
+            # peripheral or a more-specific entry from another template
+            # (per.rcc is consulted later as the primary source of truth).
+            per_en.setdefault(per_id, path)
+            per_rst.setdefault(per_id, path)
+
+    # ----- RP2040 'clocks' template (kernel-clock muxes) ---------------
+    # Fields like ``clk_adc_ctrl.auxsrc`` carry the kernel-clock
+    # source-mux for the small set of RP2040 peripherals with a
+    # dedicated clock domain (adc, peri, usb, rtc, ref, sys).  Map
+    # them onto kKernelClockMux just like a CCIPR ``sel`` on STM32.
+    clocks_template = templates.get("clocks")
+    if clocks_template is not None:
+        import re as _re
+
+        for field_key in clocks_template.fields:
+            parts = field_key.split(".", 1)
+            if len(parts) != 2:
+                continue
+            reg, fld = parts
+            if fld != "auxsrc":
+                continue
+            m = _re.match(r"^clk_(\w+)_ctrl$", reg)
+            if m is None:
+                continue
+            per_id = m.group(1)
+            if per_id in valid_per_ids:
+                per_sel[per_id] = f"clocks.{field_key}"
+
+    # ----- assemble the final PeripheralRcc map ------------------------
     all_ids = set(per_en) | set(per_rst)
     result: dict[str, PeripheralRcc] = {}
     for per_id in all_ids:
         extra: dict[str, object] = {}
-        bus_reg = per_en.get(per_id, "").split(".")[1] if per_id in per_en else ""
-        bus = _bus_from_reg(bus_reg) if bus_reg else None
-        if bus:
-            extra["bus"] = bus
+        en_path = per_en.get(per_id, "")
+        # Bus inference applies only to STM32 ``rcc.`` paths — RP2040's
+        # ``resets.`` paths don't carry an APB/AHB domain.
+        if en_path.startswith("rcc."):
+            bus_reg = en_path.split(".")[1] if en_path else ""
+            bus = _bus_from_reg(bus_reg) if bus_reg else None
+            if bus:
+                extra["bus"] = bus
         if per_id in per_sel:
             extra["clock_sel"] = per_sel[per_id]
         result[per_id] = PeripheralRcc(

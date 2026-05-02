@@ -268,8 +268,24 @@ class _StClockBackend:
         # 3. PLL programming (only if the profile uses one).
         if _is_pll_source(profile.sysclk_source):
             if profile.pll_n is None:
-                raise StageExecutionError(
-                    f"st clock backend: PLL profile {profile.id!r} missing pll_n"
+                # Same degrade-to-stub pattern used for missing
+                # ``hclk_hz`` (line ~200) and unresolved oscillators
+                # (line ~236) — emit a single comment-only step so
+                # synthesis still completes for chips whose YAML
+                # hasn't yet been enriched with PLL coefficients
+                # (currently STM32 F0/F1/F3 family).  A follow-up
+                # YAML pass should populate ``pll_m/pll_n/pll_r/p/q``
+                # so the runtime init function actually programs the
+                # PLL instead of just running on the post-reset HSI.
+                return (
+                    ClockProgramStep(
+                        kind="barrier_dsb",
+                        comment=(
+                            f"profile {profile.id!r} skipped — PLL coefficients "
+                            f"(pll_n/pll_m/pll_r) absent in YAML; "
+                            "see complete-clock-tree-runtime-init proposal §4"
+                        ),
+                    ),
                 )
             # PLLM / PLLN / PLLR live under RCC.PLLCFGR on G0/G4/F4/H7
             # (the offsets and exact field shifts differ — the IR

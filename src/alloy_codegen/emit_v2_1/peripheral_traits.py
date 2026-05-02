@@ -213,45 +213,38 @@ def _emit_template_namespace(ip_name: str, template: Template) -> list[str]:
 
 
 def _emit_calibration_data_point(name: str, point: object) -> list[str]:
-    """Emit one ``CalibrationDataPoint`` as a typed sub-namespace."""
-    # Imported inline to keep the top-of-file imports tidy; the
-    # type comes from ir.v2_1.peripherals.
+    """Emit one ``CalibrationDataPoint`` as a typed nested struct."""
     from alloy_codegen.ir.v2_1 import CalibrationDataPoint
     if not isinstance(point, CalibrationDataPoint):
         return []
-    out = [f"    namespace {name} {{"]
-    out.append(f"      inline constexpr uintptr_t kRomAddr   = 0x{point.rom_addr:08X}u;")
-    out.append(f"      inline constexpr unsigned  kSizeBits  = {point.size_bits};")
+    out = [f"    struct {name} {{"]
+    out.append(f"      static constexpr uintptr_t kRomAddr   = 0x{point.rom_addr:08X}u;")
+    out.append(f"      static constexpr unsigned  kSizeBits  = {point.size_bits};")
     if point.nominal_mv is not None:
-        out.append(f"      inline constexpr unsigned  kNominalMv = {int(point.nominal_mv)};")
+        out.append(f"      static constexpr unsigned  kNominalMv = {int(point.nominal_mv)};")
     if point.temp_celsius is not None:
-        out.append(f"      inline constexpr int       kTempC     = {int(point.temp_celsius)};")
+        out.append(f"      static constexpr int       kTempC     = {int(point.temp_celsius)};")
     if point.vdda_calibration is not None:
-        out.append(f"      inline constexpr unsigned  kVddaCalMv = {int(point.vdda_calibration)};")
-    out.append("    }")
+        out.append(f"      static constexpr unsigned  kVddaCalMv = {int(point.vdda_calibration)};")
+    out.append("    };")
     return out
 
 
 def _emit_adc_instance_traits(per: PeripheralInstance) -> list[str]:
-    """Emit ADC-only sub-namespaces inside a peripheral instance.
+    """Emit ADC-only nested structs inside a peripheral struct.
 
-    Two blocks:
+    Two nested types:
     * ``calibration::{vrefint, ts_cal_low, ts_cal_high}`` — typed
       addresses + nominal / temperature constants from the IR's
-      :class:`AdcCalibration`.  HAL reads these to compute Vdda
-      and chip temperature without re-deriving the data sheet.
-    * ``external_triggers::{regular, injected}`` — typed
-      ``{source, extsel, polarity}`` rows for every populated
-      kind.  Source and polarity are still ``const char *`` until
-      typed enums ship from a follow-up; the integer encoding
-      (``extsel`` / ``jextsel``) is the executable bit.
+      :class:`AdcCalibration`.
+    * ``external_triggers::{regular, injected}`` — typed rows.
     """
     out: list[str] = []
     cal = per.calibration
     if cal is not None:
         out.append("")
         out.append("  // ADC factory calibration (read at boot to compute Vdda + chip temp).")
-        out.append("  namespace calibration {")
+        out.append("  struct calibration {")
         if cal.vrefint is not None:
             out.extend(_emit_calibration_data_point("vrefint", cal.vrefint))
         if cal.ts_cal_low is not None:
@@ -260,25 +253,25 @@ def _emit_adc_instance_traits(per: PeripheralInstance) -> list[str]:
             out.extend(_emit_calibration_data_point("ts_cal_high", cal.ts_cal_high))
         if cal.ts_slope_uv_per_c is not None:
             out.append(
-                f"    inline constexpr unsigned kTsSlopeUvPerC = "
+                f"    static constexpr unsigned kTsSlopeUvPerC = "
                 f"{int(cal.ts_slope_uv_per_c)};"
             )
-        out.append("  }")
+        out.append("  };")
 
     if per.external_triggers:
         out.append("")
         out.append("  // ADC external-trigger map per kind (regular / injected).")
-        out.append("  namespace external_triggers {")
+        out.append("  struct external_triggers {")
         for kind, triggers in sorted(per.external_triggers.items()):
             sanitised_kind = kind.replace("-", "_").replace(".", "_")
-            out.append(f"    namespace {sanitised_kind} {{")
+            out.append(f"    struct {sanitised_kind} {{")
             out.append("      struct row {")
-            out.append("        const char *source;     // typed enum lift queued")
-            out.append("        int         extsel;     // -1 = not encoded for this kind")
-            out.append("        int         jextsel;    // -1 = not encoded for this kind")
-            out.append("        const char *polarity;   // \"rising\" | \"falling\" | \"both\"")
+            out.append("        const char *source;")
+            out.append("        int         extsel;    // -1 = not encoded")
+            out.append("        int         jextsel;   // -1 = not encoded")
+            out.append("        const char *polarity;  // \"rising\" | \"falling\" | \"both\"")
             out.append("      };")
-            out.append(f"      inline constexpr row kRows[] = {{")
+            out.append(f"      static constexpr row kRows[] = {{")
             for trig in triggers:
                 ext = trig.extsel if trig.extsel is not None else -1
                 jext = trig.jextsel if trig.jextsel is not None else -1
@@ -287,34 +280,30 @@ def _emit_adc_instance_traits(per: PeripheralInstance) -> list[str]:
                     f"        {{ \"{trig.source}\", {ext}, {jext}, \"{pol}\" }},"
                 )
             out.append("      };")
-            out.append(f"      inline constexpr unsigned kCount = {len(triggers)};")
-            out.append("    }")
-        out.append("  }")
+            out.append(f"      static constexpr unsigned kCount = {len(triggers)};")
+            out.append("    };")
+        out.append("  };")
     return out
 
 
 def _emit_i2c_instance_traits(per: PeripheralInstance) -> list[str]:
-    """Emit I²C-only sub-namespace inside a peripheral instance.
+    """Emit I²C-only nested struct inside a peripheral struct.
 
-    One block: ``timing_presets::kRows`` carrying every populated
-    ``I2cTimingPreset`` (TIMINGR for v2/v3 — F0/F3/G0/G4/H7;
-    CCR + TRISE for v1 — F1/F2/F4).  Each row carries the speed
-    label, source-clock label, and the encoded register payload
-    so HAL picks the matching preset at open time without runtime
-    PCLK division.
+    ``timing_presets::kRows`` — every populated ``I2cTimingPreset``
+    (TIMINGR for F0/G0/G4/H7; CCR + TRISE for F1/F2/F4).
     """
     if not per.timing_presets:
         return []
     out = ["", "  // I²C pre-computed timing presets (one per supported speed)."]
-    out.append("  namespace timing_presets {")
+    out.append("  struct timing_presets {")
     out.append("    struct row {")
-    out.append("      const char *speed;          // e.g. \"100kHz\" / \"400kHz\" / \"1MHz\"")
-    out.append("      const char *source_clock;   // e.g. \"pclk1\"")
-    out.append("      unsigned    timingr;        // 0 when not encoded for this row")
-    out.append("      unsigned    ccr;            // 0 when not encoded for this row")
-    out.append("      unsigned    trise;          // 0 when not encoded for this row")
+    out.append("      const char *speed;         // e.g. \"100kHz\" / \"400kHz\" / \"1MHz\"")
+    out.append("      const char *source_clock;  // e.g. \"pclk1\"")
+    out.append("      unsigned    timingr;       // 0 when not encoded for this row")
+    out.append("      unsigned    ccr;           // 0 when not encoded for this row")
+    out.append("      unsigned    trise;         // 0 when not encoded for this row")
     out.append("    };")
-    out.append(f"    inline constexpr row kRows[] = {{")
+    out.append(f"    static constexpr row kRows[] = {{")
     for tp in per.timing_presets:
         timingr = tp.timingr if tp.timingr is not None else 0
         ccr = tp.ccr if tp.ccr is not None else 0
@@ -324,8 +313,8 @@ def _emit_i2c_instance_traits(per: PeripheralInstance) -> list[str]:
             f"0x{timingr:08X}u, 0x{ccr:08X}u, 0x{trise:08X}u }},"
         )
     out.append("    };")
-    out.append(f"    inline constexpr unsigned kCount = {len(per.timing_presets)};")
-    out.append("  }")
+    out.append(f"    static constexpr unsigned kCount = {len(per.timing_presets)};")
+    out.append("  };")
     return out
 
 
@@ -336,22 +325,39 @@ def _instance_number(per_id: str) -> int | None:
 
 
 def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -> list[str]:
+    """Emit one peripheral instance as a plain struct.
+
+    Design: each peripheral IS a type.  HAL drivers can use
+    ``template <typename P>`` with concept constraints directly on
+    the struct's static constexpr members — no ``PeripheralInstanceTraits``
+    adapter needed.
+
+    Example usage::
+
+        #include "peripheral_traits.h"
+        using ns = alloy::st::stm32g0::stm32g071rb;
+
+        template <typename P>
+        void enable_clock();  // specialised via concept
+
+        enable_clock<ns::usart1>();
+    """
     safe_id = per.id.replace("-", "_")
     out = [
-        f"namespace {safe_id} {{",
-        f"  inline constexpr const char * kName       = \"{per.id}\";",
-        f"  inline constexpr const char * kTemplate   = \"{per.template}\";",
+        f"struct {safe_id} {{",
+        f"  static constexpr const char * kName       = \"{per.id}\";",
+        f"  static constexpr const char * kTemplate   = \"{per.template}\";",
     ]
 
     # Instance number (1 for usart1, 2 for usart2, None for singletons)
     inst_num = _instance_number(per.id)
     if inst_num is not None:
-        out.append(f"  inline constexpr unsigned    kInstance    = {inst_num}u;")
+        out.append(f"  static constexpr unsigned    kInstance    = {inst_num}u;")
 
     if per.ip_version:
-        out.append(f"  inline constexpr const char * kIpVersion  = \"{per.ip_version}\";")
+        out.append(f"  static constexpr const char * kIpVersion  = \"{per.ip_version}\";")
     if per.base is not None:
-        out.append(f"  inline constexpr uintptr_t   kBaseAddress = {_hex_addr(per.base)};")
+        out.append(f"  static constexpr uintptr_t   kBaseAddress = {_hex_addr(per.base)};")
 
     # Bus domain: prefer per.bus (inline YAML), then synthesised rcc.extra["bus"]
     bus = per.bus
@@ -360,80 +366,78 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
         if syn_rcc:
             bus = str(syn_rcc.extra.get("bus", "")) or None
     if bus:
-        out.append(f"  inline constexpr const char * kBus        = \"{bus}\";")
+        out.append(f"  static constexpr const char * kBus        = \"{bus}\";")
 
     if per.clock_source:
-        out.append(f"  inline constexpr const char * kClockSrc   = \"{per.clock_source}\";")
+        out.append(f"  static constexpr const char * kClockSrc   = \"{per.clock_source}\";")
     if per.max_clock_override:
-        out.append(f"  inline constexpr const char * kMaxClock   = \"{per.max_clock_override}\";")
+        out.append(f"  static constexpr const char * kMaxClock   = \"{per.max_clock_override}\";")
 
     # IRQs
     if per.irq:
         irq_lines = [str(i.num) for i in per.irq]
         irq_names = [f"\"{i.name}\"" for i in per.irq]
         out.append(
-            f"  inline constexpr unsigned    kIrqLines[]  = "
+            f"  static constexpr unsigned    kIrqLines[]  = "
             f"{{ {', '.join(irq_lines)} }};"
         )
         out.append(
-            f"  inline constexpr const char *kIrqNames[]  = "
+            f"  static constexpr const char *kIrqNames[]  = "
             f"{{ {', '.join(irq_names)} }};"
         )
-        out.append(f"  inline constexpr unsigned    kIrqCount    = {len(per.irq)};")
+        out.append(f"  static constexpr unsigned    kIrqCount    = {len(per.irq)};")
 
     # RCC — prefer per.rcc (inline), fall back to synthesised rcc_map entry
     eff_rcc = per.rcc or syn.per_rcc_map.get(per.id)
     if eff_rcc and eff_rcc.en:
-        out.append(f"  inline constexpr const char * kRccEnable  = \"{eff_rcc.en}\";")
+        out.append(f"  static constexpr const char * kRccEnable  = \"{eff_rcc.en}\";")
     if eff_rcc and eff_rcc.rst:
-        out.append(f"  inline constexpr const char * kRccReset   = \"{eff_rcc.rst}\";")
+        out.append(f"  static constexpr const char * kRccReset   = \"{eff_rcc.rst}\";")
     if eff_rcc:
         clock_sel = eff_rcc.extra.get("clock_sel")
         if clock_sel:
-            out.append(f"  inline constexpr const char * kKernelClockMux = \"{clock_sel}\";")
+            out.append(f"  static constexpr const char * kKernelClockMux = \"{clock_sel}\";")
 
     # DMA
     if per.dma and per.dma.tx:
         out.append("  // DMA TX:")
         if per.dma.tx.ctrl is not None:
-            out.append(f"  inline constexpr const char * kDmaTxCtrl = \"{per.dma.tx.ctrl}\";")
+            out.append(f"  static constexpr const char * kDmaTxCtrl = \"{per.dma.tx.ctrl}\";")
         if per.dma.tx.channel is not None:
-            out.append(f"  inline constexpr unsigned    kDmaTxCh   = {per.dma.tx.channel};")
+            out.append(f"  static constexpr unsigned    kDmaTxCh   = {per.dma.tx.channel};")
         if per.dma.tx.dreq is not None:
-            out.append(f"  inline constexpr unsigned    kDmaTxDreq = {per.dma.tx.dreq};")
+            out.append(f"  static constexpr unsigned    kDmaTxDreq = {per.dma.tx.dreq};")
     if per.dma and per.dma.rx:
         out.append("  // DMA RX:")
         if per.dma.rx.ctrl is not None:
-            out.append(f"  inline constexpr const char * kDmaRxCtrl = \"{per.dma.rx.ctrl}\";")
+            out.append(f"  static constexpr const char * kDmaRxCtrl = \"{per.dma.rx.ctrl}\";")
         if per.dma.rx.channel is not None:
-            out.append(f"  inline constexpr unsigned    kDmaRxCh   = {per.dma.rx.channel};")
+            out.append(f"  static constexpr unsigned    kDmaRxCh   = {per.dma.rx.channel};")
         if per.dma.rx.dreq is not None:
-            out.append(f"  inline constexpr unsigned    kDmaRxDreq = {per.dma.rx.dreq};")
+            out.append(f"  static constexpr unsigned    kDmaRxDreq = {per.dma.rx.dreq};")
 
     # Mutex group (Nordic shared-IRQ peripherals)
     if per.mutex_group:
-        out.append(f"  inline constexpr const char * kMutexGroup = \"{per.mutex_group}\";")
+        out.append(f"  static constexpr const char * kMutexGroup = \"{per.mutex_group}\";")
 
     # Synthesised endpoints (signal names this peripheral exposes)
     endpoints = [e for e in syn.signal_endpoints if e.peripheral == per.id]
     if endpoints:
         signal_names = [f"\"{e.signal}\"" for e in endpoints]
         out.append(
-            f"  inline constexpr const char *kSignals[]   = "
+            f"  static constexpr const char *kSignals[]   = "
             f"{{ {', '.join(signal_names)} }};"
         )
-        out.append(f"  inline constexpr unsigned    kSignalCount = {len(endpoints)};")
+        out.append(f"  static constexpr unsigned    kSignalCount = {len(endpoints)};")
 
-    # Optional rich-metadata sub-namespaces gated on the trait
-    # classifier.  Empty result for instances whose template
-    # doesn't carry calibration / timing-preset payloads.
+    # Optional rich-metadata nested structs gated on the trait classifier.
     trait_kind = classify_instance(per)
     if trait_kind == InstanceTraitKind.ADC:
         out.extend(_emit_adc_instance_traits(per))
     elif trait_kind == InstanceTraitKind.I2C:
         out.extend(_emit_i2c_instance_traits(per))
 
-    out.append(f"}}  // namespace {safe_id}")
+    out.append(f"}};  // struct {safe_id}")
     return out
 
 
@@ -468,13 +472,17 @@ def emit_peripheral_traits(
         "",
     ]
 
-    # Sorted templates first — they're referenced by per-instance namespaces.
+    # IP-block template namespaces first — register offsets + bit positions.
+    # These remain namespaces (not structs) because they're indexed by IP-version
+    # string rather than used as type parameters.
     if device.templates:
         for ip_name, template in sorted(device.templates.items()):
             lines.extend(_emit_template_namespace(ip_name, template))
             lines.append("")
 
-    # Per-instance namespaces.
+    # Per-instance structs.  Each struct IS the peripheral's trait type:
+    #   template <typename P> void enable_clock();  // concept-constrained
+    #   enable_clock<usart1>();
     for per in device.peripherals:
         lines.extend(_emit_peripheral_instance(per, synthesised))
         lines.append("")
