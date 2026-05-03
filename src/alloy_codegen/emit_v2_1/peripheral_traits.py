@@ -456,19 +456,19 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
     if per.dma and per.dma.tx:
         out.append("  // DMA TX:")
         if per.dma.tx.ctrl is not None:
-            out.append(f'  static constexpr const char * kDmaTxCtrl = "{per.dma.tx.ctrl}";')
+            out.append(f'  static constexpr const char * kDmaTxCtrl    = "{per.dma.tx.ctrl}";')
         if per.dma.tx.channel is not None:
-            out.append(f"  static constexpr unsigned    kDmaTxCh   = {per.dma.tx.channel};")
+            out.append(f"  static constexpr unsigned    kDmaTxCh      = {per.dma.tx.channel};")
         if per.dma.tx.dreq is not None:
-            out.append(f"  static constexpr unsigned    kDmaTxDreq = {per.dma.tx.dreq};")
+            out.append(f"  static constexpr unsigned    kDmaTxRequest = {per.dma.tx.dreq};")
     if per.dma and per.dma.rx:
         out.append("  // DMA RX:")
         if per.dma.rx.ctrl is not None:
-            out.append(f'  static constexpr const char * kDmaRxCtrl = "{per.dma.rx.ctrl}";')
+            out.append(f'  static constexpr const char * kDmaRxCtrl    = "{per.dma.rx.ctrl}";')
         if per.dma.rx.channel is not None:
-            out.append(f"  static constexpr unsigned    kDmaRxCh   = {per.dma.rx.channel};")
+            out.append(f"  static constexpr unsigned    kDmaRxCh      = {per.dma.rx.channel};")
         if per.dma.rx.dreq is not None:
-            out.append(f"  static constexpr unsigned    kDmaRxDreq = {per.dma.rx.dreq};")
+            out.append(f"  static constexpr unsigned    kDmaRxRequest = {per.dma.rx.dreq};")
 
     # Mutex group (Nordic shared-IRQ peripherals)
     if per.mutex_group:

@@ -5,6 +5,52 @@ All notable changes to alloy-codegen are recorded in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-05-03
+
+### Fixed
+
+- **`rcc_enable.hpp` always_on portability gap** — peripherals on
+  silicon without per-peripheral gates (every peripheral on AVR-Dx
+  / NRF52, plus system-control peripherals on every other vendor)
+  now emit no-op specialisations for `clk_enable<P>()`,
+  `clk_disable<P>()`, `rst_assert<P>()`, `rst_release<P>()`,
+  `peripheral_on<P>()`.  HAL drivers can now call these
+  uniformly across vendors; on always-on silicon the call site
+  evaporates to zero instructions after inlining.  Previously,
+  the same call would hit the primary template's `= delete` and
+  fail to compile.
+
+### Added
+
+- **`rcc_gate_table.hpp` (10th emitted artifact)** — per-device
+  RCC enable-gate lookup table with `(dotted_path, absolute_addr,
+  bit_mask)` rows.  Consumed by `device/rcc_gate_table.hpp`
+  (alloy-hal) when string-keyed gate lookup is needed (e.g.,
+  power-management code that walks `kRccEnable` paths
+  generically).  Direct-MMIO callers continue to use the
+  zero-overhead `clk_enable<P>()` template specialisations from
+  `rcc_enable.hpp`.
+
+### Analysis (no behaviour change)
+
+Trait-surface measurement on the five reference fixtures
+(stm32g0b1cbtx, rp2040, mimxrt1062, avr64da32, esp32c3) confirms:
+
+* **Zero runtime overhead** — a HAL probe exercising
+  `kBaseAddress`, `kGateModel` `constexpr if`, `kIrqLines[0]`,
+  and `kBaseAddress + register_offset` compiles to **56 bytes
+  of `__TEXT`** at `-O2`.  Every `static constexpr` collapses
+  to immediate-value loads.
+* **Zero binary bloat** — including all ten emitted headers
+  (1.9 MB of `peripheral_traits.h` on iMXRT) without referencing
+  any symbol produces an **8-byte object file** at `-O2`.
+  `inline constexpr` is ODR-emitted only when used.
+* **Trait-surface uniformity** — universal core fields
+  (`kName`, `kTemplate`, `kBaseAddress`) are at 100% coverage.
+  `kGateModel` covers 80.5% of all peripherals across vendors;
+  the remaining ~20% are system-control peripherals without
+  gates, which is silicon-correct.
+
 ## [0.3.0] — 2026-05-02
 
 ### Cross-vendor RCC synthesis + GateModel enum + compile gate

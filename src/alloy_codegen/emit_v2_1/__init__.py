@@ -21,6 +21,7 @@ from alloy_codegen.emit_v2_1.peripheral_id import emit_peripheral_id
 from alloy_codegen.emit_v2_1.peripheral_traits import emit_peripheral_traits
 from alloy_codegen.emit_v2_1.pin_router import emit_pin_router
 from alloy_codegen.emit_v2_1.rcc_enable import emit_rcc_enable
+from alloy_codegen.emit_v2_1.rcc_gate_table import emit_rcc_gate_table
 from alloy_codegen.emit_v2_1.rcc_traits import emit_rcc_traits
 from alloy_codegen.emit_v2_1.runtime_init import emit_runtime_init
 from alloy_codegen.emit_v2_1.system_init import emit_system_init
@@ -32,6 +33,7 @@ __all__ = [
     "emit_peripheral_traits",
     "emit_pin_router",
     "emit_rcc_enable",
+    "emit_rcc_gate_table",
     "emit_rcc_traits",
     "emit_runtime_init",
     "emit_system_init",

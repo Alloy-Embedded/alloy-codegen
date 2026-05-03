@@ -280,8 +280,27 @@ def _emit_peripheral_block(
     has_en  = en_base  is not None and en_offset  is not None and en_bit  is not None
     has_rst = rst_base is not None and rst_offset is not None and rst_bit is not None
 
+    # Always-on peripherals (avr-da / nrf52 silicon-wide, plus
+    # system-control peripherals on every other vendor — gpc, ccm,
+    # mpu, nvic, system, pcr, …) have neither an enable bit nor a
+    # reset bit.  Emit no-op specialisations so HAL drivers can call
+    # ``clk_enable<P>()`` uniformly across vendors without
+    # special-casing the always-on case at the call site.  Empty
+    # ``inline`` bodies cost zero bytes once the compiler inlines.
     if not has_en and not has_rst:
-        return []
+        gate_model = (eff_rcc.extra or {}).get("gate_model")
+        if gate_model != "always_on":
+            return []
+        out: list[str] = [
+            "",
+            f"// {safe_id} — always_on (no gate, no reset)",
+            f"template <> inline void clk_enable<{safe_id}>()    noexcept {{}}",
+            f"template <> inline void clk_disable<{safe_id}>()   noexcept {{}}",
+            f"template <> inline void rst_assert<{safe_id}>()    noexcept {{}}",
+            f"template <> inline void rst_release<{safe_id}>()   noexcept {{}}",
+            f"template <> inline void peripheral_on<{safe_id}>() noexcept {{}}",
+        ]
+        return out
 
     # ── Per-family flags ─────────────────────────────────────────────────────
     tname_for_flags = en_tname or rst_tname or ""
@@ -419,10 +438,19 @@ def emit_rcc_enable(
             base_values[tname] = base
 
     # ── Collect peripherals to emit (prefer per_rcc_map, fall back inline) ──
+    # Also include always_on entries — they have neither en nor rst path
+    # but DO carry gate_model="always_on", so we still emit the no-op
+    # specialisations (handled inside _emit_peripheral_block).  Without
+    # this, HAL drivers can't call ``clk_enable<P>()`` portably on
+    # AVR-Dx / NRF52 silicon.
     per_rcc_effective: dict[str, PeripheralRcc] = {}
     for per in device.peripherals:
         eff = synthesised.per_rcc_map.get(per.id) or per.rcc
-        if eff and (eff.en or eff.rst):
+        if not eff:
+            continue
+        if eff.en or eff.rst:
+            per_rcc_effective[per.id] = eff
+        elif (eff.extra or {}).get("gate_model") == "always_on":
             per_rcc_effective[per.id] = eff
 
     # ── Build the file ────────────────────────────────────────────────────────

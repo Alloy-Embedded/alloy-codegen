@@ -23,6 +23,7 @@ from alloy_codegen.emit_v2_1 import (
     emit_peripheral_id,
     emit_peripheral_traits,
     emit_pin_router,
+    emit_rcc_gate_table,
     emit_runtime_init,
     emit_system_init,
     emit_vector_table,
@@ -105,6 +106,11 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         name="system_init",
         filename="system_init.c",
         fn=emit_system_init,
+    ),
+    _EmitterEntry(
+        name="rcc_gate_table",
+        filename="rcc_gate_table.hpp",
+        fn=emit_rcc_gate_table,
     ),
 )
 

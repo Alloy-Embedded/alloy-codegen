@@ -36,6 +36,7 @@ from alloy_codegen.emit_v2_1 import (
     emit_peripheral_traits,
     emit_pin_router,
     emit_rcc_enable,
+    emit_rcc_gate_table,
     emit_rcc_traits,
     emit_runtime_init,
     emit_system_init,
@@ -109,6 +110,12 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         filename="rcc_traits.hpp",
         fn=emit_rcc_traits,
         description="Typed GateModel enum for HAL constexpr-if dispatch.",
+    ),
+    _EmitterEntry(
+        name="rcc_gate_table",
+        filename="rcc_gate_table.hpp",
+        fn=emit_rcc_gate_table,
+        description="Per-peripheral RCC enable-gate lookup table (consteval find_rcc_gate).",
     ),
 )
 
