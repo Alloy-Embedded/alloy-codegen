@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import re
 
+from alloy_codegen.emit_v2_1._rcc_path_resolver import resolve_rcc_path
 from alloy_codegen.emit_v2_1.trait_classifier import (
     InstanceTraitKind,
     TemplateTraitKind,
@@ -42,6 +43,43 @@ from alloy_codegen.ir.v2_1 import (
     Template,
     TemplateField,
 )
+
+
+# Map the synthesiser's bus tag strings to the Bus enum enumerator names
+# emitted into rcc_traits.hpp.  The synthesiser writes uppercase tags like
+# "APB1", "DPORT", "CCGR" — these resolve to lowercase enumerators.  Keys
+# are matched case-insensitively, so inline YAML values (`bus: "APB1"`)
+# and synthesised tags (`extra["bus"] = "APB1"`) both land in the same
+# enumerator regardless of case.
+_BUS_TAG_TO_ENUM: dict[str, str] = {
+    "apb":    "apb",
+    "apb1":   "apb1",
+    "apb2":   "apb2",
+    "apb3":   "apb3",
+    "apb4":   "apb4",
+    "ahb":    "ahb",
+    "ahb1":   "ahb1",
+    "ahb2":   "ahb2",
+    "ahb3":   "ahb3",
+    "ahb4":   "ahb4",
+    "dport":  "dport",
+    "system": "system",
+    "pcr":    "pcr",
+    "ccgr":   "ccgr",
+    "mclk":   "mclk",
+    "pm":     "pm",
+    "pmc":    "pmc",
+    "resets": "resets",
+}
+
+
+def _bus_enum_for(tag: str | None) -> str | None:
+    """Return the ``Bus::xxx`` enumerator name for a synthesiser tag,
+    or ``None`` when the tag is empty / unknown (caller skips emission).
+    """
+    if not tag:
+        return None
+    return _BUS_TAG_TO_ENUM.get(tag.lower())
 
 
 # C++20 reserved keywords that occasionally show up as enum entry
@@ -370,7 +408,11 @@ def _instance_number(per_id: str) -> int | None:
     return int(m.group(1)) if m else None
 
 
-def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -> list[str]:
+def _emit_peripheral_instance(
+    per: PeripheralInstance,
+    syn: SynthesisedDevice,
+    device: CanonicalDevice,
+) -> list[str]:
     """Emit one peripheral instance as a plain struct.
 
     Design: each peripheral IS a type.  HAL drivers can use
@@ -405,14 +447,18 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
     if per.base is not None:
         out.append(f"  static constexpr uintptr_t   kBaseAddress = {_hex_addr(per.base)};")
 
-    # Bus domain: prefer per.bus (inline YAML), then synthesised rcc.extra["bus"]
-    bus = per.bus
-    if not bus:
+    # Bus domain — typed enum (replaces the v0.3.x ``kBus`` string).
+    # Source-of-truth precedence: inline YAML ``per.bus`` first, then
+    # synthesised ``extra["bus"]``.  Unknown tags drop the line so the
+    # struct doesn't carry a sentinel value HAL would have to filter.
+    bus_tag = per.bus
+    if not bus_tag:
         syn_rcc = syn.per_rcc_map.get(per.id)
         if syn_rcc:
-            bus = str(syn_rcc.extra.get("bus", "")) or None
-    if bus:
-        out.append(f'  static constexpr const char * kBus        = "{bus}";')
+            bus_tag = str(syn_rcc.extra.get("bus", "")) or None
+    bus_enum = _bus_enum_for(bus_tag)
+    if bus_enum is not None:
+        out.append(f"  static constexpr Bus         kBus        = Bus::{bus_enum};")
 
     if per.clock_source:
         out.append(f'  static constexpr const char * kClockSrc   = "{per.clock_source}";')
@@ -435,13 +481,51 @@ def _emit_peripheral_instance(per: PeripheralInstance, syn: SynthesisedDevice) -
     # ``SynthesisedDevice`` without going through ``build_synthesised``.
     eff_rcc = syn.per_rcc_map.get(per.id) or per.rcc
     if eff_rcc and eff_rcc.en:
-        out.append(f'  static constexpr const char * kRccEnable  = "{eff_rcc.en}";')
+        resolved = resolve_rcc_path(eff_rcc.en, device)
+        if resolved is not None:
+            # Typed RccGate — pre-resolved (addr, mask).  HAL writes
+            #   *reinterpret_cast<volatile uint32_t*>(g.addr) |= g.mask;
+            # which folds to a single RMW at -O2.
+            out.append(
+                f"  static constexpr RccGate     kRccEnable  = "
+                f"{{ 0x{resolved.addr:08X}u, 0x{resolved.mask:08X}u }};"
+            )
+        else:
+            # Path didn't resolve (template missing, malformed inline,
+            # etc.) — fall back to the dotted-path string so the field
+            # is still observable, but flag it for the next regen.
+            out.append(
+                f'  static constexpr const char * kRccEnableRaw = "{eff_rcc.en}";'
+                f"  // unresolved; type-safe form requires a template fix"
+            )
     if eff_rcc and eff_rcc.rst:
-        out.append(f'  static constexpr const char * kRccReset   = "{eff_rcc.rst}";')
+        resolved = resolve_rcc_path(eff_rcc.rst, device)
+        if resolved is not None:
+            out.append(
+                f"  static constexpr RccGate     kRccReset   = "
+                f"{{ 0x{resolved.addr:08X}u, 0x{resolved.mask:08X}u }};"
+            )
+        else:
+            out.append(
+                f'  static constexpr const char * kRccResetRaw  = "{eff_rcc.rst}";'
+                f"  // unresolved; type-safe form requires a template fix"
+            )
     if eff_rcc:
         clock_sel = eff_rcc.extra.get("clock_sel")
-        if clock_sel:
-            out.append(f'  static constexpr const char * kKernelClockMux = "{clock_sel}";')
+        if isinstance(clock_sel, str) and clock_sel:
+            resolved = resolve_rcc_path(clock_sel, device)
+            if resolved is not None:
+                # Typed RccMuxField — multi-bit kernel-clock selector.
+                out.append(
+                    f"  static constexpr RccMuxField kKernelClockMux = "
+                    f"{{ 0x{resolved.addr:08X}u, 0x{resolved.mask:08X}u, "
+                    f"{resolved.lsb}u, {resolved.width}u }};"
+                )
+            else:
+                out.append(
+                    f'  static constexpr const char * kKernelClockMuxRaw = "{clock_sel}";'
+                    f"  // unresolved; type-safe form requires a template fix"
+                )
         # Typed gate-model enumerator — drives the alloy HAL's
         # ``constexpr if`` dispatch on EnableClock paths
         # (always_on short-circuit, index_based parser, etc.).
@@ -541,7 +625,7 @@ def emit_peripheral_traits(
     #   template <typename P> void enable_clock();  // concept-constrained
     #   enable_clock<usart1>();
     for per in device.peripherals:
-        lines.extend(_emit_peripheral_instance(per, synthesised))
+        lines.extend(_emit_peripheral_instance(per, synthesised, device))
         lines.append("")
 
     lines.append(

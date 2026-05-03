@@ -5,6 +5,111 @@ All notable changes to alloy-codegen are recorded in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-05-03
+
+### Type-safe RCC trait surface (BREAKING CHANGE)
+
+The four dotted-path strings on every peripheral struct
+(`kRccEnable`, `kRccReset`, `kKernelClockMux`, `kBus`) are replaced
+with typed C++ values resolved at codegen time.  HAL drivers no
+longer need to parse strings at runtime; every typed value folds
+to an immediate at `-O2`.
+
+#### Before (v0.3.x)
+```cpp
+struct lpuart1 {
+    static constexpr const char * kBus            = "APB1";
+    static constexpr const char * kRccEnable      = "rcc.apbenr1.lpuart1en";
+    static constexpr const char * kRccReset       = "rcc.apbrstr1.lpuart1rst";
+    static constexpr const char * kKernelClockMux = "rcc.ccipr.lpuart1sel";
+};
+```
+
+#### After (v0.4.0)
+```cpp
+struct lpuart1 {
+    static constexpr Bus         kBus            = Bus::apb1;
+    static constexpr RccGate     kRccEnable      = { 0x4002103Cu, 0x00100000u };
+    static constexpr RccGate     kRccReset       = { 0x4002102Cu, 0x00100000u };
+    static constexpr RccMuxField kKernelClockMux = { 0x40021054u, 0x00000C00u, 10u, 2u };
+};
+```
+
+#### New types in `rcc_traits.hpp`
+- **`enum class Bus`** — closed enumeration replacing the vendor
+  bus-tag strings.  Members: `apb`, `apb1..apb4`, `ahb`,
+  `ahb1..ahb4`, `dport`, `system`, `pcr`, `ccgr`, `mclk`, `pm`,
+  `pmc`, `resets`, plus the `unknown` sentinel.
+- **`struct RccGate`** — `{ uintptr_t addr; uint32_t mask; }`.
+  Used by `kRccEnable` and `kRccReset`.  HAL writes
+  `*reinterpret_cast<volatile uint32_t*>(g.addr) |= g.mask;`
+  which folds to a single 5-instruction RMW at `-O2`.
+- **`struct RccMuxField`** — `{ uintptr_t addr; uint32_t mask;
+  uint8_t lsb; uint8_t width; }`.  Used by `kKernelClockMux` for
+  multi-bit kernel-clock selectors.  HAL writes the standard
+  read-modify-write with shift-and-mask; ARM Cortex-M compiles
+  this to `bfi` (bit field insert) — one instruction.
+
+#### Codegen-time resolution
+A new shared module `_rcc_path_resolver.py` converts every
+synthesiser-emitted dotted path
+(`"rcc.apbenr1.lpuart1en"`, `"CCM_CCGR5.CG12"`,
+`"gclk.pchctrl7.gen"`) into a `(absolute_addr, mask, lsb, width)`
+tuple at codegen time.  Both `peripheral_traits.py` and
+`rcc_enable.py` consume it, so the two emitters cannot drift.
+
+The resolver also handles array-style registers
+(`pchctrl7.gen` → `pchctrl_base + 7*4 + field`) so SAMD51 / SAML21
+GCLK kernel-clock muxes resolve to absolute addresses without
+requiring per-vendor IR support.
+
+#### Verified machine code
+
+A HAL probe TU using `clk_enable<P>()`, the typed `kRccEnable`
+struct, and a hand-written MMIO write produces **byte-identical
+machine code** for all three paths at `-O2`:
+
+```
+typed struct:    6 instructions, 24 bytes
+hand-written:    6 instructions, 24 bytes
+specialisation:  6 instructions, 24 bytes
+```
+
+Multi-bit `RccMuxField` writes compile to ARM's `bfi` (bit
+field insert) — a single instruction.
+
+#### Migration
+
+HAL drivers using the old string fields:
+
+```cpp
+// OLD — string parsing required
+if (strcmp(P::kBus, "APB1") == 0) { ... }
+parse_dotted_path(P::kRccEnable);
+```
+
+must migrate to:
+
+```cpp
+// NEW — typed dispatch
+if constexpr (P::kBus == Bus::apb1) { ... }
+*reinterpret_cast<volatile uint32_t*>(P::kRccEnable.addr)
+    |= P::kRccEnable.mask;
+```
+
+The unchanged surface is the `clk_enable<P>()` template
+specialisations in `rcc_enable.hpp` — they continue to work
+across all 5 GateModel branches without modification.
+
+#### Edge cases
+
+- Paths that don't resolve (template missing, malformed inline
+  YAML) fall back to a `kRccEnableRaw` / `kRccResetRaw` /
+  `kKernelClockMuxRaw` field carrying the original string,
+  marked with a TODO comment.  This keeps the surface
+  observable while signalling that an upstream YAML fix is
+  needed.
+
 ## [0.3.1] — 2026-05-03
 
 ### Fixed

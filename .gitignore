@@ -11,3 +11,4 @@ build/
 .artifacts/
 .tmp-artifacts/
 .claude/worktrees/
+test_generate/
