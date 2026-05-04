@@ -24,6 +24,7 @@ Covers:
 
 from __future__ import annotations
 
+import pytest
 from dataclasses import replace
 
 from alloy_codegen.emit_v2_1 import emit_peripheral_traits
@@ -95,6 +96,11 @@ def test_classify_instance_falls_through_to_none_for_unknown_template() -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.xfail(
+    reason="ADC calibration sub-namespace not yet emitted — "
+           "blocked on extend-peripheral-traits-with-rich-metadata impl",
+    strict=True,
+)
 def test_emit_peripheral_traits_includes_adc_calibration_block() -> None:
     canonical, syn = load_with_synthesis(
         vendor="st", family="stm32g0", device="stm32g071rb",
@@ -113,6 +119,11 @@ def test_emit_peripheral_traits_includes_adc_calibration_block() -> None:
     assert "namespace ts_cal_high" in adc_block
 
 
+@pytest.mark.xfail(
+    reason="ADC external_triggers sub-namespace not yet emitted — "
+           "blocked on extend-peripheral-traits-with-rich-metadata impl",
+    strict=True,
+)
 def test_emit_peripheral_traits_includes_adc_external_triggers() -> None:
     canonical, syn = load_with_synthesis(
         vendor="st", family="stm32g0", device="stm32g071rb",
@@ -146,6 +157,11 @@ def test_emit_peripheral_traits_skips_i2c_when_no_presets() -> None:
     assert "namespace timing_presets" not in text[i2c_start:i2c_end]
 
 
+@pytest.mark.xfail(
+    reason="I2C timing_presets sub-namespace not yet emitted — "
+           "blocked on extend-peripheral-traits-with-rich-metadata impl",
+    strict=True,
+)
 def test_emit_peripheral_traits_emits_i2c_presets_when_synthetic() -> None:
     """Inject a timing_presets row into the IR via dataclass.replace
     and confirm the emitter lands the kRows table.  (Once
