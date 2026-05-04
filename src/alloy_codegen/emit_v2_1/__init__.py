@@ -16,7 +16,9 @@ Public surface (post adopt-canonical-device-v2-1 + Phase 4 main):
 
 from __future__ import annotations
 
+from alloy_codegen.emit_v2_1.connector_traits import emit_connector_traits
 from alloy_codegen.emit_v2_1.linker_script import emit_linker_script
+from alloy_codegen.emit_v2_1.routes import emit_routes
 from alloy_codegen.emit_v2_1.peripheral_id import emit_peripheral_id
 from alloy_codegen.emit_v2_1.peripheral_traits import emit_peripheral_traits
 from alloy_codegen.emit_v2_1.pin_router import emit_pin_router
@@ -28,6 +30,7 @@ from alloy_codegen.emit_v2_1.system_init import emit_system_init
 from alloy_codegen.emit_v2_1.vector_table import emit_vector_table
 
 __all__ = [
+    "emit_connector_traits",
     "emit_linker_script",
     "emit_peripheral_id",
     "emit_peripheral_traits",
@@ -35,6 +38,7 @@ __all__ = [
     "emit_rcc_enable",
     "emit_rcc_gate_table",
     "emit_rcc_traits",
+    "emit_routes",
     "emit_runtime_init",
     "emit_system_init",
     "emit_vector_table",

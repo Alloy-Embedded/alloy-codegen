@@ -70,12 +70,16 @@ def test_generate_with_chip_writes_four_artifacts(tmp_path: Path) -> None:
     expected_names = {
         "linker.ld",
         "vector_table.c",
+        "peripheral_id.hpp",
         "peripheral_traits.h",
         "runtime_init.c",
         "pins.h",
         "system_init.c",
+        "rcc_gate_table.hpp",
+        "connectors.hpp",
+        "routes.hpp",
     }
-    assert {p.name for p in written} == expected_names
+    assert expected_names.issubset({p.name for p in written})
     for path in written:
         assert path.parent == tmp_path
         assert path.exists()

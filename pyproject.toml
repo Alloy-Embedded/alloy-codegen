@@ -37,6 +37,9 @@ Issues = "https://github.com/Alloy-Embedded/alloy-codegen/issues"
 minversion = "8.0"
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    "compile_smoke: C++ compile smoke tests (require --compile-smoke flag + clang++ on PATH)",
+]
 
 [tool.ruff]
 line-length = 100

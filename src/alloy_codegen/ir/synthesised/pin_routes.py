@@ -59,3 +59,15 @@ class PinRoute:
     pad is PA12 but on the package's UFQFPN28 the routing is
     available through PA10).  Resolved at runtime by
     ``pin_route_lookup`` when ``alternate_pin is not None``."""
+
+    @property
+    def route_kind(self) -> str:
+        """Mapped ``RouteKindId`` enumerator name for the connectors emitter."""
+        _MAP: dict[str, str] = {
+            "alloy.pinmux.stm32-af-v1":            "route_kind_alternate_function",
+            "alloy.pinmux.sam-matrix-function-v1": "route_kind_matrix_function",
+            "alloy.pinmux.rp2040-funcsel-v1":      "route_kind_funcsel",
+            "alloy.pinmux.esp32-io-matrix-v1":     "route_kind_io_matrix",
+            "alloy.pinmux.nordic-psel-v1":         "route_kind_psel",
+        }
+        return _MAP.get(self.backend_schema_id, "route_kind_unknown")

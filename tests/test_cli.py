@@ -11,11 +11,13 @@ from alloy_codegen.cli import _EMITTERS, _parse_target, main
 
 def test_emitter_registry_carries_every_known_emitter() -> None:
     names = {e.name for e in _EMITTERS}
-    assert names == {"linker_script", "vector_table",
-                     "peripheral_traits", "peripheral_id",
-                     "rcc_enable", "rcc_gate_table", "rcc_traits",
-                     "runtime_init",
-                     "pin_router", "system_init"}
+    assert names == {
+        "linker_script", "vector_table",
+        "peripheral_traits", "peripheral_id",
+        "rcc_enable", "rcc_gate_table", "rcc_traits",
+        "runtime_init", "pin_router", "system_init",
+        "connector_traits", "routes",
+    }
 
 
 def test_parse_target_three_part() -> None:
@@ -57,7 +59,8 @@ def test_main_emits_every_artifact(tmp_path: Path) -> None:
                 "rcc_enable.hpp", "rcc_gate_table.hpp",
                 "rcc_traits.hpp",
                 "runtime_init.c", "pins.h",
-                "system_init.c"}
+                "system_init.c",
+                "connectors.hpp", "routes.hpp"}
     actual = {p.name for p in chip_out.iterdir()}
     assert actual == expected
 

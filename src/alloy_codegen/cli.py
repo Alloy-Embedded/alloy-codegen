@@ -31,6 +31,7 @@ from pathlib import Path
 
 from alloy_codegen.bootstrap import CANONICAL_SCHEMA
 from alloy_codegen.emit_v2_1 import (
+    emit_connector_traits,
     emit_linker_script,
     emit_peripheral_id,
     emit_peripheral_traits,
@@ -38,6 +39,7 @@ from alloy_codegen.emit_v2_1 import (
     emit_rcc_enable,
     emit_rcc_gate_table,
     emit_rcc_traits,
+    emit_routes,
     emit_runtime_init,
     emit_system_init,
     emit_vector_table,
@@ -116,6 +118,18 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         filename="rcc_gate_table.hpp",
         fn=emit_rcc_gate_table,
         description="Per-peripheral RCC enable-gate lookup table (consteval find_rcc_gate).",
+    ),
+    _EmitterEntry(
+        name="connector_traits",
+        filename="connectors.hpp",
+        fn=emit_connector_traits,
+        description="ConnectorTraits + Guard A/B + kConnectors table for alloy connector system.",
+    ),
+    _EmitterEntry(
+        name="routes",
+        filename="routes.hpp",
+        fn=emit_routes,
+        description="RouteId + RouteKindId enums + RouteDescriptor + kRoutes lookup table.",
     ),
 )
 
