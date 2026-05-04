@@ -25,11 +25,13 @@ from alloy_codegen.emit_v2_1 import (
     emit_peripheral_traits,
     emit_pin_router,
     emit_rcc_gate_table,
+    emit_rcc_traits,
     emit_routes,
     emit_runtime_init,
     emit_system_init,
     emit_vector_table,
 )
+from alloy_codegen.emit_board import emit_board_cpp, emit_board_hpp, emit_board_uart_hpp
 from alloy_codegen.errors import ConfigError
 from alloy_codegen.ir.synthesised import SynthesisedDevice
 from alloy_codegen.ir.v2_1 import CanonicalDevice
@@ -88,6 +90,11 @@ _EMITTERS: tuple[_EmitterEntry, ...] = (
         name="peripheral_id",
         filename="peripheral_id.hpp",
         fn=emit_peripheral_id,
+    ),
+    _EmitterEntry(
+        name="rcc_traits",
+        filename="rcc_traits.hpp",
+        fn=emit_rcc_traits,
     ),
     _EmitterEntry(
         name="peripheral_traits",
@@ -232,4 +239,45 @@ def generate(config: Any, out_dir: Path) -> tuple[Path, ...]:
     return tuple(sorted(written))
 
 
-__all__ = ["generate"]
+def generate_board(board_json_path: Path, out_dir: Path) -> tuple[Path, ...]:
+    """Generate board C++ artifacts from a ``board.json`` manifest.
+
+    Writes ``board.hpp``, ``board.cpp``, and (when ``uart.debug`` is
+    present) ``board_uart.hpp`` into ``out_dir``.
+
+    Returns the sorted tuple of files written.
+
+    Raises:
+        FileNotFoundError: when ``board_json_path`` does not exist.
+        ValueError: when the manifest is missing ``board_id``.
+    """
+    import json
+
+    board_json_path = Path(board_json_path)
+    if not board_json_path.exists():
+        raise FileNotFoundError(f"board.json not found: {board_json_path}")
+
+    manifest: dict = json.loads(board_json_path.read_text(encoding="utf-8"))
+    if not manifest.get("board_id"):
+        raise ValueError(f"board.json at {board_json_path} is missing 'board_id'")
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    written: list[Path] = []
+
+    for filename, text in [
+        ("board.hpp", emit_board_hpp(manifest)),
+        ("board.cpp", emit_board_cpp(manifest)),
+        ("board_uart.hpp", emit_board_uart_hpp(manifest)),
+    ]:
+        if not text:
+            continue
+        target = out_dir / filename
+        target.write_text(text, encoding="utf-8")
+        written.append(target)
+
+    return tuple(sorted(written))
+
+
+__all__ = ["generate", "generate_board"]

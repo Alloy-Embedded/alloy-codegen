@@ -9,28 +9,27 @@ Demonstrates end-to-end consumption of the v2.1 IR:
 * `memory[].alias` resolves to the conventional ``code`` / ``data``
   aliases the C runtime expects.
 
-Output format follows the layout shipped with most CMSIS templates:
+For ARM Cortex-M devices (armv6-m / armv7-m / armv7e-m / armv8-m) a
+complete ``SECTIONS`` block is emitted with the symbol names consumed
+by ``alloy::arch::cortex_m::startup.hpp``:
 
-```
-ENTRY(Reset_Handler)
-
-MEMORY {
-    flash (rx)  : ORIGIN = 0x08000000, LENGTH = 64K
-    sram  (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
-}
-
-_estack    = ORIGIN(sram) + LENGTH(sram);
-_sram_size = LENGTH(sram);
-```
-
-This is a minimal viable emitter — it lays down the skeleton; section
-placement (`.text`, `.data`, `.bss`, …) is left to the C runtime
-boilerplate that is not chip-specific.
+  ``_sidata`` / ``_sdata`` / ``_edata``  — .data copy (flash → RAM)
+  ``_sbss``   / ``_ebss``                — .bss zero-fill range
+  ``__init_array_start/end``             — C++ static constructors
+  ``__stack_top`` (alias of ``_estack``) — initial SP in vector table
 """
 
 from __future__ import annotations
 
 from alloy_codegen.ir.v2_1 import CanonicalDevice, MemoryRegion
+
+# ISA prefixes that identify ARM Cortex-M cores.
+_ARM_CM_ISA = ("armv6-m", "armv7-m", "armv7e-m", "armv8-m")
+
+
+def _is_arm_cortex_m(device: CanonicalDevice) -> bool:
+    isa = device.identity.core.isa or ""
+    return any(isa.startswith(p) for p in _ARM_CM_ISA)
 
 
 def _format_size(size: str) -> str:
@@ -84,7 +83,10 @@ def _emit_aliases_and_symbols(device: CanonicalDevice) -> list[str]:
     data_region = next((r for r in device.memory if r.alias == "data"), None)
 
     if data_region is not None:
-        out.append(f"_estack    = ORIGIN({data_region.id}) + LENGTH({data_region.id});")
+        out.append(f"_estack     = ORIGIN({data_region.id}) + LENGTH({data_region.id});")
+        # ARM Cortex-M vector table slot 0 expects __stack_top.
+        if _is_arm_cortex_m(device):
+            out.append(f"__stack_top = _estack;")
 
     # Per-core stacks for dual-core chips.
     if device.identity.core.multicore is not None:
@@ -105,6 +107,113 @@ def _emit_aliases_and_symbols(device: CanonicalDevice) -> list[str]:
         out.append(f"_text_origin = ORIGIN({code_region.id});")
         out.append(f"_text_length = LENGTH({code_region.id});")
     return out
+
+
+def _emit_sections_arm(code_id: str, data_id: str) -> list[str]:
+    """Full SECTIONS block for ARM Cortex-M.
+
+    Symbol names match ``alloy::arch::cortex_m::startup.hpp``:
+    ``_sidata``, ``_sdata``, ``_edata``, ``_sbss``, ``_ebss``,
+    ``__init_array_start/end``.
+    """
+    c = code_id
+    d = data_id
+    return [
+        "SECTIONS",
+        "{",
+        f"    /* Vector table — must be first in {c}. */",
+        f"    .isr_vector :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        KEEP(*(.isr_vector))",
+        f"        . = ALIGN(4);",
+        f"    }} > {c}",
+        "",
+        f"    .text :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        *(.text*)",
+        f"        *(.rodata*)",
+        f"        *(.glue_7)",
+        f"        *(.glue_7t)",
+        f"        *(.eh_frame)",
+        f"        KEEP (*(.init))",
+        f"        KEEP (*(.fini))",
+        f"        . = ALIGN(4);",
+        f"        _etext = .;",
+        f"    }} > {c}",
+        "",
+        f"    /* ARM exception unwinding tables. */",
+        f"    .ARM.extab :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        *(.ARM.extab* .gnu.linkonce.armextab.*)",
+        f"        . = ALIGN(4);",
+        f"    }} > {c}",
+        "",
+        f"    .ARM :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        __exidx_start = .;",
+        f"        *(.ARM.exidx*)",
+        f"        __exidx_end = .;",
+        f"        . = ALIGN(4);",
+        f"    }} > {c}",
+        "",
+        f"    /* C++ static-constructor / destructor tables. */",
+        f"    .init_array :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        PROVIDE_HIDDEN (__init_array_start = .);",
+        f"        KEEP (*(SORT(.init_array.*)))",
+        f"        KEEP (*(.init_array*))",
+        f"        PROVIDE_HIDDEN (__init_array_end = .);",
+        f"        . = ALIGN(4);",
+        f"    }} > {c}",
+        "",
+        f"    .fini_array :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        PROVIDE_HIDDEN (__fini_array_start = .);",
+        f"        KEEP (*(SORT(.fini_array.*)))",
+        f"        KEEP (*(.fini_array*))",
+        f"        PROVIDE_HIDDEN (__fini_array_end = .);",
+        f"        . = ALIGN(4);",
+        f"    }} > {c}",
+        "",
+        f"    /* _sidata = LMA of .data (load address in {c}). */",
+        f"    _sidata = LOADADDR(.data);",
+        "",
+        f"    .data :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        _sdata = .;",
+        f"        *(.data*)",
+        f"        . = ALIGN(4);",
+        f"        _edata = .;",
+        f"    }} > {d} AT> {c}",
+        "",
+        f"    .bss (NOLOAD) :",
+        f"    {{",
+        f"        . = ALIGN(4);",
+        f"        _sbss = .;",
+        f"        __bss_start__ = _sbss;",
+        f"        *(.bss*)",
+        f"        *(COMMON)",
+        f"        . = ALIGN(4);",
+        f"        _ebss = .;",
+        f"        __bss_end__ = _ebss;",
+        f"    }} > {d}",
+        "",
+        f"    /* Heap start — referenced by _sbrk in syscalls. */",
+        f"    PROVIDE (_end  = .);",
+        f"    PROVIDE (end   = .);",
+        f"    PROVIDE (__heap_start = .);",
+        "",
+        f"    /* ELF build-attributes (no runtime impact). */",
+        f"    .ARM.attributes 0 : {{ *(.ARM.attributes) }}",
+        "}",
+    ]
 
 
 def emit_linker_script(device: CanonicalDevice) -> str:
@@ -128,5 +237,13 @@ def emit_linker_script(device: CanonicalDevice) -> str:
     lines.extend(_emit_memory_block(device.memory))
     lines.append("")
     lines.extend(_emit_aliases_and_symbols(device))
+
+    if _is_arm_cortex_m(device):
+        code_region = next((r for r in device.memory if r.alias == "code"), None)
+        data_region = next((r for r in device.memory if r.alias == "data"), None)
+        if code_region is not None and data_region is not None:
+            lines.append("")
+            lines.extend(_emit_sections_arm(code_region.id, data_region.id))
+
     lines.append("")
     return "\n".join(lines) + "\n"
