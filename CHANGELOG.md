@@ -5,6 +5,65 @@ All notable changes to alloy-codegen are recorded in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] — 2026-05-03
+
+### Connector + route emitters — cross-peripheral, cross-vendor
+
+Two new on-demand emitters replace the deleted bulk-pipeline tools:
+
+#### `connectors.hpp` — compile-time routing validation
+
+`emit_v2_1.emit_connector_traits(device, synthesised)` generates a full
+`ConnectorTraits<PinId, PeripheralId, SignalId>` specialisation tree for
+every valid `(pin, peripheral, signal)` triple in the device's pin-routes
+table.  The artifact is consumed by `alloy/src/hal/connect/runtime_connector.hpp`.
+
+Emitted types per device:
+- `PinId`, `PeripheralId`, `SignalId`, `RouteKindId`, `ConnectionGroupId`,
+  `RouteId`, `ConnectorId` typed enums.
+- Full specialisations (`kPresent = true`) for every valid triple.
+- Guard A partial specs — `static_assert` for a wrong pin on a known
+  peripheral+signal pair.
+- Guard B partial specs — `static_assert` for a wrong peripheral on a
+  known pin+signal pair.
+- `ConnectorSignalTraits<Peri, Signal>` with the valid-pins array.
+- `kConnectors` descriptor table.
+
+#### `routes.hpp` — runtime routing code table
+
+`emit_v2_1.emit_routes(device, synthesised)` generates the `RouteDescriptor`
+struct and `kRoutes` lookup table (`route_kind + hw_code` per route).
+`code = 0xFFFFu` is the sentinel for routes whose YAML has not yet been
+enriched with AF / FUNCSEL / ABCDSR values.
+
+#### SAME70 / SAMV71 PIO backend
+
+`emit_v2_1.pinmux_backends.sam_pio` implements the Microchip SAM PIO
+matrix-function backend (`alloy.pinmux.sam-matrix-function-v1`).  Registered
+for `("microchip", "same70")` and `("microchip", "samv71")`.
+
+ATSAME70Q21B synthesises **497 routes** spanning UART, USART, SPI, I2C (TWIHS),
+AFEC (ADC), DACC, CAN, Ethernet, SDRAMC, PIOA–PIOE — all peripherals in
+one shot, without any per-peripheral per-family special-casing.
+`code = None` until the YAML enrichment pass adds A/B/C/D function-letter
+integers to each `PinOptionFixed` row.
+
+### Removed
+
+- `tools/bump_devices_yml.py` — submodule-pin bumper, superseded by the
+  per-device emit path.
+- `tools/runtime_cpp_smoke.py` — bulk clang++ runner, superseded by
+  `tests/test_compile_smoke.py` (per-device smoke via pytest fixture).
+- `tests/codegen/published_runtime_lite_contract_smoke.cpp` — pre-generated
+  artifact smoke template; the new `smoke_connector_routes.cpp` covers the
+  same ground.
+
+### Tests
+
+- 35 new tests for the connector-traits and routes emitters.
+- `test_pin_router::test_unsupported_vendor_emits_empty_routes` updated to
+  use RP2040 (SAME70 now has a backend; RP2040 FUNCSEL is still pending).
+
 ## [0.4.0] — 2026-05-03
 
 ### Type-safe RCC trait surface (BREAKING CHANGE)
