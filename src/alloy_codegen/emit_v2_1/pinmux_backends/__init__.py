@@ -11,6 +11,7 @@ device).
 from __future__ import annotations
 
 from alloy_codegen.emit_v2_1.pinmux_backends._protocol import PinmuxBackend
+from alloy_codegen.emit_v2_1.pinmux_backends.sam_pio import SAM_PIO_BACKEND
 from alloy_codegen.emit_v2_1.pinmux_backends.stm32_af import STM32_AF_BACKEND
 
 
@@ -23,10 +24,10 @@ def registry() -> dict[tuple[str, str], PinmuxBackend]:
     synthesiser never branches on vendor or family directly.
     """
     return {
-        ("st", "stm32"): STM32_AF_BACKEND,
+        ("st", "stm32"):           STM32_AF_BACKEND,
+        ("microchip", "same70"):   SAM_PIO_BACKEND,
+        ("microchip", "samv71"):   SAM_PIO_BACKEND,
         # Future entries:
-        # ("microchip", "same70"): SAM_PIO_BACKEND,
-        # ("microchip", "samv71"): SAM_PIO_BACKEND,
         # ("microchip", "samd"):   SAM_PMUX_BACKEND,
         # ("microchip", "saml"):   SAM_PMUX_BACKEND,
         # ("microchip", "avr"):    AVR_PORTMUX_BACKEND,

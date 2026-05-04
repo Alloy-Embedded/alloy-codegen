@@ -132,14 +132,19 @@ def test_generate_writes_pins_h(tmp_path: Path) -> None:
 
 
 def test_unsupported_vendor_emits_empty_routes(tmp_path: Path) -> None:
-    """Devices whose vendor has no PinmuxBackend yet still receive
+    """Devices whose family has no PinmuxBackend yet still receive
     a well-formed (empty-table) ``pins.h`` — the emitter does not
-    crash and the kRoutes array is sized 0."""
+    crash and the kRoutes array is sized 0.
+
+    RP2040 is used here because its FUNCSEL backend has not yet landed;
+    SAME70 now has a backend (``alloy.pinmux.sam-matrix-function-v1``)
+    and produces non-empty routes.
+    """
     canonical, syn = load_with_synthesis(
-        vendor="microchip", family="same70", device="atsame70q21b",
+        vendor="raspberrypi", family="rp2040", device="rp2040",
     )
     text = emit_pin_router(canonical, syn)
-    # Empty routes table — no SAM PIO backend yet.
+    # Empty routes table — no RP2040 FUNCSEL backend yet.
     assert "kRouteCount = 0u" in text
     # Banner falls back to the unknown sentinel.
     assert "alloy.pinmux.unknown-v0" in text

@@ -7,7 +7,7 @@ Family → backend schema id mapping (from ``openspec/project.md``):
 Family                          ``pinmux_backend_schema_id``
 ==============================  ==========================================
 ``st/stm32*``                   ``alloy.pinmux.stm32-af-v1``
-``microchip/same70``,``samv71``  ``alloy.pinmux.sam-pio-v1``
+``microchip/same70``,``samv71``  ``alloy.pinmux.sam-matrix-function-v1``
 ``microchip/samd21``,``samd51``,``saml21``  ``alloy.pinmux.sam-pmux-v1`` (new)
 ``microchip/avr-da``            ``alloy.pinmux.avr-portmux-v1``
 ``nxp/imxrt1060``               ``alloy.pinmux.imxrt-iomuxc-v1``
