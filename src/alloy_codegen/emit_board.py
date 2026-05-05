@@ -146,7 +146,8 @@ def emit_board_hpp(manifest: dict[str, Any]) -> str:
     if leds:
         L.append("// ── LED ────────────────────────────────────────────────────────────────────")
         primary = leds[0]
-        active_high: bool = bool(primary.get("active_high", True))
+        _active_low: bool = bool(primary.get("active_low", False))
+        active_high: bool = bool(primary.get("active_high", not _active_low))
         L += [
             "namespace led {",
             f"inline constexpr bool kActiveHigh = {'true' if active_high else 'false'};",
@@ -223,7 +224,8 @@ def emit_board_cpp(manifest: dict[str, Any]) -> str:
     for led in leds:
         pin: str = led["pin"]
         name: str = led["name"]
-        active_high: bool = bool(led.get("active_high", True))
+        _al: bool = bool(led.get("active_low", False))
+        active_high: bool = bool(led.get("active_high", not _al))
         off_st: str = _off_state(active_high)
         L += [
             f"// LED {name} — {pin} (active {'high' if active_high else 'low'})",
@@ -258,15 +260,31 @@ def emit_board_cpp(manifest: dict[str, Any]) -> str:
         ]
 
     # ── Init state + clock helper ────────────────────────────────────────────
+    clock_profiles_cpp: list[str] = manifest.get("clock_profiles", [])
+    L.append("static bool board_initialized = false;")
+    L.append("")
+    L.append("inline void configure_system_clock() {")
+    if clock_profiles_cpp:
+        # Use the first declared profile so hardware runs at the intended frequency.
+        # apply_default() silently falls back to the safe/slow internal oscillator
+        # which is NOT what board.json's clock_profiles entry describes.
+        p = clock_profiles_cpp[0]
+        L += [
+            "#if ALLOY_DEVICE_CLOCK_CONFIG_AVAILABLE",
+            f"    static_cast<void>(alloy::device::clock_config::apply_profile<alloy::device::clock_config::ProfileId::{p}>());",
+            "#elif ALLOY_DEVICE_SYSTEM_CLOCK_AVAILABLE",
+            f"    static_cast<void>(alloy::device::system_clock::apply_profile<alloy::device::system_clock::ProfileId::{p}>());",
+            "#endif",
+        ]
+    else:
+        L += [
+            "#if ALLOY_DEVICE_CLOCK_CONFIG_AVAILABLE",
+            "    static_cast<void>(alloy::device::clock_config::apply_default());",
+            "#elif ALLOY_DEVICE_SYSTEM_CLOCK_AVAILABLE",
+            "    static_cast<void>(alloy::device::system_clock::apply_default());",
+            "#endif",
+        ]
     L += [
-        "static bool board_initialized = false;",
-        "",
-        "inline void configure_system_clock() {",
-        "#if ALLOY_DEVICE_CLOCK_CONFIG_AVAILABLE",
-        "    static_cast<void>(alloy::device::clock_config::apply_default());",
-        "#else",
-        "    static_cast<void>(alloy::device::system_clock::apply_default());",
-        "#endif",
         "}",
         "",
         "}  // namespace",
@@ -277,7 +295,8 @@ def emit_board_cpp(manifest: dict[str, Any]) -> str:
     if leds:
         primary = leds[0]
         pname: str = primary["name"]
-        active_high = bool(primary.get("active_high", True))
+        _al2: bool = bool(primary.get("active_low", False))
+        active_high = bool(primary.get("active_high", not _al2))
         L += [
             "namespace led {",
             "",
